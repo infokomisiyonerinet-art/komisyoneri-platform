@@ -1211,6 +1211,11 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   border-bottom:1px solid rgba(39,168,74,.15)}
 .chat-api-connected svg{width:14px;height:14px;fill:none;stroke:#27A84A;stroke-width:2.5}
 </style>
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Firebase Auth for Phone OTP -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 </head>
 <body>
 
@@ -1500,6 +1505,9 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <textarea id="prop-desc" rows="3" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;resize:vertical" placeholder="Sobanura inzu yawe: ibikoresho, ahantu hihutirwa, ibiranga..."></textarea>
       </div>
       <div class="field"><label>Telefoni yo Gutumanahana</label><input type="tel" id="prop-contact" placeholder="+250 7XX XXX XXX"></div>
+      <div class="field"><label>🖼️ Ifoto ya 1 (URL — imgbb.com)</label><input type="url" id="prop-img1" placeholder="https://i.ibb.co/xxxxx/inzu.jpg"></div>
+      <div class="field"><label>🖼️ Ifoto ya 2 (Ntibisabwa)</label><input type="url" id="prop-img2" placeholder="https://i.ibb.co/xxxxx/imbere.jpg"></div>
+      <div class="field"><label>🖼️ Ifoto ya 3 (Ntibisabwa)</label><input type="url" id="prop-img3" placeholder="https://i.ibb.co/xxxxx/igikari.jpg"></div>
       <div class="field"><label>🎥 Video URL (YouTube) — Ntibisabwa</label><input type="url" id="prop-video" placeholder="https://youtube.com/watch?v=..."></div>
       <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center;margin-top:.4rem" onclick="submitProperty()">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
@@ -1557,9 +1565,9 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   <section class="hero">
     <div class="hero-inner">
       <div>
-        <div class="hero-pill"><div class="h-pulse"></div><span data-rw="Platform N°1 mu Rwanda" data-en="Rwanda's #1 Real Estate Platform">Platform N°1 mu Rwanda</span></div>
-        <h1>Shakisha Inzu<br><em data-rw="Nziza mu Rwanda" data-en="Perfect — In Rwanda">Nziza mu Rwanda</em></h1>
-        <p class="hero-sub" data-rw="Duhuza abantu n'imitungo itimurika mu buryo bworoshye, bwizewe, n'ubwigufi. Gura, gurisha, cyangwa ugure inzu ukoresha ubwenge bwa AI yacu." data-en="We connect people with quality properties simply, safely and affordably. Buy, sell or rent using our AI-powered platform across all Rwanda.">Duhuza abantu n'imitungo itimurika mu buryo bworoshye, bwizewe, n'ubwigufi. Gura, gurisha, cyangwa ugure inzu ukoresha ubwenge bwa AI yacu.</p>
+        <div class="hero-pill"><div class="h-pulse"></div><span>🇷🇼 KOMISIYONERI — Digital Real Estate Platform</span></div>
+        <h1>Find, Buy, Sell<br><em>&amp; Rent Houses in Rwanda 🇷🇼</em></h1>
+        <p class="hero-sub" data-rw="Duhuza abantu n'imitungo itimurika mu buryo bworoshye, bwizewe, n'ubwigufi. Gura, gurisha, cyangwa ugure inzu ukoresha ubwenge bwa AI yacu." data-en="KOMISIYONERI — Rwanda's AI-Powered Digital Real Estate Platform. Search, compare and close property deals faster than ever.">KOMISIYONERI — Rwanda's #1 AI-Powered Digital Real Estate Platform. Search, compare, buy, sell or rent properties faster than ever.</p>
         <div class="hero-btns">
           <button class="btn btn-gold btn-lg" onclick="openSearch()" style="padding:1rem 2.4rem;font-size:1rem;border-radius:12px;box-shadow:0 8px 32px rgba(245,166,35,.4)">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -1744,28 +1752,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         </button>
       </div>
       <div class="p-grid" id="p-grid-main">
-        <div class="p-card" onclick="go('detail')">
-          <div class="p-img g1"><div class="p-img-inner"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div>
-            <div class="p-tag"><span class="badge b-navy" data-rw="Kugura" data-en="For Sale">Kugura</span></div><div class="p-price">120M RWF</div><button class="p-fav"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></button></div>
-          <div class="p-body"><div class="p-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Gasabo, Kimironko</div>
-            <div class="p-title" data-rw="Villa Nziza — Amazu 4" data-en="Beautiful Villa — 4 Bedrooms">Villa Nziza — Amazu 4</div>
-            <div class="p-feats"><span class="p-feat"><svg viewBox="0 0 24 24"><path d="M3 22V8a1 1 0 011-1h7V3a1 1 0 011-1h8a1 1 0 011 1v19M9 22V12h6v10"/></svg>4</span><span class="p-feat"><svg viewBox="0 0 24 24"><path d="M9 6l2 2-2 2m4 0l2-2-2-2"/><rect x="2" y="20" width="20" height="2" rx="1"/><path d="M2 20V8a2 2 0 012-2h16a2 2 0 012 2v12"/></svg>2</span><span class="p-feat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>320m²</span><span class="p-feat"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span data-rw="3D Tour" data-en="3D Tour">3D Tour</span></span></div></div>
         </div>
-        <div class="p-card" onclick="go('detail')">
-          <div class="p-img g2"><div class="p-img-inner"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
-            <div class="p-tag"><span class="badge b-green" data-rw="Gukodesha" data-en="For Rent">Gukodesha</span></div><div class="p-price">450K/mo</div><button class="p-fav"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></button></div>
-          <div class="p-body"><div class="p-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Kicukiro, Niboye</div>
-            <div class="p-title" data-rw="Apartimanı Nziza — Ibyumba 2" data-en="Modern Apartment — 2 Bedrooms">Apartimanı Nziza — Ibyumba 2</div>
-            <div class="p-feats"><span class="p-feat"><svg viewBox="0 0 24 24"><path d="M3 22V8a1 1 0 011-1h7V3a1 1 0 011-1h8a1 1 0 011 1v19M9 22V12h6v10"/></svg>2</span><span class="p-feat"><svg viewBox="0 0 24 24"><path d="M9 6l2 2-2 2m4 0l2-2-2-2"/><rect x="2" y="20" width="20" height="2" rx="1"/><path d="M2 20V8a2 2 0 012-2h16a2 2 0 012 2v12"/></svg>1</span><span class="p-feat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>85m²</span><span class="p-feat" style="color:var(--green);font-weight:700" data-rw="Ifite 3D" data-en="Has 3D">Ifite 3D</span></div></div>
-        </div>
-        <div class="p-card" onclick="go('detail')">
-          <div class="p-img g3"><div class="p-img-inner"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg></div>
-            <div class="p-tag"><span class="badge b-gold" data-rw="Rishya" data-en="New">Rishya</span></div><div class="p-price">85M RWF</div><button class="p-fav"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></button></div>
-          <div class="p-body"><div class="p-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Musanze, Muhoza</div>
-            <div class="p-title" data-rw="Inzu + Ubutaka — Kwa Gorilla" data-en="House + Land — Near Gorillas">Inzu + Ubutaka — Kwa Gorilla</div>
-            <div class="p-feats"><span class="p-feat"><svg viewBox="0 0 24 24"><path d="M3 22V8a1 1 0 011-1h7V3a1 1 0 011-1h8a1 1 0 011 1v19M9 22V12h6v10"/></svg>3</span><span class="p-feat"><svg viewBox="0 0 24 24"><path d="M9 6l2 2-2 2m4 0l2-2-2-2"/><rect x="2" y="20" width="20" height="2" rx="1"/><path d="M2 20V8a2 2 0 012-2h16a2 2 0 012 2v12"/></svg>2</span><span class="p-feat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>500m²</span><span class="p-feat" data-rw="Isura" data-en="View">Isura</span></div></div>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -1994,7 +1981,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     </aside>
     <div>
       <div class="list-main-bar">
-        <p class="res-count"><strong>48</strong> <span data-rw="imitungo yabonetse" data-en="properties found">imitungo yabonetse</span></p>
+        <p class="res-count"><strong id="listings-count">0</strong> <span data-rw="imitungo yabonetse" data-en="properties found">imitungo yabonetse</span></p>
         <div class="bar-right">
           <select class="sort-sel">
             <option data-rw="Ishimishije" data-en="Featured">Ishimishije</option>
@@ -2009,13 +1996,9 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         </div>
       </div>
       <div class="p-grid" id="p-grid-main">
-        <div class="p-card" onclick="go('detail')"><div class="p-img g1"><div class="p-img-inner"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div><div class="p-tag"><span class="badge b-navy" data-rw="Kugura" data-en="For Sale">Kugura</span></div><div class="p-price">120M RWF</div><button class="p-fav"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></button></div><div class="p-body"><div class="p-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Gasabo, Kimironko</div><div class="p-title" data-rw="Villa Nziza — Amazu 4" data-en="Beautiful Villa — 4 Bed">Villa Nziza — Amazu 4</div><div class="p-feats"><span class="p-feat"><svg viewBox="0 0 24 24"><path d="M3 22V8a1 1 0 011-1h7V3a1 1 0 011-1h8a1 1 0 011 1v19M9 22V12h6v10"/></svg>4</span><span class="p-feat"><svg viewBox="0 0 24 24"><path d="M9 6l2 2-2 2m4 0l2-2-2-2"/><rect x="2" y="20" width="20" height="2"/><path d="M2 20V8a2 2 0 012-2h16a2 2 0 012 2v12"/></svg>2</span><span class="p-feat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>320m²</span></div></div></div>
-        <div class="p-card" onclick="go('detail')"><div class="p-img g2"><div class="p-img-inner"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><div class="p-tag"><span class="badge b-green" data-rw="Gukodesha" data-en="For Rent">Gukodesha</span></div><div class="p-price">450K/mo</div><button class="p-fav"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></button></div><div class="p-body"><div class="p-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Kicukiro, Niboye</div><div class="p-title" data-rw="Apartimanı — Ibyumba 2" data-en="Apartment — 2 Bedrooms">Apartimanı — Ibyumba 2</div><div class="p-feats"><span class="p-feat"><svg viewBox="0 0 24 24"><path d="M3 22V8a1 1 0 011-1h7V3a1 1 0 011-1h8a1 1 0 011 1v19M9 22V12h6v10"/></svg>2</span><span class="p-feat"><svg viewBox="0 0 24 24"><path d="M9 6l2 2-2 2m4 0l2-2-2-2"/><rect x="2" y="20" width="20" height="2"/><path d="M2 20V8a2 2 0 012-2h16a2 2 0 012 2v12"/></svg>1</span><span class="p-feat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>85m²</span></div></div></div>
-        <div class="p-card" onclick="go('detail')"><div class="p-img g3"><div class="p-img-inner"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg></div><div class="p-tag"><span class="badge b-gold" data-rw="Rishya" data-en="New">Rishya</span></div><div class="p-price">85M RWF</div><button class="p-fav"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></button></div><div class="p-body"><div class="p-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Musanze, Muhoza</div><div class="p-title" data-rw="Inzu + Ubutaka" data-en="House + Land">Inzu + Ubutaka</div><div class="p-feats"><span class="p-feat"><svg viewBox="0 0 24 24"><path d="M3 22V8a1 1 0 011-1h7V3a1 1 0 011-1h8a1 1 0 011 1v19M9 22V12h6v10"/></svg>3</span><span class="p-feat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>500m²</span></div></div></div>
-        <div class="p-card" onclick="go('detail')"><div class="p-img g4"><div class="p-img-inner"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div><div class="p-tag"><span class="badge b-navy" data-rw="Kugura" data-en="For Sale">Kugura</span></div><div class="p-price">220M RWF</div><button class="p-fav"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></button></div><div class="p-body"><div class="p-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Nyarugenge, CBD</div><div class="p-title" data-rw="Inyubako y'Ubucuruzi — 6 Floors" data-en="Commercial Building — 6 Floors">Inyubako y'Ubucuruzi — 6 Floors</div><div class="p-feats"><span class="p-feat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>800m²</span><span class="p-feat"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>6</span></div></div></div>
-        <div class="p-card" onclick="go('detail')"><div class="p-img g5"><div class="p-img-inner"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div><div class="p-tag"><span class="badge b-muted" data-rw="Ubutaka" data-en="Land">Ubutaka</span></div><div class="p-price">45M RWF</div><button class="p-fav"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></button></div><div class="p-body"><div class="p-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Rubavu, Gisenyi</div><div class="p-title" data-rw="Ubutaka — Iriba rya Kivu" data-en="Land — Lake Kivu View">Ubutaka — Iriba rya Kivu</div><div class="p-feats"><span class="p-feat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>1,200m²</span><span class="p-feat" data-rw="Isura ya Kivu" data-en="Lake View">Isura ya Kivu</span></div></div></div>
-        <div class="p-card" onclick="go('detail')"><div class="p-img g6"><div class="p-img-inner"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div><div class="p-tag"><span class="badge b-green" data-rw="Gukodesha" data-en="For Rent">Gukodesha</span></div><div class="p-price">280K/mo</div><button class="p-fav"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></button></div><div class="p-body"><div class="p-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Gasabo, Remera</div><div class="p-title" data-rw="Studio Nshya" data-en="Brand New Studio">Studio Nshya</div><div class="p-feats"><span class="p-feat"><svg viewBox="0 0 24 24"><path d="M3 22V8a1 1 0 011-1h7V3a1 1 0 011-1h8a1 1 0 011 1v19M9 22V12h6v10"/></svg>1</span><span class="p-feat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>42m²</span></div></div></div>
+        <!-- Listings zishyirwa na JS ziva kuri localStorage -->
       </div>
+      
       <div class="pagination">
         <button class="btn btn-navy btn-sm">1</button>
         <button class="btn btn-outline btn-sm">2</button>
@@ -2072,7 +2055,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     <!-- Main content -->
     <div>
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.75rem;margin-bottom:1.4rem">
-        <div><h2 class="h2" data-rw="Villa Nziza — Amazu 4, Kimironko" data-en="Beautiful Villa — 4 Beds, Kimironko">Villa Nziza — Amazu 4, Kimironko</h2>
+        <div><h2 class="h2" id="det-prop-title">Reba Imitungo</h2>
           <div style="display:flex;gap:.75rem;margin-top:.5rem;flex-wrap:wrap">
             <span class="badge b-navy" data-rw="Kugura" data-en="For Sale">Kugura</span>
             <span class="badge b-gold">AI Valued</span>
@@ -2295,19 +2278,19 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         </button>
       </div>
 
-      <!-- Similar properties -->
+      <!-- Similar properties — Dynamic -->
       <div style="background:#fff;border-radius:var(--r);border:1.5px solid var(--border);padding:1.3rem;box-shadow:var(--sh)">
         <div style="font-size:.88rem;font-weight:700;margin-bottom:1rem" data-rw="Imitungo Ifanana" data-en="Similar Properties">Imitungo Ifanana</div>
-        <div style="display:flex;flex-direction:column;gap:.6rem">
-          <div style="display:flex;align-items:center;gap:.7rem;cursor:pointer;padding:.5rem;border-radius:9px;transition:var(--tr)" onmouseover="this.style.background='var(--light)'" onmouseout="this.style.background=''" onclick="go('detail')">
-            <div style="width:52px;height:46px;border-radius:8px;flex-shrink:0" class="g2"></div>
-            <div><div style="font-size:.84rem;font-weight:600" data-rw="Apartimanı — Kicukiro" data-en="Apartment — Kicukiro">Apartimanı — Kicukiro</div><div style="font-size:.76rem;color:var(--muted)">95M RWF</div></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:.7rem;cursor:pointer;padding:.5rem;border-radius:9px;transition:var(--tr)" onmouseover="this.style.background='var(--light)'" onmouseout="this.style.background=''" onclick="go('detail')">
-            <div style="width:52px;height:46px;border-radius:8px;flex-shrink:0" class="g3"></div>
-            <div><div style="font-size:.84rem;font-weight:600" data-rw="Villa — Nyamirambo" data-en="Villa — Nyamirambo">Villa — Nyamirambo</div><div style="font-size:.76rem;color:var(--muted)">110M RWF</div></div>
+        <div id="similar-props-list" style="display:flex;flex-direction:column;gap:.6rem">
+          <!-- Filled by JS -->
+          <div style="text-align:center;padding:1rem;color:var(--muted);font-size:.82rem" id="similar-empty">
+            Imitungo ifanana izagaragara igihe imitungo ya nyayo ishyizweho.
           </div>
         </div>
+        <button onclick="go('listings')" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:.8rem">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1.5" fill="currentColor" stroke="none"/></svg>
+          <span data-rw="Reba Imitungo Yose" data-en="View All Properties">Reba Imitungo Yose</span>
+        </button>
       </div>
     </div>
   </div>
@@ -2501,7 +2484,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           <div class="lr" onclick="go('detail')">
             <div class="lt g2"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
             <div class="li"><strong data-rw="Apartimanı Niboye — 2BR" data-en="Apartment Niboye — 2BR">Apartimanı Niboye — 2BR</strong><span><span class="sdot sd-gold"></span><span data-rw="Irasabwa" data-en="Pending">Irasabwa</span> · Abakiliya 3 basaba</span></div>
-            <span class="lr-price">450K/mo</span>
+            <span class="lr-price" id="dash-prop-price">—</span>
           </div>
           <div class="lr" onclick="go('detail')">
             <div class="lt g3"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg></div>
@@ -2607,16 +2590,14 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
             <span data-rw="Injira" data-en="Sign In">Injira</span>
           </button>
           <div class="dvdr" data-rw="cyangwa" data-en="or">cyangwa</div>
-          <div class="soc-btns">
-            <button class="soc-btn" onclick="showToast('Google sign-in irashyizwaho...')">
-              <svg viewBox="0 0 24 24"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z" fill="#4285f4"/></svg>
-              Google
-            </button>
-            <button class="soc-btn" onclick="showToast('Shyira telefoni yawe mu form hejuru!')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .5h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.37a16 16 0 006.29 6.29l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-              Telefoni
-            </button>
-          </div>
+          <!-- Google Sign-In Button (Real) -->
+          <div id="google-signin-btn" style="width:100%;margin-bottom:.5rem"></div>
+          <!-- Phone OTP Button -->
+          <button class="soc-btn" onclick="openPhoneAuth()" style="width:100%;justify-content:center">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .5h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.37a16 16 0 006.29 6.29l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            Injira na Telefoni (OTP)
+          </button>
+          <div id="recaptcha-container"></div>
         </div>
         <!-- Register form (hidden by default) -->
         <div id="form-register" style="display:none;flex-direction:column;gap:.8rem">
@@ -2799,6 +2780,55 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   </div>
 </div>
 
+
+<!-- === PHONE OTP MODAL === -->
+<div class="modal-wrap" id="phone-modal" style="display:none">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-hdr">
+      <div class="modal-title">📱 Injira na Telefoni</div>
+      <button class="modal-x" onclick="closePhoneAuth()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <!-- Step 1: Phone number -->
+    <div id="phone-step1">
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">Injiza numero ya telefoni yawe. Tuzakoherereza OTP code.</p>
+      <div class="field">
+        <label>Numero ya Telefoni</label>
+        <div style="display:flex;gap:.5rem">
+          <select id="phone-country" style="padding:.7rem .5rem;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;font-family:'DM Sans',sans-serif;background:#fff">
+            <option value="+250">🇷🇼 +250</option>
+            <option value="+256">🇺🇬 +256</option>
+            <option value="+255">🇹🇿 +255</option>
+            <option value="+254">🇰🇪 +254</option>
+            <option value="+243">🇨🇩 +243</option>
+            <option value="+1">🇺🇸 +1</option>
+          </select>
+          <input type="tel" id="phone-number" placeholder="7XX XXX XXX" style="flex:1;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
+        </div>
+      </div>
+      <div id="recaptcha-container-modal" style="margin:.8rem 0"></div>
+      <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="sendOTP()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Ohereza OTP Code
+      </button>
+    </div>
+    <!-- Step 2: OTP verification -->
+    <div id="phone-step2" style="display:none">
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">Shyiramo code ya 6 imibare woherejwe kuri <strong id="phone-display"></strong></p>
+      <div class="field">
+        <label>OTP Code</label>
+        <input type="number" id="otp-code" placeholder="123456" maxlength="6" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1.2rem;text-align:center;letter-spacing:.3em">
+      </div>
+      <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center;margin-top:.5rem" onclick="verifyOTP()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Emeza OTP
+      </button>
+      <button onclick="document.getElementById('phone-step1').style.display='block';document.getElementById('phone-step2').style.display='none'" style="width:100%;text-align:center;margin-top:.5rem;background:none;border:none;color:var(--blue);cursor:pointer;font-size:.82rem">
+        ← Hindura numero
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- === BOOKING MODAL === -->
 <div class="modal-wrap" id="booking-modal" style="display:none">
   <div class="modal" style="max-width:420px">
@@ -2950,7 +2980,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <div class="chat-av"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
       <div>
         <div class="chat-nm">KOMISIYONERI AI Support</div>
-        <div class="chat-st" id="chat-status" data-rw="Shyira API Key hasi" data-en="Enter API Key below">Shyira API Key hasi</div>
+        <div class="chat-st" id="chat-status" data-rw="AI irakora ✓" data-en="AI Connected ✓">AI irakora ✓</div>
       </div>
     </div>
     <div style="display:flex;gap:.5rem;align-items:center">
@@ -2964,7 +2994,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     </div>
   </div>
   <!-- API KEY INPUT (hidden by default) -->
-  <div class="chat-apirow" id="chat-apirow" style="display:none">
+  <div class="chat-apirow" id="chat-apirow" style="display:none!important;visibility:hidden">
     <div class="chat-api-label">🔑 Anthropic API Key yawe</div>
     <div style="display:flex;gap:.4rem">
       <input id="chat-api-inp" class="chat-api-inp" type="password" placeholder="sk-ant-api03-..." autocomplete="off">
@@ -3215,7 +3245,7 @@ IYANDIKISHWA UBUNTU:
 - Ntukavuge "AI" cyangwa "Claude" — uri "KOMISIYONERI Support"`;
 
 var chatApiLoading = false;
-var ANTHROPIC_API_KEY = '';  // Injiza API Key yawe kuri ⚙️ muri chat
+var ANTHROPIC_API_KEY = 'via-vercel';  // Vercel backend ikora
 
 function toggleApiInput() {
   var row = document.getElementById('chat-apirow');
@@ -3304,29 +3334,13 @@ function sendChat() {
   chatHistory.push({ role: 'user', content: val });
 
   // Call Claude API
-  // Check if API key is set
-  if (!ANTHROPIC_API_KEY) {
-    removeTyping();
-    chatApiLoading = false;
-    addMsg(curLang === 'rw' 
-      ? 'Shyira API Key yawe mbere — kanda igiceri cyo gushyiraho hejuru kuri ⚙️'
-      : 'Please set your API Key first — click the ⚙️ settings icon above', 'bot');
-    var row = document.getElementById('chat-apirow');
-    if (row) row.style.display = 'block';
-    return;
-  }
 
-  fetch('https://api.anthropic.com/v1/messages', {
+  fetch('/api/chat', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 500,
       system: KOMISIYONERI_SYSTEM,
       messages: messages
     })
@@ -3495,7 +3509,7 @@ function loadSavedUser() {
 
 function updateNavForUser(user) {
   var adminBtn = document.getElementById('nav-admin-btn');
-  if (adminBtn) adminBtn.style.display = (user && user.email === 'komisiyonericonnectproservices@gmail.com') ? 'block' : 'none';
+  if (adminBtn) adminBtn.style.display = (user && (user.email === 'komisiyonericonnectproservices@gmail.com' || user.email === 'admin@komisiyoneri.com')) ? 'block' : 'none';
   var guest = document.getElementById('nav-guest');
   var userArea = document.getElementById('nav-user');
   var avatar = document.getElementById('nav-avatar');
@@ -3566,6 +3580,7 @@ function submitProperty() {
   props.push({ id:Date.now(), type:g('prop-type'), service:g('prop-service'), district:g('prop-district'),
     sector:g('prop-sector'), price:g('prop-price'), beds:g('prop-beds'), baths:g('prop-baths'),
     size:g('prop-size'), desc:g('prop-desc'), contact:g('prop-contact'),
+    img1:g('prop-img1'), img2:g('prop-img2'), img3:g('prop-img3'), video:g('prop-video'),
     owner:currentUser.name, ownerEmail:currentUser.email, date:new Date().toISOString(), status:'Pending' });
   try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
   closeAddProperty();
@@ -3804,8 +3819,9 @@ function renderUserPropCard(prop) {
   var beds = prop.beds ? '<span class="p-feat"><svg viewBox="0 0 24 24"><path d="M3 22V8a1 1 0 011-1h7V3a1 1 0 011-1h8a1 1 0 011 1v19M9 22V12h6v10"/></svg>'+prop.beds+'</span>' : '';
   var baths = prop.baths ? '<span class="p-feat"><svg viewBox="0 0 24 24"><path d="M9 6l2 2-2 2m4 0l2-2-2-2"/><rect x="2" y="20" width="20" height="2"/><path d="M2 20V8a2 2 0 012-2h16a2 2 0 012 2v12"/></svg>'+prop.baths+'</span>' : '';
   var size = prop.size ? '<span class="p-feat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>'+prop.size+'m²</span>' : '';
+  var imgBg = prop.img1 ? 'style="background-image:url(' + prop.img1 + ');background-size:cover;background-position:center"' : '';
   return '<div class="p-card" style="position:relative" onclick="showToast(this.querySelector(\'.p-title\').textContent)">'
-    + '<div class="p-img '+color+'"><div class="p-img-inner"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div>'
+    + '<div class="p-img '+color+'" '+imgBg+'"><div class="p-img-inner"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div>'
     + '<div class="p-tag">'+badge+'</div>'
     + '<div class="p-price">'+priceDisplay+'</div>'
     + '<div style="position:absolute;top:.5rem;left:.5rem;background:rgba(39,168,74,.9);color:#fff;border-radius:20px;padding:.15rem .55rem;font-size:.65rem;font-weight:700">✅ NSHYA</div>'
@@ -3819,32 +3835,54 @@ function renderUserPropCard(prop) {
 
 // --- INJECT APPROVED PROPERTIES INTO LISTINGS PAGE ---
 function loadApprovedProperties() {
-  var grid = document.getElementById('p-grid-main');
-  if (!grid) return;
+  var grids = document.querySelectorAll('#p-grid-main');
+  if (!grids.length) return;
   var props = [];
   try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
   var approved = props.filter(function(p){ return p.status === 'Approved'; });
-  // Remove previously injected user cards
-  var existing = grid.querySelectorAll('.user-prop-card');
-  existing.forEach(function(el){ el.remove(); });
-  // Add approved ones at top
-  approved.forEach(function(prop) {
-    var wrapper = document.createElement('div');
-    wrapper.className = 'user-prop-card';
-    wrapper.innerHTML = renderUserPropCard(prop);
-    grid.insertBefore(wrapper, grid.firstChild);
+
+  grids.forEach(function(grid) {
+    // Remove old dynamic cards
+    grid.querySelectorAll('.user-prop-card').forEach(function(el){ el.remove(); });
+
+    if (approved.length === 0) {
+      // Show empty state
+      if (!grid.querySelector('.empty-listings')) {
+        var empty = document.createElement('div');
+        empty.className = 'empty-listings';
+        empty.style.cssText = 'grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--muted)';
+        empty.innerHTML = '<div style="font-size:3rem;margin-bottom:1rem">🏠</div>'
+          + '<div style="font-size:1.1rem;font-weight:600;color:var(--navy);margin-bottom:.5rem">'
+          + (curLang==="rw" ? "Nta mitungo irahari ubu" : "No properties listed yet") + '</div>'
+          + '<div style="font-size:.88rem;margin-bottom:1.5rem">'
+          + (curLang==="rw" ? "Imitungo ya nyayo izagaragara hano nyuma yo kwemezwa." : "Real listings will appear here after approval.") + '</div>'
+          + '<button onclick="go(\'auth\')" class="btn btn-navy btn-sm" style="margin:0 auto">'
+          + (curLang==="rw" ? "+ Ongeramo Imitungo Yawe" : "+ Add Your Property") + '</button>';
+        grid.appendChild(empty);
+      }
+    } else {
+      // Remove empty state
+      var empty = grid.querySelector('.empty-listings');
+      if (empty) empty.remove();
+
+      // Add approved properties
+      approved.forEach(function(prop) {
+        var wrapper = document.createElement('div');
+        wrapper.className = 'user-prop-card';
+        wrapper.innerHTML = renderUserPropCard(prop);
+        grid.insertBefore(wrapper, grid.firstChild);
+      });
+    }
   });
+
   // Update count
-  var countEl = document.querySelector('.res-count strong');
-  if (countEl) {
-    var base = 48;
-    countEl.textContent = base + approved.length;
-  }
+  var countEl = document.getElementById('listings-count');
+  if (countEl) countEl.textContent = approved.length;
 }
 
 // --- OPEN ADMIN PANEL ---
 function openAdmin() {
-  var pass = prompt('Injiza ijambo banga rya Admin:');
+  var pass = prompt('Injiza ijambo banga rya Admin (KOMISIYONERI2026):');
   if (!pass || pass !== ADMIN_PASS) {
     showToast('Ijambo banga sibyo! Admin gusa.');
     return;
@@ -4205,6 +4243,296 @@ function submitReview() {
   showToast('Review yawe yoherejwe! Murakoze. ★'.repeat(currentRating));
   name.value=''; text.value=''; setRating(0);
 }
+
+
+// === SIMILAR PROPERTIES — Dynamic ===
+function loadSimilarProperties() {
+  var list = document.getElementById('similar-props-list');
+  var empty = document.getElementById('similar-empty');
+  if (!list) return;
+
+  var props = [];
+  try { props = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+
+  // Show only approved properties
+  var approved = props.filter(function(p) {
+    return p.status === 'Approved';
+  });
+
+  if (approved.length === 0) {
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+
+  if (empty) empty.style.display = 'none';
+
+  // Show max 4 similar properties
+  var show = approved.slice(0, 4);
+  var colors = ['g1','g2','g3','g4','g5','g6'];
+
+  list.innerHTML = show.map(function(prop, i) {
+    var priceDisplay = prop.price
+      ? (parseInt(prop.price) >= 1000000
+        ? Math.round(parseInt(prop.price)/1000000) + 'M RWF'
+        : Math.round(parseInt(prop.price)/1000) + 'K RWF')
+      : '—';
+    if (prop.service === 'Gukodesha') priceDisplay += '/mo';
+
+    var imgStyle = prop.img1
+      ? 'background:url(' + prop.img1 + ') center/cover no-repeat'
+      : '';
+    var colorClass = colors[i % colors.length];
+
+    var divStyle = 'display:flex;align-items:center;gap:.7rem;cursor:pointer;padding:.5rem;border-radius:9px;transition:var(--tr)';
+    return '<div style="'+divStyle+'" onclick="go(\'listings\')">'
+      + '<div style="width:52px;height:46px;border-radius:8px;flex-shrink:0;' + imgStyle + '" class="' + (prop.img1 ? '' : colorClass) + '"></div>'
+      + '<div>'
+      + '<div style="font-size:.84rem;font-weight:600">' + prop.type + ' — ' + (prop.district || '') + '</div>'
+      + '<div style="font-size:.76rem;color:var(--muted)">' + priceDisplay + '</div>'
+      + '</div></div>';
+  }).join('');
+}
+
+// Load similar properties when detail page opens
+var _origGo2 = go;
+go = function(page) {
+  _origGo2(page);
+  if (page === 'detail') {
+    setTimeout(loadSimilarProperties, 150);
+  }
+};
+setTimeout(loadSimilarProperties, 400);
+
+
+// ════════════════════════════════════════════════
+//  KOMISIYONERI — REAL AUTH SYSTEM
+//  Google Sign-in + Phone OTP (Firebase)
+// ════════════════════════════════════════════════
+
+// Firebase config — user fills this in Firebase Console
+// Instructions: console.firebase.google.com → New Project → Add Web App
+var FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAtNnbsXKFgABvP-nTvGwz6pooGnSWSshY",
+  authDomain: "komisiyoneri-78e82.firebaseapp.com",
+  projectId: "komisiyoneri-78e82",
+  storageBucket: "komisiyoneri-78e82.firebasestorage.app",
+  messagingSenderId: "580559336922",
+  appId: "1:580559336922:web:2275a3013b07cf56c0fce3",
+  measurementId: "G-NE0PHMB885"
+};
+
+var firebaseApp = null;
+var firebaseAuth = null;
+var confirmationResult = null;
+var recaptchaVerifier = null;
+
+// Initialize Firebase
+function initFirebase() {
+  try {
+    if (typeof firebase !== 'undefined' && FIREBASE_CONFIG.apiKey !== 'YOUR_FIREBASE_API_KEY') {
+      if (!firebase.apps.length) {
+        firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
+      }
+      firebaseAuth = firebase.auth();
+      return true;
+    }
+  } catch(e) {
+    console.log('Firebase not configured:', e.message);
+  }
+  return false;
+}
+
+// === GOOGLE SIGN-IN ===
+function initGoogleSignIn() {
+  var container = document.getElementById('google-signin-btn');
+  if (!container) return;
+
+  // Use Google Identity Services
+  if (typeof google !== 'undefined' && google.accounts) {
+    google.accounts.id.initialize({
+      // Replace with your Google Client ID from console.cloud.google.com
+      client_id: '1008698859279-i85iho206omiura7rb76lmun56vvmio7.apps.googleusercontent.com',
+      callback: handleGoogleResponse,
+      auto_select: false,
+      cancel_on_tap_outside: true
+    });
+    google.accounts.id.renderButton(container, {
+      theme: 'outline',
+      size: 'large',
+      width: container.offsetWidth || 300,
+      text: 'continue_with',
+      shape: 'rectangular',
+      logo_alignment: 'left'
+    });
+  } else {
+    // Fallback - show manual button
+    container.innerHTML = '<button class="soc-btn" onclick="googleSignInFallback()" style="width:100%;justify-content:center"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z" fill="#4285f4"/></svg> Injira na Google</button>';
+  }
+}
+
+function handleGoogleResponse(response) {
+  // Decode JWT token from Google
+  try {
+    var parts = response.credential.split('.');
+    var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    var user = {
+      name: payload.name || payload.given_name || 'User',
+      email: payload.email || '',
+      phone: '',
+      role: 'Buyer',
+      avatar: payload.picture || '',
+      provider: 'google',
+      date: new Date().toISOString()
+    };
+    // Save and login
+    var users = [];
+    try { users = JSON.parse(localStorage.getItem('km_users') || '[]'); } catch(e){}
+    var existing = users.find(function(u) { return u.email === user.email; });
+    if (!existing) {
+      users.push(user);
+      try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
+    } else {
+      user = existing;
+    }
+    saveUser(user);
+    showToast('Murakaza neza ' + user.name + '! (Google) 🎉');
+    setTimeout(function() { go('home'); }, 800);
+  } catch(e) {
+    showToast('Google sign-in error. Gerageza nanone.');
+  }
+}
+
+function googleSignInFallback() {
+  // Simple popup-based Google OAuth fallback
+  showToast('Google Sign-in: Shyiramo Google Client ID muri code mbere.');
+}
+
+// === PHONE OTP AUTH ===
+function openPhoneAuth() {
+  var m = document.getElementById('phone-modal');
+  if (m) m.style.display = 'flex';
+  document.getElementById('phone-step1').style.display = 'block';
+  document.getElementById('phone-step2').style.display = 'none';
+
+  // Init recaptcha if Firebase configured
+  setTimeout(function() {
+    if (initFirebase() && firebaseAuth) {
+      try {
+        if (!recaptchaVerifier) {
+          recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container-modal', {
+            size: 'normal',
+            callback: function() { /* recaptcha solved */ }
+          });
+          recaptchaVerifier.render();
+        }
+      } catch(e) {
+        console.log('Recaptcha error:', e.message);
+      }
+    }
+  }, 300);
+}
+
+function closePhoneAuth() {
+  var m = document.getElementById('phone-modal');
+  if (m) m.style.display = 'none';
+}
+
+function sendOTP() {
+  var country = document.getElementById('phone-country').value;
+  var number = document.getElementById('phone-number').value.replace(/\s/g, '');
+  if (!number || number.length < 8) {
+    showToast('Injiza numero ya telefoni nzima!');
+    return;
+  }
+  var fullPhone = country + number;
+  document.getElementById('phone-display').textContent = fullPhone;
+
+  // Try Firebase
+  if (initFirebase() && firebaseAuth && recaptchaVerifier) {
+    firebaseAuth.signInWithPhoneNumber(fullPhone, recaptchaVerifier)
+      .then(function(result) {
+        confirmationResult = result;
+        document.getElementById('phone-step1').style.display = 'none';
+        document.getElementById('phone-step2').style.display = 'block';
+        showToast('OTP yoherejwe! Reba SMS yawe.');
+      })
+      .catch(function(error) {
+        showToast('Error: ' + error.message);
+      });
+  } else {
+    // Demo mode - show OTP step with simulated code
+    document.getElementById('phone-step1').style.display = 'none';
+    document.getElementById('phone-step2').style.display = 'block';
+    showToast('OTP yoherejwe (Demo Mode). Shyiramo: 123456');
+    // Store for demo verification
+    window._demoOTP = '123456';
+    window._demoPhone = fullPhone;
+  }
+}
+
+function verifyOTP() {
+  var code = document.getElementById('otp-code').value.trim();
+  if (!code || code.length < 4) {
+    showToast('Injiza OTP code!');
+    return;
+  }
+
+  if (confirmationResult) {
+    // Real Firebase verification
+    confirmationResult.confirm(code)
+      .then(function(result) {
+        var fbUser = result.user;
+        var user = {
+          name: fbUser.displayName || ('User ' + fbUser.phoneNumber),
+          email: fbUser.email || '',
+          phone: fbUser.phoneNumber || '',
+          role: 'Buyer',
+          provider: 'phone',
+          date: new Date().toISOString()
+        };
+        saveUser(user);
+        closePhoneAuth();
+        showToast('Wainjiye neza! 🎉 ' + user.name);
+        setTimeout(function() { go('home'); }, 800);
+      })
+      .catch(function(error) {
+        showToast('Code sibyo: ' + error.message);
+      });
+  } else {
+    // Demo mode
+    if (code === window._demoOTP) {
+      var country = document.getElementById('phone-country').value;
+      var number = document.getElementById('phone-number').value.replace(/\s/g, '');
+      var user = {
+        name: 'Umukoresha wa ' + country + number,
+        email: '',
+        phone: country + number,
+        role: 'Buyer',
+        provider: 'phone',
+        date: new Date().toISOString()
+      };
+      saveUser(user);
+      closePhoneAuth();
+      showToast('Wainjiye neza! 🎉');
+      setTimeout(function() { go('home'); }, 800);
+    } else {
+      showToast('Code sibyo! Demo: 123456');
+    }
+  }
+}
+
+// Init Google Sign-in when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(initGoogleSignIn, 1000);
+});
+// Also init when auth page shown
+var _goOrigAuth = go;
+go = function(page) {
+  _goOrigAuth(page);
+  if (page === 'auth') {
+    setTimeout(initGoogleSignIn, 500);
+  }
+};
 
 </script>
 </body>
