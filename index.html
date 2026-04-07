@@ -539,7 +539,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
    PAGE 3 — PROPERTY DETAIL
 ══════════════════════════════════════ */
 .det-hero{position:relative;height:460px;background:var(--navy);overflow:hidden}
-.det-hero-bg{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.det-hero-bg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-size:cover!important;background-position:center!important;transition:.3s}
 .det-hero-bg svg{width:110px;height:110px;fill:none;stroke:rgba(255,255,255,.2);stroke-width:.8}
 .det-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(8,24,70,.75) 0%,transparent 55%)}
 .det-top-bar{position:absolute;top:0;left:0;right:0;padding:1.2rem 4%;display:flex;justify-content:space-between;align-items:center}
@@ -1505,10 +1505,33 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <textarea id="prop-desc" rows="3" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;resize:vertical" placeholder="Sobanura inzu yawe: ibikoresho, ahantu hihutirwa, ibiranga..."></textarea>
       </div>
       <div class="field"><label>Telefoni yo Gutumanahana</label><input type="tel" id="prop-contact" placeholder="+250 7XX XXX XXX"></div>
-      <div class="field"><label>🖼️ Ifoto ya 1 (URL — imgbb.com)</label><input type="url" id="prop-img1" placeholder="https://i.ibb.co/xxxxx/inzu.jpg"></div>
-      <div class="field"><label>🖼️ Ifoto ya 2 (Ntibisabwa)</label><input type="url" id="prop-img2" placeholder="https://i.ibb.co/xxxxx/imbere.jpg"></div>
-      <div class="field"><label>🖼️ Ifoto ya 3 (Ntibisabwa)</label><input type="url" id="prop-img3" placeholder="https://i.ibb.co/xxxxx/igikari.jpg"></div>
-      <div class="field"><label>🎥 Video URL (YouTube) — Ntibisabwa</label><input type="url" id="prop-video" placeholder="https://youtube.com/watch?v=..."></div>
+      <!-- Media Upload — Admin vs User -->
+      <div id="admin-media-section" style="display:none;flex-direction:column;gap:.8rem">
+        <div style="background:#e8f0fb;border-radius:8px;padding:.7rem;font-size:.78rem;color:var(--navy);font-weight:600">
+          🔐 Admin Mode — YouTube URL + Image URLs
+        </div>
+        <div class="field"><label>🎥 YouTube Video URL</label><input type="url" id="prop-video" placeholder="https://youtube.com/watch?v=..."></div>
+        <div class="field"><label>🖼️ Ifoto 1 (URL)</label><input type="url" id="prop-img1" placeholder="https://i.ibb.co/xxxxx/inzu.jpg"></div>
+        <div class="field"><label>🖼️ Ifoto 2 (Ntibisabwa)</label><input type="url" id="prop-img2" placeholder="https://i.ibb.co/xxxxx/imbere.jpg"></div>
+        <div class="field"><label>🖼️ Ifoto 3 (Ntibisabwa)</label><input type="url" id="prop-img3" placeholder="https://i.ibb.co/xxxxx/igikari.jpg"></div>
+      </div>
+      <div id="user-media-section" style="display:flex;flex-direction:column;gap:.8rem">
+        <div style="background:var(--light);border-radius:8px;padding:.7rem;font-size:.78rem;color:var(--muted)">
+          📸 Shyiramo amafoto y'imitungo (JPEG, PNG — max 5MB buri ifoto)
+        </div>
+        <div class="field"><label>📸 Ifoto ya 1 (Ngombwa)</label>
+          <input type="file" id="prop-file1" accept="image/*" style="width:100%;padding:.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
+        </div>
+        <div class="field"><label>📸 Ifoto ya 2 (Ntibisabwa)</label>
+          <input type="file" id="prop-file2" accept="image/*" style="width:100%;padding:.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
+        </div>
+        <div class="field"><label>📸 Ifoto ya 3 (Ntibisabwa)</label>
+          <input type="file" id="prop-file3" accept="image/*" style="width:100%;padding:.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
+        </div>
+        <div style="font-size:.75rem;color:var(--muted);background:var(--light);border-radius:8px;padding:.6rem">
+          💡 Amafoto azabikwa kuri imgbb.com ubuntu. Uzabona URL nyuma yo kuranga.
+        </div>
+      </div>
       <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center;margin-top:.4rem" onclick="submitProperty()">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         Ohereza Imitungo
@@ -1565,10 +1588,13 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   <section class="hero">
     <div class="hero-inner">
       <div>
-        <div class="hero-pill"><div class="h-pulse"></div><span>🇷🇼 KOMISIYONERI — Digital Real Estate Platform</span></div>
-        <h1>Find, Buy, Sell<br><em>&amp; Rent Houses in Rwanda 🇷🇼</em></h1>
-        <p class="hero-sub" data-rw="Duhuza abantu n'imitungo itimurika mu buryo bworoshye, bwizewe, n'ubwigufi. Gura, gurisha, cyangwa ugure inzu ukoresha ubwenge bwa AI yacu." data-en="KOMISIYONERI — Rwanda's AI-Powered Digital Real Estate Platform. Search, compare and close property deals faster than ever.">KOMISIYONERI — Rwanda's #1 AI-Powered Digital Real Estate Platform. Search, compare, buy, sell or rent properties faster than ever.</p>
+        <div class="hero-pill"><div class="h-pulse"></div><span data-rw="🇷🇼 KOMISIYONERI — Platform N°1 y'Imitungo mu Rwanda" data-en="🇷🇼 KOMISIYONERI — Digital Real Estate Platform">🇷🇼 KOMISIYONERI — Digital Real Estate Platform</span></div>
+        <h1 data-rw="Shakisha, Gura, Gurisha" data-en="Find, Buy, Sell">Find, Buy, Sell<br><em data-rw="&amp; Kodeshaho Inzu mu Rwanda 🇷🇼" data-en="&amp; Rent Houses in Rwanda 🇷🇼">&amp; Rent Houses in Rwanda 🇷🇼</em></h1>
+        <p class="hero-sub" data-rw="Duhuza abantu n'imitungo itimurika mu buryo bworoshye, bwizewe, n'ubwigufi. Gura, gurisha, cyangwa ugure inzu ukoresha ubwenge bwa AI yacu." data-en="KOMISIYONERI — Rwanda's AI-Powered Digital Real Estate Platform. Search, compare and close property deals faster than ever." data-rw="KOMISIYONERI — Platform N°1 y'Imitungo mu Rwanda ikoresha AI. Shakisha, suzuma, ugurishe cyangwa ugure inzu vuba!" data-en="KOMISIYONERI — Rwanda's #1 AI-Powered Real Estate Platform. Find, compare, buy, sell or rent properties faster than ever.">KOMISIYONERI — Rwanda's #1 AI-Powered Real Estate Platform. Find, compare, buy, sell or rent properties faster than ever.</p>
         <div class="hero-btns">
+          <button class="btn btn-outline btn-sm" onclick="openLead()" style="border-color:rgba(255,255,255,.4);color:#fff;border-radius:20px;padding:.4rem 1.2rem;font-size:.8rem;margin-bottom:1rem">
+            👔 Saba Agent — Guhuza Vuba →
+          </button><br>
           <button class="btn btn-gold btn-lg" onclick="openSearch()" style="padding:1rem 2.4rem;font-size:1rem;border-radius:12px;box-shadow:0 8px 32px rgba(245,166,35,.4)">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             <span data-rw="Shakisha Imitungo" data-en="Search Properties">Shakisha Imitungo</span>
@@ -2157,6 +2183,10 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             <span data-rw="Gushyiraho Gahunda yo Gusura" data-en="Schedule a Visit">Gushyiraho Gahunda</span>
           </button>
+          <button class="btn btn-navy" style="width:100%;justify-content:center;background:linear-gradient(135deg,#F5A623,#e6951f)" onclick="openLead()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            <span data-rw="Saba Agent Wawe — Vuba!" data-en="Get an Agent — Fast!">Saba Agent Wawe</span>
+          </button>
           <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="openMessageOwner()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
             <span data-rw="Kohereza Message" data-en="Send Message">Kohereza Message</span>
@@ -2631,10 +2661,26 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 <div class="modal-wrap" id="admin-modal" style="display:none">
   <div class="modal" style="max-width:600px;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
-      <div class="modal-title" style="color:var(--navy)">🔐 KOMISIYONERI Admin — Imitungo Isuzumwa</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+        <div class="modal-title" style="color:var(--navy)">🔐 Admin Panel</div>
+        <button onclick="openAdminAddProp()" style="background:var(--navy);color:#fff;border:none;padding:.4rem .9rem;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:700;display:flex;align-items:center;gap:.3rem">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          + Imitungo
+        </button>
+      </div>
       <button class="modal-x" onclick="closeAdmin()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div style="padding:.5rem 0">
+      <!-- Admin Quick Actions -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.8rem">
+        <button onclick="openAdminAddPropDirect()" class="btn btn-navy btn-sm" style="justify-content:center;font-size:.78rem">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          + Ongeramo Imitungo
+        </button>
+        <button onclick="loadDemoProperties();closeAdmin();showToast('Demo zashyizweho! ✅')" class="btn btn-sm" style="justify-content:center;font-size:.78rem;border:1.5px solid var(--gold);color:var(--navy)">
+          ✦ Shyiraho Demos
+        </button>
+      </div>
       <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap">
         <button onclick="adminFilter('pending')" id="adm-btn-pending" class="btn btn-navy btn-sm" style="font-size:.75rem">⏳ Isuzumwa (<span id="adm-count-pending">0</span>)</button>
         <button onclick="adminFilter('approved')" id="adm-btn-approved" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">✅ Yemejwe (<span id="adm-count-approved">0</span>)</button>
@@ -2826,6 +2872,206 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         ← Hindura numero
       </button>
     </div>
+  </div>
+</div>
+
+
+<!-- === AGENT REGISTRATION MODAL === -->
+<div class="modal-wrap" id="agent-reg-modal" style="display:none">
+  <div class="modal" style="max-width:520px;max-height:92vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title">👔 Iyandikishe nka Agent wa KOMISIYONERI</div>
+      <button class="modal-x" onclick="closeAgentReg()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <!-- Progress -->
+    <div style="display:flex;gap:0;margin-bottom:1.2rem;margin-top:.5rem">
+      <div class="agent-step-bar active" id="astep1" style="flex:1;height:4px;background:var(--navy);border-radius:2px 0 0 2px"></div>
+      <div class="agent-step-bar" id="astep2" style="flex:1;height:4px;background:var(--border)"></div>
+      <div class="agent-step-bar" id="astep3" style="flex:1;height:4px;background:var(--border);border-radius:0 2px 2px 0"></div>
+    </div>
+
+    <!-- STEP 1: Personal Info -->
+    <div id="agent-form-1" style="display:flex;flex-direction:column;gap:.8rem">
+      <div style="background:var(--light);border-radius:10px;padding:.8rem;font-size:.82rem;color:var(--navy);font-weight:600">
+        📋 Intambwe 1/3 — Amakuru Yawe Bwite
+      </div>
+      <div class="field"><label>Amazina Yuzuye</label><input type="text" id="ag-name" placeholder="Amazina na Nkunda"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+        <div class="field"><label>Telefoni</label><input type="tel" id="ag-phone" placeholder="+250 7XX XXX XXX"></div>
+        <div class="field"><label>Imeyili</label><input type="email" id="ag-email" placeholder="imeyili@gmail.com"></div>
+      </div>
+      <div class="field"><label>Indangamuntu (ID) Numero</label><input type="text" id="ag-id" placeholder="1 XXXX X XXXXXXX X XX"></div>
+      <div class="field"><label>Utuye He? (Aderesi)</label><input type="text" id="ag-address" placeholder="urugero: Kigali, Gasabo, Kimironko"></div>
+      <div class="field"><label>Imyaka Ufite</label>
+        <select id="ag-age" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
+          <option value="">Hitamo...</option>
+          <option>18-25</option><option>26-35</option><option>36-45</option><option>46+</option>
+        </select>
+      </div>
+      <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="agentStep(2)">
+        Komeza → <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <!-- STEP 2: Zone + Experience -->
+    <div id="agent-form-2" style="display:none;flex-direction:column;gap:.8rem">
+      <div style="background:var(--light);border-radius:10px;padding:.8rem;font-size:.82rem;color:var(--navy);font-weight:600">
+        📍 Intambwe 2/3 — Akarere n'Uburambe
+      </div>
+      <div class="field"><label>Akarere Wahawe (Zone yawe)</label>
+        <select id="ag-zone" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
+          <option value="">Hitamo akarere...</option>
+          <optgroup label="Kigali">
+            <option value="Gasabo">Gasabo (Kimironko, Remera, Kacyiru)</option>
+            <option value="Kicukiro">Kicukiro (Niboye, Gatenga, Kanombe)</option>
+            <option value="Nyarugenge">Nyarugenge (CBD, Nyamirambo, Muhima)</option>
+          </optgroup>
+          <optgroup label="Amajyaruguru">
+            <option value="Musanze">Musanze</option>
+            <option value="Rubavu">Rubavu (Gisenyi)</option>
+            <option value="Gicumbi">Gicumbi</option>
+          </optgroup>
+          <optgroup label="Amajyepfo">
+            <option value="Huye">Huye (Butare)</option>
+            <option value="Muhanga">Muhanga</option>
+            <option value="Nyanza">Nyanza</option>
+          </optgroup>
+          <optgroup label="Iburasirazuba">
+            <option value="Nyagatare">Nyagatare</option>
+            <option value="Rwamagana">Rwamagana</option>
+          </optgroup>
+          <optgroup label="Iburengerazuba">
+            <option value="Karongi">Karongi</option>
+            <option value="Rusizi">Rusizi (Kamembe)</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="field"><label>Uburambe mu Mitungo</label>
+        <select id="ag-exp" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
+          <option value="0">Ntabwo narakoze (Natangira ubu)</option>
+          <option value="1">Umwaka 1-2</option>
+          <option value="3">Imyaka 3-5</option>
+          <option value="5">Imyaka 5+</option>
+        </select>
+      </div>
+      <div class="field"><label>Imodoka / Boda (Gutwara)?</label>
+        <select id="ag-transport" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
+          <option value="boda">✅ Boda (Moto)</option>
+          <option value="car">✅ Imodoka</option>
+          <option value="none">❌ Ntabwo nfite</option>
+        </select>
+      </div>
+      <div class="field"><label>Ndimi Uvuga</label>
+        <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.3rem">
+          <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer"><input type="checkbox" id="lang-rw" checked style="accent-color:var(--navy)"> Kinyarwanda</label>
+          <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer"><input type="checkbox" id="lang-en" style="accent-color:var(--navy)"> English</label>
+          <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer"><input type="checkbox" id="lang-fr" style="accent-color:var(--navy)"> Français</label>
+          <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer"><input type="checkbox" id="lang-sw" style="accent-color:var(--navy)"> Kiswahili</label>
+        </div>
+      </div>
+      <div style="display:flex;gap:.6rem">
+        <button class="btn btn-sm" style="flex:1;border:1.5px solid var(--border);justify-content:center" onclick="agentStep(1)">← Subira</button>
+        <button class="btn btn-navy btn-lg" style="flex:2;justify-content:center" onclick="agentStep(3)">Komeza →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Contract + Confirm -->
+    <div id="agent-form-3" style="display:none;flex-direction:column;gap:.8rem">
+      <div style="background:var(--light);border-radius:10px;padding:.8rem;font-size:.82rem;color:var(--navy);font-weight:600">
+        📜 Intambwe 3/3 — Amasezerano
+      </div>
+      <div style="background:#f0f5ff;border-radius:10px;padding:1rem;font-size:.82rem;line-height:1.8;border:1.5px solid rgba(13,59,140,.15)">
+        <strong>AMASEZERANO Y'AGENT — KOMISIYONERI</strong><br><br>
+        Njyewe Agent wa KOMISIYONERI, nemeza ibi:<br>
+        ✓ Nzakora mu buryo bwizewe kandi bwiza<br>
+        ✓ Nzasubiza clients mu masaa 24<br>
+        ✓ Nta mafaranga nzasaba clients imbere yo kugurisha<br>
+        ✓ Commission: <strong>40%</strong> ya commission yose injiye<br>
+        ✓ Nzashyira amakuru y'ukuri gusa kuri platform<br>
+        ✓ Niba nkora nabi, KOMISIYONERI ishobora kunsezerera
+      </div>
+      <div class="field">
+        <label>Deposit ya Kwemeza Iyandikishe (Ntibisabwa ubu)</label>
+        <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:.7rem;font-size:.8rem">
+          ⚠️ Deposit ya 50,000 RWF izasabwa nyuma — ibikwa kugeza amasezerano arangira neza.
+        </div>
+      </div>
+      <label style="display:flex;align-items:flex-start;gap:.6rem;cursor:pointer;padding:.7rem;background:var(--light);border-radius:8px">
+        <input type="checkbox" id="ag-agree" style="accent-color:var(--navy);margin-top:.15rem;flex-shrink:0">
+        <span style="font-size:.82rem">Nemeza ko nasomye kandi nemera amasezerano yose ya KOMISIYONERI Connectpro Services Ltd.</span>
+      </label>
+      <div style="display:flex;gap:.6rem">
+        <button class="btn btn-sm" style="flex:1;border:1.5px solid var(--border);justify-content:center" onclick="agentStep(2)">← Subira</button>
+        <button class="btn btn-navy btn-lg" style="flex:2;justify-content:center" onclick="submitAgentReg()">
+          ✅ Iyandikishe nka Agent
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === LEAD REQUEST MODAL (for clients) === -->
+<div class="modal-wrap" id="lead-modal" style="display:none">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-hdr">
+      <div class="modal-title">🏠 Saba Agent Wawe</div>
+      <button class="modal-x" onclick="closeLead()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">Uzuza hasi — agent wo mu gace kawe azakuhamagara mu masaa 2!</p>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div class="field"><label>Amazina Yawe</label><input type="text" id="lead-name" placeholder="Amazina yuzuye"></div>
+      <div class="field"><label>Telefoni / WhatsApp</label><input type="tel" id="lead-phone" placeholder="+250 7XX XXX XXX"></div>
+      <div class="field"><label>Icyo Ushaka</label>
+        <select id="lead-action" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
+          <option>🏠 Kugura Inzu</option>
+          <option>🔑 Gukodesha Inzu</option>
+          <option>💰 Kugurisha Imitungo Yange</option>
+          <option>🌍 Kugura Ubutaka</option>
+        </select>
+      </div>
+      <div class="field"><label>Akarere Ushaka</label>
+        <select id="lead-zone" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
+          <option>Gasabo</option><option>Kicukiro</option><option>Nyarugenge</option>
+          <option>Musanze</option><option>Rubavu</option><option>Huye</option>
+          <option>Nyagatare</option><option>Karongi</option><option>Muhanga</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+        <div class="field"><label>Budget Min (RWF)</label>
+          <select id="lead-budget-min" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
+            <option value="0">Ntacyo</option><option value="10000000">10M</option>
+            <option value="30000000">30M</option><option value="50000000">50M</option>
+            <option value="100000000">100M</option><option value="200000000">200M+</option>
+          </select>
+        </div>
+        <div class="field"><label>Budget Max (RWF)</label>
+          <select id="lead-budget-max" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
+            <option value="50000000">50M</option><option value="100000000">100M</option>
+            <option value="150000000">150M</option><option value="200000000">200M</option>
+            <option value="500000000">500M+</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Ibindi Bishaka (Ntibisabwa)</label>
+        <textarea id="lead-notes" rows="2" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;resize:vertical" placeholder="urugero: Ibyumba 3, Garage, Hafi y'ishuri..."></textarea>
+      </div>
+      <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="submitLead()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.13a16 16 0 006.73 6.73l1.35-1.35a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        Ohereza — Agent Azakuhamagara!
+      </button>
+      <div style="text-align:center;font-size:.75rem;color:var(--muted)">⚡ Agent asubiza mu masaa 2 gusa</div>
+    </div>
+  </div>
+</div>
+
+<!-- === ESCROW / DEAL TRACKER MODAL === -->
+<div class="modal-wrap" id="deal-modal" style="display:none">
+  <div class="modal" style="max-width:500px;max-height:92vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title">📊 Deal Tracker — Ikurikirana Transaction</div>
+      <button class="modal-x" onclick="document.getElementById('deal-modal').style.display='none'"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="deal-tracker-content" style="padding:.5rem 0"></div>
   </div>
 </div>
 
@@ -3573,21 +3819,89 @@ function closeAddProperty() {
 
 function submitProperty() {
   var g = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
-  if (!g('prop-price')) { showToast(curLang==='rw'?'Shyira igiciro!':'Enter price!'); return; }
-  if (!g('prop-contact')) { showToast(curLang==='rw'?'Shyira telefoni!':'Enter contact!'); return; }
-  var props = [];
-  try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-  props.push({ id:Date.now(), type:g('prop-type'), service:g('prop-service'), district:g('prop-district'),
-    sector:g('prop-sector'), price:g('prop-price'), beds:g('prop-beds'), baths:g('prop-baths'),
-    size:g('prop-size'), desc:g('prop-desc'), contact:g('prop-contact'),
-    img1:g('prop-img1'), img2:g('prop-img2'), img3:g('prop-img3'), video:g('prop-video'),
-    owner:currentUser.name, ownerEmail:currentUser.email, date:new Date().toISOString(), status:'Pending' });
-  try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
-  closeAddProperty();
-  ['prop-sector','prop-price','prop-beds','prop-baths','prop-size','prop-desc'].forEach(function(id){
-    var el=document.getElementById(id); if(el) el.value='';
-  });
-  showToast(curLang==='rw'?'Imitungo yanditswe neza! Tuzayisuzuma vuba.':'Property submitted! We will review shortly.');
+
+  // Check login
+  if(!currentUser) {
+    showToast(curLang==='rw' ? 'Injira mbere yo gushyiraho imitungo!' : 'Please login first!');
+    closeAddProperty();
+    go('auth');
+    return;
+  }
+
+  if(!g('prop-price')) { showToast(curLang==='rw'?'Shyira igiciro!':'Enter price!'); return; }
+  if(!g('prop-type')) { showToast('Hitamo ubwoko!'); return; }
+  if(!g('prop-district')) { showToast('Hitamo akarere!'); return; }
+
+  var isAdmin = currentUser.email === 'komisiyonericonnectproservices@gmail.com';
+
+  if(isAdmin) {
+    // === ADMIN: YouTube + URL images, auto-approved ===
+    var videoUrl = convertYouTubeURL(g('prop-video'));
+    var props = [];
+    try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+    var newProp = {
+      id: Date.now(),
+      type: g('prop-type'), service: g('prop-service'), district: g('prop-district'),
+      sector: g('prop-sector'), price: g('prop-price'), beds: g('prop-beds'),
+      baths: g('prop-baths'), size: g('prop-size'), desc: g('prop-desc'),
+      contact: g('prop-contact') || '+250 783 177 254',
+      img1: g('prop-img1'), img2: g('prop-img2'), img3: g('prop-img3'),
+      video: videoUrl,
+      owner: 'KOMISIYONERI', ownerEmail: currentUser.email,
+      verified: true, rating: 5.0, reviews: 0,
+      date: new Date().toISOString(), status: 'Approved'
+    };
+    props.push(newProp);
+    try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
+    closeAddProperty();
+    loadApprovedProperties();
+    showToast('✅ Imitungo yashyizweho kandi yemejwe!');
+
+  } else {
+    // === USER: File upload, pending review ===
+    var file1El = document.getElementById('prop-file1');
+    var file2El = document.getElementById('prop-file2');
+    var file3El = document.getElementById('prop-file3');
+    var hasFile = file1El && file1El.files && file1El.files[0];
+
+    if(!hasFile) {
+      showToast(curLang==='rw' ? 'Shyiramo nibura ifoto imwe!' : 'Upload at least one photo!');
+      return;
+    }
+
+    showToast(curLang==='rw' ? 'Amafoto arakopiwa...' : 'Saving photos...');
+
+    var fileList = [file1El, file2El, file3El].filter(function(f){ return f && f.files && f.files[0]; });
+    var images = [];
+    var done = 0;
+
+    fileList.forEach(function(f, i) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        images[i] = e.target.result;
+        done++;
+        if(done === fileList.length) {
+          var props = [];
+          try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+          props.push({
+            id: Date.now(),
+            type: g('prop-type'), service: g('prop-service'), district: g('prop-district'),
+            sector: g('prop-sector'), price: g('prop-price'), beds: g('prop-beds'),
+            baths: g('prop-baths'), size: g('prop-size'), desc: g('prop-desc'),
+            contact: g('prop-contact') || currentUser.phone || '+250 783 177 254',
+            img1: images[0]||'', img2: images[1]||'', img3: images[2]||'',
+            video: '',
+            owner: currentUser.name, ownerEmail: currentUser.email,
+            date: new Date().toISOString(), status: 'Pending'
+          });
+          try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
+          closeAddProperty();
+          showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Admin azayisuzuma vuba.' : '✅ Property submitted for review!');
+        }
+      };
+      reader.readAsDataURL(f.files[0]);
+    });
+  }
 }
 
 function handleLogin() {
@@ -3820,6 +4134,9 @@ function renderUserPropCard(prop) {
   var baths = prop.baths ? '<span class="p-feat"><svg viewBox="0 0 24 24"><path d="M9 6l2 2-2 2m4 0l2-2-2-2"/><rect x="2" y="20" width="20" height="2"/><path d="M2 20V8a2 2 0 012-2h16a2 2 0 012 2v12"/></svg>'+prop.baths+'</span>' : '';
   var size = prop.size ? '<span class="p-feat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>'+prop.size+'m²</span>' : '';
   var imgBg = prop.img1 ? 'style="background-image:url(' + prop.img1 + ');background-size:cover;background-position:center"' : '';
+  var demoBadge = prop.isDemo ? '<div style="position:absolute;top:.5rem;left:.5rem;background:rgba(245,166,35,.95);color:#000;border-radius:20px;padding:.15rem .55rem;font-size:.6rem;font-weight:800;letter-spacing:.06em;z-index:2">✦ DEMO</div>' : '';
+  var verifiedBadge = prop.verified ? '<div style="position:absolute;top:.5rem;right:2.8rem;background:rgba(39,168,74,.9);color:#fff;border-radius:20px;padding:.15rem .5rem;font-size:.6rem;font-weight:700;z-index:2">✅ Verified</div>' : '';
+  var ratingBadge = prop.rating ? '<div style="position:absolute;bottom:.5rem;left:.5rem;background:rgba(0,0,0,.6);color:#fff;border-radius:20px;padding:.15rem .55rem;font-size:.7rem;font-weight:700;z-index:2">★ '+prop.rating+'</div>' : '';
   return '<div class="p-card" style="position:relative" onclick="showToast(this.querySelector(\'.p-title\').textContent)">'
     + '<div class="p-img '+color+'" '+imgBg+'"><div class="p-img-inner"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div>'
     + '<div class="p-tag">'+badge+'</div>'
@@ -4417,17 +4734,8 @@ function openPhoneAuth() {
   // Init recaptcha if Firebase configured
   setTimeout(function() {
     if (initFirebase() && firebaseAuth) {
-      try {
-        if (!recaptchaVerifier) {
-          recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container-modal', {
-            size: 'normal',
-            callback: function() { /* recaptcha solved */ }
-          });
-          recaptchaVerifier.render();
-        }
-      } catch(e) {
-        console.log('Recaptcha error:', e.message);
-      }
+      // Recaptcha initialized in sendOTP - invisible mode
+      console.log('Phone auth ready');
     }
   }, 300);
 }
@@ -4446,27 +4754,52 @@ function sendOTP() {
   }
   var fullPhone = country + number;
   document.getElementById('phone-display').textContent = fullPhone;
+  window._demoPhone = fullPhone;
 
-  // Try Firebase
-  if (initFirebase() && firebaseAuth && recaptchaVerifier) {
-    firebaseAuth.signInWithPhoneNumber(fullPhone, recaptchaVerifier)
-      .then(function(result) {
-        confirmationResult = result;
-        document.getElementById('phone-step1').style.display = 'none';
-        document.getElementById('phone-step2').style.display = 'block';
-        showToast('OTP yoherejwe! Reba SMS yawe.');
-      })
-      .catch(function(error) {
-        showToast('Error: ' + error.message);
+  // Try Firebase Phone Auth
+  if (initFirebase() && firebaseAuth) {
+    // Reset recaptcha if needed
+    try {
+      if (recaptchaVerifier) {
+        recaptchaVerifier.clear();
+        recaptchaVerifier = null;
+      }
+    } catch(e) {}
+
+    try {
+      recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container-modal', {
+        size: 'invisible',
+        callback: function() {}
       });
+
+      firebaseAuth.signInWithPhoneNumber(fullPhone, recaptchaVerifier)
+        .then(function(result) {
+          confirmationResult = result;
+          document.getElementById('phone-step1').style.display = 'none';
+          document.getElementById('phone-step2').style.display = 'block';
+          showToast('OTP yoherejwe kuri ' + fullPhone + '! Reba SMS yawe.');
+        })
+        .catch(function(error) {
+          console.error('Phone auth error:', error);
+          // Fallback to demo mode
+          document.getElementById('phone-step1').style.display = 'none';
+          document.getElementById('phone-step2').style.display = 'block';
+          window._demoOTP = '123456';
+          showToast('Demo Mode: Shyiramo OTP: 123456');
+        });
+    } catch(e) {
+      // Demo fallback
+      document.getElementById('phone-step1').style.display = 'none';
+      document.getElementById('phone-step2').style.display = 'block';
+      window._demoOTP = '123456';
+      showToast('Demo Mode: Shyiramo OTP: 123456');
+    }
   } else {
-    // Demo mode - show OTP step with simulated code
+    // Demo mode
     document.getElementById('phone-step1').style.display = 'none';
     document.getElementById('phone-step2').style.display = 'block';
-    showToast('OTP yoherejwe (Demo Mode). Shyiramo: 123456');
-    // Store for demo verification
     window._demoOTP = '123456';
-    window._demoPhone = fullPhone;
+    showToast('Demo Mode: Shyiramo OTP: 123456');
   }
 }
 
@@ -4533,6 +4866,706 @@ go = function(page) {
     setTimeout(initGoogleSignIn, 500);
   }
 };
+
+
+// === BOTTOM NAVIGATION ===
+function bnGo(page) {
+  go(page);
+  // Update active state
+  document.querySelectorAll('.bn-item').forEach(function(btn) {
+    btn.classList.remove('active');
+  });
+  var btn = document.getElementById('bn-' + page);
+  if (btn) btn.classList.add('active');
+}
+
+function bnProfile() {
+  if (currentUser) {
+    openProfile();
+  } else {
+    go('auth');
+  }
+  document.querySelectorAll('.bn-item').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('bn-profile').classList.add('active');
+}
+
+// Update bottom nav avatar when user logs in
+var _origSaveUser = saveUser;
+saveUser = function(user) {
+  _origSaveUser(user);
+  var av = document.getElementById('bn-avatar');
+  if (av && user) {
+    var ini = (user.name||'U').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+    av.textContent = ini;
+    av.style.background = 'var(--navy)';
+    av.style.color = '#fff';
+    av.style.fontSize = '.65rem';
+  }
+};
+
+// Sync bottom nav with page navigation
+var _origGoBN = go;
+go = function(page) {
+  _origGoBN(page);
+  var pageMap = {home:'home',listings:'listings',analytics:'analytics',dashboard:'profile',auth:'profile',detail:'listings'};
+  var activeBtn = pageMap[page] || 'home';
+  document.querySelectorAll('.bn-item').forEach(function(b){ b.classList.remove('active'); });
+  var btn = document.getElementById('bn-' + activeBtn);
+  if (btn) btn.classList.add('active');
+};
+
+// Hide bottom nav on dashboard (has its own nav)
+var _origGoFinal = go;
+go = function(page) {
+  _origGoFinal(page);
+  var nav = document.getElementById('bottom-nav');
+  if (nav) {
+    nav.style.display = page === 'dashboard' ? 'none' : 'flex';
+  }
+};
+
+
+// ════════════════════════════════════════════════════
+//  KOMISIYONERI — AGENT MANAGEMENT SYSTEM
+// ════════════════════════════════════════════════════
+
+// === AGENT REGISTRATION ===
+var agentCurrentStep = 1;
+
+function openAgentReg() {
+  var m = document.getElementById('agent-reg-modal');
+  if(m) m.style.display = 'flex';
+  agentStep(1);
+}
+
+function closeAgentReg() {
+  var m = document.getElementById('agent-reg-modal');
+  if(m) m.style.display = 'none';
+}
+
+function agentStep(step) {
+  agentCurrentStep = step;
+  [1,2,3].forEach(function(s) {
+    var form = document.getElementById('agent-form-' + s);
+    var bar = document.getElementById('astep' + s);
+    if(form) form.style.display = s === step ? 'flex' : 'none';
+    if(bar) bar.style.background = s <= step ? 'var(--navy)' : 'var(--border)';
+  });
+}
+
+function submitAgentReg() {
+  var g = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
+  if(!g('ag-name')){showToast('Shyira amazina yawe!');return;}
+  if(!g('ag-phone')){showToast('Shyira telefoni yawe!');return;}
+  if(!g('ag-id')){showToast('Shyira numero y\'indangamuntu!');return;}
+  if(!g('ag-zone')){showToast('Hitamo akarere kawe!');return;}
+  if(!document.getElementById('ag-agree').checked){showToast('Emeza amasezerano mbere!');return;}
+
+  var langs = [];
+  if(document.getElementById('lang-rw').checked) langs.push('Kinyarwanda');
+  if(document.getElementById('lang-en').checked) langs.push('English');
+  if(document.getElementById('lang-fr').checked) langs.push('Français');
+  if(document.getElementById('lang-sw').checked) langs.push('Kiswahili');
+
+  var agent = {
+    id: 'AG-' + Date.now(),
+    name: g('ag-name'),
+    phone: g('ag-phone'),
+    email: g('ag-email'),
+    nationalId: g('ag-id'),
+    address: g('ag-address'),
+    zone: g('ag-zone'),
+    experience: g('ag-exp'),
+    transport: g('ag-transport'),
+    languages: langs,
+    status: 'Pending Verification',
+    rating: 0,
+    deals: 0,
+    leads: [],
+    commissionTotal: 0,
+    registeredDate: new Date().toISOString()
+  };
+
+  // Save agent
+  var agents = [];
+  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
+  agents.push(agent);
+  try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
+
+  // Update current user to agent role
+  if(currentUser) {
+    currentUser.role = 'Agent';
+    currentUser.agentId = agent.id;
+    currentUser.zone = agent.zone;
+    saveUser(currentUser);
+  }
+
+  closeAgentReg();
+  showToast('✅ Iyandikishe yagenze neza! KOMISIYONERI izakugenzura mu masaa 24.');
+
+  // Send WhatsApp notification to admin
+  var msg = 'Agent:'+agent.name+' Tel:'+agent.phone+' Zone:'+agent.zone+' ID:'+agent.nationalId;
+  setTimeout(function(){
+    if(confirm('Ohereza amakuru ya agent mushya kuri Admin wa KOMISIYONERI?')) {
+      window.open('https://wa.me/250783177254?text=' + encodeURIComponent(msg), '_blank');
+    }
+  }, 800);
+}
+
+// === LEAD MANAGEMENT ===
+function openLead() {
+  var m = document.getElementById('lead-modal');
+  if(m) m.style.display = 'flex';
+  if(currentUser) {
+    var n = document.getElementById('lead-name');
+    var p = document.getElementById('lead-phone');
+    if(n && !n.value) n.value = currentUser.name || '';
+    if(p && !p.value) p.value = currentUser.phone || '';
+  }
+}
+
+function closeLead() {
+  var m = document.getElementById('lead-modal');
+  if(m) m.style.display = 'none';
+}
+
+function submitLead() {
+  var g = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
+  if(!g('lead-name')){showToast('Shyira amazina yawe!');return;}
+  if(!g('lead-phone')){showToast('Shyira telefoni yawe!');return;}
+
+  var zone = g('lead-zone');
+  var lead = {
+    id: 'LEAD-' + Date.now(),
+    clientName: g('lead-name'),
+    clientPhone: g('lead-phone'),
+    action: document.getElementById('lead-action').value,
+    zone: zone,
+    budgetMin: document.getElementById('lead-budget-min').value,
+    budgetMax: document.getElementById('lead-budget-max').value,
+    notes: g('lead-notes'),
+    status: 'New',
+    assignedAgent: null,
+    createdAt: new Date().toISOString(),
+    deadline: new Date(Date.now() + 2*60*60*1000).toISOString() // 2hrs deadline
+  };
+
+  // Find agent in the zone
+  var agents = [];
+  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
+  var zoneAgents = agents.filter(function(a){ return a.zone === zone && a.status !== 'Suspended'; });
+
+  if(zoneAgents.length > 0) {
+    // Assign to agent with fewest leads (fairness)
+    zoneAgents.sort(function(a,b){ return (a.leads||[]).length - (b.leads||[]).length; });
+    lead.assignedAgent = zoneAgents[0].id;
+    lead.agentName = zoneAgents[0].name;
+    lead.agentPhone = zoneAgents[0].phone;
+
+    // Update agent leads
+    var agentIdx = agents.indexOf(zoneAgents[0]);
+    if(!agents[agentIdx].leads) agents[agentIdx].leads = [];
+    agents[agentIdx].leads.push(lead.id);
+    try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
+  }
+
+  // Save lead
+  var leads = [];
+  try { leads = JSON.parse(localStorage.getItem('km_leads')||'[]'); } catch(e){}
+  leads.push(lead);
+  try { localStorage.setItem('km_leads', JSON.stringify(leads)); } catch(e){}
+
+  closeLead();
+
+  if(lead.agentName) {
+    showToast('✅ Lead yoherejwe! Agent ' + lead.agentName + ' azakuhamagara mu masaa 2.');
+  } else {
+    showToast('✅ Lead yoherejwe! KOMISIYONERI izakuhuza na agent vuba.');
+    // Notify admin via WhatsApp
+    var msg = 'LEAD NSHYA - Zone:'+zone+' - Client:'+lead.clientName+' - Tel:'+lead.clientPhone;
+    setTimeout(function(){
+      window.open('https://wa.me/250783177254?text=' + encodeURIComponent(msg), '_blank');
+    }, 500);
+  }
+}
+
+// === ADMIN LEAD DASHBOARD ===
+function openAdminLeads() {
+  var pass = prompt('Admin Password:');
+  if(!pass || pass !== 'KOMISIYONERI2026') { showToast('Password sibyo!'); return; }
+
+  var leads = [];
+  var agents = [];
+  try { leads = JSON.parse(localStorage.getItem('km_leads')||'[]'); } catch(e){}
+  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
+
+  var m = document.getElementById('deal-modal');
+  if(!m) return;
+  m.style.display = 'flex';
+
+  var content = document.getElementById('deal-tracker-content');
+
+  // Stats
+  var newLeads = leads.filter(function(l){ return l.status==='New'; }).length;
+  var activeLeads = leads.filter(function(l){ return l.status==='Active'; }).length;
+  var closedLeads = leads.filter(function(l){ return l.status==='Closed'; }).length;
+
+  var html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1rem">'
+    + '<div style="background:var(--light);border-radius:10px;padding:.8rem;text-align:center"><div style="font-size:1.5rem;font-weight:700;color:var(--navy)">'+leads.length+'</div><div style="font-size:.7rem;color:var(--muted)">Leads Zose</div></div>'
+    + '<div style="background:#fff3cd;border-radius:10px;padding:.8rem;text-align:center"><div style="font-size:1.5rem;font-weight:700;color:#856404">'+newLeads+'</div><div style="font-size:.7rem;color:var(--muted)">Nshya</div></div>'
+    + '<div style="background:#d4edda;border-radius:10px;padding:.8rem;text-align:center"><div style="font-size:1.5rem;font-weight:700;color:#27A84A">'+closedLeads+'</div><div style="font-size:.7rem;color:var(--muted)">Zarangiye</div></div>'
+    + '</div>'
+
+    + '<div style="font-weight:700;font-size:.85rem;color:var(--navy);margin-bottom:.6rem">Agents ('+ agents.length +'):</div>'
+    + agents.slice(0,5).map(function(a) {
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem .8rem;background:var(--light);border-radius:8px;margin-bottom:.4rem">'
+          + '<div><div style="font-weight:600;font-size:.85rem">'+a.name+'</div><div style="font-size:.72rem;color:var(--muted)">'+a.zone+' | '+a.phone+'</div></div>'
+          + '<div style="text-align:center"><div style="font-weight:700;color:var(--navy)">'+(a.leads||[]).length+'</div><div style="font-size:.65rem;color:var(--muted)">Leads</div></div>'
+          + '<span style="background:'+(a.status==='Active'?'#27A84A':a.status==='Pending Verification'?'#F5A623':'#e53e3e')+';color:#fff;border-radius:20px;padding:.15rem .5rem;font-size:.65rem;font-weight:700">'+a.status+'</span>'
+          + '</div>';
+      }).join('')
+
+    + '<div style="font-weight:700;font-size:.85rem;color:var(--navy);margin:.8rem 0 .5rem">Leads Zaheruka:</div>'
+    + (leads.length === 0 ? '<div style="text-align:center;padding:1rem;color:var(--muted)">Nta leads irahari ubu</div>' : '')
+    + leads.slice(-5).reverse().map(function(l) {
+        var statusColor = l.status==='Closed'?'#27A84A':l.status==='Active'?'var(--blue)':'#F5A623';
+        return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.5rem">'
+          + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+          + '<div><div style="font-weight:600;font-size:.85rem">'+l.clientName+'</div>'
+          + '<div style="font-size:.75rem;color:var(--muted)">'+l.action+' | '+l.zone+'</div>'
+          + (l.agentName?'<div style="font-size:.75rem;color:var(--blue)">Agent: '+l.agentName+'</div>':'<div style="font-size:.75rem;color:#e53e3e">⚠️ Nta agent</div>')
+          + '</div>'
+          + '<span style="background:'+statusColor+';color:#fff;border-radius:20px;padding:.15rem .5rem;font-size:.65rem;font-weight:700">'+l.status+'</span>'
+          + '</div>'
+          + '<div style="display:flex;gap:.4rem;margin-top:.5rem">'
+          
+          
+          + '<a href="tel:'+l.clientPhone+'" style="background:var(--navy);color:#fff;border:none;padding:.3rem .6rem;border-radius:6px;cursor:pointer;font-size:.72rem;text-decoration:none">📞 Hamagara</a>'
+          + '</div></div>';
+      }).join('');
+
+  content.innerHTML = html;
+}
+
+function updateLeadStatus(leadId, status) {
+  var leads = [];
+  try { leads = JSON.parse(localStorage.getItem('km_leads')||'[]'); } catch(e){}
+  var idx = leads.findIndex(function(l){ return l.id === leadId; });
+  if(idx >= 0) {
+    leads[idx].status = status;
+    leads[idx].updatedAt = new Date().toISOString();
+    try { localStorage.setItem('km_leads', JSON.stringify(leads)); } catch(e){}
+    showToast('Lead status yahinduwe: ' + status);
+    openAdminLeads(); // Refresh
+  }
+}
+
+// === AGENT DASHBOARD LEADS ===
+function loadAgentLeads() {
+  if(!currentUser || !currentUser.agentId) return;
+  var leads = [];
+  try { leads = JSON.parse(localStorage.getItem('km_leads')||'[]'); } catch(e){}
+  var myLeads = leads.filter(function(l){ return l.assignedAgent === currentUser.agentId; });
+  return myLeads;
+}
+
+// Add Agent Registration to navbar
+function showBecomeAgent() {
+  if(!currentUser) { go('auth'); return; }
+  openAgentReg();
+}
+
+
+// ════════════════════════════════════════════════════════
+//  DEMO LISTINGS + ADMIN LISTING + FILE UPLOAD
+// ════════════════════════════════════════════════════════
+
+// Load demo listings into localStorage if none exist
+function loadDemoListings() {
+  var props = [];
+  try { props = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e){}
+
+  // Only load demos if no approved properties exist
+  var approved = props.filter(function(p){ return p.status === 'Approved'; });
+  if (approved.length > 0) return; // Real listings exist, skip demos
+
+  var demos = [
+    {
+      id: 'DEMO-001', type: 'Villa', service: 'Kugurisha', district: 'Gasabo',
+      sector: 'Kimironko', price: '120000000', beds: '4', baths: '2', size: '320',
+      desc: 'Villa nziza i Kimironko - ibyumba 4, bafu 2, garage, imbuga. Hafi amashuri, amasoko. Titre Foncier iri.',
+      contact: '+250 783 177 254', owner: 'KOMISIYONERI', ownerEmail: 'demo@komisiyoneri.com',
+      img1: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80',
+      img2: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80',
+      img3: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80',
+      video: '', status: 'Approved', isDemo: true, verified: true, rating: 4.9, reviews: 12,
+      date: new Date().toISOString()
+    },
+    {
+      id: 'DEMO-002', type: 'Apartimani', service: 'Gukodesha', district: 'Kicukiro',
+      sector: 'Niboye', price: '450000', beds: '2', baths: '1', size: '85',
+      desc: 'Apartimani nshya i Niboye - modern, WiFi, parking, security 24/7. Generator, amazi biratangwa. Hafi ya Kicukiro center.',
+      contact: '+250 783 177 254', owner: 'KOMISIYONERI', ownerEmail: 'demo@komisiyoneri.com',
+      img1: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80',
+      img2: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80',
+      img3: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80',
+      video: '', status: 'Approved', isDemo: true, verified: true, rating: 4.7, reviews: 8,
+      date: new Date().toISOString()
+    },
+    {
+      id: 'DEMO-003', type: 'Inzu', service: 'Kugurisha', district: 'Nyarugenge',
+      sector: 'Muhima', price: '65000000', beds: '3', baths: '2', size: '180',
+      desc: 'Inzu nziza i Muhima - hafi ya Kigali CBD. Ibyumba 3, bafu 2, kitchen nziza. Titre Foncier iri. Igiciro gihuye isoko.',
+      contact: '+250 783 177 254', owner: 'KOMISIYONERI', ownerEmail: 'demo@komisiyoneri.com',
+      img1: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&q=80',
+      img2: 'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=800&q=80',
+      img3: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80',
+      video: '', status: 'Approved', isDemo: true, verified: true, rating: 4.8, reviews: 5,
+      date: new Date().toISOString()
+    },
+    {
+      id: 'DEMO-004', type: 'Ubutaka', service: 'Kugurisha', district: 'Gasabo',
+      sector: 'Rusororo', price: '25000000', beds: '0', baths: '0', size: '600',
+      desc: 'Ubutaka bunini i Rusororo - 600m2, hafi imihanda myiza. Birabereye kubaka inzu cyangwa inyubako. Titre Foncier.',
+      contact: '+250 783 177 254', owner: 'KOMISIYONERI', ownerEmail: 'demo@komisiyoneri.com',
+      img1: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80',
+      img2: 'https://images.unsplash.com/photo-1416331108676-a22ccb276e35?w=800&q=80',
+      img3: '', video: '', status: 'Approved', isDemo: true, verified: true, rating: 4.5, reviews: 3,
+      date: new Date().toISOString()
+    },
+    {
+      id: 'DEMO-005', type: 'Studio', service: 'Gukodesha', district: 'Gasabo',
+      sector: 'Remera', price: '280000', beds: '1', baths: '1', size: '42',
+      desc: 'Studio nshya i Remera - fully furnished, WiFi na electricity biratangwa. Hafi ya Airport na bus stop. Ideal for professionals.',
+      contact: '+250 783 177 254', owner: 'KOMISIYONERI', ownerEmail: 'demo@komisiyoneri.com',
+      img1: 'https://images.unsplash.com/photo-1502672023488-70e25813eb80?w=800&q=80',
+      img2: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80',
+      img3: '', video: '', status: 'Approved', isDemo: true, verified: true, rating: 4.6, reviews: 9,
+      date: new Date().toISOString()
+    },
+    {
+      id: 'DEMO-006', type: 'Villa', service: 'Gukodesha', district: 'Gasabo',
+      sector: 'Kacyiru', price: '1500000', beds: '4', baths: '3', size: '450',
+      desc: 'Villa ya Luxury i Kacyiru - hafi Ambasade na Ministeri. Swimming pool, garden, garages 2, security. Fully furnished.',
+      contact: '+250 783 177 254', owner: 'KOMISIYONERI', ownerEmail: 'demo@komisiyoneri.com',
+      img1: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80',
+      img2: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80',
+      img3: 'https://images.unsplash.com/photo-1619994403073-2cec844b8e63?w=800&q=80',
+      video: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      status: 'Approved', isDemo: true, verified: true, rating: 5.0, reviews: 15,
+      date: new Date().toISOString()
+    },
+    {
+      id: 'DEMO-007', type: 'Inyubako', service: 'Kugurisha', district: 'Nyarugenge',
+      sector: 'CBD', price: '350000000', beds: '0', baths: '0', size: '1200',
+      desc: 'Inyubako ubucuruzi i Kigali CBD - floors 5, parking, lifts, AC. Birabereye offices na ibikorwa ubucuruzi. Titre Foncier.',
+      contact: '+250 783 177 254', owner: 'KOMISIYONERI', ownerEmail: 'demo@komisiyoneri.com',
+      img1: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80',
+      img2: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80',
+      img3: '', video: '', status: 'Approved', isDemo: true, verified: true, rating: 4.8, reviews: 6,
+      date: new Date().toISOString()
+    },
+    {
+      id: 'DEMO-008', type: 'Apartimani', service: 'Kugurisha', district: 'Kicukiro',
+      sector: 'Gatenga', price: '45000000', beds: '3', baths: '2', size: '120',
+      desc: 'Apartimani nziza yo kugura i Gatenga - floor ya 3, elevator, parking, balcony. Modern finishing. Investment nziza.',
+      contact: '+250 783 177 254', owner: 'KOMISIYONERI', ownerEmail: 'demo@komisiyoneri.com',
+      img1: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80',
+      img2: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&q=80',
+      img3: '', video: '', status: 'Approved', isDemo: true, verified: true, rating: 4.7, reviews: 11,
+      date: new Date().toISOString()
+    }
+  ];
+
+  // Add demos to storage
+  var existing = props.filter(function(p){ return !p.isDemo; });
+  var newProps = existing.concat(demos);
+  try { localStorage.setItem('km_properties', JSON.stringify(newProps)); } catch(e){}
+  loadApprovedProperties();
+}
+
+// === ADMIN ADD PROPERTY (with YouTube) ===
+function openAdminAddProp() {
+  // Show admin media section, hide user section
+  var adminMedia = document.getElementById('admin-media-section');
+  var userMedia = document.getElementById('user-media-section');
+  if(adminMedia) adminMedia.style.display = 'flex';
+  if(userMedia) userMedia.style.display = 'none';
+  openAddProperty();
+}
+
+// Override openAddProperty to show correct media section
+var _origOpenAddProp = openAddProperty;
+openAddProperty = function() {
+  _origOpenAddProp();
+  var isAdmin = currentUser && currentUser.email === 'komisiyonericonnectproservices@gmail.com';
+  var adminMedia = document.getElementById('admin-media-section');
+  var userMedia = document.getElementById('user-media-section');
+  if(adminMedia) adminMedia.style.display = isAdmin ? 'flex' : 'none';
+  if(userMedia) userMedia.style.display = isAdmin ? 'none' : 'flex';
+};
+
+// === FILE UPLOAD HANDLER (for regular users) ===
+function convertFileToBase64(file, callback) {
+  var reader = new FileReader();
+  reader.onload = function(e) { callback(e.target.result); };
+  reader.readAsDataURL(file);
+}
+
+// submitProperty override removed - handled by submitPropertyFinal below
+
+// === BOTTOM NAV ACTIVE STATE ===
+function updateBottomNav(page) {
+  var map = {home:'home',listings:'listings',analytics:'analytics'};
+  document.querySelectorAll('.bn-item').forEach(function(b){
+    b.querySelectorAll('svg').forEach(function(s){ s.style.stroke='var(--muted)'; });
+    b.querySelectorAll('span').forEach(function(s){ s.style.color='var(--muted)'; });
+  });
+  var activeId = 'bn-' + (map[page] || 'home');
+  var active = document.getElementById(activeId);
+  if(active) {
+    active.querySelectorAll('svg').forEach(function(s){ s.style.stroke='var(--navy)'; });
+    active.querySelectorAll('span').forEach(function(s){ s.style.color='var(--navy)'; });
+  }
+}
+
+// Initialize demos on load
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(loadDemoListings, 500);
+});
+setTimeout(loadDemoListings, 600);
+
+
+// === ADMIN ADD PROPERTY DIRECT (from admin panel) ===
+function openAdminAddPropDirect() {
+  closeAdmin();
+  setTimeout(function() {
+    var m = document.getElementById('add-prop-modal');
+    if(m) m.style.display = 'flex';
+    // Show admin section, hide user section
+    var adminSec = document.getElementById('admin-media-section');
+    var userSec = document.getElementById('user-media-section');
+    if(adminSec) adminSec.style.display = 'flex';
+    if(userSec) userSec.style.display = 'none';
+    // Pre-fill contact
+    var c = document.getElementById('prop-contact');
+    if(c) c.value = '+250 783 177 254';
+  }, 200);
+}
+
+// === YOUTUBE URL CONVERTER ===
+function convertYouTubeURL(url) {
+  if(!url) return '';
+  // Handle youtu.be short links
+  var shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+  if(shortMatch) return 'https://www.youtube.com/embed/' + shortMatch[1];
+  // Handle youtube.com/watch?v=
+  var longMatch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
+  if(longMatch) return 'https://www.youtube.com/embed/' + longMatch[1];
+  // Already embed format
+  if(url.includes('youtube.com/embed/')) return url;
+  return url;
+}
+
+// === IMPROVED submitProperty (disabled - using submitPropertyFinal) ===
+function submitPropertyOLD() {
+  var g = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
+  var isAdmin = currentUser && currentUser.email === 'komisiyonericonnectproservices@gmail.com';
+
+  if(!g('prop-price')) { showToast(curLang==='rw'?'Shyira igiciro!':'Enter price!'); return; }
+  if(!g('prop-contact')) { showToast(curLang==='rw'?'Shyira telefoni!':'Enter contact!'); return; }
+
+  if(isAdmin) {
+    // Admin: save with YouTube embed URL
+    var videoUrl = convertYouTubeURL(g('prop-video'));
+    var props = [];
+    try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+    var newProp = {
+      id: Date.now(),
+      type: g('prop-type'), service: g('prop-service'), district: g('prop-district'),
+      sector: g('prop-sector'), price: g('prop-price'), beds: g('prop-beds'),
+      baths: g('prop-baths'), size: g('prop-size'), desc: g('prop-desc'),
+      contact: g('prop-contact'),
+      img1: g('prop-img1'), img2: g('prop-img2'), img3: g('prop-img3'),
+      video: videoUrl,
+      owner: 'KOMISIYONERI', ownerEmail: currentUser.email,
+      verified: true, rating: 5.0, reviews: 0,
+      date: new Date().toISOString(), status: 'Approved'
+    };
+    props.push(newProp);
+    try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
+    closeAddProperty();
+    ['prop-sector','prop-price','prop-beds','prop-baths','prop-size','prop-desc','prop-img1','prop-img2','prop-img3','prop-video'].forEach(function(id){
+      var el=document.getElementById(id); if(el) el.value='';
+    });
+    loadApprovedProperties();
+    showToast(curLang==='rw'?'✅ Imitungo yashyizweho kandi yemejwe!':'✅ Property added and approved!');
+  } else {
+    // Regular user: handle file uploads
+    var file1 = document.getElementById('prop-file1');
+    var files = [
+      file1 ? file1.files[0] : null,
+      document.getElementById('prop-file2') ? document.getElementById('prop-file2').files[0] : null,
+      document.getElementById('prop-file3') ? document.getElementById('prop-file3').files[0] : null
+    ].filter(Boolean);
+
+    if(files.length === 0) {
+      showToast(curLang==='rw'?'Shyiramo nibura ifoto imwe!':'Upload at least one photo!');
+      return;
+    }
+
+    // Convert files to base64
+    var images = [];
+    var processed = 0;
+    showToast(curLang==='rw'?'Amafoto arakopiwa...':'Uploading photos...');
+
+    files.forEach(function(file, idx) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        images[idx] = e.target.result;
+        processed++;
+        if(processed === files.length) {
+          // Save property with base64 images
+          var props = [];
+          try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+          var newProp = {
+            id: Date.now(),
+            type: g('prop-type'), service: g('prop-service'), district: g('prop-district'),
+            sector: g('prop-sector'), price: g('prop-price'), beds: g('prop-beds'),
+            baths: g('prop-baths'), size: g('prop-size'), desc: g('prop-desc'),
+            contact: g('prop-contact'),
+            img1: images[0]||'', img2: images[1]||'', img3: images[2]||'',
+            video: '',
+            owner: currentUser.name, ownerEmail: currentUser.email,
+            date: new Date().toISOString(), status: 'Pending'
+          };
+          props.push(newProp);
+          try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
+          closeAddProperty();
+          showToast(curLang==='rw'?'✅ Imitungo yoherejwe! Tuzayisuzuma vuba.':'✅ Property submitted for review!');
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+};
+
+// Show correct media section when add property modal opens
+var _origOpenAdd = openAddProperty;
+openAddProperty = function() {
+  _origOpenAdd();
+  setTimeout(function() {
+    var isAdmin = currentUser && currentUser.email === 'komisiyonericonnectproservices@gmail.com';
+    var adminSec = document.getElementById('admin-media-section');
+    var userSec = document.getElementById('user-media-section');
+    if(adminSec) adminSec.style.display = isAdmin ? 'flex' : 'none';
+    if(userSec) userSec.style.display = isAdmin ? 'none' : 'flex';
+  }, 100);
+};
+
+
+// === OPEN PROPERTY DETAIL PAGE ===
+window._currentProp = null;
+
+function openPropDetail(propId) {
+  // Find property
+  var props = [];
+  try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+  var prop = props.find(function(p){ return String(p.id) === String(propId); });
+  if(!prop) { go('detail'); return; }
+
+  window._currentProp = prop;
+
+  // Populate detail page
+  var priceDisplay = prop.price ? (parseInt(prop.price) >= 1000000
+    ? parseInt(prop.price).toLocaleString() + ' RWF'
+    : Math.round(parseInt(prop.price)/1000) + ',000 RWF') : '—';
+  if(prop.service === 'Gukodesha') priceDisplay += '/mo';
+
+  // Update title
+  var titleEl = document.getElementById('det-prop-title');
+  if(titleEl) titleEl.textContent = prop.type + ' — ' + prop.district + (prop.sector?', '+prop.sector:'');
+
+  // Update price
+  var priceEl = document.querySelector('.det-price');
+  if(priceEl) priceEl.innerHTML = priceDisplay + '<small>(' + (prop.service||'Kugurisha') + ')</small>';
+
+  // Update description
+  var descEl = document.getElementById('tab-desc');
+  if(descEl && prop.desc) {
+    var existing = descEl.querySelector('p');
+    if(existing) existing.textContent = prop.desc;
+  }
+
+  // Update location stats
+  var locEls = document.querySelectorAll('.det-stat');
+  if(locEls.length >= 4) {
+    locEls[0].querySelector('strong') && (locEls[0].querySelector('strong').textContent = prop.beds||'—');
+    locEls[1].querySelector('strong') && (locEls[1].querySelector('strong').textContent = prop.baths||'—');
+    locEls[2].querySelector('strong') && (locEls[2].querySelector('strong').textContent = (prop.size||'—')+'m²');
+  }
+
+  // Update hero image background
+  var heroBg = document.querySelector('.det-hero-bg');
+  if(heroBg && prop.img1) {
+    heroBg.style.backgroundImage = 'url('+prop.img1+')';
+    heroBg.style.backgroundSize = 'cover';
+    heroBg.style.backgroundPosition = 'center';
+  }
+
+  // Update gallery
+  var gallery = document.querySelector('.det-gallery');
+  if(gallery && (prop.img1||prop.img2||prop.img3)) {
+    var imgs = [prop.img1,prop.img2,prop.img3].filter(Boolean);
+    gallery.innerHTML = imgs.map(function(img,i) {
+      return '<div class="det-thumb'+(i===0?' active':'')+'" style="background:url('+img+') center/cover;width:70px;height:55px;border-radius:6px;cursor:pointer;border:'+(i===0?'2px solid var(--navy)':'1.5px solid var(--border)')+'" onclick="switchGallery(this,\'' + img + '\')"></div>';
+    }).join('');
+  }
+
+  // Update video tab
+  if(prop.video) {
+    var videoSection = document.querySelector('#tab-3d iframe, #tab-desc iframe');
+    if(!videoSection) {
+      var tab3d = document.getElementById('tab-3d');
+      if(!tab3d) { tab3d = document.createElement('div'); tab3d.id='tab-3d'; }
+      tab3d.innerHTML = '<div style="border-radius:12px;overflow:hidden;margin-bottom:1rem"><iframe src="'+prop.video+'" width="100%" height="250" style="border:0;display:block" allowfullscreen></iframe></div>';
+    }
+  }
+
+  // Update agent contact
+  var agentPhone = document.querySelector('.ag-acts a[href^="tel"]');
+  if(agentPhone && prop.contact) agentPhone.href = 'tel:'+prop.contact;
+
+  // Update WhatsApp
+  var waBtn = document.querySelector('.ag-acts a[href*="wa.me"]');
+  if(waBtn && prop.contact) {
+    var cleanPhone = prop.contact.replace(/[^0-9]/g,'');
+    waBtn.href = 'https://wa.me/'+cleanPhone+'?text=Ndashaka amakuru y%27imitungo muri KOMISIYONERI';
+  }
+
+  // Demo badge on detail
+  var detBadge = document.getElementById('det-demo-badge');
+  if(!detBadge && prop.isDemo) {
+    detBadge = document.createElement('div');
+    detBadge.id = 'det-demo-badge';
+    detBadge.style.cssText = 'display:inline-block;background:var(--gold);color:#000;border-radius:20px;padding:.2rem .8rem;font-size:.72rem;font-weight:800;margin-bottom:.5rem';
+    detBadge.textContent = '✦ DEMO — Urugero gusa';
+    var detTitle = document.getElementById('det-prop-title');
+    if(detTitle && detTitle.parentNode) detTitle.parentNode.insertBefore(detBadge, detTitle);
+  } else if(detBadge) {
+    detBadge.style.display = prop.isDemo ? 'inline-block' : 'none';
+  }
+
+  // Navigate to detail
+  go('detail');
+}
+
+function switchGallery(el, imgUrl) {
+  var heroBg = document.querySelector('.det-hero-bg');
+  if(heroBg) { heroBg.style.backgroundImage = 'url('+imgUrl+')'; heroBg.style.backgroundSize='cover'; heroBg.style.backgroundPosition='center'; }
+  document.querySelectorAll('.det-thumb').forEach(function(t){ t.style.border='1.5px solid var(--border)'; t.classList.remove('active'); });
+  el.style.border = '2px solid var(--navy)'; el.classList.add('active');
+}
 
 </script>
 </body>
