@@ -4120,35 +4120,61 @@ var adminCurrentFilter = 'pending';
 
 // --- RENDER USER PROPERTY CARD ---
 function renderUserPropCard(prop) {
+  var pid = String(prop.id);
   var colors = ['g1','g2','g3','g4','g5','g6','g7'];
-  var color = colors[prop.id % colors.length] || 'g1';
-  var priceDisplay = prop.price ? (parseInt(prop.price) >= 1000000 
-    ? Math.round(parseInt(prop.price)/1000000) + 'M RWF' 
-    : Math.round(parseInt(prop.price)/1000) + 'K RWF') : 'Igiciro ntikimenyekana';
-  if (prop.service === 'Gukodesha') priceDisplay += '/mo';
-  var badge = prop.service === 'Gukodesha' 
-    ? '<span class="badge b-green">Gukodesha</span>' 
+  var colorIdx = Math.abs(pid.split('').reduce(function(a,c){return a+c.charCodeAt(0);},0)) % 7;
+  var color = colors[colorIdx];
+
+  var priceNum = parseInt(prop.price)||0;
+  var priceStr = priceNum >= 1000000
+    ? Math.round(priceNum/1000000) + 'M RWF'
+    : (priceNum >= 1000 ? Math.round(priceNum/1000) + 'K RWF' : priceNum + ' RWF');
+  if(prop.service === 'Gukodesha') priceStr += '/mo';
+
+  var badge = prop.service === 'Gukodesha'
+    ? '<span class="badge b-green">Gukodesha</span>'
     : '<span class="badge b-navy">Kugura</span>';
-  var loc = (prop.district||'') + (prop.sector ? ', '+prop.sector : '');
-  var beds = prop.beds ? '<span class="p-feat"><svg viewBox="0 0 24 24"><path d="M3 22V8a1 1 0 011-1h7V3a1 1 0 011-1h8a1 1 0 011 1v19M9 22V12h6v10"/></svg>'+prop.beds+'</span>' : '';
-  var baths = prop.baths ? '<span class="p-feat"><svg viewBox="0 0 24 24"><path d="M9 6l2 2-2 2m4 0l2-2-2-2"/><rect x="2" y="20" width="20" height="2"/><path d="M2 20V8a2 2 0 012-2h16a2 2 0 012 2v12"/></svg>'+prop.baths+'</span>' : '';
-  var size = prop.size ? '<span class="p-feat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>'+prop.size+'m²</span>' : '';
-  var imgBg = prop.img1 ? 'style="background-image:url(' + prop.img1 + ');background-size:cover;background-position:center"' : '';
-  var demoBadge = prop.isDemo ? '<div style="position:absolute;top:.5rem;left:.5rem;background:rgba(245,166,35,.95);color:#000;border-radius:20px;padding:.15rem .55rem;font-size:.6rem;font-weight:800;letter-spacing:.06em;z-index:2">✦ DEMO</div>' : '';
-  var verifiedBadge = prop.verified ? '<div style="position:absolute;top:.5rem;right:2.8rem;background:rgba(39,168,74,.9);color:#fff;border-radius:20px;padding:.15rem .5rem;font-size:.6rem;font-weight:700;z-index:2">✅ Verified</div>' : '';
-  var ratingBadge = prop.rating ? '<div style="position:absolute;bottom:.5rem;left:.5rem;background:rgba(0,0,0,.6);color:#fff;border-radius:20px;padding:.15rem .55rem;font-size:.7rem;font-weight:700;z-index:2">★ '+prop.rating+'</div>' : '';
-  return '<div class="p-card" style="position:relative" onclick="showToast(this.querySelector(\'.p-title\').textContent)">'
-    + '<div class="p-img '+color+'" '+imgBg+'"><div class="p-img-inner"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div>'
-    + '<div class="p-tag">'+badge+'</div>'
-    + '<div class="p-price">'+priceDisplay+'</div>'
-    + '<div style="position:absolute;top:.5rem;left:.5rem;background:rgba(39,168,74,.9);color:#fff;border-radius:20px;padding:.15rem .55rem;font-size:.65rem;font-weight:700">✅ NSHYA</div>'
+
+  var loc = [prop.district, prop.sector].filter(Boolean).join(', ');
+  var beds  = prop.beds  ? '<span class="p-feat"><svg viewBox="0 0 24 24"><path d="M3 22V8a1 1 0 011-1h7V3a1 1 0 011-1h8a1 1 0 011 1v19"/></svg>'+prop.beds+'</span>' : '';
+  var baths = prop.baths ? '<span class="p-feat"><svg viewBox="0 0 24 24"><rect x="2" y="20" width="20" height="2"/><path d="M2 20V8a2 2 0 012-2h16a2 2 0 012 2v12"/></svg>'+prop.baths+'</span>' : '';
+  var size  = prop.size  ? '<span class="p-feat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>'+prop.size+'m²</span>' : '';
+
+  var imgStyle = prop.img1 ? 'background-image:url('+prop.img1+');background-size:cover;background-position:center' : '';
+  var shortDesc = prop.desc ? prop.desc.substring(0,60)+'...' : '';
+  var title = (prop.type||'Imitungo') + (prop.district ? ' — '+prop.district : '');
+
+  var demoBadge = prop.isDemo
+    ? '<span style="position:absolute;top:.4rem;left:.4rem;background:rgba(245,166,35,.95);color:#000;border-radius:20px;padding:.1rem .5rem;font-size:.58rem;font-weight:800;z-index:3">❆ DEMO</span>'
+    : '';
+  var verBadge = prop.verified
+    ? '<span style="position:absolute;top:.4rem;right:.4rem;background:rgba(39,168,74,.9);color:#fff;border-radius:20px;padding:.1rem .45rem;font-size:.58rem;font-weight:700;z-index:3">✅</span>'
+    : '';
+  var starBadge = prop.rating
+    ? '<span style="position:absolute;bottom:.4rem;right:.4rem;background:rgba(0,0,0,.65);color:#fff;border-radius:20px;padding:.1rem .45rem;font-size:.65rem;font-weight:700;z-index:3">★ '+prop.rating+'</span>'
+    : '';
+
+  return '<div class="p-card" data-pid="'+pid+'" style="cursor:pointer;position:relative" onclick="openPropDetail(this.dataset.pid)">';
+    + '<div class="p-img '+color+'" style="'+imgStyle+';position:relative">'
+    +   demoBadge + verBadge + starBadge
+    +   '<div class="p-tag">'+badge+'</div>'
+    +   '<div class="p-price">'+priceStr+'</div>'
     + '</div>'
     + '<div class="p-body">'
-    + '<div class="p-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'+loc+'</div>'
-    + '<div class="p-title">'+prop.type+' — '+(prop.desc ? prop.desc.substring(0,40)+'...' : prop.district)+'</div>'
-    + '<div class="p-feats">'+beds+baths+size+'</div>'
-    + '</div></div>';
+    +   '<div class="p-loc"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'+loc+'</div>'
+    +   '<div class="p-title">'+title+'</div>'
+    +   (shortDesc ? '<div style="font-size:.75rem;color:var(--muted);line-height:1.4;margin:.2rem 0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+shortDesc+'</div>' : '')
+    +   '<div class="p-feats">'+beds+baths+size+'</div>'
+    +   '<div style="display:flex;justify-content:flex-end;margin-top:.3rem">'
+    +     '<button onclick="event.stopPropagation();sharePropLink(this.closest(\"[data-pid]\").dataset.pid)" style="background:none;border:none;cursor:pointer;padding:.2rem .4rem;color:var(--muted);font-size:.68rem;display:flex;align-items:center;gap:.25rem">';
+    +       '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>'
+    +       'Sangira'
+    +     '</button>'
+    +   '</div>'
+    + '</div>'
+    + '</div>';
 }
+
 
 // --- INJECT APPROVED PROPERTIES INTO LISTINGS PAGE ---
 function loadApprovedProperties() {
@@ -4156,38 +4182,32 @@ function loadApprovedProperties() {
   if (!grids.length) return;
   var props = [];
   try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+  // Show demos + approved real listings
   var approved = props.filter(function(p){ return p.status === 'Approved'; });
 
   grids.forEach(function(grid) {
-    // Remove old dynamic cards
     grid.querySelectorAll('.user-prop-card').forEach(function(el){ el.remove(); });
+    var empty = grid.querySelector('.empty-listings');
+    if(empty) empty.remove();
 
-    if (approved.length === 0) {
-      // Show empty state
-      if (!grid.querySelector('.empty-listings')) {
-        var empty = document.createElement('div');
-        empty.className = 'empty-listings';
-        empty.style.cssText = 'grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--muted)';
-        empty.innerHTML = '<div style="font-size:3rem;margin-bottom:1rem">🏠</div>'
-          + '<div style="font-size:1.1rem;font-weight:600;color:var(--navy);margin-bottom:.5rem">'
-          + (curLang==="rw" ? "Nta mitungo irahari ubu" : "No properties listed yet") + '</div>'
-          + '<div style="font-size:.88rem;margin-bottom:1.5rem">'
-          + (curLang==="rw" ? "Imitungo ya nyayo izagaragara hano nyuma yo kwemezwa." : "Real listings will appear here after approval.") + '</div>'
-          + '<button onclick="go(\'auth\')" class="btn btn-navy btn-sm" style="margin:0 auto">'
-          + (curLang==="rw" ? "+ Ongeramo Imitungo Yawe" : "+ Add Your Property") + '</button>';
-        grid.appendChild(empty);
-      }
+    if(approved.length === 0) {
+      // No listings at all
+      var emptyDiv = document.createElement('div');
+      emptyDiv.className = 'empty-listings';
+      emptyDiv.style.cssText = 'grid-column:1/-1;text-align:center;padding:2rem 1rem;color:var(--muted)';
+      emptyDiv.innerHTML = '<div style="font-size:2.5rem;margin-bottom:.5rem">🏠</div>'
+        + '<div style="font-size:1rem;font-weight:600;color:var(--navy);margin-bottom:.4rem">'
+        + (curLang==="rw" ? "Nta mitungo irahari ubu" : "No listings yet") + '</div>'
+        + '<button onclick="loadDemoListings()" class="btn btn-navy btn-sm" style="margin:.5rem auto">'
+        + '✦ Reba Demo Listings</button>';
+      grid.appendChild(emptyDiv);
     } else {
-      // Remove empty state
-      var empty = grid.querySelector('.empty-listings');
-      if (empty) empty.remove();
-
-      // Add approved properties
+      // Add all approved (demos + real)
       approved.forEach(function(prop) {
         var wrapper = document.createElement('div');
         wrapper.className = 'user-prop-card';
         wrapper.innerHTML = renderUserPropCard(prop);
-        grid.insertBefore(wrapper, grid.firstChild);
+        grid.appendChild(wrapper);
       });
     }
   });
@@ -5185,9 +5205,9 @@ function loadDemoListings() {
   var props = [];
   try { props = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e){}
 
-  // Only load demos if no approved properties exist
-  var approved = props.filter(function(p){ return p.status === 'Approved'; });
-  if (approved.length > 0) return; // Real listings exist, skip demos
+  // Always show demos alongside real listings
+  // Remove old demos first to avoid duplicates
+  props = props.filter(function(p){ return !p.isDemo; });
 
   var demos = [
     {
@@ -5277,9 +5297,9 @@ function loadDemoListings() {
     }
   ];
 
-  // Add demos to storage
-  var existing = props.filter(function(p){ return !p.isDemo; });
-  var newProps = existing.concat(demos);
+  // Always add demos (they show until real listings exist)
+  window._allDemos = demos;
+  var newProps = props.concat(demos);
   try { localStorage.setItem('km_properties', JSON.stringify(newProps)); } catch(e){}
   loadApprovedProperties();
 }
@@ -5468,11 +5488,30 @@ openAddProperty = function() {
 window._currentProp = null;
 
 function openPropDetail(propId) {
-  // Find property
+  if(!propId) { console.warn('openPropDetail: no propId'); return; }
+  // Find property in localStorage
   var props = [];
   try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
   var prop = props.find(function(p){ return String(p.id) === String(propId); });
-  if(!prop) { go('detail'); return; }
+
+  // Fallback: search in window._allDemos if exists
+  if(!prop && window._allDemos) {
+    prop = window._allDemos.find(function(p){ return String(p.id) === String(propId); });
+  }
+
+  if(!prop) {
+    // If no prop found, load demos first then retry
+    loadDemoListings();
+    var props2 = [];
+    try { props2 = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+    prop = props2.find(function(p){ return String(p.id) === String(propId); });
+  }
+
+  if(!prop) {
+    showToast('Imitungo ntiboneka — gerageza nanone!');
+    go('listings');
+    return;
+  }
 
   window._currentProp = prop;
 
@@ -5566,6 +5605,38 @@ function switchGallery(el, imgUrl) {
   document.querySelectorAll('.det-thumb').forEach(function(t){ t.style.border='1.5px solid var(--border)'; t.classList.remove('active'); });
   el.style.border = '2px solid var(--navy)'; el.classList.add('active');
 }
+
+
+// === SHAREABLE PROPERTY LINKS ===
+// Store prop in URL hash so it can be shared
+function sharePropLink(propId) {
+  var url = window.location.origin + window.location.pathname + '#prop=' + propId;
+  if(navigator.share) {
+    navigator.share({ title: 'KOMISIYONERI - Imitungo', url: url })
+      .catch(function(){});
+  } else if(navigator.clipboard) {
+    navigator.clipboard.writeText(url)
+      .then(function(){ showToast('Link yakopiwe! Ohereza abandi.'); })
+      .catch(function(){
+        prompt('Kopya link iyi:', url);
+      });
+  } else {
+    prompt('Kopya link iyi:', url);
+  }
+}
+
+// Check URL hash on load — open listing if hash exists
+function checkUrlHash() {
+  var hash = window.location.hash;
+  if(hash && hash.indexOf('#prop=') === 0) {
+    var propId = hash.replace('#prop=', '');
+    setTimeout(function() {
+      openPropDetail(propId);
+    }, 800);
+  }
+}
+
+window.addEventListener('load', checkUrlHash);
 
 </script>
 </body>
