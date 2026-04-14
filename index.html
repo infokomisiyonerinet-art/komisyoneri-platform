@@ -54,11 +54,20 @@
 
 <!-- ── PWA / MOBILE APP ── -->
 <meta name="theme-color" content="#0D3B8C">
+  <!-- PWA Meta Tags -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="KOMISIYONERI">
+  <meta name="application-name" content="KOMISIYONERI">
+  <meta name="msapplication-TileColor" content="#0D3B8C">
+  <meta name="msapplication-tap-highlight" content="no">
+
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="KOMISIYONERI">
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
 
 <!-- ── FAVICON ── -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230D3B8C'/><path d='M20 70 L50 30 L80 70 M35 70 L35 52 L65 52 L65 70' stroke='white' stroke-width='7' fill='none' stroke-linejoin='round' stroke-linecap='round'/></svg>">
@@ -1407,7 +1416,11 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     <div id="nav-user" style="display:none;align-items:center;gap:.6rem">
       <div id="nav-avatar" onclick="openProfile()" style="width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;cursor:pointer;border:2px solid var(--gold)">U</div>
       <button class="btn btn-navy btn-sm" onclick="openAddProperty()">+ Imitungo</button>
-      <button id="nav-admin-btn" onclick="openAdmin()" style="display:none;background:var(--gold);border:none;padding:.3rem .6rem;border-radius:6px;cursor:pointer;font-size:.7rem;font-weight:700;color:#000" title="Admin">⚙️ Admin</button>
+      <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:var(--gold);border:none;padding:.3rem .7rem;border-radius:6px;cursor:pointer;font-size:.7rem;font-weight:700;color:#000;align-items:center;gap:.3rem" title="Install App">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Install
+        </button>
+        <button id="nav-admin-btn" onclick="openAdmin()" style="display:none;background:var(--gold);border:none;padding:.3rem .6rem;border-radius:6px;cursor:pointer;font-size:.7rem;font-weight:700;color:#000" title="Admin">⚙️ Admin</button>
     </div>
   </div>
 </nav>
@@ -5703,6 +5716,75 @@ function checkUrlHash() {
 }
 
 window.addEventListener('load', checkUrlHash);
+
+
+// ═══════════════════════════════════════════
+//  KOMISIYONERI PWA — Service Worker + Install
+// ═══════════════════════════════════════════
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js')
+      .then(function(reg) {
+        console.log('[PWA] Service Worker registered:', reg.scope);
+      })
+      .catch(function(err) {
+        console.log('[PWA] Service Worker registration failed:', err.message);
+      });
+  });
+}
+
+// PWA Install Prompt
+var pwaInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  pwaInstallPrompt = e;
+  // Show install button
+  var installBtn = document.getElementById('pwa-install-btn');
+  if(installBtn) installBtn.style.display = 'flex';
+  console.log('[PWA] Install prompt ready');
+});
+
+function installPWA() {
+  if(!pwaInstallPrompt) {
+    showToast('App iri installed kale cyangwa browser yawe ntiyemera PWA');
+    return;
+  }
+  pwaInstallPrompt.prompt();
+  pwaInstallPrompt.userChoice.then(function(result) {
+    if(result.outcome === 'accepted') {
+      showToast('KOMISIYONERI yashyizweho! Fungura kuri Home Screen yawe.');
+      var installBtn = document.getElementById('pwa-install-btn');
+      if(installBtn) installBtn.style.display = 'none';
+    } else {
+      showToast('Ushobora gushyiraho nyuma — kanda "⊕ Install" muri browser yawe.');
+    }
+    pwaInstallPrompt = null;
+  });
+}
+
+// Detect if running as PWA
+window.addEventListener('DOMContentLoaded', function() {
+  var isPWA = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+  if(isPWA) {
+    console.log('[PWA] Running as installed app');
+    document.body.classList.add('pwa-mode');
+    // Hide browser-only elements
+    var installBtn = document.getElementById('pwa-install-btn');
+    if(installBtn) installBtn.style.display = 'none';
+  }
+});
+
+// Online/Offline detection
+window.addEventListener('online', function() {
+  showToast('✅ Internet yaboneka!');
+});
+window.addEventListener('offline', function() {
+  showToast('⚠️ Nta internet — Platform ikora offline (cache)');
+});
 
 </script>
 </body>
