@@ -437,7 +437,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .p-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem}
 .p-card{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);overflow:hidden;cursor:pointer;transition:var(--tr)}
 .p-card:hover{transform:translateY(-5px);box-shadow:var(--sh-lg)}
-.p-img{height:200px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important}
+.p-img{height:195px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background-size:cover;background-position:center;background-repeat:no-repeat}
 .p-img-inner svg{width:72px;height:72px;fill:none;stroke:rgba(255,255,255,.55);stroke-width:1}.p-img[style*="background-image"] .p-img-inner{display:none}
 .p-tag{position:absolute;top:11px;left:11px}
 .p-price{position:absolute;bottom:11px;right:11px;background:rgba(255,255,255,.95);backdrop-filter:blur(6px);padding:.26rem .78rem;border-radius:100px;font-size:.76rem;font-weight:700;color:var(--navy);box-shadow:0 2px 8px rgba(0,0,0,.12)}
@@ -4161,57 +4161,58 @@ var adminCurrentFilter = 'pending';
 // --- RENDER USER PROPERTY CARD ---
 function renderUserPropCard(prop) {
   var pid = String(prop.id);
-  var colors = ['g1','g2','g3','g4','g5','g6','g7'];
-  var colorIdx = Math.abs(pid.split('').reduce(function(a,c){return a+c.charCodeAt(0);},0)) % 7;
-  var color = colors[colorIdx];
+  var gradients = ['g1','g2','g3','g4','g5','g6','g7'];
+  var gidx = pid.split('').reduce(function(a,c){return a+(c.charCodeAt(0));},0) % 7;
+  var gclass = gradients[gidx];
 
-  var priceNum = parseInt(prop.price)||0;
-  var priceStr = priceNum >= 1000000
-    ? Math.round(priceNum/1000000) + 'M RWF'
-    : (priceNum >= 1000 ? Math.round(priceNum/1000) + 'K RWF' : priceNum + ' RWF');
-  if(prop.service === 'Gukodesha') priceStr += '/mo';
+  // Price
+  var priceNum = parseInt(prop.price) || 0;
+  var priceLabel = priceNum >= 1000000
+    ? (Math.round(priceNum/1000000)) + 'M RWF'
+    : priceNum >= 1000 ? (Math.round(priceNum/1000)) + 'K RWF'
+    : priceNum + ' RWF';
+  if(prop.service === 'Gukodesha') priceLabel += '/mo';
 
-  var badge = prop.service === 'Gukodesha'
+  // Service badge
+  var svcBadge = prop.service === 'Gukodesha'
     ? '<span class="badge b-green">Gukodesha</span>'
     : '<span class="badge b-navy">Kugura</span>';
 
+  // Location + features
   var loc = [prop.district, prop.sector].filter(Boolean).join(', ');
-  var beds  = prop.beds  ? '<span class="p-feat"><svg viewBox="0 0 24 24"><path d="M3 22V8a1 1 0 011-1h7V3a1 1 0 011-1h8a1 1 0 011 1v19"/></svg>'+prop.beds+'</span>' : '';
-  var baths = prop.baths ? '<span class="p-feat"><svg viewBox="0 0 24 24"><rect x="2" y="20" width="20" height="2"/><path d="M2 20V8a2 2 0 012-2h16a2 2 0 012 2v12"/></svg>'+prop.baths+'</span>' : '';
-  var size  = prop.size  ? '<span class="p-feat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>'+prop.size+'m²</span>' : '';
+  var feats = [];
+  if(prop.beds && prop.beds !== '0') feats.push('<span class="p-feat">🛏 '+prop.beds+'</span>');
+  if(prop.baths && prop.baths !== '0') feats.push('<span class="p-feat">🚿 '+prop.baths+'</span>');
+  if(prop.size) feats.push('<span class="p-feat">📐 '+prop.size+'m²</span>');
+  var featsHtml = feats.join('');
 
-  var imgStyle = prop.img1 ? 'background-image:url('+prop.img1+') !important;background-size:cover !important;background-position:center !important;background-repeat:no-repeat !important' : '';
-  var shortDesc = prop.desc ? prop.desc.substring(0,60)+'...' : '';
-  var title = (prop.type||'Imitungo') + (prop.district ? ' — '+prop.district : '');
+  // Image
+  var imgBg = prop.img1 ? ' style="background-image:url(' + prop.img1 + ');background-size:cover;background-position:center;background-repeat:no-repeat"' : '';
 
-  var demoBadge = prop.isDemo
-    ? '<span style="position:absolute;top:.4rem;left:.4rem;background:rgba(245,166,35,.95);color:#000;border-radius:20px;padding:.1rem .5rem;font-size:.58rem;font-weight:800;z-index:3">❆ DEMO</span>'
-    : '';
-  var verBadge = prop.verified
-    ? '<span style="position:absolute;top:.4rem;right:.4rem;background:rgba(39,168,74,.9);color:#fff;border-radius:20px;padding:.1rem .45rem;font-size:.58rem;font-weight:700;z-index:3">✅</span>'
-    : '';
-  var starBadge = prop.rating
-    ? '<span style="position:absolute;bottom:.4rem;right:.4rem;background:rgba(0,0,0,.65);color:#fff;border-radius:20px;padding:.1rem .45rem;font-size:.65rem;font-weight:700;z-index:3">★ '+prop.rating+'</span>'
-    : '';
+  // Badges
+  var topBadges = '';
+  if(prop.isDemo) topBadges += '<span style="position:absolute;top:.4rem;left:.4rem;z-index:4;background:rgba(245,166,35,.95);color:#000;border-radius:20px;padding:.1rem .5rem;font-size:.6rem;font-weight:800">✦ DEMO</span>';
+  if(prop.verified) topBadges += '<span style="position:absolute;top:.4rem;right:.4rem;z-index:4;background:rgba(39,168,74,.9);color:#fff;border-radius:20px;padding:.1rem .4rem;font-size:.6rem;font-weight:700">✅</span>';
+  if(prop.rating) topBadges += '<span style="position:absolute;bottom:.4rem;right:.4rem;z-index:4;background:rgba(0,0,0,.6);color:#fff;border-radius:20px;padding:.1rem .45rem;font-size:.65rem;font-weight:700">★ '+prop.rating+'</span>';
 
-  return '<div class="p-card" data-pid="'+pid+'" style="cursor:pointer;position:relative" onclick="openPropDetail(this.dataset.pid)">'
-    + '<div class="p-img '+color+'" style="'+imgStyle+(imgStyle?'':';background:var(--'+color+')')+';position:relative">'
-    + (prop.img1 ? '' : '<div class="p-img-inner"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div>')
-    +   demoBadge + verBadge + starBadge
-    +   '<div class="p-tag">'+badge+'</div>'
-    +   '<div class="p-price">'+priceStr+'</div>'
+  // No image placeholder
+  var placeholder = prop.img1 ? '' : '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.4"><svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="white" stroke-width="1"><path d="M3 12l9-9 9 9M5 10v9h14v-9"/></svg></div>';
+
+  // Short desc
+  var shortDesc = prop.desc ? prop.desc.substring(0, 55) + '...' : '';
+
+  return '<div class="p-card" data-pid="' + pid + '" onclick="openPropDetail(this.dataset.pid)" style="cursor:pointer">'
+    + '<div class="p-img ' + gclass + '"' + imgBg + ' style="position:relative' + (imgBg ? ';background-size:cover;background-position:center' : '') + '">'
+    +   topBadges
+    +   placeholder
+    +   '<div class="p-tag">' + svcBadge + '</div>'
+    +   '<div class="p-price">' + priceLabel + '</div>'
     + '</div>'
     + '<div class="p-body">'
-    +   '<div class="p-loc"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'+loc+'</div>'
-    +   '<div class="p-title">'+title+'</div>'
-    +   (shortDesc ? '<div style="font-size:.75rem;color:var(--muted);line-height:1.4;margin:.2rem 0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+shortDesc+'</div>' : '')
-    +   '<div class="p-feats">'+beds+baths+size+'</div>'
-    +   '<div style="display:flex;justify-content:flex-end;margin-top:.3rem">'
-    +     '<button onclick="event.stopPropagation();sharePropLink(this.closest(\"[data-pid]\").dataset.pid)" style="background:none;border:none;cursor:pointer;padding:.2rem .4rem;color:var(--muted);font-size:.68rem;display:flex;align-items:center;gap:.25rem">';
-    +       '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>'
-    +       'Sangira'
-    +     '</button>'
-    +   '</div>'
+    +   '<div class="p-loc">' + loc + '</div>'
+    +   '<div class="p-title">' + (prop.type||'Imitungo') + (prop.district ? ' — '+prop.district : '') + '</div>'
+    +   (shortDesc ? '<div style="font-size:.76rem;color:#6b7280;line-height:1.45;margin:.2rem 0">' + shortDesc + '</div>' : '')
+    +   '<div class="p-feats">' + featsHtml + '</div>'
     + '</div>'
     + '</div>';
 }
@@ -4247,6 +4248,7 @@ function loadApprovedProperties() {
       approved.forEach(function(prop) {
         var wrapper = document.createElement('div');
         wrapper.className = 'user-prop-card';
+        wrapper.setAttribute('data-pid', String(prop.id));
         wrapper.innerHTML = renderUserPropCard(prop);
         grid.appendChild(wrapper);
       });
