@@ -1410,20 +1410,97 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <button class="lang-btn active" id="lb-rw" onclick="setLang('rw')">RW</button>
       <button class="lang-btn" id="lb-en" onclick="setLang('en')">EN</button>
     </div>
-    <div id="nav-guest">
-      <button class="btn btn-navy btn-sm" onclick="go('auth')" data-rw="Iyandikishe" data-en="Register Free">Iyandikishe</button>
-    </div>
-    <div id="nav-user" style="display:none;align-items:center;gap:.6rem">
-      <div id="nav-avatar" onclick="openProfile()" style="width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;cursor:pointer;border:2px solid var(--gold)">U</div>
-      <button class="btn btn-navy btn-sm" onclick="openAddProperty()">+ Imitungo</button>
-      <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:var(--gold);border:none;padding:.3rem .7rem;border-radius:6px;cursor:pointer;font-size:.7rem;font-weight:700;color:#000;align-items:center;gap:.3rem" title="Install App">
-          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Install
-        </button>
-        <button id="nav-admin-btn" onclick="openAdmin()" style="display:none;background:var(--gold);border:none;padding:.3rem .6rem;border-radius:6px;cursor:pointer;font-size:.7rem;font-weight:700;color:#000" title="Admin">⚙️ Admin</button>
-    </div>
+    <!-- Avatar (logged in) -->
+    <div id="nav-avatar" onclick="openProfile()" style="display:none;width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;cursor:pointer;border:2px solid var(--gold)">U</div>
+    <!-- Hamburger Menu Button -->
+    <button onclick="toggleHamburger()" id="hamburger-btn" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:.38rem .5rem;cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;width:38px;height:38px" aria-label="Menu">
+      <span id="hb1" style="display:block;width:18px;height:2px;background:var(--navy);border-radius:2px;transition:.3s"></span>
+      <span id="hb2" style="display:block;width:18px;height:2px;background:var(--navy);border-radius:2px;transition:.3s"></span>
+      <span id="hb3" style="display:block;width:18px;height:2px;background:var(--navy);border-radius:2px;transition:.3s"></span>
+    </button>
+    <!-- Hidden buttons kept for JS compatibility -->
+    <button id="pwa-install-btn" style="display:none" onclick="installPWA()"></button>
+    <button id="nav-admin-btn" style="display:none" onclick="openAdmin()"></button>
+    <button id="nav-guest" style="display:none" onclick="go('auth')"></button>
+    <div id="nav-user" style="display:none"></div>
   </div>
 </nav>
+
+<!-- ═══ HAMBURGER DROPDOWN MENU ═══ -->
+<div id="hamburger-menu" style="display:none;position:fixed;top:76px;right:1rem;z-index:999;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.15);border:1.5px solid var(--border);min-width:220px;overflow:hidden">
+  <!-- User info (shown when logged in) -->
+  <div id="hm-user-info" style="display:none;padding:.9rem 1rem;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff">
+    <div style="font-weight:700;font-size:.9rem" id="hm-user-name">Umukoresha</div>
+    <div style="font-size:.72rem;opacity:.7" id="hm-user-email"></div>
+  </div>
+  <!-- Guest info (shown when not logged in) -->
+  <div id="hm-guest-info" style="padding:.9rem 1rem;background:var(--light)">
+    <div style="font-weight:600;font-size:.85rem;color:var(--navy)">Murakaza neza!</div>
+    <div style="font-size:.75rem;color:var(--muted)">Injira kugira ngo ubone byose</div>
+  </div>
+
+  <div style="padding:.4rem 0">
+    <!-- Navigation -->
+    <button onclick="go('home');closeHamburger()" class="hm-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9M5 10v9h14v-9"/></svg>
+      <span data-rw="Ahabanza" data-en="Home">Ahabanza</span>
+    </button>
+    <button onclick="go('listings');closeHamburger()" class="hm-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span data-rw="Imitungo" data-en="Properties">Imitungo</span>
+    </button>
+    <button onclick="go('analytics');closeHamburger()" class="hm-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span data-rw="AI Market" data-en="AI Market">AI Market</span>
+    </button>
+    <button onclick="openLead();closeHamburger()" class="hm-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      <span data-rw="Saba Agent" data-en="Get an Agent">Saba Agent</span>
+    </button>
+
+    <div style="height:1px;background:var(--border);margin:.3rem 0"></div>
+
+    <!-- Auth actions -->
+    <button id="hm-login-btn" onclick="go('auth');closeHamburger()" class="hm-item" style="color:var(--navy);font-weight:600">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+      <span data-rw="Injira / Iyandikishe" data-en="Sign In / Register">Injira / Iyandikishe</span>
+    </button>
+    <button id="hm-addprop-btn" onclick="openAddProperty();closeHamburger()" class="hm-item" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      <span data-rw="+ Ongeramo Imitungo" data-en="+ Add Property">+ Ongeramo Imitungo</span>
+    </button>
+    <button id="hm-profile-btn" onclick="openProfile();closeHamburger()" class="hm-item" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span data-rw="Konti Yanjye" data-en="My Profile">Konti Yanjye</span>
+    </button>
+    <button id="hm-agent-btn" onclick="showBecomeAgent();closeHamburger()" class="hm-item" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      <span data-rw="Kuba Agent" data-en="Become Agent">Kuba Agent</span>
+    </button>
+
+    <div style="height:1px;background:var(--border);margin:.3rem 0"></div>
+
+    <!-- Install PWA -->
+    <button id="hm-install-btn" onclick="installPWA();closeHamburger()" class="hm-item" style="color:var(--gold);font-weight:600">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span data-rw="Shyiraho App (Install)" data-en="Install App">Shyiraho App</span>
+    </button>
+
+    <!-- Admin (hidden unless admin) -->
+    <button id="hm-admin-btn" onclick="openAdmin();closeHamburger()" class="hm-item" style="display:none;color:var(--navy);font-weight:700">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      ⚙️ Admin Panel
+    </button>
+
+    <!-- Logout -->
+    <button id="hm-logout-btn" onclick="handleLogout();closeHamburger()" class="hm-item" style="display:none;color:#e53e3e">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      <span data-rw="Sohoka" data-en="Sign Out">Sohoka</span>
+    </button>
+  </div>
+</div>
+<!-- Hamburger overlay -->
+<div id="hamburger-overlay" onclick="closeHamburger()" style="display:none;position:fixed;inset:0;z-index:998;background:rgba(0,0,0,.3);backdrop-filter:blur(2px)"></div>
 
 <!-- ═══ PROFILE MODAL ═══ -->
 <div class="modal-wrap" id="profile-modal" style="display:none">
@@ -5787,6 +5864,100 @@ window.addEventListener('online', function() {
 window.addEventListener('offline', function() {
   showToast('⚠️ Nta internet — Platform ikora offline (cache)');
 });
+
+
+// === HAMBURGER MENU ===
+var hamburgerOpen = false;
+
+function toggleHamburger() {
+  hamburgerOpen ? closeHamburger() : openHamburger();
+}
+
+function openHamburger() {
+  hamburgerOpen = true;
+  document.getElementById('hamburger-menu').style.display = 'block';
+  document.getElementById('hamburger-overlay').style.display = 'block';
+  // Animate bars to X
+  var b1=document.getElementById('hb1'),b2=document.getElementById('hb2'),b3=document.getElementById('hb3');
+  if(b1){b1.style.transform='rotate(45deg) translate(4px,4px)';}
+  if(b2){b2.style.opacity='0';}
+  if(b3){b3.style.transform='rotate(-45deg) translate(4px,-4px)';}
+  // Update menu based on auth state
+  updateHamburgerAuth();
+}
+
+function closeHamburger() {
+  hamburgerOpen = false;
+  document.getElementById('hamburger-menu').style.display = 'none';
+  document.getElementById('hamburger-overlay').style.display = 'none';
+  // Reset bars
+  var b1=document.getElementById('hb1'),b2=document.getElementById('hb2'),b3=document.getElementById('hb3');
+  if(b1){b1.style.transform='';}
+  if(b2){b2.style.opacity='1';}
+  if(b3){b3.style.transform='';}
+}
+
+function updateHamburgerAuth() {
+  var isLoggedIn = !!currentUser;
+  var isAdmin = isLoggedIn && currentUser.email === 'komisiyonericonnectproservices@gmail.com';
+
+  // User info section
+  var uInfo = document.getElementById('hm-user-info');
+  var gInfo = document.getElementById('hm-guest-info');
+  if(uInfo) uInfo.style.display = isLoggedIn ? 'block' : 'none';
+  if(gInfo) gInfo.style.display = isLoggedIn ? 'none' : 'block';
+
+  if(isLoggedIn && currentUser) {
+    var nm = document.getElementById('hm-user-name');
+    var em = document.getElementById('hm-user-email');
+    if(nm) nm.textContent = currentUser.name || 'Umukoresha';
+    if(em) em.textContent = currentUser.email || currentUser.phone || '';
+    // Update avatar in topnav
+    var av = document.getElementById('nav-avatar');
+    if(av) {
+      var ini = (currentUser.name||'U').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2)||'U';
+      av.textContent = ini;
+      av.style.display = 'flex';
+    }
+  } else {
+    var av2 = document.getElementById('nav-avatar');
+    if(av2) av2.style.display = 'none';
+  }
+
+  // Auth buttons
+  var show = function(id, v){ var el=document.getElementById(id); if(el) el.style.display=v?'flex':'none'; };
+  show('hm-login-btn', !isLoggedIn);
+  show('hm-profile-btn', isLoggedIn);
+  show('hm-addprop-btn', isLoggedIn);
+  show('hm-agent-btn', isLoggedIn);
+  show('hm-logout-btn', isLoggedIn);
+  show('hm-admin-btn', isAdmin);
+  // Install button - always show unless already installed
+  var installBtn = document.getElementById('hm-install-btn');
+  if(installBtn) installBtn.style.display = 'flex';
+}
+
+function handleLogout() {
+  currentUser = null;
+  try { localStorage.removeItem('km_current_user'); } catch(e) {}
+  // Firebase signout
+  if(firebaseAuth) {
+    try { firebaseAuth.signOut(); } catch(e) {}
+  }
+  showToast(curLang==='rw' ? 'Wasohowe neza!' : 'Signed out successfully!');
+  go('home');
+  setTimeout(function() {
+    var av = document.getElementById('nav-avatar');
+    if(av) av.style.display = 'none';
+  }, 100);
+}
+
+// Close hamburger when navigating
+var _goOrigHam = go;
+go = function(page) {
+  _goOrigHam(page);
+  closeHamburger();
+};
 
 </script>
 </body>
