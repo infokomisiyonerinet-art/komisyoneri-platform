@@ -5831,21 +5831,78 @@ window.addEventListener('beforeinstallprompt', function(e) {
 });
 
 function installPWA() {
-  if(!pwaInstallPrompt) {
-    showToast('App iri installed kale cyangwa browser yawe ntiyemera PWA');
+  // If we have the native prompt - use it!
+  if(pwaInstallPrompt) {
+    pwaInstallPrompt.prompt();
+    pwaInstallPrompt.userChoice.then(function(result) {
+      if(result.outcome === 'accepted') {
+        showToast('KOMISIYONERI yashyizweho! Reba Home Screen yawe.');
+        var btn = document.getElementById('hm-install-btn');
+        if(btn) btn.style.display = 'none';
+      }
+      pwaInstallPrompt = null;
+    });
     return;
   }
-  pwaInstallPrompt.prompt();
-  pwaInstallPrompt.userChoice.then(function(result) {
-    if(result.outcome === 'accepted') {
-      showToast('KOMISIYONERI yashyizweho! Fungura kuri Home Screen yawe.');
-      var installBtn = document.getElementById('pwa-install-btn');
-      if(installBtn) installBtn.style.display = 'none';
-    } else {
-      showToast('Ushobora gushyiraho nyuma — kanda "⊕ Install" muri browser yawe.');
-    }
-    pwaInstallPrompt = null;
-  });
+
+  // Detect if already installed as PWA
+  var isInstalled = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+  if(isInstalled) {
+    showToast('KOMISIYONERI iri installed kare! Ugiye kuyikoresha.');
+    return;
+  }
+
+  // Show manual install instructions modal
+  openPWAInstallModal();
+}
+
+function openPWAInstallModal() {
+  var existing = document.getElementById('pwa-modal');
+  if(existing) { existing.style.display='flex'; return; }
+
+  var ua = navigator.userAgent;
+  var isIOS = /iPad|iPhone|iPod/.test(ua);
+  var isSamsung = /SamsungBrowser/.test(ua);
+
+  var steps = isIOS
+    ? '<b>1.</b> Kanda <b>Share</b> button (arrow ↑) hepfo<br><b>2.</b> Hitamo <b>"Add to Home Screen"</b><br><b>3.</b> Kanda <b>"Add"</b>'
+    : isSamsung
+    ? '<b>1.</b> Kanda <b>⋮ menu</b> hejuru iburyo<br><b>2.</b> Hitamo <b>"Add page to"</b><br><b>3.</b> Kanda <b>"Home screen"</b>'
+    : '<b>1.</b> Kanda <b>⋮ menu</b> hejuru iburyo ya Chrome<br><b>2.</b> Hitamo <b>"Install app"</b> cyangwa <b>"Add to Home Screen"</b><br><b>3.</b> Kanda <b>"Install"</b>';
+
+  var modal = document.createElement('div');
+  modal.id = 'pwa-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;padding:1rem';
+  
+  var box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border-radius:20px;width:100%;max-width:440px;overflow:hidden';
+  box.innerHTML = '<div style="background:linear-gradient(135deg,#0D3B8C,#1657CC);padding:1.2rem;text-align:center;color:#fff">'
+    + '<div style="font-size:2.2rem">📱</div>'
+    + '<div style="font-weight:700;font-size:1rem;margin-top:.3rem">Shyiraho KOMISIYONERI</div>'
+    + '<div style="font-size:.75rem;opacity:.8">Install App ku telefoni yawe — ubuntu!</div></div>'
+    + '<div style="padding:1.2rem">'
+    + '<div style="font-weight:600;font-size:.82rem;color:#0D3B8C;margin-bottom:.7rem">Intambwe zo gushyiraho:</div>'
+    + '<div style="font-size:.85rem;line-height:2;color:#374151">' + steps + '</div>'
+    + '<div style="background:#e8f0fb;border-radius:8px;padding:.6rem .8rem;margin-top:.8rem;font-size:.75rem;color:#0D3B8C">'
+    + '💡 App izagaragara kuri Home Screen nk\'icon ya KOMISIYONERI!</div>'
+    + '</div>'
+    + '<div style="display:flex;gap:.6rem;padding:.6rem 1.2rem 1.2rem">'
+    + '<button id="pwa-close-b" style="flex:1;padding:.75rem;border:1.5px solid #e5e7eb;border-radius:10px;background:#fff;font-size:.85rem;cursor:pointer;font-family:sans-serif">Funga</button>'
+    + '<button id="pwa-ok-b" style="flex:2;padding:.75rem;background:#0D3B8C;color:#fff;border:none;border-radius:10px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:sans-serif">Nzabigeraho ✓</button>'
+    + '</div>';
+
+  modal.appendChild(box);
+  document.body.appendChild(modal);
+
+  document.getElementById('pwa-close-b').onclick = closePWAModal;
+  document.getElementById('pwa-ok-b').onclick = closePWAModal;
+  modal.addEventListener('click', function(e) { if(e.target===modal) closePWAModal(); });
+}
+
+function closePWAModal() {
+  var m = document.getElementById('pwa-modal');
+  if(m) m.style.display = 'none';
 }
 
 // Detect if running as PWA
@@ -5941,8 +5998,9 @@ function updateHamburgerAuth() {
   show('hm-logout-btn', isLoggedIn);
   show('hm-admin-btn', isAdmin);
   // Install button - always show unless already installed
-  var installBtn = document.getElementById('hm-install-btn');
-  if(installBtn) installBtn.style.display = 'flex';
+  // Install button always visible - shows instructions if no prompt
+  var installBtn2 = document.getElementById('hm-install-btn');
+  if(installBtn2) installBtn2.style.display = 'flex';
 }
 
 function handleLogout() {
