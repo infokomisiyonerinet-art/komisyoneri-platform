@@ -2071,6 +2071,65 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   </footer>
 </div>
 
+
+<!-- ═══════════════════════════════════
+     PAGE: AGENTS
+════════════════════════════════════ -->
+<div class="page" id="page-agents">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">👔 Abajyanama ba KOMISIYONERI</div>
+      <h1 class="h1" data-rw="Abajyanama Nationwide" data-en="Nationwide Agents">Abajyanama Nationwide</h1>
+      <p style="color:rgba(255,255,255,.75);font-size:.9rem;margin-top:.3rem" data-rw="Abajyanama bacu bemewe — bose bakora mu turere twose tw'u Rwanda" data-en="Our verified agents — working across all districts of Rwanda">Abajyanama bemewe — bose bakora mu turere twose tw'u Rwanda</p>
+    </div>
+  </div>
+  <div class="wrap" style="padding-top:1.5rem;padding-bottom:5rem">
+    <!-- Search + Filter bar -->
+    <div style="display:flex;gap:.6rem;margin-bottom:1.2rem;flex-wrap:wrap">
+      <input type="text" id="agent-search-inp" oninput="filterAgentsPage()" placeholder="🔍 Shakisha agent ku izina cyangwa zone..." style="flex:1;min-width:180px;padding:.65rem .9rem;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;background:#fff">
+      <select id="agent-zone-filter" onchange="filterAgentsPage()" style="padding:.65rem .9rem;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;background:#fff">
+        <option value="">📍 Turere Twose</option>
+        <option value="Gasabo">Gasabo</option>
+        <option value="Kicukiro">Kicukiro</option>
+        <option value="Nyarugenge">Nyarugenge</option>
+        <option value="Musanze">Musanze</option>
+        <option value="Rubavu">Rubavu</option>
+        <option value="Huye">Huye</option>
+        <option value="Nyagatare">Nyagatare</option>
+        <option value="Karongi">Karongi</option>
+        <option value="Muhanga">Muhanga</option>
+        <option value="Rusizi">Rusizi</option>
+      </select>
+    </div>
+    <!-- Stats bar -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-bottom:1.2rem" id="agents-stats-bar">
+      <div style="background:var(--navy);color:#fff;border-radius:10px;padding:.8rem;text-align:center">
+        <div style="font-size:1.4rem;font-weight:700" id="agents-total-count">0</div>
+        <div style="font-size:.7rem;opacity:.8">Agents Bose</div>
+      </div>
+      <div style="background:#27A84A;color:#fff;border-radius:10px;padding:.8rem;text-align:center">
+        <div style="font-size:1.4rem;font-weight:700" id="agents-active-count">0</div>
+        <div style="font-size:.7rem;opacity:.8">Bakora Ubu</div>
+      </div>
+      <div style="background:var(--gold);color:#000;border-radius:10px;padding:.8rem;text-align:center">
+        <div style="font-size:1.4rem;font-weight:700" id="agents-zones-count">0</div>
+        <div style="font-size:.7rem;opacity:.7">Turere</div>
+      </div>
+    </div>
+    <!-- Agents grid -->
+    <div id="agents-page-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">
+      <!-- Loaded by JS -->
+    </div>
+    <!-- Become agent CTA -->
+    <div style="margin-top:2rem;background:linear-gradient(135deg,#0D3B8C,#1657CC);border-radius:16px;padding:1.5rem;text-align:center;color:#fff">
+      <div style="font-size:1.5rem;margin-bottom:.4rem">👔</div>
+      <div style="font-weight:700;font-size:1rem;margin-bottom:.3rem">Ushaka kuba Agent wa KOMISIYONERI?</div>
+      <div style="font-size:.82rem;opacity:.8;margin-bottom:1rem">Iyandikishe ubuntu — habwa 40% ya commission buri deal</div>
+      <button onclick="showBecomeAgent()" class="btn btn-gold btn-sm" style="border-radius:20px">✦ Iyandikishe Ubu →</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════════════════════
      PAGE: LISTINGS
 ════════════════════════════════════ -->
@@ -2803,11 +2862,20 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         </button>
       </div>
       <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap">
-        <button onclick="adminFilter('all')" id="adm-btn-all" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">📋 Zose (<span id="adm-count-all">0</span>)</button>
-        <button onclick="adminFilter('pending')" id="adm-btn-pending" class="btn btn-navy btn-sm" style="font-size:.75rem">⏳ Isuzumwa (<span id="adm-count-pending">0</span>)</button>
-        <button onclick="adminFilter('approved')" id="adm-btn-approved" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">✅ Yemejwe (<span id="adm-count-approved">0</span>)</button>
-        <button onclick="adminFilter('rejected')" id="adm-btn-rejected" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">❌ Yananiwe (<span id="adm-count-rejected">0</span>)</button>
-        <button onclick="adminDeleteAll('approved')" style="font-size:.72rem;border:none;background:#fee2e2;color:#e53e3e;padding:.3rem .6rem;border-radius:6px;cursor:pointer;font-weight:600">🗑️ Siba Yemejwe</button>
+        <!-- Main tabs -->
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.4rem">
+          <button onclick="switchAdminTab('listings')" id="adm-tab-listings" class="btn btn-navy btn-sm" style="font-size:.75rem">🏠 Imitungo</button>
+          <button onclick="switchAdminTab('agents')" id="adm-tab-agents" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">👔 Agents</button>
+          <button onclick="switchAdminTab('deals')" id="adm-tab-deals" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">💰 Deals</button>
+        </div>
+        <!-- Listings sub-tabs -->
+        <div id="adm-listings-filters" style="display:flex;gap:.4rem;flex-wrap:wrap">
+          <button onclick="adminFilter('all')" id="adm-btn-all" class="btn btn-sm" style="font-size:.72rem;border:1.5px solid var(--border)">📋 Zose (<span id="adm-count-all">0</span>)</button>
+          <button onclick="adminFilter('pending')" id="adm-btn-pending" class="btn btn-navy btn-sm" style="font-size:.72rem">⏳ Pending (<span id="adm-count-pending">0</span>)</button>
+          <button onclick="adminFilter('approved')" id="adm-btn-approved" class="btn btn-sm" style="font-size:.72rem;border:1.5px solid var(--border)">✅ Approved (<span id="adm-count-approved">0</span>)</button>
+          <button onclick="adminFilter('rejected')" id="adm-btn-rejected" class="btn btn-sm" style="font-size:.72rem;border:1.5px solid var(--border)">❌ Rejected (<span id="adm-count-rejected">0</span>)</button>
+          <button onclick="adminDeleteAll('approved')" style="font-size:.7rem;border:none;background:#fee2e2;color:#e53e3e;padding:.3rem .6rem;border-radius:6px;cursor:pointer;font-weight:600">🗑️ Siba Yemejwe</button>
+        </div>
       </div>
       <div id="admin-list"></div>
     </div>
@@ -6063,6 +6131,311 @@ var _goOrigHam = go;
 go = function(page) {
   _goOrigHam(page);
   closeHamburger();
+};
+
+
+// ═══════════════════════════════════════════════════════════
+//  AGENTS PAGE — Nationwide Directory
+// ═══════════════════════════════════════════════════════════
+
+function loadAgentsPage() {
+  var agents = [];
+  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
+
+  // Add demo agents if none exist
+  if(agents.length === 0) {
+    agents = getDemoAgents();
+    try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
+  }
+
+  var active = agents.filter(function(a){ return a.status === 'Active'; });
+  var zones = [...new Set(agents.map(function(a){ return a.zone; }))];
+
+  var tc = document.getElementById('agents-total-count');
+  var ac = document.getElementById('agents-active-count');
+  var zc = document.getElementById('agents-zones-count');
+  if(tc) tc.textContent = agents.length;
+  if(ac) ac.textContent = active.length;
+  if(zc) zc.textContent = zones.length;
+
+  renderAgentsGrid(agents);
+}
+
+function getDemoAgents() {
+  return [
+    { id:'AG-DEMO-001', name:'Jean Marie Hakizimana', phone:'+250 788 123 456', email:'jmhakizimana@gmail.com', zone:'Gasabo', experience:'3', transport:'boda', languages:['Kinyarwanda','English'], status:'Active', rating:4.9, deals:23, registeredDate:new Date().toISOString() },
+    { id:'AG-DEMO-002', name:'Claudine Uwimana', phone:'+250 722 234 567', email:'cuwimana@gmail.com', zone:'Kicukiro', experience:'5', transport:'car', languages:['Kinyarwanda','Français'], status:'Active', rating:4.8, deals:31, registeredDate:new Date().toISOString() },
+    { id:'AG-DEMO-003', name:'Patrick Nshimiyimana', phone:'+250 783 345 678', email:'pnshimiyimana@gmail.com', zone:'Nyarugenge', experience:'1', transport:'boda', languages:['Kinyarwanda'], status:'Active', rating:4.6, deals:12, registeredDate:new Date().toISOString() },
+    { id:'AG-DEMO-004', name:'Grace Mukandayisenga', phone:'+250 738 456 789', email:'gmukandayisenga@gmail.com', zone:'Musanze', experience:'3', transport:'car', languages:['Kinyarwanda','English'], status:'Active', rating:4.7, deals:18, registeredDate:new Date().toISOString() },
+    { id:'AG-DEMO-005', name:'Innocent Habimana', phone:'+250 789 567 890', email:'ihabimana@gmail.com', zone:'Rubavu', experience:'0', transport:'boda', languages:['Kinyarwanda'], status:'Pending Verification', rating:0, deals:0, registeredDate:new Date().toISOString() },
+    { id:'AG-DEMO-006', name:'Solange Nyiraneza', phone:'+250 725 678 901', email:'snyiraneza@gmail.com', zone:'Huye', experience:'5', transport:'car', languages:['Kinyarwanda','Français','English'], status:'Active', rating:5.0, deals:42, registeredDate:new Date().toISOString() },
+  ];
+}
+
+function renderAgentsGrid(agents) {
+  var grid = document.getElementById('agents-page-grid');
+  if(!grid) return;
+
+  if(agents.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--muted)">'
+      + '<div style="font-size:3rem;margin-bottom:1rem">👔</div>'
+      + '<div style="font-weight:600;color:var(--navy)">Nta agents babonetse</div>'
+      + '</div>';
+    return;
+  }
+
+  grid.innerHTML = agents.map(function(agent) {
+    var isActive = agent.status === 'Active';
+    var isPending = agent.status === 'Pending Verification';
+    var stars = agent.rating ? '★'.repeat(Math.round(agent.rating)) + ' ' + agent.rating : '—';
+    var initials = (agent.name||'A').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
+    var langs = (agent.languages||[]).join(' · ');
+    var transport = agent.transport === 'car' ? '🚗 Imodoka' : agent.transport === 'boda' ? '🏍️ Boda' : '—';
+
+    return '<div style="background:#fff;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)">'
+      // Header
+      + '<div style="background:linear-gradient(135deg,var(--navy),var(--blue));padding:1rem;display:flex;align-items:center;gap:.8rem">'
+      +   '<div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0;border:2px solid var(--gold)">' + initials + '</div>'
+      +   '<div style="flex:1;min-width:0">'
+      +     '<div style="font-weight:700;color:#fff;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (agent.name||'Agent') + '</div>'
+      +     '<div style="font-size:.72rem;color:rgba(255,255,255,.75);margin-top:.1rem">📍 ' + (agent.zone||'—') + '</div>'
+      +   '</div>'
+      +   '<div style="flex-shrink:0">'
+      +     '<span style="background:' + (isActive?'#27A84A':isPending?'#F5A623':'#718096') + ';color:#fff;border-radius:20px;padding:.15rem .55rem;font-size:.62rem;font-weight:700">'
+      +     (isActive?'● Active':isPending?'⏳ Pending':'Inactive') + '</span>'
+      +   '</div>'
+      + '</div>'
+      // Body
+      + '<div style="padding:.9rem">'
+      +   '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.7rem">'
+      +     '<div style="background:var(--light);border-radius:8px;padding:.5rem;text-align:center"><div style="font-size:1.1rem;font-weight:700;color:var(--navy)">' + (agent.deals||0) + '</div><div style="font-size:.65rem;color:var(--muted)">Deals</div></div>'
+      +     '<div style="background:var(--light);border-radius:8px;padding:.5rem;text-align:center"><div style="font-size:.9rem;font-weight:700;color:var(--gold)">' + stars + '</div><div style="font-size:.65rem;color:var(--muted)">Rating</div></div>'
+      +   '</div>'
+      +   '<div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">🌐 ' + (langs||'Kinyarwanda') + '</div>'
+      +   '<div style="font-size:.75rem;color:var(--muted);margin-bottom:.7rem">' + transport + ' · Uburambe: ' + (agent.experience==='0'?'Mushya':agent.experience+'yr+') + '</div>'
+      +   '<div style="display:flex;gap:.4rem">'
+      +     '<a href="tel:' + (agent.phone||'') + '" style="flex:1;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">📞 Hamagara</a>'
+      +     '<a href="https://wa.me/' + (agent.phone||'').replace(/[^0-9]/g,'') + '?text=' + encodeURIComponent('Muraho! Ndabona kuri KOMISIYONERI ndashaka agent. Ni wowe '+agent.name+'?') + '" target="_blank" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">💬 WhatsApp</a>'
+      +   '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function filterAgentsPage() {
+  var search = (document.getElementById('agent-search-inp').value||'').toLowerCase();
+  var zone = document.getElementById('agent-zone-filter').value;
+  var agents = [];
+  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
+  if(agents.length === 0) agents = getDemoAgents();
+
+  var filtered = agents.filter(function(a) {
+    var matchSearch = !search || (a.name||'').toLowerCase().includes(search) || (a.zone||'').toLowerCase().includes(search);
+    var matchZone = !zone || a.zone === zone;
+    return matchSearch && matchZone;
+  });
+  renderAgentsGrid(filtered);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ADMIN — Switch Tabs (Listings / Agents / Deals)
+// ═══════════════════════════════════════════════════════════
+
+var adminCurrentTab = 'listings';
+
+function switchAdminTab(tab) {
+  adminCurrentTab = tab;
+
+  // Update tab buttons
+  ['listings','agents','deals'].forEach(function(t) {
+    var btn = document.getElementById('adm-tab-'+t);
+    if(!btn) return;
+    if(t === tab) {
+      btn.style.background = 'var(--navy)'; btn.style.color = '#fff'; btn.style.border = 'none';
+    } else {
+      btn.style.background = '#fff'; btn.style.color = 'var(--dark)'; btn.style.border = '1.5px solid var(--border)';
+    }
+  });
+
+  // Show/hide panels
+  var listingsPanel = document.getElementById('admin-list');
+  var listingsFilters = document.getElementById('adm-listings-filters');
+  var agentsPanel = document.getElementById('admin-agents-panel');
+  var dealsPanel = document.getElementById('admin-deals-panel');
+
+  if(listingsPanel) listingsPanel.style.display = tab === 'listings' ? 'block' : 'none';
+  if(listingsFilters) listingsFilters.style.display = tab === 'listings' ? 'flex' : 'none';
+  if(agentsPanel) agentsPanel.style.display = tab === 'agents' ? 'block' : 'none';
+  if(dealsPanel) dealsPanel.style.display = tab === 'deals' ? 'block' : 'none';
+
+  if(tab === 'agents') renderAdminAgents();
+  if(tab === 'deals') renderAdminDeals();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ADMIN — Agents Management
+// ═══════════════════════════════════════════════════════════
+
+function renderAdminAgents() {
+  var agents = [];
+  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
+  if(agents.length === 0) agents = getDemoAgents();
+
+  var list = document.getElementById('admin-agents-list');
+  if(!list) return;
+
+  if(agents.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">Nta agents biyandikishije ubu</div>';
+    return;
+  }
+
+  list.innerHTML = '<div style="font-weight:700;font-size:.82rem;color:var(--navy);margin-bottom:.7rem">Agents '+ agents.length +' — Shinja cyangwa Emeza</div>'
+    + agents.map(function(agent, idx) {
+    var isActive = agent.status === 'Active';
+    var isPending = agent.status === 'Pending Verification';
+    var statusColor = isActive ? '#27A84A' : isPending ? '#F5A623' : '#718096';
+
+    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.6rem;background:#fff">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">'
+      +   '<div style="flex:1">'
+      +     '<div style="font-weight:700;font-size:.88rem;color:var(--navy)">' + (agent.name||'—') + '</div>'
+      +     '<div style="font-size:.75rem;color:var(--muted)">📍 ' + (agent.zone||'—') + ' | 📞 ' + (agent.phone||'—') + '</div>'
+      +     '<div style="font-size:.73rem;color:var(--muted)">📧 ' + (agent.email||'—') + '</div>'
+      +     '<div style="font-size:.73rem;color:var(--muted);margin-top:.2rem">🌐 ' + (agent.languages||[]).join(', ') + ' | ' + (agent.transport==='car'?'🚗':'🏍️') + ' | Deals: ' + (agent.deals||0) + '</div>'
+      +   '</div>'
+      +   '<span style="background:'+statusColor+';color:#fff;border-radius:20px;padding:.15rem .55rem;font-size:.62rem;font-weight:700;flex-shrink:0">' + agent.status + '</span>'
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;margin-top:.6rem">'
+      +   '<button onclick="adminAgentApprove('+idx+')" style="background:#27A84A;color:#fff;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:700">✅ Emeza</button>'
+      +   '<button onclick="adminAgentSuspend('+idx+')" style="background:#F5A623;color:#000;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:700">⏸ Hagarika</button>'
+      +   '<button onclick="adminAgentDelete('+idx+')" style="background:#718096;color:#fff;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.72rem">🗑️ Siba</button>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function adminAgentApprove(idx) {
+  var agents = [];
+  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
+  if(!agents[idx] && agents.length === 0) agents = getDemoAgents();
+  if(agents[idx]) {
+    agents[idx].status = 'Active';
+    try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
+    showToast('✅ Agent yemejwe! Ubu ashobora guhabwa leads.');
+    renderAdminAgents();
+    // Notify via WhatsApp
+    var a = agents[idx];
+    if(a.phone) window.open('https://wa.me/'+a.phone.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent('Muraho '+a.name+'! KOMISIYONERI irashimishijwe kukemeza iyandikishe ryawe nka agent. Witeguye guhabwa leads. Urakoze!'), '_blank');
+  }
+}
+
+function adminAgentSuspend(idx) {
+  var agents = [];
+  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
+  if(agents[idx]) {
+    agents[idx].status = 'Suspended';
+    try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
+    showToast('⏸ Agent yahagaritswe.');
+    renderAdminAgents();
+  }
+}
+
+function adminAgentDelete(idx) {
+  if(!confirm('Siba agent uyu burundu?')) return;
+  var agents = [];
+  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
+  agents.splice(idx, 1);
+  try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
+  showToast('🗑️ Agent yasibwe.');
+  renderAdminAgents();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ADMIN — Deals / Completed Transactions
+// ═══════════════════════════════════════════════════════════
+
+function renderAdminDeals() {
+  var deals = [];
+  try { deals = JSON.parse(localStorage.getItem('km_deals')||'[]'); } catch(e){}
+  // km_deals here means completed property deals, not leads
+  var propDeals = deals.filter(function(d){ return d.type === 'property_deal'; });
+  // Also check leads that are closed
+  var leads = [];
+  try { leads = JSON.parse(localStorage.getItem('km_leads')||'[]'); } catch(e){}
+  var closedLeads = leads.filter(function(l){ return l.status === 'Closed'; });
+
+  var list = document.getElementById('admin-deals-list');
+  if(!list) return;
+
+  list.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.8rem">'
+    + '<div style="background:#27A84A;color:#fff;border-radius:8px;padding:.6rem;text-align:center"><div style="font-size:1.2rem;font-weight:700">' + closedLeads.length + '</div><div style="font-size:.68rem">Deals Zarangiye</div></div>'
+    + '<div style="background:var(--navy);color:#fff;border-radius:8px;padding:.6rem;text-align:center"><div style="font-size:1.2rem;font-weight:700">' + leads.filter(function(l){return l.status==='Active';}).length + '</div><div style="font-size:.68rem">Deals Zikorwa</div></div>'
+    + '</div>';
+
+  if(closedLeads.length === 0 && leads.length === 0) {
+    list.innerHTML += '<div style="text-align:center;padding:2rem;color:var(--muted)">'
+      + '<div style="font-size:2rem;margin-bottom:.5rem">💰</div>'
+      + '<div style="font-weight:600;color:var(--navy)">Nta deals irahari ubu</div>'
+      + '<div style="font-size:.8rem;margin-top:.3rem">Deals zizagaragara iyo leads zisojwe</div>'
+      + '</div>';
+    return;
+  }
+
+  // Show all leads with ability to mark as sold
+  list.innerHTML += leads.map(function(lead, idx) {
+    var statusColor = lead.status==='Closed'?'#27A84A':lead.status==='Active'?'var(--blue)':'#F5A623';
+    var commission = lead.budgetMax ? Math.round(parseInt(lead.budgetMax) * 0.04).toLocaleString() + ' RWF' : '—';
+
+    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.6rem;background:#fff">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+      +   '<div>'
+      +     '<div style="font-weight:700;font-size:.85rem;color:var(--navy)">' + (lead.clientName||'—') + '</div>'
+      +     '<div style="font-size:.75rem;color:var(--muted)">📞 ' + (lead.clientPhone||'—') + ' | 📍 ' + (lead.zone||'—') + '</div>'
+      +     '<div style="font-size:.75rem;color:var(--muted)">' + (lead.action||'—') + '</div>'
+      +     (lead.agentName ? '<div style="font-size:.73rem;color:var(--blue)">👔 Agent: ' + lead.agentName + '</div>' : '')
+      +     '<div style="font-size:.72rem;color:var(--muted)">💰 Est. Commission: ' + commission + '</div>'
+      +   '</div>'
+      +   '<span style="background:'+statusColor+';color:#fff;border-radius:20px;padding:.15rem .5rem;font-size:.62rem;font-weight:700;flex-shrink:0">' + lead.status + '</span>'
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.35rem;margin-top:.6rem">'
+      +   '<button onclick="markDealSold('+idx+')" style="background:#27A84A;color:#fff;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.7rem;font-weight:700">✅ Yagurishijwe</button>'
+      +   '<button onclick="markDealActive('+idx+')" style="background:var(--blue);color:#fff;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.7rem">🔄 Active</button>'
+      +   '<a href="tel:' + (lead.clientPhone||'') + '" style="background:var(--navy);color:#fff;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.7rem;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center">📞</a>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function markDealSold(idx) {
+  var leads = [];
+  try { leads = JSON.parse(localStorage.getItem('km_leads')||'[]'); } catch(e){}
+  if(leads[idx]) {
+    leads[idx].status = 'Closed';
+    leads[idx].closedAt = new Date().toISOString();
+    try { localStorage.setItem('km_leads', JSON.stringify(leads)); } catch(e){}
+    showToast('Deal yemejwe nk\'igurishwa - Commission ibazwa!');
+    renderAdminDeals();
+  }
+}
+
+function markDealActive(idx) {
+  var leads = [];
+  try { leads = JSON.parse(localStorage.getItem('km_leads')||'[]'); } catch(e){}
+  if(leads[idx]) {
+    leads[idx].status = 'Active';
+    try { localStorage.setItem('km_leads', JSON.stringify(leads)); } catch(e){}
+    showToast('🔄 Deal yasubijwe Active.');
+    renderAdminDeals();
+  }
+}
+
+// Load agents page when navigating to it
+var _goOrigAgents = go;
+go = function(page) {
+  _goOrigAgents(page);
+  if(page === 'agents') {
+    setTimeout(loadAgentsPage, 100);
+  }
 };
 
 </script>
