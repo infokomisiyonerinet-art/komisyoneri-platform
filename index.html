@@ -2803,9 +2803,11 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         </button>
       </div>
       <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap">
+        <button onclick="adminFilter('all')" id="adm-btn-all" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">📋 Zose (<span id="adm-count-all">0</span>)</button>
         <button onclick="adminFilter('pending')" id="adm-btn-pending" class="btn btn-navy btn-sm" style="font-size:.75rem">⏳ Isuzumwa (<span id="adm-count-pending">0</span>)</button>
         <button onclick="adminFilter('approved')" id="adm-btn-approved" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">✅ Yemejwe (<span id="adm-count-approved">0</span>)</button>
         <button onclick="adminFilter('rejected')" id="adm-btn-rejected" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">❌ Yananiwe (<span id="adm-count-rejected">0</span>)</button>
+        <button onclick="adminDeleteAll('approved')" style="font-size:.72rem;border:none;background:#fee2e2;color:#e53e3e;padding:.3rem .6rem;border-radius:6px;cursor:pointer;font-weight:600">🗑️ Siba Yemejwe</button>
       </div>
       <div id="admin-list"></div>
     </div>
@@ -4378,10 +4380,24 @@ function adminRender(filter) {
   // Update counts
   ['pending','approved','rejected'].forEach(function(s) {
     var el = document.getElementById('adm-count-'+s);
-    if(el) el.textContent = props.filter(function(p){return p.status===s.charAt(0).toUpperCase()+s.slice(1)||p.status===s;}).length;
+    if(el) el.textContent = props.filter(function(p){return (p.status||'').toLowerCase()===s;}).length;
   });
-  var filtered = props.filter(function(p){
-    return p.status === filter.charAt(0).toUpperCase()+filter.slice(1) || p.status === filter;
+  var allEl = document.getElementById('adm-count-all');
+  if(allEl) allEl.textContent = props.length;
+
+  var filtered = filter === 'all' ? props : props.filter(function(p){
+    return (p.status||'').toLowerCase() === filter;
+  });
+
+  // Update active tab style
+  ['all','pending','approved','rejected'].forEach(function(s) {
+    var btn = document.getElementById('adm-btn-'+s);
+    if(!btn) return;
+    if(s === filter) {
+      btn.style.background = 'var(--navy)'; btn.style.color = '#fff'; btn.style.border = 'none';
+    } else {
+      btn.style.background = '#fff'; btn.style.color = 'var(--dark)'; btn.style.border = '1.5px solid var(--border)';
+    }
   });
   var list = document.getElementById('admin-list');
   if (!list) return;
@@ -4424,6 +4440,18 @@ function adminApprove(idx) {
   }
 }
 
+function adminUnapprove(idx) {
+  var props = [];
+  try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+  if (props[idx]) {
+    props[idx].status = 'Pending';
+    try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
+    showToast('↩ Imitungo yasubijwe Pending.');
+    adminRender(adminCurrentFilter);
+    loadApprovedProperties();
+  }
+}
+
 function adminReject(idx) {
   var props = [];
   try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
@@ -4442,6 +4470,18 @@ function adminDelete(idx) {
   props.splice(idx, 1);
   try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
   showToast('🗑️ Imitungo yasibwe.');
+  adminRender(adminCurrentFilter);
+  loadApprovedProperties();
+}
+
+function adminDeleteAll(status) {
+  var label = status === 'approved' ? 'Yemejwe' : status === 'rejected' ? 'Yananiwe' : 'Zose';
+  if (!confirm('Ugukosora? Imitungo ' + label + ' YOSE izasibwa burundu!')) return;
+  var props = [];
+  try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+  var kept = props.filter(function(p){ return (p.status||'').toLowerCase() !== status; });
+  try { localStorage.setItem('km_properties', JSON.stringify(kept)); } catch(e){}
+  showToast('🗑️ Imitungo ' + label + ' yose yasibwe. (' + (props.length - kept.length) + ')');
   adminRender(adminCurrentFilter);
   loadApprovedProperties();
 }
