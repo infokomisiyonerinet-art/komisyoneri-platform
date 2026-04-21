@@ -1598,7 +1598,39 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <div class="field"><label>Ibisobanuro by'Imitungo</label>
         <textarea id="prop-desc" rows="3" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;resize:vertical" placeholder="Sobanura inzu yawe: ibikoresho, ahantu hihutirwa, ibiranga..."></textarea>
       </div>
-      <div class="field"><label>Telefoni yo Gutumanahana</label><input type="tel" id="prop-contact" placeholder="+250 7XX XXX XXX"></div>
+      <div class="field"><label>📞 Telefoni (Hamagara)</label><input type="tel" id="prop-contact" placeholder="+250 7XX XXX XXX"></div>
+      <div class="field"><label>💬 WhatsApp (niba itandukanye)</label><input type="tel" id="prop-whatsapp" placeholder="+250 7XX XXX XXX"></div>
+      <div style="background:var(--light);border-radius:8px;padding:.5rem .8rem;margin:.3rem 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="toggleOptionalFields()">
+        <span style="font-size:.82rem;font-weight:600;color:var(--navy)">+ Amakuru Yiyongera (Ntibisabwa)</span>
+        <span id="opt-arrow" style="font-size:.7rem;color:var(--muted)">▼ Fungura</span>
+      </div>
+      <div id="optional-fields" style="display:none;flex-direction:column;gap:.7rem">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+        <div class="field"><label>🏗️ Amagorofa</label><input type="number" id="prop-floors" placeholder="1" min="1"></div>
+        <div class="field"><label>📅 Umwaka Wubatswe</label><input type="number" id="prop-year" placeholder="2022" min="1990" max="2025"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+        <div class="field"><label>📋 LUC / Titre Foncier</label>
+          <select id="prop-luc" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
+            <option value="yes">✅ Iri — Yego</option>
+            <option value="no">❌ Ntiri</option>
+            <option value="inprogress">⏳ Irakorerwa</option>
+          </select>
+        </div>
+        <div class="field"><label>🚗 Parking / Garage</label>
+          <select id="prop-parking" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
+            <option value="yes">✅ Iri</option>
+            <option value="no">❌ Ntiri</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>💰 Igiciro gishobora kuvugwaho?</label>
+        <select id="prop-negotiate" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
+          <option value="yes">✅ Yego — Bishoboka</option>
+          <option value="no">❌ Oya — Igiciro gihamye</option>
+        </select>
+      </div>
+      <div class="field"><label>📍 Aderesi Yuzuye <span style="font-size:.7rem;color:var(--muted);font-weight:400">(Ntibisabwa)</span></label><input type="text" id="prop-address" placeholder="urugero: KG 123 St, Kigali"></div>
       <!-- Media Upload — Admin vs User -->
       <div id="admin-media-section" style="display:none;flex-direction:column;gap:.8rem">
         <div style="background:#e8f0fb;border-radius:8px;padding:.7rem;font-size:.78rem;color:var(--navy);font-weight:600">
@@ -1606,8 +1638,8 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         </div>
         <div class="field"><label>🎥 YouTube Video URL</label><input type="url" id="prop-video" placeholder="https://youtube.com/watch?v=..."></div>
         <div class="field"><label>🖼️ Ifoto 1 (URL)</label><input type="url" id="prop-img1" placeholder="https://i.ibb.co/xxxxx/inzu.jpg"></div>
-        <div class="field"><label>🖼️ Ifoto 2 (Ntibisabwa)</label><input type="url" id="prop-img2" placeholder="https://i.ibb.co/xxxxx/imbere.jpg"></div>
-        <div class="field"><label>🖼️ Ifoto 3 (Ntibisabwa)</label><input type="url" id="prop-img3" placeholder="https://i.ibb.co/xxxxx/igikari.jpg"></div>
+        <div class="field"><label>🖼️ Ifoto 2 <span style="font-size:.7rem;color:var(--muted);font-weight:400">(Ntibisabwa)</span></label><input type="url" id="prop-img2" placeholder="https://i.ibb.co/xxxxx/imbere.jpg"></div>
+        <div class="field"><label>🖼️ Ifoto 3 <span style="font-size:.7rem;color:var(--muted);font-weight:400">(Ntibisabwa)</span></label><input type="url" id="prop-img3" placeholder="https://i.ibb.co/xxxxx/igikari.jpg"></div>
       </div>
       <div id="user-media-section" style="display:flex;flex-direction:column;gap:.8rem">
         <div style="background:var(--light);border-radius:8px;padding:.7rem;font-size:.78rem;color:var(--muted)">
@@ -2280,7 +2312,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <!-- Tabs -->
       <div class="det-tabs">
         <button class="det-tab active" data-rw="Ibisobanuro" data-en="Description" onclick="switchDetTab('desc',this)">Ibisobanuro</button>
-        <button class="det-tab" data-rw="3D Tour" data-en="3D Tour" onclick="switchDetTab('3d',this)">3D Tour</button>
+        <button class="det-tab" id="det-video-tab" data-rw="Video/3D" data-en="Video/3D" onclick="switchDetTab('3d',this)">📹 Video</button>
         <button class="det-tab" data-rw="Map" data-en="Map" onclick="switchDetTab('map',this)">📍 Map</button>
         <button class="det-tab" data-rw="Inyandiko" data-en="Docs" onclick="switchDetTab('docs',this)">📋 Inyandiko</button>
         <button class="det-tab" data-rw="Reviews" data-en="Reviews" onclick="switchDetTab('reviews',this)">★ Reviews</button>
@@ -2288,11 +2320,19 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <!-- Description tab content -->
       <div id="tab-desc">
         <p style="font-size:.9rem;color:var(--muted);line-height:1.85;margin-bottom:1.2rem" data-rw="Inzu nziza cyane iri mu Kimironko, Gasabo — ahantu hateye amashyo, hagurutse, kandi hafite amahoro. Iri ni inzu ya squaremetre 320, ifite amazu 4, ubushumbusho 2, garage, n'imbuga nziza hanze." data-en="A beautiful property in Kimironko, Gasabo — a prestigious, elevated and peaceful location. This 320m² property features 4 bedrooms, 2 bathrooms, a garage, and a stunning outdoor garden.">Inzu nziza cyane iri mu Kimironko, Gasabo — ahantu hateye amashyo, hagurutse, kandi hafite amahoro. Iri ni inzu ya squaremetre 320, ifite amazu 4, ubushumbusho 2, garage, n'imbuga nziza hanze.</p>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-bottom:1.4rem">
-          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Uburebure" data-en="Year Built">Uburebure</span><strong>2020</strong></div>
-          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Ubwoko" data-en="Type">Ubwoko</span><strong data-rw="Villa" data-en="Villa">Villa</strong></div>
-          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Status" data-en="Status">Status</span><strong style="color:var(--green)" data-rw="Iboneka" data-en="Available">Iboneka</strong></div>
-          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Amasezerano" data-en="Title Deed">Amasezerano</span><strong style="color:var(--green)" data-rw="Afite LUC" data-en="Has LUC">Afite LUC</strong></div>
+        <div id="det-info-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:.65rem;margin-bottom:1.2rem">
+          <!-- Filled dynamically by openPropDetail -->
+          <div style="background:var(--light);border-radius:10px;padding:.8rem"><span style="font-size:.65rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:.15rem">Ubwoko</span><strong id="det-info-type">—</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.8rem"><span style="font-size:.65rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:.15rem">Umwaka</span><strong id="det-info-year">—</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.8rem"><span style="font-size:.65rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:.15rem">Status</span><strong id="det-info-status" style="color:var(--green)">—</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.8rem"><span style="font-size:.65rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:.15rem">LUC/TF</span><strong id="det-info-luc" style="color:var(--green)">—</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.8rem"><span style="font-size:.65rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:.15rem">Parking</span><strong id="det-info-parking">—</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.8rem"><span style="font-size:.65rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:.15rem">Amagorofa</span><strong id="det-info-floors">—</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.8rem"><span style="font-size:.65rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:.15rem">Igiciro</span><strong id="det-info-negotiate" style="color:var(--gold)">—</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.8rem"><span style="font-size:.65rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:.15rem">Serivisi</span><strong id="det-info-service">—</strong></div>
+        </div>
+        <div id="det-info-address" style="display:none;background:#e8f0fb;border-radius:8px;padding:.7rem;margin-bottom:.8rem;font-size:.8rem;color:var(--navy)">
+          📍 <strong>Aderesi:</strong> <span id="det-address-text"></span>
         </div>
         <!-- 3D TOUR VIEWER (shown on this tab for preview) -->
         <h3 class="h3" style="margin-bottom:1rem" data-rw="Virtual Tour 3D" data-en="3D Virtual Tour">Virtual Tour 3D</h3>
@@ -3078,7 +3118,8 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     <div style="display:flex;gap:0;margin-bottom:1.2rem;margin-top:.5rem">
       <div class="agent-step-bar active" id="astep1" style="flex:1;height:4px;background:var(--navy);border-radius:2px 0 0 2px"></div>
       <div class="agent-step-bar" id="astep2" style="flex:1;height:4px;background:var(--border)"></div>
-      <div class="agent-step-bar" id="astep3" style="flex:1;height:4px;background:var(--border);border-radius:0 2px 2px 0"></div>
+      <div class="agent-step-bar" id="astep3" style="flex:1;height:4px;background:var(--border)"></div>
+      <div class="agent-step-bar" id="astep4" style="flex:1;height:4px;background:var(--border);border-radius:0 2px 2px 0"></div>
     </div>
 
     <!-- STEP 1: Personal Info -->
@@ -4038,6 +4079,13 @@ function submitProperty() {
       contact: g('prop-contact') || '+250 783 177 254',
       img1: g('prop-img1'), img2: g('prop-img2'), img3: g('prop-img3'),
       video: videoUrl,
+      whatsapp: g('prop-whatsapp'),
+      floors: g('prop-floors'),
+      yearBuilt: g('prop-year'),
+      luc: g('prop-luc') || 'yes',
+      parking: g('prop-parking') || 'yes',
+      negotiate: g('prop-negotiate') || 'yes',
+      address: g('prop-address'),
       owner: 'KOMISIYONERI', ownerEmail: currentUser.email,
       verified: true, rating: 5.0, reviews: 0,
       date: new Date().toISOString(), status: 'Approved'
@@ -4046,7 +4094,8 @@ function submitProperty() {
     try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
     closeAddProperty();
     loadApprovedProperties();
-    showToast('✅ Imitungo yashyizweho kandi yemejwe!');
+    showToast('✅ Imitungo yashyizweho! Genda Listings uyibone.');
+    setTimeout(function(){ go('listings'); }, 800);
 
   } else {
     // === USER: File upload, pending review ===
@@ -4080,6 +4129,13 @@ function submitProperty() {
             sector: g('prop-sector'), price: g('prop-price'), beds: g('prop-beds'),
             baths: g('prop-baths'), size: g('prop-size'), desc: g('prop-desc'),
             contact: g('prop-contact') || currentUser.phone || '+250 783 177 254',
+            whatsapp: g('prop-whatsapp'),
+            floors: g('prop-floors'),
+            yearBuilt: g('prop-year'),
+            luc: g('prop-luc') || 'yes',
+            parking: g('prop-parking') || 'yes',
+            negotiate: g('prop-negotiate') || 'yes',
+            address: g('prop-address'),
             img1: images[0]||'', img2: images[1]||'', img3: images[2]||'',
             video: '',
             owner: currentUser.name, ownerEmail: currentUser.email,
@@ -4087,7 +4143,19 @@ function submitProperty() {
           });
           try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
           closeAddProperty();
-          showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Admin azayisuzuma vuba.' : '✅ Property submitted for review!');
+          showToast(curLang==='rw' ? '✅ Yoherejwe! Admin azayemeza vuba.' : 'Submitted for review!');
+        // Show confirmation dialog
+        setTimeout(function(){
+          if(confirm('Imitungo yawe yoherejwe! Admin azayisuzuma. Urashaka kohereza amakuru kuri Admin ubu?')) {
+            var props2 = [];
+            try{ props2 = JSON.parse(localStorage.getItem('km_properties')||'[]'); }catch(e){}
+            var myProp = props2[props2.length-1];
+            if(myProp) {
+              var waMsg = 'IMITUNGO NSHYA - KOMISIYONERI: '+myProp.type+' i '+(myProp.district||'')+' - '+Number(myProp.price||0).toLocaleString()+' RWF - Owner: '+(currentUser.name||'')+' '+myProp.contact;
+              window.open('https://wa.me/250783177254?text='+encodeURIComponent(waMsg),'_blank');
+            }
+          }
+        }, 500);
         }
       };
       reader.readAsDataURL(f.files[0]);
@@ -5197,7 +5265,7 @@ function closeAgentReg() {
 
 function agentStep(step) {
   agentCurrentStep = step;
-  [1,2,3].forEach(function(s) {
+  [1,2,3,4].forEach(function(s) {
     var form = document.getElementById('agent-form-' + s);
     var bar = document.getElementById('astep' + s);
     if(form) form.style.display = s === step ? 'flex' : 'none';
@@ -5252,16 +5320,80 @@ function submitAgentReg() {
     saveUser(currentUser);
   }
 
-  closeAgentReg();
-  showToast('✅ Iyandikishe yagenze neza! KOMISIYONERI izakugenzura mu masaa 24.');
+  // Show success INSIDE agent modal (step 4)
+  agentStep(4);
+  // Store agent for step 4 display
+  window._lastAgent = agent;
+  var s4 = document.getElementById('agent-form-4');
+  if(s4) {
+    s4.innerHTML = '<div style="text-align:center;padding:1rem 0">'
+      + '<div style="font-size:3rem;margin-bottom:.5rem">🎉</div>'
+      + '<div style="font-weight:700;font-size:1.1rem;color:var(--navy);margin-bottom:.3rem">Iyandikishe Ryarangiye!</div>'
+      + '<div style="font-size:.82rem;color:var(--muted);margin-bottom:1rem">Murakaza neza muri KOMISIYONERI Agent Team!</div>'
+      + '<div style="background:var(--light);border-radius:10px;padding:.8rem;text-align:left;margin-bottom:.8rem">'
+      +   '<div style="font-weight:700;font-size:.85rem;color:var(--navy);margin-bottom:.3rem">'+agent.name+'</div>'
+      +   '<div style="font-size:.78rem;color:var(--muted)">📍 '+agent.zone+' | 📞 '+agent.phone+'</div>'
+      +   '<div style="font-size:.78rem;margin-top:.3rem;color:#F5A623;font-weight:600">⏳ Status: Pending Verification (24-48hrs)</div>'
+      + '</div>'
+      + '<div style="font-size:.78rem;color:var(--muted);line-height:1.7;margin-bottom:1rem">'
+      +   '✅ Amakuru yawe yoherejwe kuri KOMISIYONERI<br>'
+      +   '📱 KOMISIYONERI izakuvugisha mu masaa 24-48<br>'
+      +   '💰 Nyuma yo kwemezwa uzahabwa leads zo mu gace kawe'
+      + '</div>'
+      + '<button onclick="closeAgentReg()" class="btn btn-navy btn-lg" style="width:100%;justify-content:center">Sawa! ✓</button>'
+      + '</div>';
+  }
 
-  // Send WhatsApp notification to admin
-  var msg = 'Agent:'+agent.name+' Tel:'+agent.phone+' Zone:'+agent.zone+' ID:'+agent.nationalId;
+  // WhatsApp notification to admin
+  var msg = 'Agent Mushya: '+agent.name+' | '+agent.zone+' | '+agent.phone;
+  if(window.confirm && false) {} // silent
   setTimeout(function(){
-    if(confirm('Ohereza amakuru ya agent mushya kuri Admin wa KOMISIYONERI?')) {
-      window.open('https://wa.me/250783177254?text=' + encodeURIComponent(msg), '_blank');
-    }
-  }, 800);
+    window.open('https://wa.me/250783177254?text='+encodeURIComponent(msg), '_blank');
+  }, 1500);
+}
+
+function showAgentSuccessModal(agent) {
+  var modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:1rem';
+  modal.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:380px;width:100%;overflow:hidden">'
+    + '<div style="background:linear-gradient(135deg,#27A84A,#1a8a3a);padding:1.5rem;text-align:center;color:#fff">'
+    +   '<div style="font-size:3rem;margin-bottom:.5rem">🎉</div>'
+    +   '<div style="font-weight:700;font-size:1.1rem">Iyandikishe Ryarangiye!</div>'
+    +   '<div style="font-size:.8rem;opacity:.85;margin-top:.3rem">Murakaza neza muri KOMISIYONERI Agent Team</div>'
+    + '</div>'
+    + '<div style="padding:1.2rem">'
+    +   '<div style="background:var(--light);border-radius:10px;padding:.9rem;margin-bottom:.8rem">'
+    +     '<div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">Amakuru Yawe:</div>'
+    +     '<div style="font-weight:600;font-size:.88rem">'+agent.name+'</div>'
+    +     '<div style="font-size:.8rem;color:var(--muted)">📍 '+agent.zone+' | 📞 '+agent.phone+'</div>'
+    +     '<div style="font-size:.78rem;color:var(--navy);margin-top:.3rem;font-weight:600">Status: ⏳ Pending Verification (24-48hrs)</div>'
+    +   '</div>'
+    +   '<div style="font-size:.8rem;color:var(--muted);line-height:1.6;margin-bottom:.9rem">'
+    +     '✅ Amakuru yawe yoherejwe kuri KOMISIYONERI<br>'
+    +     '✅ Tuzakugenzura mu masaa 24<br>'
+    +     '✅ Uzabona SMS/WhatsApp nyuma yo kwemezwa<br>'
+    +     '✅ Nyuma uzahabwa leads zo mu gace kawe'
+    +   '</div>'
+    +   '<div style="display:flex;gap:.6rem">'
+    +     '<button id="agent-modal-wa" style="flex:1;padding:.8rem;background:#25D366;color:#fff;border:none;border-radius:10px;font-size:.85rem;font-weight:600;cursor:pointer">💬 WhatsApp Admin</button>'
+    +     '<button id="agent-modal-ok" style="flex:1;padding:.8rem;background:var(--navy);color:#fff;border:none;border-radius:10px;font-size:.85rem;font-weight:600;cursor:pointer">Sawa ✓</button>'
+    +   '</div>'
+    + '</div>'
+    + '</div>';
+
+  document.body.appendChild(modal);
+
+  var msg = 'AGENT NSHYA - KOMISIYONERI%0A%0AIzina: '+encodeURIComponent(agent.name)+'%0ATel: '+encodeURIComponent(agent.phone)+'%0AZone: '+encodeURIComponent(agent.zone)+'%0AID: '+encodeURIComponent(agent.nationalId);
+  document.getElementById('agent-modal-wa').onclick = function() {
+    window.open('https://wa.me/250783177254?text='+msg, '_blank');
+  };
+  document.getElementById('agent-modal-ok').onclick = function() {
+    document.body.removeChild(modal);
+    go('home');
+  };
+  modal.addEventListener('click', function(e) {
+    if(e.target === modal) document.body.removeChild(modal);
+  });
 }
 
 // === LEAD MANAGEMENT ===
@@ -5531,7 +5663,10 @@ function loadDemoListings() {
 
   // Always add demos (they show until real listings exist)
   window._allDemos = demos;
-  var newProps = props.concat(demos);
+  // Keep real approved props + add demos
+  var realApproved = props.filter(function(p){ return !p.isDemo && p.status === 'Approved'; });
+  var realPending = props.filter(function(p){ return !p.isDemo && p.status !== 'Approved'; });
+  var newProps = realPending.concat(realApproved).concat(demos);
   try { localStorage.setItem('km_properties', JSON.stringify(newProps)); } catch(e){}
   loadApprovedProperties();
 }
@@ -5640,6 +5775,13 @@ function submitPropertyOLD() {
       contact: g('prop-contact'),
       img1: g('prop-img1'), img2: g('prop-img2'), img3: g('prop-img3'),
       video: videoUrl,
+      whatsapp: g('prop-whatsapp'),
+      floors: g('prop-floors'),
+      yearBuilt: g('prop-year'),
+      luc: g('prop-luc') || 'yes',
+      parking: g('prop-parking') || 'yes',
+      negotiate: g('prop-negotiate') || 'yes',
+      address: g('prop-address'),
       owner: 'KOMISIYONERI', ownerEmail: currentUser.email,
       verified: true, rating: 5.0, reviews: 0,
       date: new Date().toISOString(), status: 'Approved'
@@ -5647,7 +5789,7 @@ function submitPropertyOLD() {
     props.push(newProp);
     try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
     closeAddProperty();
-    ['prop-sector','prop-price','prop-beds','prop-baths','prop-size','prop-desc','prop-img1','prop-img2','prop-img3','prop-video'].forEach(function(id){
+    ['prop-sector','prop-price','prop-beds','prop-baths','prop-size','prop-desc','prop-img1','prop-img2','prop-img3','prop-video','prop-whatsapp','prop-floors','prop-year','prop-address'].forEach(function(id){
       var el=document.getElementById(id); if(el) el.value='';
     });
     loadApprovedProperties();
@@ -5801,20 +5943,49 @@ function openPropDetail(propId) {
   if(descEl) {
     var descP = descEl.querySelector('p');
     if(descP) descP.textContent = prop.desc || (curLang==='rw' ? 'Ibisobanuro ntibishyizweho.' : 'No description provided.');
-    // Update info grid
-    var infoItems = descEl.querySelectorAll('.\\!bg-light, [style*="var(--light)"] strong, [style*="var(--light)"]');
-    // Update type
-    var typeStrongs = descEl.querySelectorAll('strong');
-    typeStrongs.forEach(function(s) {
-      var lbl = s.previousElementSibling || (s.parentNode && s.parentNode.querySelector('span'));
-      if(!lbl) return;
-      var lblText = lbl.textContent.toLowerCase();
-      if(lblText.includes('ubwoko') || lblText.includes('type')) s.textContent = prop.type||'—';
-      if(lblText.includes('status')) {
-        s.textContent = prop.status === 'Approved' ? (curLang==='rw'?'Iboneka':'Available') : prop.status||'—';
-        s.style.color = prop.status === 'Approved' ? 'var(--green)' : 'var(--muted)';
-      }
-    });
+  }
+
+  // === INFO GRID — All fields ===
+  var setEl = function(id, val) { var el=document.getElementById(id); if(el) el.textContent = val||'—'; };
+  setEl('det-info-type', prop.type||'—');
+  setEl('det-info-year', prop.yearBuilt||'—');
+  setEl('det-info-service', prop.service||'—');
+  setEl('det-info-floors', prop.floors ? prop.floors+'F' : '—');
+
+  var lucEl = document.getElementById('det-info-luc');
+  if(lucEl) {
+    lucEl.textContent = prop.luc==='yes'?'✅ Iri':prop.luc==='inprogress'?'⏳ Irakorerwa':'❌ Ntiri';
+    lucEl.style.color = prop.luc==='yes'?'var(--green)':prop.luc==='inprogress'?'#F5A623':'#e53e3e';
+  }
+
+  var parkEl = document.getElementById('det-info-parking');
+  if(parkEl) {
+    parkEl.textContent = prop.parking==='yes'?'✅ Iri':'❌ Ntiri';
+    parkEl.style.color = prop.parking==='yes'?'var(--green)':'#e53e3e';
+  }
+
+  var negEl = document.getElementById('det-info-negotiate');
+  if(negEl) {
+    negEl.textContent = prop.negotiate==='yes'?'✅ Bishoboka':'⛔ Gihamye';
+    negEl.style.color = prop.negotiate==='yes'?'var(--gold)':'var(--muted)';
+  }
+
+  var statusEl = document.getElementById('det-info-status');
+  if(statusEl) {
+    statusEl.textContent = prop.status==='Approved'?'✅ Iboneka':prop.status==='Pending'?'⏳ Pending':'—';
+    statusEl.style.color = prop.status==='Approved'?'var(--green)':'#F5A623';
+  }
+
+  // Address
+  var addrDiv = document.getElementById('det-info-address');
+  var addrTxt = document.getElementById('det-address-text');
+  if(addrDiv && addrTxt) {
+    if(prop.address) {
+      addrTxt.textContent = prop.address;
+      addrDiv.style.display = 'block';
+    } else {
+      addrDiv.style.display = 'none';
+    }
   }
 
   // === GALLERY (thumbnails) ===
@@ -5850,12 +6021,11 @@ function openPropDetail(propId) {
   var callBtn = document.querySelector('.ag-acts button[onclick*="tel:"]');
   if(callBtn) callBtn.onclick = function(){ window.location.href='tel:'+cleanPhone; };
 
+  var waContact = prop.whatsapp || prop.contact || '+250783177254';
+  var waNum = waContact.replace(/[^0-9]/g,'');
+  var waMsg = encodeURIComponent('Muraho! Ndashaka amakuru y\'imitungo: '+(prop.type||'')+ ' i '+(prop.district||'')+' - '+priceStr);
   var waBtn = document.querySelector('.ag-acts a[href*="wa.me"]');
-  if(waBtn) {
-    var waNum = cleanPhone.replace('+','');
-    var waMsg = encodeURIComponent('Muraho! Ndashaka amakuru y\'imitungo: '+prop.type+' i '+(prop.district||'')+' - '+priceStr);
-    waBtn.href = 'https://wa.me/'+waNum+'?text='+waMsg;
-  }
+  if(waBtn) waBtn.href = 'https://wa.me/'+waNum+'?text='+waMsg;
 
   // === HAMAGARA BUTTON ===
   var callBtns = document.querySelectorAll('.ag-acts button');
@@ -6437,6 +6607,16 @@ go = function(page) {
     setTimeout(loadAgentsPage, 100);
   }
 };
+
+
+function toggleOptionalFields() {
+  var div = document.getElementById('optional-fields');
+  var arrow = document.getElementById('opt-arrow');
+  if(!div) return;
+  var open = div.style.display === 'flex';
+  div.style.display = open ? 'none' : 'flex';
+  if(arrow) arrow.textContent = open ? '▼ Fungura' : '▲ Funga';
+}
 
 </script>
 </body>
