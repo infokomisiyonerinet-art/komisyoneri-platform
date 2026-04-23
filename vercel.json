@@ -4,19 +4,16 @@
   "cleanUrls": true,
   "routes": [
     {
-      "src": "/",
-      "dest": "/index-31.html"
-    },
-    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },
     {
       "src": "/sw.js",
-      "dest": "/sw.js",
-      "headers": {
-        "Cache-Control": "no-cache, no-store, must-revalidate"
-      }
+      "dest": "/sw.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index-31.html"
     }
   ]
 }
