@@ -1,28 +1,8 @@
 {
   "version": 2,
   "name": "komisiyoneri-platform",
-  "builds": [
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.json",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.js",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.svg",
-      "use": "@vercel/static"
-    }
-  ],
+  "cleanUrls": true,
+  "trailingSlash": false,
   "routes": [
     {
       "src": "/api/(.*)",
@@ -32,41 +12,15 @@
       "src": "/sw.js",
       "dest": "/sw.js",
       "headers": {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "Service-Worker-Allowed": "/"
+        "Cache-Control": "no-cache, no-store, must-revalidate"
       }
     },
     {
-      "src": "/manifest.json",
-      "dest": "/manifest.json"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/sw.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache"
-        },
-        {
-          "key": "Service-Worker-Allowed",
-          "value": "/"
-        }
-      ]
-    },
-    {
-      "source": "/manifest.json",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/manifest+json"
-        }
-      ]
+      "dest": "/$1"
     }
   ]
 }
