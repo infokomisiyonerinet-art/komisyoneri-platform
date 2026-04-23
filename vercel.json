@@ -2,8 +2,11 @@
   "version": 2,
   "name": "komisiyoneri-platform",
   "cleanUrls": true,
-  "trailingSlash": false,
   "routes": [
+    {
+      "src": "/",
+      "dest": "/index-31.html"
+    },
     {
       "src": "/api/(.*)",
       "dest": "/api/$1"
@@ -14,13 +17,6 @@
       "headers": {
         "Cache-Control": "no-cache, no-store, must-revalidate"
       }
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
     }
   ]
 }
