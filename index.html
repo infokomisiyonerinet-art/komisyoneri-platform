@@ -6455,7 +6455,34 @@ go = function(page) {
       console.error("Habaye ikibazo: ", e);
       throw e;
     }
-  };
+  };// Function yo gusoma listings muri Firebase no kuzerekana
+async function displayListings() {
+    const listingsContainer = document.getElementById('listings-container');
+    listingsContainer.innerHTML = "<p>Loading properties...</p>";
+
+    try {
+        const listings = await window.loadListingsFromFirebase();
+        listingsContainer.innerHTML = ""; // Hanagura "loading"
+
+        listings.forEach(item => {
+            const card = `
+                <div class="property-card">
+                    <h3>${item.title}</h3>
+                    <p><b>Igiciro:</b> ${item.price}</p>
+                    <p><b>Aho iri:</b> ${item.location}</p>
+                    <button onclick="contactAgent('${item.id}')">Twandikire kuri WhatsApp</button>
+                </div>
+            `;
+            listingsContainer.innerHTML += card;
+        });
+    } catch (error) {
+        listingsContainer.innerHTML = "<p>Habaye ikibazo mu gusoma amakuru.</p>";
+    }
+}
+
+// Hamagara iyi function urubuga rukimara gufunguka
+window.onload = displayListings;
+
 
   // 2. Function yo gusoma amakuru (Read) kugira ngo agaragare ku rubuga
   window.loadListingsFromFirebase = async function() {
