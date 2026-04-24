@@ -6440,4 +6440,31 @@ go = function(page) {
 
 </script>
 </body>
-</html>
+</html><script type="module">
+  // Guhamagara database yawe twashyize muri firebase-config.js
+  import { db } from './firebase-config.js';
+  import { collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  // 1. Function yo kubika amakuru (Save)
+  window.saveToFirebase = async function(propertyData) {
+    try {
+      const docRef = await addDoc(collection(db, "listings"), propertyData);
+      console.log("Byagezeyo! ID: ", docRef.id);
+      return docRef.id;
+    } catch (e) {
+      console.error("Habaye ikibazo: ", e);
+      throw e;
+    }
+  };
+
+  // 2. Function yo gusoma amakuru (Read) kugira ngo agaragare ku rubuga
+  window.loadListingsFromFirebase = async function() {
+    const q = query(collection(db, "listings"), orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+    let listings = [];
+    querySnapshot.forEach((doc) => {
+      listings.push({ id: doc.id, ...doc.data() });
+    });
+    return listings;
+  };
+</script>
