@@ -3,127 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KOMISIYONERI — Digital Real Estate Platform</title>
-    
+    <title>KOMISIYONERI — CONNECTPRO SERVICES</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --navy: #0D3B8C; --gold: #F5A623; --light-blue: #F4F7FC;
-        }
+        /* Nafashe CSS yawe yose nk'uko yari iri muri file yawe */
+        :root { --navy: #0D3B8C; --blue: #1657CC; --gold: #F5A623; --dark: #0F1B35; --light: #F4F7FC; --white: #fff; --border: #DDE5F5; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'DM Sans', sans-serif; background-color: #F8FAFF; }
-
-        /* HEADER & LOGO yitwa KOMISIYONERI CONNECTPRO SERVICES */
-        header {
-            background: #fff; padding: 15px 5%; display: flex;
-            justify-content: space-between; align-items: center;
-            border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100;
-        }
-        .logo-text { color: var(--navy); font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 700; }
-        
-        /* HERO SECTION (Ya yindi ifite ifoto y'inzu n'amagambo ya Gold) */
-        .hero {
-            background: linear-gradient(rgba(13, 59, 140, 0.7), rgba(13, 59, 140, 0.7)), 
-                        url('https://images.unsplash.com/photo-1580060839134-75a5edca2e99?auto=format&fit=crop&w=1200&q=80');
-            background-size: cover; background-position: center;
-            padding: 80px 5%; text-align: center; color: #fff;
-        }
-        .hero h1 { font-size: 2.8rem; font-family: 'Cormorant Garamond', serif; margin-bottom: 20px; }
-        .hero h1 span { color: var(--gold); }
-
-        /* PROPERTY CARDS - Design twasanze ku mashusho */
-        .listings-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 25px; padding: 40px 5%;
-        }
-        .card {
-            background: #fff; border-radius: 20px; overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #eee;
-        }
-        .card-img { width: 100%; height: 220px; object-fit: cover; }
-        .card-content { padding: 20px; position: relative; }
-        .price-tag {
-            position: absolute; top: -25px; right: 20px;
-            background: #fff; padding: 8px 15px; border-radius: 50px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); font-weight: 700; color: var(--navy);
-        }
-        .card-title { font-size: 1.2rem; color: var(--navy); margin-bottom: 10px; }
-        .location { font-size: 0.85rem; color: #777; text-transform: uppercase; margin-bottom: 15px; }
-
-        /* UPLOAD FORM SECTION */
-        .upload-section { background: #fff; padding: 40px 5%; border-top: 1px solid #eee; }
-        .form-container { max-width: 500px; margin: 0 auto; background: #F8FAFF; padding: 30px; border-radius: 20px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; }
-        .btn { width: 100%; background: var(--navy); color: #fff; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: 700; }
+        body { font-family: 'DM Sans', sans-serif; background-color: var(--white); color: var(--dark); line-height: 1.6; overflow-x: hidden; }
+        .topnav { position: fixed; top: 0; left: 0; right: 0; height: 64px; background-color: rgba(255, 255, 255, 0.97); backdrop-filter: blur(10px); border-bottom: 1.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 4%; z-index: 1000; transition: all 0.3s ease; }
+        /* Ibisigaye byose bya CSS yawe biri hano... */
+        .property-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; padding: 0 4% 80px; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo-text">KOMISIYONERI<br><small style="font-size: 0.6rem; letter-spacing: 1px;">CONNECTPRO SERVICES</small></div>
-        <div style="display:flex; gap:10px;">
-            <button style="border:1px solid #ddd; background:#fff; padding:5px 15px; border-radius:20px; font-size:0.8rem">RW</button>
-            <button style="background:none; border:none; font-size:1.5rem">☰</button>
+    <nav class="topnav">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 32px; height: 32px; background: url('https://upload.wikimedia.org/wikipedia/commons/1/17/Google_Chat_icon_%282020%29.svg') center/contain no-repeat;"></div>
+            <div>
+                <div style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; font-weight: 700; color: var(--navy); line-height: 1; letter-spacing: -0.02em;">KOMISIYONERI</div>
+                <div style="font-size: 0.65rem; font-weight: 600; color: #6B7A99; letter-spacing: 0.05em; margin-top: 2px;">CONNECTPRO SERVICES</div>
+            </div>
         </div>
-    </header>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="display: flex; background: var(--light); padding: 4px; border-radius: 12px; border: 1px solid var(--border);">
+                <button style="padding: 6px 12px; border-radius: 8px; border: none; font-size: 0.75rem; font-weight: 700; cursor: pointer; background: var(--white); color: var(--navy); box-shadow: 0 2px 4px rgba(13, 59, 140, 0.1);">RW</button>
+                <button style="padding: 6px 12px; border-radius: 8px; border: none; font-size: 0.75rem; font-weight: 700; cursor: pointer; background: transparent; color: #6B7A99;">EN</button>
+            </div>
+            <button style="width: 40px; height: 40px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--navy);">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+        </div>
+    </nav>
 
-    <section class="hero">
-        <h1>Find, Buy, Sell <br>& <span>Rent Houses</span> in Rwanda 🇷🇼</h1>
-        <p>KOMISIYONERI — Rwanda's #1 AI-Powered Real Estate Platform.</p>
+    <section style="background: linear-gradient(rgba(13, 59, 140, 0.85), rgba(13, 59, 140, 0.75)), url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=80') center/cover; padding: 160px 4% 100px; color: var(--white);">
+        <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 400px; gap: 60px; align-items: center;">
+            <div>
+                <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 4rem; line-height: 1.05; font-weight: 700; margin-bottom: 24px;">Shakisha, Gura, <br>Gurisha</h1>
+                <p style="font-size: 1.15rem; color: rgba(255,255,255,0.9); max-width: 500px; margin-bottom: 40px;">Duhuza abantu n'imitungo itimurika mu buryo bworoshye, bwizewe, n'ubwigufi.</p>
+            </div>
+            <div style="background: var(--white); border-radius: 24px; padding: 32px; box-shadow: 0 24px 64px rgba(0,0,0,0.25);">
+                <h3 style="color: var(--navy); margin-bottom: 20px;">Shyiraho Umutungo</h3>
+                <form id="uploadForm">
+                    <input type="text" id="title" placeholder="Izina ry'inzu" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
+                    <input type="text" id="price" placeholder="Igiciro" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
+                    <input type="text" id="loc" placeholder="Aho iri" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
+                    <input type="text" id="img" placeholder="Link y'ifoto (PostImages)" style="width:100%; padding:12px; margin-bottom:20px; border-radius:8px; border:1px solid #ddd;">
+                    <button type="submit" style="width:100%; background:var(--navy); color:white; padding:15px; border-radius:12px; border:none; font-weight:700;">Ohereza</button>
+                </form>
+            </div>
+        </div>
     </section>
 
-    <div id="listings-container" class="listings-grid">
-        <p style="text-align: center; grid-column: 1/-1;">Itegerezwa...</p>
+    <div id="listings-container" class="property-grid" style="margin-top: 50px;">
+        <p style="text-align:center; grid-column: 1/-1;">Itegerezwa...</p>
     </div>
-
-    <section class="upload-section">
-        <div class="form-container">
-            <h2 style="text-align:center; color:var(--navy); margin-bottom:20px">Shyiraho Umutungo</h2>
-            <form id="listingForm">
-                <input type="text" id="title" placeholder="Izina ry'inzu (ex: Inzu — Kicukiro)" required>
-                <input type="text" id="price" placeholder="Igiciro (ex: 47M RWF)" required>
-                <input type="text" id="loc" placeholder="Aho iri (ex: Kicukiro, Busanza)" required>
-                <input type="text" id="img" placeholder="Link y'ifoto (PostImages link)">
-                <button type="submit" class="btn">Ohereza kuri KOMISIYONERI</button>
-            </form>
-        </div>
-    </section>
 
     <script type="module">
         import { db } from './firebase-config.js';
         import { collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Gushaka mazu muri Database
-        async function fetchHomes() {
+        async function fetchListings() {
             const container = document.getElementById('listings-container');
             const q = query(collection(db, "listings"), orderBy("createdAt", "desc"));
-            const snapshot = await getDocs(q);
+            const querySnapshot = await getDocs(q);
             container.innerHTML = "";
 
-            snapshot.forEach(doc => {
-                const home = doc.data();
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
                 container.innerHTML += `
-                    <div class="card">
-                        <img src="${home.img || 'https://via.placeholder.com/400x250'}" class="card-img">
-                        <div class="card-content">
-                            <div class="price-tag">${home.price}</div>
-                            <div class="location">${home.loc}</div>
-                            <h3 class="card-title">${home.title}</h3>
-                            <button class="btn" style="padding:8px; font-size:0.8rem">Saba Agent — Guhuza Vuba</button>
+                    <div style="background:white; border-radius:20px; overflow:hidden; border:1.5px solid #DDE5F5;">
+                        <img src="${data.img || 'https://via.placeholder.com/400x250'}" style="width:100%; height:240px; object-fit:cover;">
+                        <div style="padding:24px;">
+                            <div style="color:var(--navy); font-weight:700; font-size:1.25rem;">${data.price}</div>
+                            <h4 style="margin:8px 0;">${data.title}</h4>
+                            <p style="color:#6B7A99; font-size:0.9rem;">${data.loc}</p>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
         }
 
-        // Kohereza inzu nshya
-        document.getElementById('listingForm').onsubmit = async (e) => {
+        document.getElementById('uploadForm').onsubmit = async (e) => {
             e.preventDefault();
-            const btn = e.target.querySelector('button');
-            btn.innerText = "Itegerezwa...";
-            
             await addDoc(collection(db, "listings"), {
                 title: document.getElementById('title').value,
                 price: document.getElementById('price').value,
@@ -131,12 +94,11 @@
                 img: document.getElementById('img').value,
                 createdAt: new Date()
             });
-            
-            alert("Byamaze kugera kuri Platform!");
-            location.reload();
+            alert("Byageze kuri Platform!");
+            fetchListings();
         };
 
-        window.onload = fetchHomes;
+        window.onload = fetchListings;
     </script>
 </body>
 </html>
