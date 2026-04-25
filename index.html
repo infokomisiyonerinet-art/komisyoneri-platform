@@ -6456,6 +6456,21 @@ go = function(page) {
   }
 };
 
-</script>
+</sasync function uploadToFirebase(file) {
+    if (!file) return null;
+    
+    // Create a unique name for the image
+    const fileName = 'properties/' + Date.now() + '_' + file.name;
+    const storageRef = storage.ref(fileName);
+    
+    // Upload the file
+    const snapshot = await storageRef.put(file);
+    
+    // Get the Public URL
+    const downloadURL = await snapshot.ref.getDownloadURL();
+    return downloadURL; // Iyi URL ni yo ubika muri 'km_properties' localStorage
+}
+
+  >
 </body>
 </html>
