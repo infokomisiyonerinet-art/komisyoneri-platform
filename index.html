@@ -7,24 +7,6 @@
      Digital Real Estate Platform — Rwanda
      komisiyonericonnectproservices@gmail.com | www.komisiyoneri.com
 ════════════════════════════════════════════════ -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-
-<script>
-  // Ibi ubikura muri Firebase Console (Project Settings)
-  const firebaseConfig = {
-    apiKey: "AIzaSy...",
-    authDomain: "komisiyoneri-platform.firebaseapp.com",
-    projectId: "komisiyoneri-platform",
-    storageBucket: "komisiyoneri-platform.appspot.com",
-    messagingSenderId: "...",
-    appId: "..."
-  };
-
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const storage = firebase.storage();
-</script>
 
 <!-- CHARSET + VIEWPORT (Chrome/Mobile first) -->
 <meta charset="UTF-8">
@@ -2012,7 +1994,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <div class="eyebrow" style="color:var(--gold)">👔 Agents wa KOMISIYONERI</div>
       <h2 class="h2" style="color:#fff;margin:0">Kuba Agent — Jya Uhembwe 40%</h2>
       <p style="max-width:480px;color:rgba(255,255,255,.75);font-size:.92rem;line-height:1.7">
-        Fata inzu irikugurishwa mu gace kawe, uyishyireho platform — iyo yagurishijwe uhembwa <strong style="color:var(--gold)">40% ya commission</strong> yose.
+        Fata inzu ikigurishwa mu gace kawe, uyishyireho platform — iyo yagurishijwe uhembwa <strong style="color:var(--gold)">40% ya commission</strong> yose.
         Nta mushahara wa buri kwezi — ukora, ugira.
       </p>
       <div style="display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center">
@@ -2840,7 +2822,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
               <option value="Kugura">🏠 Kugura Inzu</option>
               <option value="Gukodesha">🔑 Gukodesha Inzu</option>
               <option value="Kugurisha">💰 Kugurisha Imitungo Yanjye</option>
-              <option value="Agent">👔 Gukora nk'Agent</option>
+              <option value="Agent">👔 Gukorera nk'Agent</option>
             </select>
           </div>
           <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center;margin-top:.4rem" onclick="handleRegister()">
@@ -3157,20 +3139,20 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       </div>
       <div class="field"><label>Uburambe mu Mitungo</label>
         <select id="ag-exp" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
-          <option value="0">Ntabwo ndakora (Ndatangira ubu)</option>
+          <option value="0">Ntabwo narakoze (Natangira ubu)</option>
           <option value="1">Umwaka 1-2</option>
           <option value="3">Imyaka 3-5</option>
           <option value="5">Imyaka 5+</option>
         </select>
       </div>
-      <div class="field"><label>Imodoka / moto (Gutwara)?</label>
+      <div class="field"><label>Imodoka / Boda (Gutwara)?</label>
         <select id="ag-transport" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
-          <option value="boda">✅ Moto</option>
+          <option value="boda">✅ Boda (Moto)</option>
           <option value="car">✅ Imodoka</option>
-          <option value="none">❌ Ntayo pfite</option>
+          <option value="none">❌ Ntabwo nfite</option>
         </select>
       </div>
-      <div class="field"><label>indimi Uvuga</label>
+      <div class="field"><label>Ndimi Uvuga</label>
         <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.3rem">
           <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer"><input type="checkbox" id="lang-rw" checked style="accent-color:var(--navy)"> Kinyarwanda</label>
           <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer"><input type="checkbox" id="lang-en" style="accent-color:var(--navy)"> English</label>
@@ -3197,12 +3179,12 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         ✓ Nta mafaranga nzasaba clients imbere yo kugurisha<br>
         ✓ Commission: <strong>40%</strong> ya commission yose injiye<br>
         ✓ Nzashyira amakuru y'ukuri gusa kuri platform<br>
-        ✓ Nindamuka nkoze ibi, KOMISIYONERI ishobora kunsezerera burundu
+        ✓ Niba nkora nabi, KOMISIYONERI ishobora kunsezerera
       </div>
       <div class="field">
         <label>Deposit ya Kwemeza Iyandikishe (Ntibisabwa ubu)</label>
         <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:.7rem;font-size:.8rem">
-             ibikwa kugeza amasezerano arangira neza.
+          ⚠️ Deposit ya 50,000 RWF izasabwa nyuma — ibikwa kugeza amasezerano arangira neza.
         </div>
       </div>
       <label style="display:flex;align-items:flex-start;gap:.6rem;cursor:pointer;padding:.7rem;background:var(--light);border-radius:8px">
@@ -3367,7 +3349,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         </div>
       </div>
       <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:.7rem;font-size:.78rem;color:#856404">
-        ⚠️ Deposit igarukira kuri account ya KOMISIYONERI. Amasezerano azakugeraho mu masaha 24.
+        ⚠️ Deposit igarukira kuri account ya KOMISIYONERI. Amasezerano azakufikira mu masaha 24.
       </div>
       <button class="btn btn-gold btn-lg" style="width:100%;justify-content:center" onclick="submitDeposit()">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -6455,21 +6437,6 @@ go = function(page) {
     setTimeout(loadAgentsPage, 100);
   }
 };
-
-</sasync function uploadToFirebase(file) {
-    if (!file) return null;
-    
-    // Create a unique name for the image
-    const fileName = 'properties/' + Date.now() + '_' + file.name;
-    const storageRef = storage.ref(fileName);
-    
-    // Upload the file
-    const snapshot = await storageRef.put(file);
-    
-    // Get the Public URL
-    const downloadURL = await snapshot.ref.getDownloadURL();
-    return downloadURL; // Iyi URL ni yo ubika muri 'km_properties' localStorage
-}
 
 </script>
 </body>
