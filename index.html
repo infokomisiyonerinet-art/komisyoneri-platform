@@ -3,105 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KOMISIYONERI — Imitungo mu Rwanda</title>
+    <title>KOMISIYONERI — Digital Real Estate Platform</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --navy: #0D3B8C; --blue: #1657CC; --gold: #F5A623; --dark: #0F1B35;
-            --light: #F4F7FC; --white: #fff; --border: #DDE5F5;
+            --navy: #0D3B8C; --gold: #F5A623; --light-blue: #F4F7FC;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'DM Sans', sans-serif; background: #fff; overflow-x: hidden; }
+        body { font-family: 'DM Sans', sans-serif; background-color: #F8FAFF; }
 
-        /* TOP NAV */
-        .topnav {
-            position: fixed; top: 0; left: 0; right: 0; height: 64px;
-            background: rgba(255, 255, 255, 0.97); backdrop-filter: blur(10px);
-            border-bottom: 1.5px solid var(--border); display: flex;
-            align-items: center; justify-content: space-between; padding: 0 4%; z-index: 1000;
+        /* HEADER & LOGO yitwa KOMISIYONERI CONNECTPRO SERVICES */
+        header {
+            background: #fff; padding: 15px 5%; display: flex;
+            justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100;
         }
-        .logo { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 700; color: var(--navy); }
-
-        /* HERO SECTION */
+        .logo-text { color: var(--navy); font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 700; }
+        
+        /* HERO SECTION (Ya yindi ifite ifoto y'inzu n'amagambo ya Gold) */
         .hero {
-            background: linear-gradient(rgba(13, 59, 140, 0.8), rgba(13, 59, 140, 0.8)), 
-                        url('https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=1200&q=80') center/cover;
-            min-height: 80vh; display: flex; align-items: center; padding: 100px 4% 40px;
+            background: linear-gradient(rgba(13, 59, 140, 0.7), rgba(13, 59, 140, 0.7)), 
+                        url('https://images.unsplash.com/photo-1580060839134-75a5edca2e99?auto=format&fit=crop&w=1200&q=80');
+            background-size: cover; background-position: center;
+            padding: 80px 5%; text-align: center; color: #fff;
         }
-        .hero-inner {
-            max-width: 1200px; margin: 0 auto; width: 100%;
-            display: grid; grid-template-columns: 1fr 400px; gap: 40px;
-        }
-        .hero h1 { color: #fff; font-size: clamp(2.5rem, 5vw, 3.5rem); font-family: 'Cormorant Garamond', serif; line-height: 1.1; }
-        .hero h1 em { color: var(--gold); font-style: normal; }
+        .hero h1 { font-size: 2.8rem; font-family: 'Cormorant Garamond', serif; margin-bottom: 20px; }
+        .hero h1 span { color: var(--gold); }
 
-        /* SEARCH CARD */
-        .s-card {
-            background: #fff; border-radius: 22px; padding: 1.8rem;
-            box-shadow: 0 24px 72px rgba(0,0,0,0.25);
+        /* PROPERTY CARDS - Design twasanze ku mashusho */
+        .listings-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px; padding: 40px 5%;
         }
-        .s-field { margin-bottom: 1.2rem; }
-        .s-field label { font-size: 0.65rem; font-weight: 800; color: #6B7A99; text-transform: uppercase; display: block; margin-bottom: 5px; }
-        .s-field input, .s-field select { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 10px; outline: none; }
-        .s-btn { 
-            width: 100%; background: var(--navy); color: #fff; border: none; 
-            padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer;
-            transition: 0.3s;
+        .card {
+            background: #fff; border-radius: 20px; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #eee;
         }
+        .card-img { width: 100%; height: 220px; object-fit: cover; }
+        .card-content { padding: 20px; position: relative; }
+        .price-tag {
+            position: absolute; top: -25px; right: 20px;
+            background: #fff; padding: 8px 15px; border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); font-weight: 700; color: var(--navy);
+        }
+        .card-title { font-size: 1.2rem; color: var(--navy); margin-bottom: 10px; }
+        .location { font-size: 0.85rem; color: #777; text-transform: uppercase; margin-bottom: 15px; }
 
-        /* PROPERTY GRID */
-        .p-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px; margin-top: 30px;
-        }
-        .p-card {
-            background: #fff; border: 1.5px solid var(--border); border-radius: 14px;
-            overflow: hidden; transition: 0.3s;
-        }
-        .p-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .p-img { width: 100%; height: 200px; object-fit: cover; }
-        .p-info { padding: 15px; }
-        .p-price { color: var(--green, #27A84A); font-weight: 700; font-size: 1.2rem; }
-
-        @media (max-width: 900px) {
-            .hero-inner { grid-template-columns: 1fr; text-align: center; }
-            .hero h1 { font-size: 2.2rem; }
-        }
+        /* UPLOAD FORM SECTION */
+        .upload-section { background: #fff; padding: 40px 5%; border-top: 1px solid #eee; }
+        .form-container { max-width: 500px; margin: 0 auto; background: #F8FAFF; padding: 30px; border-radius: 20px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; }
+        .btn { width: 100%; background: var(--navy); color: #fff; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: 700; }
     </style>
 </head>
 <body>
 
-    <nav class="topnav">
-        <div class="logo">KOMISIYONERI</div>
-    </nav>
+    <header>
+        <div class="logo-text">KOMISIYONERI<br><small style="font-size: 0.6rem; letter-spacing: 1px;">CONNECTPRO SERVICES</small></div>
+        <div style="display:flex; gap:10px;">
+            <button style="border:1px solid #ddd; background:#fff; padding:5px 15px; border-radius:20px; font-size:0.8rem">RW</button>
+            <button style="background:none; border:none; font-size:1.5rem">☰</button>
+        </div>
+    </header>
 
     <section class="hero">
-        <div class="hero-inner">
-            <div class="hero-text">
-                <h1>Shakisha Inzu ya <em>Ndoto</em> zawe mu Rwanda.</h1>
-                <p style="color: rgba(255,255,255,0.8); margin-top: 20px;">Platform y'imitungo yizewe mu Rwanda.</p>
-            </div>
-
-            <div class="s-card">
-                <h2 style="margin-bottom:15px; font-family:serif">Shyiraho Umutungo</h2>
-                <form id="uploadForm">
-                    <div class="s-field"><label>Izina ry'inzu</label><input type="text" id="title" required></div>
-                    <div class="s-field"><label>Igiciro</label><input type="text" id="price" required></div>
-                    <div class="s-field"><label>Aho iri</label><input type="text" id="location" required></div>
-                    <div class="s-field"><label>Link y'Ifoto</label><input type="text" id="imageLink"></div>
-                    <button type="submit" class="s-btn">Ohereza kuri KOMISIYONERI</button>
-                </form>
-            </div>
-        </div>
+        <h1>Find, Buy, Sell <br>& <span>Rent Houses</span> in Rwanda 🇷🇼</h1>
+        <p>KOMISIYONERI — Rwanda's #1 AI-Powered Real Estate Platform.</p>
     </section>
 
-    <section style="padding: 60px 4%;">
-        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2rem;">Imitungo Iheruka</h2>
-        <div id="listings-container" class="p-grid">
-            <p>Itegerezwa...</p>
+    <div id="listings-container" class="listings-grid">
+        <p style="text-align: center; grid-column: 1/-1;">Itegerezwa...</p>
+    </div>
+
+    <section class="upload-section">
+        <div class="form-container">
+            <h2 style="text-align:center; color:var(--navy); margin-bottom:20px">Shyiraho Umutungo</h2>
+            <form id="listingForm">
+                <input type="text" id="title" placeholder="Izina ry'inzu (ex: Inzu — Kicukiro)" required>
+                <input type="text" id="price" placeholder="Igiciro (ex: 47M RWF)" required>
+                <input type="text" id="loc" placeholder="Aho iri (ex: Kicukiro, Busanza)" required>
+                <input type="text" id="img" placeholder="Link y'ifoto (PostImages link)">
+                <button type="submit" class="btn">Ohereza kuri KOMISIYONERI</button>
+            </form>
         </div>
     </section>
 
@@ -109,65 +95,48 @@
         import { db } from './firebase-config.js';
         import { collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 1. Gusoma amakuru no kuyerekana
-        async function loadListings() {
+        // Gushaka mazu muri Database
+        async function fetchHomes() {
             const container = document.getElementById('listings-container');
-            try {
-                const q = query(collection(db, "listings"), orderBy("createdAt", "desc"));
-                const querySnapshot = await getDocs(q);
-                container.innerHTML = ""; // Clear loading
+            const q = query(collection(db, "listings"), orderBy("createdAt", "desc"));
+            const snapshot = await getDocs(q);
+            container.innerHTML = "";
 
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const card = `
-                        <div class="p-card">
-                            <img src="${data.imageLink || 'https://via.placeholder.com/300x200'}" class="p-img">
-                            <div class="p-info">
-                                <h3>${data.title}</h3>
-                                <p class="p-price">${data.price}</p>
-                                <p style="font-size:0.9rem; color:#666">${data.location}</p>
-                                <button class="s-btn" style="margin-top:10px; padding:10px">Contact Agent</button>
-                            </div>
+            snapshot.forEach(doc => {
+                const home = doc.data();
+                container.innerHTML += `
+                    <div class="card">
+                        <img src="${home.img || 'https://via.placeholder.com/400x250'}" class="card-img">
+                        <div class="card-content">
+                            <div class="price-tag">${home.price}</div>
+                            <div class="location">${home.loc}</div>
+                            <h3 class="card-title">${home.title}</h3>
+                            <button class="btn" style="padding:8px; font-size:0.8rem">Saba Agent — Guhuza Vuba</button>
                         </div>
-                    `;
-                    container.innerHTML += card;
-                });
-            } catch (e) {
-                container.innerHTML = "Habaye ikibazo mu gusoma amakuru.";
-                console.error(e);
-            }
+                    </div>
+                `;
+            });
         }
 
-        // 2. Kohereza amakuru mashya
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        // Kohereza inzu nshya
+        document.getElementById('listingForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
             btn.innerText = "Itegerezwa...";
-            btn.disabled = true;
-
-            const newData = {
+            
+            await addDoc(collection(db, "listings"), {
                 title: document.getElementById('title').value,
                 price: document.getElementById('price').value,
-                location: document.getElementById('location').value,
-                imageLink: document.getElementById('imageLink').value,
-                createdAt: new Date().toISOString()
-            };
+                loc: document.getElementById('loc').value,
+                img: document.getElementById('img').value,
+                createdAt: new Date()
+            });
+            
+            alert("Byamaze kugera kuri Platform!");
+            location.reload();
+        };
 
-            try {
-                await addDoc(collection(db, "listings"), newData);
-                alert("Byageze kuri KOMISIYONERI!");
-                e.target.reset();
-                loadListings(); // Refresh listings
-            } catch (err) {
-                alert("Habaye ikibazo!");
-            } finally {
-                btn.innerText = "Ohereza kuri KOMISIYONERI";
-                btn.disabled = false;
-            }
-        });
-
-        // Hamagara listings urubuga rugifunguka
-        window.onload = loadListings;
+        window.onload = fetchHomes;
     </script>
 </body>
 </html>
