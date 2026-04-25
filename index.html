@@ -7,6 +7,24 @@
      Digital Real Estate Platform — Rwanda
      komisiyonericonnectproservices@gmail.com | www.komisiyoneri.com
 ════════════════════════════════════════════════ -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+<script>
+  // Ibi ubikura muri Firebase Console (Project Settings)
+  const firebaseConfig = {
+    apiKey: "AIzaSy...",
+    authDomain: "komisiyoneri-platform.firebaseapp.com",
+    projectId: "komisiyoneri-platform",
+    storageBucket: "komisiyoneri-platform.appspot.com",
+    messagingSenderId: "...",
+    appId: "..."
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const storage = firebase.storage();
+</script>
 
 <!-- CHARSET + VIEWPORT (Chrome/Mobile first) -->
 <meta charset="UTF-8">
