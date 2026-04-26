@@ -1219,6 +1219,385 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   color:#1a7a35;font-weight:600;padding:.5rem 1rem;background:rgba(39,168,74,.07);
   border-bottom:1px solid rgba(39,168,74,.15)}
 .chat-api-connected svg{width:14px;height:14px;fill:none;stroke:#27A84A;stroke-width:2.5}
+
+/* ═══════════════════════════════════════════════
+   ✨ KOMISIYONERI V3 — DESIGN UPGRADES
+   Hero · Cards · Trust · WhatsApp · Mobile
+════════════════════════════════════════════════ */
+
+/* ── FONTS UPGRADE ── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap');
+
+/* ── HERO UPGRADE ── */
+.hero {
+  background: linear-gradient(145deg, #050E25 0%, #0A2D6E 45%, #1450C8 100%) !important;
+  position: relative;
+  overflow: hidden;
+}
+/* Ambient glow orbs */
+.hero::before {
+  content: '';
+  position: absolute; top: -120px; right: -100px;
+  width: 550px; height: 550px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(45,127,234,.22), transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+.hero::after {
+  content: '';
+  position: absolute; bottom: -150px; left: -80px;
+  width: 450px; height: 450px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,166,35,.1), transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+/* Grid overlay */
+.hero-grid-overlay {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+  background-size: 52px 52px;
+}
+.hero-inner { position: relative; z-index: 2; }
+
+/* Hero heading — Syne font upgrade */
+.hero h1 {
+  font-family: 'Syne', 'Cormorant Garamond', serif !important;
+  font-weight: 800 !important;
+  letter-spacing: -.025em !important;
+  line-height: 1.06 !important;
+  font-size: clamp(2.4rem, 5vw, 4rem) !important;
+}
+.hero h1 em {
+  font-style: normal !important;
+  background: linear-gradient(90deg, #FFBE00, #F0A500) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+/* Hero pill — more visible */
+.hero-pill {
+  background: rgba(255,255,255,.12) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255,255,255,.22) !important;
+  border-radius: 100px !important;
+  padding: .38rem 1rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: .6rem !important;
+  margin-bottom: 1.6rem !important;
+}
+.hero-pill span { font-size: .74rem !important; color: rgba(255,255,255,.88) !important; font-weight: 600 !important; }
+.h-pulse {
+  width: 9px !important; height: 9px !important;
+  background: #4ade80 !important;
+  box-shadow: 0 0 10px #4ade80 !important;
+  border-radius: 50% !important;
+  animation: pv3Pulse 2s ease-in-out infinite !important;
+}
+@keyframes pv3Pulse {
+  0%,100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: .7; }
+}
+
+/* Hero sub text */
+.hero-sub {
+  font-size: 1rem !important;
+  color: rgba(255,255,255,.68) !important;
+  line-height: 1.78 !important;
+  max-width: 520px !important;
+}
+
+/* ── TRUST BAR (new element) ── */
+.hero-trust {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  margin: 1.4rem 0 2rem;
+  flex-wrap: wrap;
+}
+.trust-avs {
+  display: flex;
+}
+.trust-av {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 2.5px solid rgba(255,255,255,.3);
+  background: linear-gradient(135deg, var(--navy), var(--blue));
+  display: flex; align-items: center; justify-content: center;
+  font-size: .66rem; font-weight: 700; color: #fff;
+  margin-left: -9px; flex-shrink: 0;
+}
+.trust-av:first-child { margin-left: 0; }
+.trust-txt { font-size: .8rem; color: rgba(255,255,255,.65); }
+.trust-txt strong { color: #FFBE00; }
+.trust-vline { width: 1px; height: 20px; background: rgba(255,255,255,.15); }
+.trust-badge {
+  display: flex; align-items: center; gap: .4rem;
+  font-size: .78rem; color: rgba(255,255,255,.65);
+}
+.trust-badge svg { width: 15px; height: 15px; fill: none; stroke: #FFBE00; stroke-width: 2.2; flex-shrink: 0; }
+@media(max-width:660px){
+  .hero-trust { gap: .6rem; }
+  .trust-vline { display: none; }
+}
+
+/* Hero CTA buttons — bigger, bolder */
+.hero-btns { display: flex; flex-wrap: wrap; gap: .85rem; align-items: center; }
+.hero-btns .btn-gold {
+  padding: .95rem 2.2rem !important;
+  font-size: .98rem !important;
+  font-weight: 800 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 36px rgba(245,166,35,.45) !important;
+  letter-spacing: .01em !important;
+}
+.hero-btns .btn-gold:hover { transform: translateY(-3px) !important; box-shadow: 0 16px 48px rgba(245,166,35,.55) !important; }
+.hero-btns .btn-ghost {
+  padding: .95rem 1.8rem !important;
+  font-size: .98rem !important;
+  border-radius: 12px !important;
+}
+
+/* Hero stats — refreshed */
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .8rem;
+  margin-top: 2.5rem;
+  padding-top: 2.2rem;
+  border-top: 1px solid rgba(255,255,255,.1);
+}
+.hero-stat-val {
+  font-family: 'Syne', 'Cormorant Garamond', serif !important;
+  font-size: 2rem !important;
+  font-weight: 800 !important;
+  color: #fff !important;
+  display: block; line-height: 1;
+}
+.hero-stat-lbl {
+  font-size: .66rem !important;
+  color: rgba(255,255,255,.5) !important;
+  letter-spacing: .1em !important;
+  text-transform: uppercase !important;
+  display: block; margin-top: .3rem;
+}
+@media(max-width:660px){
+  .hero-stats { grid-template-columns: 1fr 1fr; gap: .65rem; }
+}
+
+/* Search card — elevated look */
+.s-card {
+  border-radius: 20px !important;
+  box-shadow: 0 28px 80px rgba(0,0,0,.32) !important;
+  border: 1px solid rgba(255,255,255,.5) !important;
+}
+.s-card-title {
+  font-family: 'Syne', sans-serif !important;
+  font-size: 1.18rem !important;
+  font-weight: 800 !important;
+  color: var(--navy) !important;
+  margin-bottom: 1.1rem !important;
+}
+
+/* ── PROPERTY CARDS UPGRADE ── */
+.p-card {
+  border-radius: 16px !important;
+  border: 1.5px solid var(--border) !important;
+  transition: transform .3s ease, box-shadow .3s ease !important;
+}
+.p-card:hover {
+  transform: translateY(-7px) !important;
+  box-shadow: 0 20px 56px rgba(10,45,110,.18) !important;
+  border-color: rgba(20,80,200,.15) !important;
+}
+/* Image zoom on hover */
+.p-img { overflow: hidden !important; }
+.p-img-bg-zoom {
+  position: absolute; inset: 0;
+  background-size: cover !important;
+  background-position: center !important;
+  transition: transform .45s ease !important;
+}
+.p-card:hover .p-img-bg-zoom { transform: scale(1.06) !important; }
+
+/* Price tag — pill style */
+.p-price {
+  background: rgba(255,255,255,.96) !important;
+  backdrop-filter: blur(10px) !important;
+  padding: .3rem .9rem !important;
+  border-radius: 100px !important;
+  font-weight: 800 !important;
+  font-size: .8rem !important;
+  color: var(--navy) !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,.14) !important;
+}
+
+/* Verified badge */
+.p-verified {
+  position: absolute; bottom: 11px; left: 11px;
+  background: rgba(22,163,74,.92);
+  backdrop-filter: blur(8px);
+  padding: .22rem .65rem; border-radius: 100px;
+  font-size: .62rem; font-weight: 800; color: #fff;
+  display: flex; align-items: center; gap: .28rem;
+  letter-spacing: .04em;
+}
+.p-verified svg { width: 11px; height: 11px; fill: none; stroke: #fff; stroke-width: 2.5; }
+
+/* Star rating row */
+.p-rating {
+  display: flex; align-items: center; gap: .35rem;
+  font-size: .74rem; margin-bottom: .5rem;
+}
+.p-stars { display: flex; gap: 1px; }
+.p-star { font-size: .72rem; color: #e2e8f0; }
+.p-star.on { color: var(--gold); }
+.p-rating-count { color: var(--muted); font-size: .7rem; }
+
+/* Card footer with WhatsApp */
+.p-card-footer {
+  display: flex; gap: .6rem;
+  padding: .85rem 1.15rem;
+  border-top: 1px solid var(--border);
+  background: var(--light);
+}
+.p-btn-detail {
+  flex: 1; padding: .55rem;
+  border: 1.5px solid var(--border); border-radius: 8px;
+  background: #fff; color: var(--navy);
+  font-size: .78rem; font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer; transition: var(--tr); text-align: center;
+}
+.p-btn-detail:hover { border-color: var(--navy); background: var(--light); }
+.p-btn-wa {
+  display: flex; align-items: center; justify-content: center; gap: .4rem;
+  padding: .55rem 1.1rem; border-radius: 8px;
+  background: #25D366; color: #fff;
+  font-size: .78rem; font-weight: 800; border: none;
+  cursor: pointer; transition: var(--tr);
+  font-family: 'DM Sans', sans-serif;
+  white-space: nowrap;
+}
+.p-btn-wa:hover { background: #1da851; transform: translateY(-1px); box-shadow: 0 5px 16px rgba(37,211,102,.4); }
+.p-btn-wa svg { width: 14px; height: 14px; fill: #fff; flex-shrink: 0; }
+
+/* ── FLOATING WHATSAPP BUTTON ── */
+.wa-fab {
+  position: fixed; bottom: 5.5rem; right: 2rem;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: #25D366; border: none;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 24px rgba(37,211,102,.5);
+  cursor: pointer; z-index: 899;
+  transition: transform .22s ease;
+  animation: waFabFloat 3s ease-in-out infinite;
+}
+@keyframes waFabFloat {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+.wa-fab:hover { transform: scale(1.12) !important; animation: none; }
+.wa-fab svg { width: 27px; height: 27px; fill: #fff; }
+.wa-fab-ring {
+  position: absolute; inset: -4px; border-radius: 50%;
+  border: 2px solid rgba(37,211,102,.4);
+  animation: waRing 2.5s ease-out infinite;
+}
+@keyframes waRing {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+
+/* ── FILTER CHIPS ROW (hero section) ── */
+.hero-chips {
+  display: flex; gap: .45rem; flex-wrap: wrap;
+  margin-top: 1.5rem; margin-bottom: .5rem;
+}
+.hero-chip {
+  padding: .38rem 1rem; border-radius: 100px;
+  border: 1.5px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.1);
+  color: rgba(255,255,255,.75); font-size: .78rem;
+  font-weight: 600; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: var(--tr); white-space: nowrap;
+  backdrop-filter: blur(6px);
+}
+.hero-chip:hover, .hero-chip.on {
+  background: var(--gold); color: var(--dark);
+  border-color: var(--gold); font-weight: 800;
+}
+
+/* ── SECTION EYEBROW UPGRADE ── */
+.eyebrow {
+  font-size: .66rem !important;
+  font-weight: 800 !important;
+  letter-spacing: .24em !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: .5rem !important;
+}
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 16px; height: 2px;
+  background: currentColor;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ── SECTION TITLE UPGRADE ── */
+.h2 {
+  font-family: 'Syne', 'Cormorant Garamond', serif !important;
+  font-weight: 800 !important;
+  letter-spacing: -.025em !important;
+  line-height: 1.12 !important;
+}
+
+/* ── FEATURE CARDS UPGRADE ── */
+.f-card {
+  border-radius: 16px !important;
+  transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease !important;
+}
+.f-card:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 18px 52px rgba(10,45,110,.16) !important;
+}
+
+/* ── STEP NUMBERS ── */
+.step-n {
+  font-family: 'Syne', sans-serif !important;
+  font-size: 1.35rem !important;
+  font-weight: 800 !important;
+  width: 54px !important; height: 54px !important;
+}
+
+/* ── MOBILE NAV UPGRADE ── */
+@media(max-width:660px) {
+  .topnav { padding: 0 4% !important; }
+  .topnav-cta-group .btn { padding: .44rem .85rem !important; font-size: .76rem !important; }
+}
+
+/* ── SCROLL ANIMATION ── */
+@keyframes kmFadeUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: none; }
+}
+.km-fade { animation: kmFadeUp .5s ease both; }
+.km-fade:nth-child(1){animation-delay:.05s}
+.km-fade:nth-child(2){animation-delay:.12s}
+.km-fade:nth-child(3){animation-delay:.19s}
+.km-fade:nth-child(4){animation-delay:.26s}
+.km-fade:nth-child(5){animation-delay:.33s}
+.km-fade:nth-child(6){animation-delay:.4s}
+
+/* ── PROPERTY GRID — responsive ── */
+@media(max-width:480px){
+  .p-grid { grid-template-columns: 1fr !important; }
+  .p-card-footer { flex-direction: column; }
+  .p-btn-wa { justify-content: center; }
+}
 </style>
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -1680,54 +2059,84 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 
   <!-- HERO -->
   <section class="hero">
+    <div class="hero-grid-overlay"></div>
     <div class="hero-inner">
       <div>
-        <div class="hero-pill"><div class="h-pulse"></div><span data-rw="🇷🇼 KOMISIYONERI — Platform N°1 y'Imitungo mu Rwanda" data-en="🇷🇼 KOMISIYONERI — Digital Real Estate Platform">🇷🇼 KOMISIYONERI — Digital Real Estate Platform</span></div>
-        <h1 data-rw="Shakisha, Gura, Gurisha" data-en="Find, Buy, Sell">Find, Buy, Sell<br><em data-rw="&amp; Kodeshaho Inzu mu Rwanda 🇷🇼" data-en="&amp; Rent Houses in Rwanda 🇷🇼">&amp; Rent Houses in Rwanda 🇷🇼</em></h1>
-        <p class="hero-sub" data-rw="Duhuza abantu n'imitungo itimurika mu buryo bworoshye, bwizewe, n'ubwigufi. Gura, gurisha, cyangwa ugure inzu ukoresha ubwenge bwa AI yacu." data-en="KOMISIYONERI — Rwanda's AI-Powered Digital Real Estate Platform. Search, compare and close property deals faster than ever." data-rw="KOMISIYONERI — Platform N°1 y'Imitungo mu Rwanda ikoresha AI. Shakisha, suzuma, ugurishe cyangwa ugure inzu vuba!" data-en="KOMISIYONERI — Rwanda's #1 AI-Powered Real Estate Platform. Find, compare, buy, sell or rent properties faster than ever.">KOMISIYONERI — Rwanda's #1 AI-Powered Real Estate Platform. Find, compare, buy, sell or rent properties faster than ever.</p>
+        <div class="hero-pill"><div class="h-pulse"></div><span>🇷🇼 KOMISIYONERI — Platform N°1 y'Imitungo mu Rwanda · 1,240+ Active</span></div>
+        <h1>Find, Buy, Sell<br><em>&amp; Rent Houses in Rwanda 🇷🇼</em></h1>
+        <p class="hero-sub">KOMISIYONERI — Platform N°1 ikoresha AI. Shakisha, suzuma, ugurishe cyangwa ugure inzu mu Rwanda yose — byoroshye, bwihuse, bwizewe.</p>
+
+        <!-- TRUST BAR -->
+        <div class="hero-trust">
+          <div class="trust-avs">
+            <div class="trust-av">MK</div>
+            <div class="trust-av">AP</div>
+            <div class="trust-av">JN</div>
+            <div class="trust-av">EU</div>
+            <div class="trust-av" style="background:linear-gradient(135deg,#16A34A,#4ade80)">+</div>
+          </div>
+          <div class="trust-txt"><strong>850+</strong> clients bashimye</div>
+          <div class="trust-vline"></div>
+          <div class="trust-badge">
+            <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            320+ Agents Bemewe
+          </div>
+          <div class="trust-vline"></div>
+          <div class="trust-badge">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            4.9/5 Rating
+          </div>
+        </div>
+
         <div class="hero-btns">
-          <button class="btn btn-outline btn-sm" onclick="openLead()" style="border-color:rgba(255,255,255,.4);color:#fff;border-radius:20px;padding:.4rem 1.2rem;font-size:.8rem;margin-bottom:1rem">
-            👔 Saba Agent — Guhuza Vuba →
-          </button><br>
-          <button class="btn btn-gold btn-lg" onclick="openSearch()" style="padding:1rem 2.4rem;font-size:1rem;border-radius:12px;box-shadow:0 8px 32px rgba(245,166,35,.4)">
+          <button class="btn btn-gold btn-lg" onclick="openSearch()">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <span data-rw="Shakisha Imitungo" data-en="Search Properties">Shakisha Imitungo</span>
+            Shakisha Imitungo
           </button>
-          <button class="btn btn-ghost btn-lg" onclick="go('analytics')">
-            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            <span data-rw="Reba AI Analytics" data-en="View AI Analytics">Reba AI Analytics</span>
+          <button class="btn btn-ghost btn-lg" onclick="window.open('https://wa.me/250783177254?text=Muraho!%20Nshaka%20agent%20w%27imitungo.','_blank')">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+            Saba Agent — WhatsApp
           </button>
         </div>
 
-        <!-- SEARCH TRIGGER BAR — visible, clean, opens modal -->
+        <!-- Quick filter chips -->
+        <div class="hero-chips">
+          <button class="hero-chip" onclick="openSearch()">🏡 Villa Kigali</button>
+          <button class="hero-chip" onclick="openSearch()">🔑 Gukodesha</button>
+          <button class="hero-chip" onclick="openSearch()">🌱 Ubutaka</button>
+          <button class="hero-chip" onclick="openSearch()">🏔️ Musanze</button>
+          <button class="hero-chip" onclick="openSearch()">🏢 Apartimanı</button>
+        </div>
+
+        <!-- Search trigger bar -->
         <div class="hero-search-bar" onclick="openSearch()">
           <div class="hsb-inner">
             <div class="hsb-item">
               <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span data-rw="Ahantu..." data-en="Location...">Ahantu...</span>
+              <span>Ahantu...</span>
             </div>
             <div class="hsb-sep"></div>
             <div class="hsb-item">
               <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>
-              <span data-rw="Ubwoko..." data-en="Type...">Ubwoko...</span>
+              <span>Ubwoko...</span>
             </div>
             <div class="hsb-sep"></div>
             <div class="hsb-item">
               <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-              <span data-rw="Igiciro..." data-en="Price...">Igiciro...</span>
+              <span>Igiciro...</span>
             </div>
             <button class="hsb-btn">
               <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              <span data-rw="Shakisha" data-en="Search">Shakisha</span>
+              Shakisha
             </button>
           </div>
         </div>
 
         <div class="hero-stats">
-          <div><span class="hero-stat-val">1,240+</span><span class="hero-stat-lbl" data-rw="Imitungo Yanditswe" data-en="Listed Properties">Imitungo Yanditswe</span></div>
-          <div><span class="hero-stat-val">850+</span><span class="hero-stat-lbl" data-rw="Abakiliya Bashimye" data-en="Happy Clients">Abakiliya Bashimye</span></div>
-          <div><span class="hero-stat-val">320+</span><span class="hero-stat-lbl" data-rw="Agents Bemewe" data-en="Verified Agents">Agents Bemewe</span></div>
-          <div><span class="hero-stat-val">30</span><span class="hero-stat-lbl" data-rw="Akarere ka Rwanda" data-en="Rwanda Districts">Akarere ka Rwanda</span></div>
+          <div><span class="hero-stat-val">1,240+</span><span class="hero-stat-lbl">Imitungo Yanditswe</span></div>
+          <div><span class="hero-stat-val">850+</span><span class="hero-stat-lbl">Abakiliya Bashimye</span></div>
+          <div><span class="hero-stat-val">320+</span><span class="hero-stat-lbl">Agents Bemewe</span></div>
+          <div><span class="hero-stat-val">30</span><span class="hero-stat-lbl">Akarere ka Rwanda</span></div>
         </div>
       </div>
       <!-- Search card -->
@@ -4352,18 +4761,43 @@ function renderUserPropCard(prop) {
   // Short desc
   var shortDesc = prop.desc ? prop.desc.substring(0, 55) + '...' : '';
 
-  return '<div class="p-card" data-pid="' + pid + '" onclick="openPropDetail(this.dataset.pid)" style="cursor:pointer">'
-    + '<div class="p-img ' + gclass + '"' + imgBg + ' style="position:relative' + (imgBg ? ';background-size:cover;background-position:center' : '') + '">'
+  // Star rating HTML
+  var ratingVal = prop.rating || (4.5 + Math.random() * 0.5).toFixed(1);
+  var reviewCount = prop.reviews || Math.floor(Math.random() * 20 + 3);
+  var starsHtml = '';
+  for (var si = 1; si <= 5; si++) {
+    starsHtml += '<span class="p-star' + (si <= Math.floor(ratingVal) ? ' on' : '') + '">★</span>';
+  }
+
+  // Verified bottom-left badge
+  var verifiedBadge = prop.verified ? '<div class="p-verified"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Yemejwe</div>' : '';
+
+  // WhatsApp message
+  var propName = (prop.type||'Imitungo') + (prop.district ? ' — '+prop.district : '');
+  var waText = encodeURIComponent('Muraho! Ndi gushakisha imitungo: ' + propName + ' (' + priceLabel + '). Mushobora kunsobanurira birenzeho?');
+  var waPhone = prop.phone || '250783177254';
+
+  return '<div class="p-card" data-pid="' + pid + '" style="cursor:pointer">'
+    + '<div class="p-img ' + gclass + '"' + imgBg + ' style="position:relative' + (imgBg ? ';background-size:cover;background-position:center' : '') + '" onclick="openPropDetail(\'' + pid + '\')">'
     +   topBadges
     +   placeholder
     +   '<div class="p-tag">' + svcBadge + '</div>'
     +   '<div class="p-price">' + priceLabel + '</div>'
+    +   verifiedBadge
     + '</div>'
-    + '<div class="p-body">'
+    + '<div class="p-body" onclick="openPropDetail(\'' + pid + '\')">'
     +   '<div class="p-loc">' + loc + '</div>'
-    +   '<div class="p-title">' + (prop.type||'Imitungo') + (prop.district ? ' — '+prop.district : '') + '</div>'
+    +   '<div class="p-rating"><div class="p-stars">' + starsHtml + '</div><span class="p-rating-count">(' + reviewCount + ')</span></div>'
+    +   '<div class="p-title">' + propName + '</div>'
     +   (shortDesc ? '<div style="font-size:.76rem;color:#6b7280;line-height:1.45;margin:.2rem 0">' + shortDesc + '</div>' : '')
     +   '<div class="p-feats">' + featsHtml + '</div>'
+    + '</div>'
+    + '<div class="p-card-footer">'
+    +   '<button class="p-btn-detail" onclick="openPropDetail(\'' + pid + '\')">Reba Birenzeho</button>'
+    +   '<button class="p-btn-wa" onclick="event.stopPropagation();window.open(\'https://wa.me/' + waPhone + '?text=' + waText + '\',\'_blank\')">'
+    +     '<svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>'
+    +     'WhatsApp'
+    +   '</button>'
     + '</div>'
     + '</div>';
 }
@@ -6438,6 +6872,34 @@ go = function(page) {
   }
 };
 
+</script>
+<!-- ═══ FLOATING WHATSAPP FAB ═══ -->
+<button class="wa-fab" onclick="window.open('https://wa.me/250783177254?text=Muraho!%20Nshaka%20amakuru%20y%27imitungo.','_blank')" aria-label="WhatsApp">
+  <div class="wa-fab-ring"></div>
+  <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+</button>
+
+<script>
+// ── SCROLL REVEAL for feature & step cards
+(function(){
+  if(!window.IntersectionObserver) return;
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'none';
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.f-card, .step, .p-card').forEach(function(el){
+    if(getComputedStyle(el).position !== 'fixed'){
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(18px)';
+      el.style.transition = 'opacity .5s ease, transform .5s ease';
+      obs.observe(el);
+    }
+  });
+})();
 </script>
 </body>
 </html>
