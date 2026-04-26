@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KOMISIYONERI – Property Card Fix</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue-deep: #0A2463;
+    --blue-mid: #1E4DB7;
+    --blue-bright: #3B82F6;
+    --blue-light: #EFF6FF;
+    --green-verify: #10B981;
+    --gold: #F59E0B;
+    --text-dark: #0F172A;
+    --text-mid: #475569;
+    --text-light: #94A3B8;
+    --white: #FFFFFF;
+    --radius: 16px;
+    --shadow: 0 4px 24px rgba(10,36,99,0.10);
+    --shadow-hover: 0 8px 40px rgba(10,36,99,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #F0F4FF;
+    min-height: 100vh;
+    padding: 24px 16px;
+    color: var(--text-dark);
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--blue-deep);
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  /* ============ PROPERTY CARD ============ */
+  .property-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .property-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+  }
+
+  /* ============ IMAGE AREA ============ */
+  .card-image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+    overflow: hidden;
+  }
+
+  .card-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  .property-card:hover .card-image-wrapper img {
+    transform: scale(1.04);
+  }
+
+  /* Fallback when image fails or is missing */
+  .img-fallback {
+    display: none; /* hidden by default, shown by JS */
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  }
+
+  .img-fallback svg {
+    opacity: 0.35;
+  }
+
+  .img-fallback span {
+    font-size: 12px;
+    color: var(--text-light);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* Upload button shown inside fallback for admin */
+  .upload-trigger {
+    margin-top: 6px;
+    background: var(--blue-mid);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s;
+  }
+
+  .upload-trigger:hover { background: var(--blue-deep); }
+
+  /* Hidden file input */
+  .hidden-file-input { display: none; }
+
+  /* ============ BADGES ============ */
+  .badge-type {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: var(--blue-deep);
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 6px;
+    z-index: 2;
+  }
+
+  .badge-type.rent { background: #7C3AED; }
+
+  .badge-verified {
+    position: absolute;
+    bottom: 14px;
+    left: 14px;
+    background: var(--green-verify);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 2;
+  }
+
+  .badge-price {
+    position: absolute;
+    bottom: 14px;
+    right: 14px;
+    background: white;
+    color: var(--blue-deep);
+    font-size: 13px;
+    font-weight: 800;
+    padding: 6px 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    z-index: 2;
+  }
+
+  /* ============ CARD BODY ============ */
+  .card-body {
+    padding: 16px;
+  }
+
+  .card-location {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-light);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .card-location svg { flex-shrink: 0; }
+
+  .card-stars {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .star { color: var(--gold); font-size: 13px; }
+  .star-count { font-size: 11px; color: var(--text-light); font-weight: 600; }
+
+  .card-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--text-mid);
+    line-height: 1.6;
+    margin-bottom: 14px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-specs {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .spec-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-mid);
+  }
+
+  .spec-icon { font-size: 14px; }
+
+  /* ============ ACTION BUTTONS ============ */
+  .card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    border-top: 1px solid #F1F5F9;
+    padding-top: 14px;
+  }
+
+  .btn-view {
+    background: var(--blue-light);
+    color: var(--blue-mid);
+    border: none;
+    border-radius: 10px;
+    padding: 11px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+  }
+
+  .btn-view:hover { background: #DBEAFE; }
+
+  .btn-whatsapp {
+    background: #25D366;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 11px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .btn-whatsapp:hover { background: #128C7E; }
+
+  /* ============ UPLOAD STATUS MESSAGE ============ */
+  .upload-status {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--green-verify);
+    font-weight: 600;
+    text-align: center;
+    display: none;
+  }
+
+  /* ============ INFO PANEL ============ */
+  .info-panel {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 24px;
+    border-left: 4px solid var(--blue-mid);
+    box-shadow: var(--shadow);
+  }
+
+  .info-panel h3 {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--blue-deep);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .info-panel ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .info-panel li {
+    font-size: 12px;
+    color: var(--text-mid);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+  }
+
+  .info-panel li span.num {
+    background: var(--blue-mid);
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  code {
+    background: #F1F5F9;
+    color: var(--blue-mid);
+    font-size: 11px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: monospace;
+  }
+</style>
+</head>
+<body>
+
+<h2>🏠 KOMISIYONERI — Property Card Fix</h2>
+
+<!-- INFO PANEL -->
+<div class="info-panel">
+  <h3>⚠️ Impamvu ifoto itaboneka — Ibisubizo</h3>
+  <ul>
+    <li>
+      <span class="num">1</span>
+      <span><strong>Firebase Storage CORS:</strong> Jya ku Firebase Console → Storage → Rules, wongere: <code>allow read: if true;</code></span>
+    </li>
+    <li>
+      <span class="num">2</span>
+      <span><strong>Inzira (URL) ntabwo ari nziza:</strong> Iyo upakira ifoto, reba neza ko URL igaruka nk'iyi: <code>https://firebasestorage.googleapis.com/v0/b/...</code></span>
+    </li>
+    <li>
+      <span class="num">3</span>
+      <span><strong>Field ya image isigaye ubusa:</strong> Iyo wandika listing, reba neza ko <code>imageUrl</code> ibikwa muri Firestore mbere y'ugusubika form.</span>
+    </li>
+    <li>
+      <span class="num">4</span>
+      <span><strong>Vercel domain ntabwo yemewe:</strong> Jya ku Firebase Console → Authentication → Authorized domains, wongeremo <code>komisyoneri-platform.vercel.app</code></span>
+    </li>
+  </ul>
+</div>
+
+<!-- DEMO CARD 1: With Image -->
+<div class="property-card">
+  <div class="card-image-wrapper">
+    <img 
+      src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=80" 
+      alt="Inzu — Kicukiro"
+      onerror="handleImgError(this)"
+    />
+    <div class="img-fallback" id="fallback-1">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+        <rect width="56" height="56" rx="12" fill="#DBEAFE"/>
+        <path d="M14 38L22 26L28 34L34 28L42 38H14Z" fill="#3B82F6" opacity="0.5"/>
+        <circle cx="38" cy="22" r="4" fill="#3B82F6" opacity="0.5"/>
+        <path d="M8 44V12C8 9.79 9.79 8 12 8H44C46.21 8 48 9.79 48 12V44C48 46.21 46.21 48 44 48H12C9.79 48 8 46.21 8 44Z" stroke="#3B82F6" stroke-width="2" fill="none" opacity="0.4"/>
+      </svg>
+      <span>Nta foto</span>
+      <button class="upload-trigger" onclick="triggerUpload('1')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        Shira Ifoto
+      </button>
+      <input type="file" class="hidden-file-input" id="upload-1" accept="image/*" onchange="handleUpload(this, '1')">
+      <div class="upload-status" id="status-1">✓ Ifoto yakiriwe neza!</div>
+    </div>
+    <span class="badge-type">KUGURA</span>
+    <span class="badge-verified">✓ Yemejwe</span>
+    <span class="badge-price">47M RWF</span>
+  </div>
+  <div class="card-body">
+    <div class="card-location">
+      <svg width="10" height="12" viewBox="0 0 10 12" fill="none"><path d="M5 0C2.24 0 0 2.24 0 5c0 3.75 5 7 5 7s5-3.25 5-7c0-2.76-2.24-5-5-5zm0 6.5A1.5 1.5 0 113.5 5 1.5 1.5 0 015 6.5z" fill="#94A3B8"/></svg>
+      Kicukiro, Kicukiro Busanza
+    </div>
+    <div class="card-stars">
+      <span class="star">★★★★</span><span class="star" style="opacity:0.3">★</span>
+      <span class="star-count">(15)</span>
+    </div>
+    <div class="card-title">Inzu — Kicukiro</div>
+    <div class="card-desc">Gura inzu mumugi wa Kigali ni mubusanza umanutse kumidu, ifite isokoro ryiza.</div>
+    <div class="card-specs">
+      <div class="spec-item"><span class="spec-icon">🛏</span> 4</div>
+      <div class="spec-item"><span class="spec-icon">🚿</span> 2</div>
+      <div class="spec-item"><span class="spec-icon">📐</span> 330m²</div>
+    </div>
+    <div class="card-actions">
+      <button class="btn-view">Reba Birenzeho</button>
+      <a class="btn-whatsapp" href="https://wa.me/250788000000?text=Ndashaka%20amakuru%20ku%20nzu%20ya%20Kicukiro%2047M%20RWF" target="_blank">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+        WhatsApp
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- DEMO CARD 2: Without Image (shows fallback) -->
+<div class="property-card">
+  <div class="card-image-wrapper">
+    <img 
+      src="BROKEN_URL_TEST" 
+      alt="Inzu — Gasabo"
+      onerror="handleImgError(this)"
+      style="display:none"
+    />
+    <div class="img-fallback" id="fallback-2" style="display:flex">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+        <rect width="56" height="56" rx="12" fill="#DBEAFE"/>
+        <path d="M14 38L22 26L28 34L34 28L42 38H14Z" fill="#3B82F6" opacity="0.5"/>
+        <circle cx="38" cy="22" r="4" fill="#3B82F6" opacity="0.5"/>
+      </svg>
+      <span>Nta foto</span>
+      <button class="upload-trigger" onclick="triggerUpload('2')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        Shira Ifoto
+      </button>
+      <input type="file" class="hidden-file-input" id="upload-2" accept="image/*" onchange="handleUpload(this, '2')">
+      <div class="upload-status" id="status-2">✓ Ifoto yakiriwe neza!</div>
+    </div>
+    <span class="badge-type rent">KUGURISHA</span>
+    <span class="badge-price">350K/mo</span>
+  </div>
+  <div class="card-body">
+    <div class="card-location">
+      <svg width="10" height="12" viewBox="0 0 10 12" fill="none"><path d="M5 0C2.24 0 0 2.24 0 5c0 3.75 5 7 5 7s5-3.25 5-7c0-2.76-2.24-5-5-5zm0 6.5A1.5 1.5 0 113.5 5 1.5 1.5 0 015 6.5z" fill="#94A3B8"/></svg>
+      Gasabo, Remera
+    </div>
+    <div class="card-title">Appartement — Remera</div>
+    <div class="card-desc">Appartement nziza hafi ya centre, ifite ibikorwa byose by'ubuzima bwa none.</div>
+    <div class="card-specs">
+      <div class="spec-item"><span class="spec-icon">🛏</span> 2</div>
+      <div class="spec-item"><span class="spec-icon">🚿</span> 1</div>
+      <div class="spec-item"><span class="spec-icon">📐</span> 85m²</div>
+    </div>
+    <div class="card-actions">
+      <button class="btn-view">Reba Birenzeho</button>
+      <a class="btn-whatsapp" href="https://wa.me/250788000000?text=Ndashaka%20amakuru%20ku%20appartement%20ya%20Remera%20350K" target="_blank">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+        WhatsApp
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Handle broken image → show fallback
+  function handleImgError(img) {
+    img.style.display = 'none';
+    const wrapper = img.parentElement;
+    const fallback = wrapper.querySelector('.img-fallback');
+    if (fallback) fallback.style.display = 'flex';
+  }
+
+  // Trigger file input click
+  function triggerUpload(id) {
+    document.getElementById('upload-' + id).click();
+  }
+
+  // Handle file selection → preview it in the card
+  function handleUpload(input, id) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    const wrapper = input.closest('.card-image-wrapper');
+    const fallback = document.getElementById('fallback-' + id);
+    const status = document.getElementById('status-' + id);
+    
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      // Create or reuse img element
+      let img = wrapper.querySelector('img');
+      if (!img) {
+        img = document.createElement('img');
+        wrapper.insertBefore(img, fallback);
+      }
+      img.src = e.target.result;
+      img.alt = 'Property image';
+      img.style.display = 'block';
+      img.onerror = () => handleImgError(img);
+      fallback.style.display = 'none';
+      
+      // Show success status
+      status.style.display = 'block';
+      setTimeout(() => { status.style.display = 'none'; }, 3000);
+    };
+    reader.readAsDataURL(file);
+
+    // TODO: Upload to Firebase Storage
+    // uploadToFirebase(file, listingId);
+  }
+
+  // ============ Firebase Upload Function (copy to your app) ============
+  /*
+  async function uploadToFirebase(file, listingId) {
+    const storage = firebase.storage();
+    const ref = storage.ref(`properties/${listingId}/${Date.now()}_${file.name}`);
+    const snapshot = await ref.put(file);
+    const downloadURL = await snapshot.ref.getDownloadURL();
+    
+    // Save URL to Firestore
+    await firebase.firestore().collection('properties').doc(listingId).update({
+      imageUrl: downloadURL
+    });
+    
+    return downloadURL;
+  }
+  */
+</script>
+
+</body>
+</html>
