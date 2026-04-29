@@ -7042,6 +7042,23 @@ go = function(page) {
 header {
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
+}/* Navbar ikomeze kugaragara igihe cyose - Sticky */
+#main-header,
+header {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 9999 !important;
+  background: rgba(255, 255, 255, 0.97) !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10) !important;
+}
+
+/* Kurengana na navbar - content ntizungirwe munsi */
+body {
+  padding-top: 64px !important;
 }
 
 /* Collapse the gap between header and ticker */
