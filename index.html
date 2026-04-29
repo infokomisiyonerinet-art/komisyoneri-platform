@@ -7031,5 +7031,25 @@ go = function(page) {
   }
   document.readyState==='loading'?document.addEventListener('DOMContentLoaded',build):build();
 })();
-</script>
+</script>/* Fix gap caused by language switcher injection */
+#klsw {
+  position: relative;
+  z-index: 1001;
+}
+
+/* Remove any extra margin/padding on header */
+#main-header,
+header {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Collapse the gap between header and ticker */
+body > div:empty,
+header + div:empty {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
 </html>
