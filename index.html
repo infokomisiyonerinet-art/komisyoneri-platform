@@ -6930,7 +6930,74 @@ go = function(page) {
   });
 })();
 </script>
-</body><script></script>
+</body><script>
+// =============================================
+// KOMISIYONERI — Sync localStorage → Firebase
+// =============================================
+(function(){
+  var rtdb = firebase.database();
+  var RTDB_URL = 'https://komisiyoneri-78e82-default-rtdb.firebaseio.com';
+
+  // 1. Ohereza imitungo yose iri muri localStorage → Realtime DB
+  function syncToFirebase() {
+    try {
+      var props = JSON.parse(localStorage.getItem('km_properties') || '[]');
+      if(props.length === 0) return;
+      props.forEach(function(prop) {
+        if(!prop.id) return;
+        rtdb.ref('properties/' + prop.id).set(prop)
+          .then(function(){ console.log('Synced:', prop.id); })
+          .catch(function(e){ console.error('Sync error:', e); });
+      });
+    } catch(e) { console.error(e); }
+  }
+
+  // 2. Kuramo imitungo yose ivuye Firebase → localStorage
+  function syncFromFirebase() {
+    rtdb.ref('properties').once('value')
+      .then(function(snapshot) {
+        if(!snapshot.exists()) return;
+        var props = [];
+        snapshot.forEach(function(child) {
+          props.push(child.val());
+        });
+        if(props.length > 0) {
+          localStorage.setItem('km_properties', JSON.stringify(props));
+          console.log('Loaded from Firebase:', props.length, 'imitungo');
+          // Reload listings niba page igaragara
+          if(typeof loadListings === 'function') loadListings();
+          if(typeof renderListings === 'function') renderListings();
+        }
+      })
+      .catch(function(e){ console.error('Firebase load error:', e); });
+  }
+
+  // 3. Genzura igihe imitungo yongeweho
+  var origSetItem = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = function(key, value) {
+    origSetItem(key, value);
+    if(key === 'km_properties') {
+      try {
+        var props = JSON.parse(value || '[]');
+        props.forEach(function(prop) {
+          if(!prop.id) return;
+          rtdb.ref('properties/' + prop.id).set(prop);
+        });
+      } catch(e) {}
+    }
+  };
+
+  // 4. Tangira — kuramo Firebase igihe page ifunguka
+  document.addEventListener('DOMContentLoaded', function() {
+    syncFromFirebase(); // Kuramo Firebase
+    setTimeout(syncToFirebase, 2000); // Ohereza ibiri muri localStorage
+  });
+
+})();
+</script>
+  <script>
+    
+  </script>
          
   
   
