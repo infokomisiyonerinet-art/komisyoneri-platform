@@ -16,10 +16,13 @@
   };
 
   // Initialize Firebase mu buryo bukora muri Browser
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  const storage = firebase.storage();
-  firebase.analytics();
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const rtdb = firebase.database(); // Realtime Database — nshya!
+// const storage = firebase.storage(); // Siba iyi
+firebase.analytics();
+
+console.log("Firebase yafungutse neza!");
 
   console.log("Firebase yafungutse neza!");
 </script>
