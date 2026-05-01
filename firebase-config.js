@@ -19,4 +19,5 @@
   
   // Tangiza Database na Storage (Ibi ni ingenzi cyane)
 const db = firebase.firestore()
-const rtdb = firebase.database();</script>
+const rtdb = firebase.database();
+</script>
