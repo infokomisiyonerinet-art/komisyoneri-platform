@@ -6928,5 +6928,39 @@ go = function(page) {
       obs.observe(el);
     }
   });
+})()
+</script>
+<script>
+(function(){
+  try {
+    var rtdb = firebase.database();
+    function syncFromFirebase() {
+      rtdb.ref('properties').once('value')
+        .then(function(s) {
+          if(!s.exists()) return;
+          var p = [];
+          s.forEach(function(c){ p.push(c.val()); });
+          if(p.length > 0) {
+            localStorage.setItem('km_properties', JSON.stringify(p));
+            if(typeof renderListings==='function') renderListings();
+            if(typeof loadListings==='function') loadListings();
+          }
+        });
+    }
+    var _set = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = function(k,v) {
+      _set(k,v);
+      if(k==='km_properties') {
+        try {
+          JSON.parse(v||'[]').forEach(function(p) {
+            if(p.id) rtdb.ref('properties/'+p.id).set(p);
+          });
+        } catch(e){}
+      }
+    };
+    document.readyState==='loading'
+      ? document.addEventListener('DOMContentLoaded', syncFromFirebase)
+      : syncFromFirebase();
+  } catch(e){ console.error('Sync error:',e); }
 })();
-</script></body></html>
+</script>/body></html>
