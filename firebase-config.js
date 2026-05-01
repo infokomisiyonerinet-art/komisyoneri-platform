@@ -18,5 +18,5 @@
   firebase.initializeApp(firebaseConfig);
   
   // Tangiza Database na Storage (Ibi ni ingenzi cyane)
-</script>const db = firebase.firestore();
-const storage = firebase.storage();
+const db = firebase.firestore()
+const rtdb = firebase.database();
