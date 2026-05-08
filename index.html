@@ -1,5 +1,6 @@
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
@@ -9,6 +10,7 @@
   const firebaseConfig = {
     apiKey: "AIzaSyAtNnbsXKFgABvP-nTvGwz6pooGnSWSshY",
     authDomain: "komisiyoneri-78e82.firebaseapp.com",
+    databaseURL: "https://komisiyoneri-78e82-default-rtdb.firebaseio.com",
     projectId: "komisiyoneri-78e82",
     storageBucket: "komisiyoneri-78e82.firebasestorage.app",
     messagingSenderId: "580559336922",
@@ -19,13 +21,11 @@
   // Initialize Firebase mu buryo bukora muri Browser
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const rtdb = firebase.database(); // Realtime Database — nshya!
-// const storage = firebase.storage(); // Siba iyi
+const rtdb = firebase.database();
+const storage = firebase.storage();
 firebase.analytics();
 
 console.log("Firebase yafungutse neza!");
-
-  console.log("Firebase yafungutse neza!");
 </script>
 <!DOCTYPE html>
 <html lang="rw" dir="ltr" itemscope itemtype="https://schema.org/WebSite">
@@ -1630,9 +1630,6 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 </style>
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <!-- Firebase Auth for Phone OTP -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 </head>
 <body>
 
@@ -4487,7 +4484,7 @@ function submitProperty() {
     showToast('✅ Imitungo yashyizweho kandi yemejwe!');
 
   } else {
-    // === USER: File upload, pending review ===
+    // === USER: File upload to Firebase Storage, pending review ===
     var file1El = document.getElementById('prop-file1');
     var file2El = document.getElementById('prop-file2');
     var file3El = document.getElementById('prop-file3');
@@ -4498,39 +4495,72 @@ function submitProperty() {
       return;
     }
 
-    showToast(curLang==='rw' ? 'Amafoto arakopiwa...' : 'Saving photos...');
+    showToast(curLang==='rw' ? 'Amafoto arakopiwa...' : 'Uploading photos...');
 
+    var propId = Date.now();
     var fileList = [file1El, file2El, file3El].filter(function(f){ return f && f.files && f.files[0]; });
-    var images = [];
-    var done = 0;
+    var propData = {
+      id: propId,
+      type: g('prop-type'), service: g('prop-service'), district: g('prop-district'),
+      sector: g('prop-sector'), price: g('prop-price'), beds: g('prop-beds'),
+      baths: g('prop-baths'), size: g('prop-size'), desc: g('prop-desc'),
+      contact: g('prop-contact') || currentUser.phone || '+250 783 177 254',
+      img1: '', img2: '', img3: '',
+      video: '',
+      owner: currentUser.name, ownerEmail: currentUser.email,
+      date: new Date().toISOString(), status: 'Pending'
+    };
 
-    fileList.forEach(function(f, i) {
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        images[i] = e.target.result;
-        done++;
-        if(done === fileList.length) {
+    // Try Firebase Storage upload; fall back to base64 if unavailable
+    if(typeof storage !== 'undefined' && storage) {
+      var uploadPromises = fileList.map(function(f, i) {
+        var file = f.files[0];
+        var ref = storage.ref('properties/' + propId + '/img' + (i + 1) + '_' + file.name);
+        return ref.put(file).then(function() { return ref.getDownloadURL(); }).then(function(url) {
+          propData['img' + (i + 1)] = url;
+        });
+      });
+      Promise.all(uploadPromises)
+        .then(function() {
           var props = [];
           try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-          props.push({
-            id: Date.now(),
-            type: g('prop-type'), service: g('prop-service'), district: g('prop-district'),
-            sector: g('prop-sector'), price: g('prop-price'), beds: g('prop-beds'),
-            baths: g('prop-baths'), size: g('prop-size'), desc: g('prop-desc'),
-            contact: g('prop-contact') || currentUser.phone || '+250 783 177 254',
-            img1: images[0]||'', img2: images[1]||'', img3: images[2]||'',
-            video: '',
-            owner: currentUser.name, ownerEmail: currentUser.email,
-            date: new Date().toISOString(), status: 'Pending'
-          });
+          props.push(propData);
           try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
           closeAddProperty();
           showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Admin azayisuzuma vuba.' : '✅ Property submitted for review!');
-        }
-      };
-      reader.readAsDataURL(f.files[0]);
-    });
+        })
+        .catch(function(err) {
+          console.error('Storage upload failed, falling back to base64:', err);
+          _submitPropertyBase64(fileList, propData);
+        });
+    } else {
+      _submitPropertyBase64(fileList, propData);
+    }
   }
+}
+
+function _submitPropertyBase64(fileList, propData) {
+  var images = [];
+  var done = 0;
+  fileList.forEach(function(f, i) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      images[i] = e.target.result;
+      done++;
+      if(done === fileList.length) {
+        propData.img1 = images[0] || '';
+        propData.img2 = images[1] || '';
+        propData.img3 = images[2] || '';
+        var props = [];
+        try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+        props.push(propData);
+        try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
+        closeAddProperty();
+        showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Admin azayisuzuma vuba.' : '✅ Property submitted for review!');
+      }
+    };
+    reader.readAsDataURL(f.files[0]);
+  });
 }
 
 function handleLogin() {
@@ -5346,6 +5376,7 @@ setTimeout(loadSimilarProperties, 400);
 var FIREBASE_CONFIG = {
   apiKey: "AIzaSyAtNnbsXKFgABvP-nTvGwz6pooGnSWSshY",
   authDomain: "komisiyoneri-78e82.firebaseapp.com",
+  databaseURL: "https://komisiyoneri-78e82-default-rtdb.firebaseio.com",
   projectId: "komisiyoneri-78e82",
   storageBucket: "komisiyoneri-78e82.firebasestorage.app",
   messagingSenderId: "580559336922",
@@ -6027,8 +6058,6 @@ function convertFileToBase64(file, callback) {
   reader.readAsDataURL(file);
 }
 
-// submitProperty override removed - handled by submitPropertyFinal below
-
 // === BOTTOM NAV ACTIVE STATE ===
 function updateBottomNav(page) {
   var map = {home:'home',listings:'listings',analytics:'analytics'};
@@ -6081,89 +6110,6 @@ function convertYouTubeURL(url) {
   if(url.includes('youtube.com/embed/')) return url;
   return url;
 }
-
-// === IMPROVED submitProperty (disabled - using submitPropertyFinal) ===
-function submitPropertyOLD() {
-  var g = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
-  var isAdmin = currentUser && currentUser.email === 'komisiyonericonnectproservices@gmail.com';
-
-  if(!g('prop-price')) { showToast(curLang==='rw'?'Shyira igiciro!':'Enter price!'); return; }
-  if(!g('prop-contact')) { showToast(curLang==='rw'?'Shyira telefoni!':'Enter contact!'); return; }
-
-  if(isAdmin) {
-    // Admin: save with YouTube embed URL
-    var videoUrl = convertYouTubeURL(g('prop-video'));
-    var props = [];
-    try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-    var newProp = {
-      id: Date.now(),
-      type: g('prop-type'), service: g('prop-service'), district: g('prop-district'),
-      sector: g('prop-sector'), price: g('prop-price'), beds: g('prop-beds'),
-      baths: g('prop-baths'), size: g('prop-size'), desc: g('prop-desc'),
-      contact: g('prop-contact'),
-      img1: g('prop-img1'), img2: g('prop-img2'), img3: g('prop-img3'),
-      video: videoUrl,
-      owner: 'KOMISIYONERI', ownerEmail: currentUser.email,
-      verified: true, rating: 5.0, reviews: 0,
-      date: new Date().toISOString(), status: 'Approved'
-    };
-    props.push(newProp);
-    try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
-    closeAddProperty();
-    ['prop-sector','prop-price','prop-beds','prop-baths','prop-size','prop-desc','prop-img1','prop-img2','prop-img3','prop-video'].forEach(function(id){
-      var el=document.getElementById(id); if(el) el.value='';
-    });
-    loadApprovedProperties();
-    showToast(curLang==='rw'?'✅ Imitungo yashyizweho kandi yemejwe!':'✅ Property added and approved!');
-  } else {
-    // Regular user: handle file uploads
-    var file1 = document.getElementById('prop-file1');
-    var files = [
-      file1 ? file1.files[0] : null,
-      document.getElementById('prop-file2') ? document.getElementById('prop-file2').files[0] : null,
-      document.getElementById('prop-file3') ? document.getElementById('prop-file3').files[0] : null
-    ].filter(Boolean);
-
-    if(files.length === 0) {
-      showToast(curLang==='rw'?'Shyiramo nibura ifoto imwe!':'Upload at least one photo!');
-      return;
-    }
-
-    // Convert files to base64
-    var images = [];
-    var processed = 0;
-    showToast(curLang==='rw'?'Amafoto arakopiwa...':'Uploading photos...');
-
-    files.forEach(function(file, idx) {
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        images[idx] = e.target.result;
-        processed++;
-        if(processed === files.length) {
-          // Save property with base64 images
-          var props = [];
-          try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-          var newProp = {
-            id: Date.now(),
-            type: g('prop-type'), service: g('prop-service'), district: g('prop-district'),
-            sector: g('prop-sector'), price: g('prop-price'), beds: g('prop-beds'),
-            baths: g('prop-baths'), size: g('prop-size'), desc: g('prop-desc'),
-            contact: g('prop-contact'),
-            img1: images[0]||'', img2: images[1]||'', img3: images[2]||'',
-            video: '',
-            owner: currentUser.name, ownerEmail: currentUser.email,
-            date: new Date().toISOString(), status: 'Pending'
-          };
-          props.push(newProp);
-          try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
-          closeAddProperty();
-          showToast(curLang==='rw'?'✅ Imitungo yoherejwe! Tuzayisuzuma vuba.':'✅ Property submitted for review!');
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-};
 
 // Show correct media section when add property modal opens
 var _origOpenAdd = openAddProperty;
