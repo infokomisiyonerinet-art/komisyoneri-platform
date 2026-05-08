@@ -1,0 +1,14 @@
+# Backup files
+*.bak
+*.backup
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Node (if ever added)
+node_modules/
