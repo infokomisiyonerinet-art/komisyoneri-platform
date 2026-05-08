@@ -169,10 +169,13 @@ console.log("Firebase yafungutse neza!");
 }
 </script>
 
-<!-- ── PERFORMANCE: Preconnect ── -->
+<!-- ── PERFORMANCE: Preconnect + Preload ── -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.google-analytics.com">
+<!-- Preload hero background — above the fold, prioritise WebP for modern browsers -->
+<link rel="preload" as="image" href="/images/kigali-skyline.webp" type="image/webp" fetchpriority="high">
+<link rel="preload" as="image" href="/images/kigali-skyline.jpg" type="image/jpeg" fetchpriority="high">
 
 <!-- ── GOOGLE FONTS (with display=swap for Chrome performance) ── -->
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -1259,23 +1262,40 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 
 /* ── HERO UPGRADE ── */
 .hero {
-  background: linear-gradient(145deg, #050E25 0%, #0A2D6E 45%, #1450C8 100%) !important;
+  /* Photo background — WebP for modern browsers, JPEG fallback */
+  background-image: url('/images/kigali-skyline.jpg');
+  background-image: image-set(
+    url('/images/kigali-skyline.webp') 1x type('image/webp'),
+    url('/images/kigali-skyline.jpg')  1x type('image/jpeg')
+  );
+  background-size: cover;
+  background-position: center 30%;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
   position: relative;
   overflow: hidden;
 }
-/* Ambient glow orbs */
+/* Primary dark overlay — keeps brand blue identity, ensures text contrast */
 .hero::before {
   content: '';
-  position: absolute; top: -120px; right: -100px;
-  width: 550px; height: 550px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(45,127,234,.22), transparent 70%);
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    165deg,
+    rgba(5,14,37,.84)  0%,
+    rgba(10,45,110,.74) 42%,
+    rgba(20,80,200,.60) 100%
+  );
   pointer-events: none; z-index: 0;
 }
+/* Bottom vignette — pulls ground/foreground into shadow for readability */
 .hero::after {
   content: '';
-  position: absolute; bottom: -150px; left: -80px;
-  width: 450px; height: 450px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(245,166,35,.1), transparent 70%);
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(5,14,37,.58) 0%,
+    transparent 52%
+  );
   pointer-events: none; z-index: 0;
 }
 /* Grid overlay */
