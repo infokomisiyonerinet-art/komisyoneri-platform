@@ -1101,7 +1101,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 
 .sm-hdr{
   background:linear-gradient(135deg,var(--navy),var(--blue));
-  padding:1.5rem 1.8rem;display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;
 }
 .sm-hdr-left{display:flex;align-items:center;gap:.75rem}
 .sm-hdr-ic{width:40px;height:40px;background:rgba(255,255,255,.15);border-radius:10px;
@@ -1114,12 +1114,12 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .sm-close:hover{background:rgba(255,255,255,.28)}
 .sm-close svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2.2}
 
-.sm-tabs{display:flex;background:var(--light);padding:4px;border-radius:100px;margin:1.5rem 1.8rem .3rem}
+.sm-tabs{display:flex;background:var(--light);padding:4px;border-radius:100px;margin:.9rem 1.5rem .2rem}
 .sm-tab{flex:1;padding:.42rem;border:none;background:transparent;font-family:'DM Sans',sans-serif;
   font-size:.84rem;font-weight:600;color:var(--muted);border-radius:100px;cursor:pointer;transition:var(--tr)}
 .sm-tab.active{background:#fff;color:var(--navy);box-shadow:0 2px 10px rgba(0,0,0,.11)}
 
-.sm-body{padding:1rem 1.8rem 1.8rem;display:flex;flex-direction:column;gap:.95rem}
+.sm-body{padding:.75rem 1.5rem 1.2rem;display:flex;flex-direction:column;gap:.6rem}
 
 .sm-field{display:flex;flex-direction:column;gap:.32rem}
 .sm-field label{font-size:.67rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
@@ -1140,12 +1140,20 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 
 .sm-divider{height:1px;background:var(--border);margin:.2rem 0}
 
-.sm-footer{padding:1.2rem 1.8rem;border-top:1.5px solid var(--border);
+.sm-footer{padding:.85rem 1.5rem;border-top:1.5px solid var(--border);
   display:flex;gap:.75rem;align-items:center;background:#fafbff}
 .sm-reset{background:none;border:1.5px solid var(--border);border-radius:10px;
   padding:.62rem 1.2rem;font-family:'DM Sans',sans-serif;font-size:.84rem;
   font-weight:600;color:var(--muted);cursor:pointer;transition:var(--tr)}
 .sm-reset:hover{border-color:var(--navy);color:var(--navy)}
+.sm-more-toggle{
+  background:none;border:1.5px dashed var(--border);border-radius:10px;
+  padding:.42rem .9rem;font-family:'DM Sans',sans-serif;font-size:.8rem;
+  font-weight:600;color:var(--muted);cursor:pointer;text-align:left;
+  transition:var(--tr);width:100%;
+}
+.sm-more-toggle:hover{border-color:var(--blue);color:var(--blue)}
+.sm-more-panel{display:flex;flex-direction:column;gap:.6rem}
 .sm-search{flex:1;padding:.72rem;background:linear-gradient(135deg,var(--navy),var(--blue));
   color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;
   font-size:.95rem;font-weight:700;cursor:pointer;transition:var(--tr);
@@ -1739,35 +1747,31 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <div id="sm-suggestions" class="qs-suggestions" style="display:none;position:relative;top:0;box-shadow:0 8px 24px rgba(0,0,0,.12)"></div>
       </div>
 
-      <!-- AHANTU — full width -->
-      <div class="sm-field">
-        <label data-rw="AHANTU" data-en="LOCATION">AHANTU</label>
-        <select id="srch-district" onchange="updateCount();syncInput('srch-district','srch-location-txt')">
-          <option data-rw="Akarere Kose" data-en="All Rwanda">Akarere Kose</option>
-          <optgroup label="Kigali">
-            <option>Kigali — Gasabo</option>
-            <option>Kigali — Kicukiro</option>
-            <option>Kigali — Nyarugenge</option>
-          </optgroup>
-          <optgroup label="Amajyaruguru">
-            <option>Musanze</option><option>Rubavu</option><option>Gicumbi</option>
-          </optgroup>
-          <optgroup label="Amajyepfo">
-            <option>Huye</option><option>Muhanga</option><option>Nyanza</option>
-          </optgroup>
-          <optgroup label="Iburasirazuba">
-            <option>Nyagatare</option><option>Rwamagana</option><option>Kayonza</option>
-          </optgroup>
-          <optgroup label="Iburengerazuba">
-            <option>Karongi</option><option>Nyabihu</option><option>Rutsiro</option>
-          </optgroup>
-        </select>
-        <div style="text-align:center;font-size:.68rem;color:var(--muted);margin:.3rem 0;letter-spacing:.08em">— CYANGWA ANDIKA UBWAWE —</div>
-        <input type="text" id="srch-location-txt" placeholder="✏️ Segiteri, Akagari, Umurenge..." oninput="updateCount()" style="margin-top:.45rem;width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;color:var(--dark);background:#f8fafd">
-      </div>
-
-      <!-- UBWOKO + IBYUMBA -->
+      <!-- 2×2 compact dropdowns -->
       <div class="sm-2col">
+        <div class="sm-field">
+          <label data-rw="AHANTU" data-en="LOCATION">AHANTU</label>
+          <select id="srch-district" onchange="updateCount()">
+            <option data-rw="Akarere Kose" data-en="All Rwanda">Akarere Kose</option>
+            <optgroup label="Kigali">
+              <option>Kigali — Gasabo</option>
+              <option>Kigali — Kicukiro</option>
+              <option>Kigali — Nyarugenge</option>
+            </optgroup>
+            <optgroup label="Amajyaruguru">
+              <option>Musanze</option><option>Rubavu</option><option>Gicumbi</option>
+            </optgroup>
+            <optgroup label="Amajyepfo">
+              <option>Huye</option><option>Muhanga</option><option>Nyanza</option>
+            </optgroup>
+            <optgroup label="Iburasirazuba">
+              <option>Nyagatare</option><option>Rwamagana</option><option>Kayonza</option>
+            </optgroup>
+            <optgroup label="Iburengerazuba">
+              <option>Karongi</option><option>Nyabihu</option><option>Rutsiro</option>
+            </optgroup>
+          </select>
+        </div>
         <div class="sm-field">
           <label data-rw="UBWOKO" data-en="TYPE">UBWOKO</label>
           <select id="srch-type" onchange="updateCount()">
@@ -1778,10 +1782,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
             <option data-rw="Ubutaka" data-en="Land">Ubutaka</option>
             <option>Studio</option>
             <option>Duplex</option>
-            <option data-rw="Ikindi..." data-en="Other...">Ikindi...</option>
           </select>
-          <div style="text-align:center;font-size:.62rem;color:var(--muted);margin:.3rem 0">— cyangwa —</div>
-          <input type="text" id="srch-type-txt" placeholder="✏️ Andika ubwoko..." oninput="updateCount()" style="margin-top:.45rem;width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;color:var(--dark);background:#f8fafd">
         </div>
         <div class="sm-field">
           <label data-rw="IBYUMBA" data-en="BEDROOMS">IBYUMBA</label>
@@ -1790,70 +1791,61 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
             <option>1+</option><option>2+</option>
             <option>3+</option><option>4+</option><option>5+</option>
           </select>
-          <div style="text-align:center;font-size:.62rem;color:var(--muted);margin:.3rem 0">— cyangwa —</div>
-          <input type="number" id="srch-beds-txt" placeholder="✏️ Umubare nyawo..." min="0" max="20" oninput="updateCount()" style="margin-top:.45rem;width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;color:var(--dark);background:#f8fafd">
-        </div>
-      </div>
-
-      <!-- IGICIRO min–max -->
-      <div class="sm-2col">
-        <div class="sm-field">
-          <label data-rw="IGICIRO CITO (RWF)" data-en="MIN PRICE (RWF)">IGICIRO CITO</label>
-          <select id="srch-min" onchange="updateCount()">
-            <option data-rw="Ntacyo" data-en="No min">Ntacyo</option>
-            <option>10M</option><option>30M</option><option>50M</option>
-            <option>80M</option><option>150M</option><option>200M</option>
-          </select>
-          <div style="text-align:center;font-size:.62rem;color:var(--muted);margin:.3rem 0">— cyangwa —</div>
-          <input type="text" id="srch-min-txt" placeholder="✏️ urugero: 45,000,000" oninput="updateCount()" style="margin-top:.45rem;width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;color:var(--dark);background:#f8fafd">
         </div>
         <div class="sm-field">
-          <label data-rw="IGICIRO KININI (RWF)" data-en="MAX PRICE (RWF)">IGICIRO KININI</label>
-          <select id="srch-max" onchange="updateCount()">
-            <option data-rw="Ntacyo" data-en="No max">Ntacyo</option>
-            <option>50M</option><option>100M</option><option>150M</option>
-            <option>200M</option><option>300M</option><option>500M+</option>
-          </select>
-          <div style="text-align:center;font-size:.62rem;color:var(--muted);margin:.3rem 0">— cyangwa —</div>
-          <input type="text" id="srch-max-txt" placeholder="✏️ urugero: 120,000,000" oninput="updateCount()" style="margin-top:.45rem;width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;color:var(--dark);background:#f8fafd">
-        </div>
-      </div>
-
-      <!-- UBUSO / SIZE filter -->
-      <div class="sm-2col">
-        <div class="sm-field">
-          <label style="font-size:.7rem;font-weight:700;letter-spacing:.1em;color:var(--navy)">UBUSO MIN (m²)</label>
-          <select id="srch-size-min" onchange="updateCount()" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
-            <option value="">Ntacyo</option>
-            <option value="50">50m²</option><option value="100">100m²</option>
-            <option value="200">200m²</option><option value="300">300m²</option>
-            <option value="500">500m²</option><option value="1000">1,000m²</option>
-          </select>
-        </div>
-        <div class="sm-field">
-          <label style="font-size:.7rem;font-weight:700;letter-spacing:.1em;color:var(--navy)">UBUSO MAX (m²)</label>
-          <select id="srch-size-max" onchange="updateCount()" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
-            <option value="">Ntacyo</option>
-            <option value="100">100m²</option><option value="200">200m²</option>
-            <option value="300">300m²</option><option value="500">500m²</option>
-            <option value="1000">1,000m²</option><option value="5000">5,000m²+</option>
+          <label data-rw="IGICIRO" data-en="BUDGET">IGICIRO</label>
+          <select id="srch-budget" onchange="updateCount()">
+            <option data-rw="Byose" data-en="Any">Byose</option>
+            <option value="&lt;30M" data-rw="Munsi ya 30M" data-en="Under 30M">&lt; 30M RWF</option>
+            <option value="30–80M">30M – 80M</option>
+            <option value="80–150M">80M – 150M</option>
+            <option value="150–300M">150M – 300M</option>
+            <option value="300M+" data-rw="Hejuru ya 300M" data-en="Above 300M">&gt; 300M RWF</option>
           </select>
         </div>
       </div>
 
-      <!-- SERIVISI chips — optional, compact -->
-      <div>
-        <span class="sm-chips-label" data-rw="SERIVISI (Ntibisabwa)" data-en="FEATURES (Optional)">SERIVISI <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#aab">(Ntibisabwa)</span></span>
-        <div class="sm-chips">
-          <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Garage</button>
-          <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Piscine</button>
-          <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Umurima</button>
-          <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Solar</button>
-          <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Fibre</button>
-          <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">3D Tour</button>
-          <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Guarded</button>
+      <!-- More filters toggle -->
+      <button class="sm-more-toggle" onclick="toggleMoreFilters(this)">⚙️ Ibindi Filters ▾</button>
+      <div class="sm-more-panel" style="display:none">
+
+        <!-- UBUSO / SIZE filter -->
+        <div class="sm-2col">
+          <div class="sm-field">
+            <label style="font-size:.7rem;font-weight:700;letter-spacing:.1em;color:var(--navy)">UBUSO MIN (m²)</label>
+            <select id="srch-size-min" onchange="updateCount()">
+              <option value="">Ntacyo</option>
+              <option value="50">50m²</option><option value="100">100m²</option>
+              <option value="200">200m²</option><option value="300">300m²</option>
+              <option value="500">500m²</option><option value="1000">1,000m²</option>
+            </select>
+          </div>
+          <div class="sm-field">
+            <label style="font-size:.7rem;font-weight:700;letter-spacing:.1em;color:var(--navy)">UBUSO MAX (m²)</label>
+            <select id="srch-size-max" onchange="updateCount()">
+              <option value="">Ntacyo</option>
+              <option value="100">100m²</option><option value="200">200m²</option>
+              <option value="300">300m²</option><option value="500">500m²</option>
+              <option value="1000">1,000m²</option><option value="5000">5,000m²+</option>
+            </select>
+          </div>
         </div>
-      </div>
+
+        <!-- SERIVISI chips -->
+        <div>
+          <span class="sm-chips-label" data-rw="SERIVISI (Ntibisabwa)" data-en="FEATURES (Optional)">SERIVISI <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#aab">(Ntibisabwa)</span></span>
+          <div class="sm-chips">
+            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Garage</button>
+            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Piscine</button>
+            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Umurima</button>
+            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Solar</button>
+            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Fibre</button>
+            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">3D Tour</button>
+            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Guarded</button>
+          </div>
+        </div>
+
+      </div><!-- /sm-more-panel -->
 
     </div><!-- /sm-body -->
 
@@ -5005,6 +4997,13 @@ function setSmTab(btn) {
   updateCount();
 }
 // Reset search AND reload all listings
+function toggleMoreFilters(btn) {
+  var panel = btn.nextElementSibling;
+  var open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'flex';
+  btn.innerHTML = open ? '⚙️ Ibindi Filters ▾' : '⚙️ Ibindi Filters ▲';
+  updateCount();
+}
 function resetSearch() {
   var modal=document.getElementById('search-modal');
   modal.querySelectorAll('select').forEach(function(s){ s.selectedIndex=0; });
@@ -5012,6 +5011,8 @@ function resetSearch() {
   modal.querySelectorAll('.sm-chip').forEach(function(c){ c.classList.remove('on'); });
   modal.querySelectorAll('.sm-tab').forEach(function(t,i){ t.classList.toggle('active',i===0); });
   var inp=document.getElementById('qs-input'); if (inp) inp.value='';
+  var morePanel=document.querySelector('.sm-more-panel'); if (morePanel) morePanel.style.display='none';
+  var moreToggle=document.querySelector('.sm-more-toggle'); if (moreToggle) moreToggle.innerHTML='⚙️ Ibindi Filters ▾';
   window._filtersActive=false; window._qs_query='';
   closeQsSuggestions(); invalidatePropsCache();
   updateCount(); loadApprovedProperties();
@@ -5028,22 +5029,21 @@ function syncInput(selId, txtId) {
 function applySearchFilters(props) {
   var g=function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
   var district = g('srch-district');
-  var locTxt   = kmNorm(g('srch-location-txt'));
   var type     = g('srch-type');
-  var typeTxt  = kmNorm(g('srch-type-txt'));
   var beds     = g('srch-beds');
-  var bedsTxt  = g('srch-beds-txt');
-  var minSel   = g('srch-min'), minTxt = g('srch-min-txt').replace(/[^0-9]/g,'');
-  var maxSel   = g('srch-max'), maxTxt = g('srch-max-txt').replace(/[^0-9]/g,'');
+  var budget   = g('srch-budget');
   var sizeMin  = parseInt(g('srch-size-min'))||0;
   var sizeMax  = parseInt(g('srch-size-max'))||0;
   var quickQ   = g('sm-quick-search') || (window._qs_query||'');
   var activeTabEl = document.querySelector('.sm-tab.active');
   var tabEn = activeTabEl ? (activeTabEl.getAttribute('data-en')||'').toLowerCase() : '';
   var serviceFilter = tabEn==='buy'?'Kugura':(tabEn==='rent'||tabEn==='gukodesha')?'Gukodesha':'';
-  var PM = {'10M':1e7,'30M':3e7,'50M':5e7,'80M':8e7,'100M':1e8,'150M':1.5e8,'200M':2e8,'300M':3e8,'500M+':5e8};
-  var minP = minTxt ? parseInt(minTxt) : (PM[minSel]||0);
-  var maxP = maxTxt ? parseInt(maxTxt) : (PM[maxSel]||0);
+  var BM = {
+    '<30M':[0,3e7],'30–80M':[3e7,8e7],
+    '80–150M':[8e7,1.5e8],'150–300M':[1.5e8,3e8],'300M+':[3e8,0]
+  };
+  var bRange = BM[budget] || [0,0];
+  var minP = bRange[0], maxP = bRange[1];
 
   return props.filter(function(p) {
     if (quickQ && kmScore(quickQ, p) < 40) return false;
@@ -5052,13 +5052,9 @@ function applySearchFilters(props) {
       var dparts=district.toLowerCase().split('—').map(function(s){return s.trim();});
       if (!dparts.some(function(part){ return pd.indexOf(part)!==-1; })) return false;
     }
-    if (locTxt) {
-      var loc=kmNorm((p.district||'')+' '+(p.sector||'')+' '+(p.title||''));
-      if (!locTxt.split(' ').filter(Boolean).every(function(w){ return kmWordMatch(w,loc); })) return false;
-    }
-    var tf=typeTxt||(type&&type.indexOf('Bwose')===-1&&type.indexOf('Ikindi')===-1?kmNorm(type):'');
+    var tf=type&&type.indexOf('Bwose')===-1?kmNorm(type):'';
     if (tf && !tf.split(' ').filter(Boolean).some(function(w){ return kmWordMatch(w,kmNorm(p.type||'')); })) return false;
-    var bedsMin=bedsTxt?parseInt(bedsTxt):(beds?parseInt(beds):0);
+    var bedsMin=beds?parseInt(beds):0;
     if (bedsMin>0 && (parseInt(p.beds)||0)<bedsMin) return false;
     var pp=parseInt(p.price)||0;
     if (minP && pp<minP) return false;
