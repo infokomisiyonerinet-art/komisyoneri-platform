@@ -1154,6 +1154,13 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 }
 .sm-more-toggle:hover{border-color:var(--blue);color:var(--blue)}
 .sm-more-panel{display:flex;flex-direction:column;gap:.6rem}
+.sm-hints{display:flex;gap:.4rem;flex-wrap:wrap}
+.sm-hint-chip{
+  padding:.32rem .8rem;border-radius:100px;font-size:.78rem;font-weight:600;
+  border:1.5px solid var(--border);background:#fff;color:var(--muted);
+  cursor:pointer;transition:var(--tr);font-family:'DM Sans',sans-serif;
+}
+.sm-hint-chip:hover{border-color:var(--blue);background:var(--blue);color:#fff}
 .sm-search{flex:1;padding:.72rem;background:linear-gradient(135deg,var(--navy),var(--blue));
   color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;
   font-size:.95rem;font-weight:700;cursor:pointer;transition:var(--tr);
@@ -1740,112 +1747,22 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 
       <!-- QUICK FULL-TEXT SEARCH -->
       <div class="sm-field">
-        <label style="font-size:.67rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)">🔍 SHAKISHA VUBA</label>
+        <label style="font-size:.67rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)" data-rw="ANDIKA USHAKISHA" data-en="TYPE TO SEARCH">ANDIKA USHAKISHA</label>
         <input type="search" id="sm-quick-search" autocomplete="off"
-          placeholder="Villa, Kigali, Gasabo, 3 beds..."
-          oninput="mqsHandleInput()" style="border-radius:10px">
+          placeholder="Villa, Kigali, Gasabo, 3 beds, 80M..."
+          oninput="mqsHandleInput()" style="border-radius:10px;font-size:.95rem;padding:.75rem 1rem">
         <div id="sm-suggestions" class="qs-suggestions" style="display:none;position:relative;top:0;box-shadow:0 8px 24px rgba(0,0,0,.12)"></div>
       </div>
 
-      <!-- 2×2 compact dropdowns -->
-      <div class="sm-2col">
-        <div class="sm-field">
-          <label data-rw="AHANTU" data-en="LOCATION">AHANTU</label>
-          <select id="srch-district" onchange="updateCount()">
-            <option data-rw="Akarere Kose" data-en="All Rwanda">Akarere Kose</option>
-            <optgroup label="Kigali">
-              <option>Kigali — Gasabo</option>
-              <option>Kigali — Kicukiro</option>
-              <option>Kigali — Nyarugenge</option>
-            </optgroup>
-            <optgroup label="Amajyaruguru">
-              <option>Musanze</option><option>Rubavu</option><option>Gicumbi</option>
-            </optgroup>
-            <optgroup label="Amajyepfo">
-              <option>Huye</option><option>Muhanga</option><option>Nyanza</option>
-            </optgroup>
-            <optgroup label="Iburasirazuba">
-              <option>Nyagatare</option><option>Rwamagana</option><option>Kayonza</option>
-            </optgroup>
-            <optgroup label="Iburengerazuba">
-              <option>Karongi</option><option>Nyabihu</option><option>Rutsiro</option>
-            </optgroup>
-          </select>
-        </div>
-        <div class="sm-field">
-          <label data-rw="UBWOKO" data-en="TYPE">UBWOKO</label>
-          <select id="srch-type" onchange="updateCount()">
-            <option data-rw="Ubwoko Bwose" data-en="All Types">Ubwoko Bwose</option>
-            <option>Villa</option>
-            <option data-rw="Apartimanı" data-en="Apartment">Apartimanı</option>
-            <option data-rw="Inyubako" data-en="Commercial">Inyubako</option>
-            <option data-rw="Ubutaka" data-en="Land">Ubutaka</option>
-            <option>Studio</option>
-            <option>Duplex</option>
-          </select>
-        </div>
-        <div class="sm-field">
-          <label data-rw="IBYUMBA" data-en="BEDROOMS">IBYUMBA</label>
-          <select id="srch-beds" onchange="updateCount()">
-            <option data-rw="Byose" data-en="Any">Byose</option>
-            <option>1+</option><option>2+</option>
-            <option>3+</option><option>4+</option><option>5+</option>
-          </select>
-        </div>
-        <div class="sm-field">
-          <label data-rw="IGICIRO" data-en="BUDGET">IGICIRO</label>
-          <select id="srch-budget" onchange="updateCount()">
-            <option data-rw="Byose" data-en="Any">Byose</option>
-            <option value="&lt;30M" data-rw="Munsi ya 30M" data-en="Under 30M">&lt; 30M RWF</option>
-            <option value="30–80M">30M – 80M</option>
-            <option value="80–150M">80M – 150M</option>
-            <option value="150–300M">150M – 300M</option>
-            <option value="300M+" data-rw="Hejuru ya 300M" data-en="Above 300M">&gt; 300M RWF</option>
-          </select>
-        </div>
+      <!-- Hint chips for quick fill -->
+      <div class="sm-hints">
+        <button class="sm-hint-chip" onclick="smHint('Villa Kigali')">🏡 Villa Kigali</button>
+        <button class="sm-hint-chip" onclick="smHint('Apartimanı')">🏢 Apartimanı</button>
+        <button class="sm-hint-chip" onclick="smHint('Ubutaka')">🌱 Ubutaka</button>
+        <button class="sm-hint-chip" onclick="smHint('Musanze')">🏔️ Musanze</button>
+        <button class="sm-hint-chip" onclick="smHint('Gukodesha')">🔑 Gukodesha</button>
+        <button class="sm-hint-chip" onclick="smHint('3D Tour')">🎥 3D Tour</button>
       </div>
-
-      <!-- More filters toggle -->
-      <button class="sm-more-toggle" onclick="toggleMoreFilters(this)">⚙️ Ibindi Filters ▾</button>
-      <div class="sm-more-panel" style="display:none">
-
-        <!-- UBUSO / SIZE filter -->
-        <div class="sm-2col">
-          <div class="sm-field">
-            <label style="font-size:.7rem;font-weight:700;letter-spacing:.1em;color:var(--navy)">UBUSO MIN (m²)</label>
-            <select id="srch-size-min" onchange="updateCount()">
-              <option value="">Ntacyo</option>
-              <option value="50">50m²</option><option value="100">100m²</option>
-              <option value="200">200m²</option><option value="300">300m²</option>
-              <option value="500">500m²</option><option value="1000">1,000m²</option>
-            </select>
-          </div>
-          <div class="sm-field">
-            <label style="font-size:.7rem;font-weight:700;letter-spacing:.1em;color:var(--navy)">UBUSO MAX (m²)</label>
-            <select id="srch-size-max" onchange="updateCount()">
-              <option value="">Ntacyo</option>
-              <option value="100">100m²</option><option value="200">200m²</option>
-              <option value="300">300m²</option><option value="500">500m²</option>
-              <option value="1000">1,000m²</option><option value="5000">5,000m²+</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- SERIVISI chips -->
-        <div>
-          <span class="sm-chips-label" data-rw="SERIVISI (Ntibisabwa)" data-en="FEATURES (Optional)">SERIVISI <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#aab">(Ntibisabwa)</span></span>
-          <div class="sm-chips">
-            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Garage</button>
-            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Piscine</button>
-            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Umurima</button>
-            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Solar</button>
-            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Fibre</button>
-            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">3D Tour</button>
-            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Guarded</button>
-          </div>
-        </div>
-
-      </div><!-- /sm-more-panel -->
 
     </div><!-- /sm-body -->
 
@@ -4939,6 +4856,17 @@ function qs_openProp(id, boxId) {
   }, 100);
 }
 
+// ── Fill quick search from a hint chip ──
+function smHint(text) {
+  var inp = document.getElementById('sm-quick-search');
+  if (!inp) return;
+  inp.value = text;
+  window._qs_query = text;
+  renderQsSuggestions(text, 'sm-suggestions');
+  updateCount();
+  inp.focus();
+}
+
 // ── Search from hero bar ──
 function qs_search() {
   var inp=document.getElementById('qs-input'), q=inp?inp.value.trim():'';
@@ -4959,29 +4887,15 @@ function openSearch(opts) {
         t.classList.toggle('active', en===opts.tab.toLowerCase());
       });
     }
-    if (opts.district) {
-      var dSel=document.getElementById('srch-district');
-      if (dSel) for (var i=0;i<dSel.options.length;i++) {
-        if (dSel.options[i].text.toLowerCase().indexOf(opts.district.toLowerCase())!==-1) {
-          dSel.selectedIndex=i; break;
-        }
-      }
-    }
-    if (opts.type) {
-      var tSel=document.getElementById('srch-type');
-      if (tSel) for (var i=0;i<tSel.options.length;i++) {
-        if (tSel.options[i].text.toLowerCase().indexOf(opts.type.toLowerCase())!==-1) {
-          tSel.selectedIndex=i; break;
-        }
-      }
-    }
-    if (opts.chip) {
-      document.querySelectorAll('.sm-chip').forEach(function(c) {
-        if (c.textContent.trim()===opts.chip) c.classList.add('on');
-      });
-    }
-    if (opts.query) {
-      var qs=document.getElementById('sm-quick-search'); if (qs) qs.value=opts.query;
+    // Pre-fill text search from chip hints
+    var qparts = [];
+    if (opts.district) qparts.push(opts.district);
+    if (opts.type) qparts.push(opts.type);
+    if (opts.chip) qparts.push(opts.chip);
+    if (opts.query) qparts.push(opts.query);
+    if (qparts.length) {
+      var qs=document.getElementById('sm-quick-search');
+      if (qs) { qs.value=qparts.join(' '); window._qs_query=qs.value; }
     }
   }
   updateCount();
@@ -5006,9 +4920,7 @@ function toggleMoreFilters(btn) {
 }
 function resetSearch() {
   var modal=document.getElementById('search-modal');
-  modal.querySelectorAll('select').forEach(function(s){ s.selectedIndex=0; });
-  modal.querySelectorAll('input[type="text"],input[type="number"],input[type="search"]').forEach(function(i){ i.value=''; });
-  modal.querySelectorAll('.sm-chip').forEach(function(c){ c.classList.remove('on'); });
+  modal.querySelectorAll('input[type="search"]').forEach(function(i){ i.value=''; });
   modal.querySelectorAll('.sm-tab').forEach(function(t,i){ t.classList.toggle('active',i===0); });
   var inp=document.getElementById('qs-input'); if (inp) inp.value='';
   var morePanel=document.querySelector('.sm-more-panel'); if (morePanel) morePanel.style.display='none';
@@ -5028,40 +4940,13 @@ function syncInput(selId, txtId) {
 // ── applySearchFilters: fuzzy + structured matching ──
 function applySearchFilters(props) {
   var g=function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
-  var district = g('srch-district');
-  var type     = g('srch-type');
-  var beds     = g('srch-beds');
-  var budget   = g('srch-budget');
-  var sizeMin  = parseInt(g('srch-size-min'))||0;
-  var sizeMax  = parseInt(g('srch-size-max'))||0;
   var quickQ   = g('sm-quick-search') || (window._qs_query||'');
   var activeTabEl = document.querySelector('.sm-tab.active');
   var tabEn = activeTabEl ? (activeTabEl.getAttribute('data-en')||'').toLowerCase() : '';
   var serviceFilter = tabEn==='buy'?'Kugura':(tabEn==='rent'||tabEn==='gukodesha')?'Gukodesha':'';
-  var BM = {
-    '<30M':[0,3e7],'30–80M':[3e7,8e7],
-    '80–150M':[8e7,1.5e8],'150–300M':[1.5e8,3e8],'300M+':[3e8,0]
-  };
-  var bRange = BM[budget] || [0,0];
-  var minP = bRange[0], maxP = bRange[1];
 
   return props.filter(function(p) {
     if (quickQ && kmScore(quickQ, p) < 40) return false;
-    if (district && district.indexOf('Kose')===-1) {
-      var pd=kmNorm(p.district||'');
-      var dparts=district.toLowerCase().split('—').map(function(s){return s.trim();});
-      if (!dparts.some(function(part){ return pd.indexOf(part)!==-1; })) return false;
-    }
-    var tf=type&&type.indexOf('Bwose')===-1?kmNorm(type):'';
-    if (tf && !tf.split(' ').filter(Boolean).some(function(w){ return kmWordMatch(w,kmNorm(p.type||'')); })) return false;
-    var bedsMin=beds?parseInt(beds):0;
-    if (bedsMin>0 && (parseInt(p.beds)||0)<bedsMin) return false;
-    var pp=parseInt(p.price)||0;
-    if (minP && pp<minP) return false;
-    if (maxP && pp>maxP) return false;
-    var ps=parseInt(p.size)||0;
-    if (sizeMin && ps<sizeMin) return false;
-    if (sizeMax && ps>sizeMax) return false;
     if (serviceFilter && p.service && p.service!==serviceFilter) return false;
     return true;
   });
