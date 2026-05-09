@@ -2116,27 +2116,16 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           <button class="hero-chip" onclick="openSearch({type:'Apartimanı'})">🏢 Apartimanı</button>
         </div>
 
-        <!-- Quick search bar with instant suggestions -->
+        <!-- Quick search bar — single text input -->
         <div class="qs-wrap" style="margin-top:2rem">
-          <div class="hero-search-bar" style="margin-top:0;max-width:100%;cursor:default">
+          <div class="hero-search-bar" style="margin-top:0;max-width:100%;cursor:default;padding:.38rem .38rem .38rem 1rem">
             <div class="hsb-inner">
-              <div class="hsb-item" style="flex:2">
-                <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--blue);stroke-width:2;flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                <input id="qs-input" type="search" class="qs-input-field" autocomplete="off"
-                  placeholder="Villa, Gasabo, 3 ibyumba..."
-                  oninput="ksHandleInput()" onfocus="ksHandleInput()"
-                  onclick="event.stopPropagation()">
-              </div>
-              <div class="hsb-sep"></div>
-              <div class="hsb-item" onclick="openSearch()" style="cursor:pointer">
-                <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>
-                <span>Ubwoko...</span>
-              </div>
-              <div class="hsb-sep"></div>
-              <div class="hsb-item" onclick="openSearch()" style="cursor:pointer">
-                <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-                <span>Igiciro...</span>
-              </div>
+              <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:var(--blue);stroke-width:2;flex-shrink:0;margin-right:.5rem"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input id="qs-input" type="search" class="qs-input-field" autocomplete="off"
+                placeholder="Shakisha: Villa, Kigali, 3 beds, 80M..."
+                oninput="ksHandleInput()" onfocus="ksHandleInput()"
+                onclick="event.stopPropagation()"
+                style="flex:1;font-size:.9rem">
               <button class="hsb-btn" onclick="qs_search()">
                 <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                 Shakisha
