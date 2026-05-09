@@ -5004,6 +5004,7 @@ function setSmTab(btn) {
   btn.classList.add('active');
   updateCount();
 }
+// Reset search AND reload all listings
 function resetSearch() {
   var modal=document.getElementById('search-modal');
   modal.querySelectorAll('select').forEach(function(s){ s.selectedIndex=0; });
