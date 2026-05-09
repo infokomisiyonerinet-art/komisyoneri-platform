@@ -1745,24 +1745,78 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 
     <div class="sm-body">
 
-      <!-- QUICK FULL-TEXT SEARCH -->
+      <!-- SHAKISHA VUBA — global fuzzy search -->
       <div class="sm-field">
-        <label style="font-size:.67rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)" data-rw="ANDIKA USHAKISHA" data-en="TYPE TO SEARCH">ANDIKA USHAKISHA</label>
+        <label data-rw="SHAKISHA VUBA" data-en="QUICK SEARCH">🔍 SHAKISHA VUBA</label>
         <input type="search" id="sm-quick-search" autocomplete="off"
-          placeholder="Villa, Kigali, Gasabo, 3 beds, 80M..."
-          oninput="mqsHandleInput()" style="border-radius:10px;font-size:.95rem;padding:.75rem 1rem">
+          placeholder="Villa, Kigali, Gasabo, 3 beds..."
+          oninput="mqsHandleInput()">
         <div id="sm-suggestions" class="qs-suggestions" style="display:none;position:relative;top:0;box-shadow:0 8px 24px rgba(0,0,0,.12)"></div>
       </div>
 
-      <!-- Hint chips for quick fill -->
-      <div class="sm-hints">
-        <button class="sm-hint-chip" onclick="smHint('Villa Kigali')">🏡 Villa Kigali</button>
-        <button class="sm-hint-chip" onclick="smHint('Apartimanı')">🏢 Apartimanı</button>
-        <button class="sm-hint-chip" onclick="smHint('Ubutaka')">🌱 Ubutaka</button>
-        <button class="sm-hint-chip" onclick="smHint('Musanze')">🏔️ Musanze</button>
-        <button class="sm-hint-chip" onclick="smHint('Gukodesha')">🔑 Gukodesha</button>
-        <button class="sm-hint-chip" onclick="smHint('3D Tour')">🎥 3D Tour</button>
+      <!-- AHANTU -->
+      <div class="sm-field">
+        <label data-rw="AHANTU" data-en="LOCATION">AHANTU</label>
+        <input type="text" id="srch-location" autocomplete="off"
+          placeholder="Kigali, Musanze, Gasabo, Kicukiro..."
+          oninput="updateCount()">
       </div>
+
+      <!-- UBWOKO -->
+      <div class="sm-field">
+        <label data-rw="UBWOKO" data-en="TYPE">UBWOKO</label>
+        <input type="text" id="srch-type-txt" autocomplete="off"
+          placeholder="Villa, Apartimanı, Ubutaka, Studio..."
+          oninput="updateCount()">
+      </div>
+
+      <!-- IBYUMBA -->
+      <div class="sm-field">
+        <label data-rw="IBYUMBA" data-en="BEDROOMS">IBYUMBA</label>
+        <input type="text" id="srch-beds-txt" autocomplete="off"
+          placeholder="1, 2, 3, 4..."
+          oninput="updateCount()">
+      </div>
+
+      <!-- IGICIRO -->
+      <div class="sm-field">
+        <label data-rw="IGICIRO" data-en="MAX PRICE">IGICIRO</label>
+        <input type="text" id="srch-price-txt" autocomplete="off"
+          placeholder="urugero: 80M cyangwa 80,000,000"
+          oninput="updateCount()">
+      </div>
+
+      <!-- Ibindi Filters toggle -->
+      <button class="sm-more-toggle" onclick="toggleMoreFilters(this)">⚙️ Ibindi Filters ▾</button>
+      <div class="sm-more-panel" style="display:none">
+
+        <!-- UBUSO / SIZE -->
+        <div class="sm-2col">
+          <div class="sm-field">
+            <label style="font-size:.7rem;font-weight:700;letter-spacing:.1em;color:var(--navy)">UBUSO MIN (m²)</label>
+            <input type="number" id="srch-size-min" placeholder="50" min="0" oninput="updateCount()">
+          </div>
+          <div class="sm-field">
+            <label style="font-size:.7rem;font-weight:700;letter-spacing:.1em;color:var(--navy)">UBUSO MAX (m²)</label>
+            <input type="number" id="srch-size-max" placeholder="5000" min="0" oninput="updateCount()">
+          </div>
+        </div>
+
+        <!-- SERIVISI chips -->
+        <div>
+          <span class="sm-chips-label">SERIVISI <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#aab">(Ntibisabwa)</span></span>
+          <div class="sm-chips">
+            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Garage</button>
+            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Piscine</button>
+            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Umurima</button>
+            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Solar</button>
+            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Fibre</button>
+            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">3D Tour</button>
+            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Guarded</button>
+          </div>
+        </div>
+
+      </div><!-- /sm-more-panel -->
 
     </div><!-- /sm-body -->
 
@@ -4876,15 +4930,17 @@ function openSearch(opts) {
         t.classList.toggle('active', en===opts.tab.toLowerCase());
       });
     }
-    // Pre-fill text search from chip hints
-    var qparts = [];
-    if (opts.district) qparts.push(opts.district);
-    if (opts.type) qparts.push(opts.type);
-    if (opts.chip) qparts.push(opts.chip);
-    if (opts.query) qparts.push(opts.query);
-    if (qparts.length) {
-      var qs=document.getElementById('sm-quick-search');
-      if (qs) { qs.value=qparts.join(' '); window._qs_query=qs.value; }
+    if (opts.district) {
+      var el=document.getElementById('srch-location'); if (el) el.value=opts.district;
+    }
+    if (opts.type) {
+      var el=document.getElementById('srch-type-txt'); if (el) el.value=opts.type;
+    }
+    if (opts.query) {
+      var el=document.getElementById('sm-quick-search'); if (el) el.value=opts.query;
+    }
+    if (opts.chip) {
+      var el=document.getElementById('sm-quick-search'); if (el) el.value=opts.chip;
     }
   }
   updateCount();
@@ -4909,7 +4965,8 @@ function toggleMoreFilters(btn) {
 }
 function resetSearch() {
   var modal=document.getElementById('search-modal');
-  modal.querySelectorAll('input[type="search"]').forEach(function(i){ i.value=''; });
+  modal.querySelectorAll('input').forEach(function(i){ i.value=''; });
+  modal.querySelectorAll('.sm-chip').forEach(function(c){ c.classList.remove('on'); });
   modal.querySelectorAll('.sm-tab').forEach(function(t,i){ t.classList.toggle('active',i===0); });
   var inp=document.getElementById('qs-input'); if (inp) inp.value='';
   var morePanel=document.querySelector('.sm-more-panel'); if (morePanel) morePanel.style.display='none';
@@ -4930,12 +4987,40 @@ function syncInput(selId, txtId) {
 function applySearchFilters(props) {
   var g=function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
   var quickQ   = g('sm-quick-search') || (window._qs_query||'');
+  var locTxt   = kmNorm(g('srch-location'));
+  var typeTxt  = kmNorm(g('srch-type-txt'));
+  var bedsTxt  = g('srch-beds-txt').trim();
+  var priceTxt = g('srch-price-txt').replace(/[,\s]/g,'');
+  var sizeMin  = parseInt(g('srch-size-min'))||0;
+  var sizeMax  = parseInt(g('srch-size-max'))||0;
   var activeTabEl = document.querySelector('.sm-tab.active');
   var tabEn = activeTabEl ? (activeTabEl.getAttribute('data-en')||'').toLowerCase() : '';
   var serviceFilter = tabEn==='buy'?'Kugura':(tabEn==='rent'||tabEn==='gukodesha')?'Gukodesha':'';
+  // Parse price text: "80M"→80000000, "80000000"→80000000
+  function parseP(s) {
+    if (!s) return 0;
+    var m = s.match(/(\d+\.?\d*)[mM]/);
+    if (m) return Math.round(parseFloat(m[1])*1e6);
+    var n = parseInt(s); return isNaN(n) ? 0 : n;
+  }
+  var maxP = parseP(priceTxt);
 
   return props.filter(function(p) {
     if (quickQ && kmScore(quickQ, p) < 40) return false;
+    if (locTxt) {
+      var loc=kmNorm((p.district||'')+' '+(p.sector||'')+' '+(p.title||''));
+      if (!locTxt.split(' ').filter(Boolean).every(function(w){ return kmWordMatch(w,loc); })) return false;
+    }
+    if (typeTxt) {
+      if (!typeTxt.split(' ').filter(Boolean).some(function(w){ return kmWordMatch(w,kmNorm(p.type||'')); })) return false;
+    }
+    var bedsMin = parseInt(bedsTxt)||0;
+    if (bedsMin>0 && (parseInt(p.beds)||0)<bedsMin) return false;
+    var pp = parseInt(p.price)||0;
+    if (maxP && pp>maxP) return false;
+    var ps = parseInt(p.size)||0;
+    if (sizeMin && ps<sizeMin) return false;
+    if (sizeMax && ps>sizeMax) return false;
     if (serviceFilter && p.service && p.service!==serviceFilter) return false;
     return true;
   });
