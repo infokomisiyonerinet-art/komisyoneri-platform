@@ -4923,6 +4923,8 @@ function resetSearch() {
   modal.querySelectorAll('input[type="search"]').forEach(function(i){ i.value=''; });
   modal.querySelectorAll('.sm-tab').forEach(function(t,i){ t.classList.toggle('active',i===0); });
   var inp=document.getElementById('qs-input'); if (inp) inp.value='';
+  var morePanel=document.querySelector('.sm-more-panel'); if (morePanel) morePanel.style.display='none';
+  var moreToggle=document.querySelector('.sm-more-toggle'); if (moreToggle) moreToggle.innerHTML='⚙️ Ibindi Filters ▾';
   window._filtersActive=false; window._qs_query='';
   closeQsSuggestions(); invalidatePropsCache();
   updateCount(); loadApprovedProperties();
