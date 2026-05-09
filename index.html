@@ -1801,7 +1801,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     <!-- Footer -->
     <div class="sm-footer">
       <button class="sm-reset" onclick="resetSearch()" data-rw="Siba Byose" data-en="Reset">Siba Byose</button>
-      <button class="sm-search" onclick="closeSearch();go('listings')">
+      <button class="sm-search" onclick="applyAndSearch()">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <span data-rw="Shakisha Imitungo" data-en="Search Properties">Shakisha Imitungo</span>
         <span class="sm-count" id="sm-result-count">48</span>
@@ -2063,13 +2063,13 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     <span data-rw="Shakisha imitungo..." data-en="Search properties...">Shakisha imitungo...</span>
   </div>
   <div class="stb-filters">
-    <button class="stb-fc on" onclick="openSearch()" data-rw="Kugura" data-en="Buy">Kugura</button>
-    <button class="stb-fc" onclick="openSearch()" data-rw="Gukodesha" data-en="Gukodesha">Gukodesha</button>
-    <button class="stb-fc" onclick="openSearch()" data-rw="Kigali" data-en="Kigali">Kigali</button>
-    <button class="stb-fc" onclick="openSearch()" data-rw="Villa" data-en="Villa">Villa</button>
-    <button class="stb-fc" onclick="openSearch()" data-rw="Apartimanı" data-en="Apartment">Apartimanı</button>
-    <button class="stb-fc" onclick="openSearch()" data-rw="Ubutaka" data-en="Land">Ubutaka</button>
-    <button class="stb-fc" onclick="openSearch()">3D Tour</button>
+    <button class="stb-fc on" onclick="openSearch({tab:'buy'})" data-rw="Kugura" data-en="Buy">Kugura</button>
+    <button class="stb-fc" onclick="openSearch({tab:'rent'})" data-rw="Gukodesha" data-en="Gukodesha">Gukodesha</button>
+    <button class="stb-fc" onclick="openSearch({district:'Kigali'})" data-rw="Kigali" data-en="Kigali">Kigali</button>
+    <button class="stb-fc" onclick="openSearch({type:'Villa'})" data-rw="Villa" data-en="Villa">Villa</button>
+    <button class="stb-fc" onclick="openSearch({type:'Apartimanı'})" data-rw="Apartimanı" data-en="Apartment">Apartimanı</button>
+    <button class="stb-fc" onclick="openSearch({type:'Ubutaka'})" data-rw="Ubutaka" data-en="Land">Ubutaka</button>
+    <button class="stb-fc" onclick="openSearch({chip:'3D Tour'})">3D Tour</button>
   </div>
 </div>
 
@@ -2141,11 +2141,11 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 
         <!-- Quick filter chips -->
         <div class="hero-chips">
-          <button class="hero-chip" onclick="openSearch()">🏡 Villa Kigali</button>
-          <button class="hero-chip" onclick="openSearch()">🔑 Gukodesha</button>
-          <button class="hero-chip" onclick="openSearch()">🌱 Ubutaka</button>
-          <button class="hero-chip" onclick="openSearch()">🏔️ Musanze</button>
-          <button class="hero-chip" onclick="openSearch()">🏢 Apartimanı</button>
+          <button class="hero-chip" onclick="openSearch({type:'Villa',district:'Kigali'})">🏡 Villa Kigali</button>
+          <button class="hero-chip" onclick="openSearch({tab:'rent'})">🔑 Gukodesha</button>
+          <button class="hero-chip" onclick="openSearch({type:'Ubutaka'})">🌱 Ubutaka</button>
+          <button class="hero-chip" onclick="openSearch({district:'Musanze'})">🏔️ Musanze</button>
+          <button class="hero-chip" onclick="openSearch({type:'Apartimanı'})">🏢 Apartimanı</button>
         </div>
 
         <!-- Search trigger bar -->
@@ -4727,50 +4727,181 @@ function go(name) {
 
 
 // ── SEARCH MODAL
-function openSearch() {
+// ── openSearch: accepts optional pre-fill {type, district, tab, chip}
+function openSearch(opts) {
   document.getElementById('search-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
-  // Animate result count
-  animateCount();
+  if (opts) {
+    // Pre-select tab (buy / rent)
+    if (opts.tab) {
+      document.querySelectorAll('.sm-tab').forEach(function(t) {
+        var en = (t.getAttribute('data-en') || '').toLowerCase();
+        t.classList.toggle('active', en === opts.tab.toLowerCase());
+      });
+    }
+    // Pre-select district
+    if (opts.district) {
+      var dSel = document.getElementById('srch-district');
+      if (dSel) {
+        for (var i = 0; i < dSel.options.length; i++) {
+          if (dSel.options[i].text.toLowerCase().includes(opts.district.toLowerCase())) {
+            dSel.selectedIndex = i; break;
+          }
+        }
+      }
+    }
+    // Pre-select property type
+    if (opts.type) {
+      var tSel = document.getElementById('srch-type');
+      if (tSel) {
+        for (var i = 0; i < tSel.options.length; i++) {
+          if (tSel.options[i].text.toLowerCase().includes(opts.type.toLowerCase())) {
+            tSel.selectedIndex = i; break;
+          }
+        }
+      }
+    }
+    // Toggle an amenity chip (e.g. 3D Tour)
+    if (opts.chip) {
+      document.querySelectorAll('.sm-chip').forEach(function(c) {
+        if (c.textContent.trim() === opts.chip) c.classList.add('on');
+      });
+    }
+  }
+  updateCount();
 }
 function closeSearch() {
   document.getElementById('search-modal').classList.remove('open');
   document.body.style.overflow = '';
 }
 function setSmTab(btn) {
-  btn.closest('.sm-tabs').querySelectorAll('.sm-tab').forEach(b => b.classList.remove('active'));
+  btn.closest('.sm-tabs').querySelectorAll('.sm-tab').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
+  updateCount();
 }
+// Reset search AND reload all listings
 function resetSearch() {
-  const modal = document.getElementById('search-modal');
-  modal.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
-  modal.querySelectorAll('.sm-chip').forEach(c => c.classList.remove('on'));
-  modal.querySelectorAll('.sm-tab').forEach((t,i) => t.classList.toggle('active', i===0));
-  document.getElementById('sm-result-count').textContent = '48';
+  var modal = document.getElementById('search-modal');
+  modal.querySelectorAll('select').forEach(function(s){ s.selectedIndex = 0; });
+  modal.querySelectorAll('input[type="text"],input[type="number"]').forEach(function(i){ i.value = ''; });
+  modal.querySelectorAll('.sm-chip').forEach(function(c){ c.classList.remove('on'); });
+  modal.querySelectorAll('.sm-tab').forEach(function(t,i){ t.classList.toggle('active', i===0); });
+  window._filtersActive = false;
+  updateCount();
+  loadApprovedProperties();
 }
-function animateCount() { /* handled by updateCount */ }
 function syncInput(selId, txtId) {
   var sel = document.getElementById(selId);
   var txt = document.getElementById(txtId);
   if (!sel || !txt) return;
   if (sel.value.includes('Ikindi') || sel.value.includes('Other')) {
-    txt.style.display = 'block';
-    txt.focus();
+    txt.style.display = 'block'; txt.focus();
   } else {
     txt.style.display = 'none';
   }
 }
 
+// ── applySearchFilters: returns subset of props matching current modal state
+function applySearchFilters(props) {
+  var g = function(id){ var el=document.getElementById(id); return el ? el.value.trim() : ''; };
+  var district  = g('srch-district');
+  var locTxt    = g('srch-location-txt').toLowerCase();
+  var type      = g('srch-type');
+  var typeTxt   = g('srch-type-txt').toLowerCase();
+  var beds      = g('srch-beds');
+  var bedsTxt   = g('srch-beds-txt');
+  var minSel    = g('srch-min');
+  var maxSel    = g('srch-max');
+  var sizeMin   = parseInt(g('srch-size-min')) || 0;
+  var sizeMax   = parseInt(g('srch-size-max')) || 0;
+  // Active tab → service filter
+  var activeTabEl = document.querySelector('.sm-tab.active');
+  var tabEn = activeTabEl ? (activeTabEl.getAttribute('data-en')||'').toLowerCase() : '';
+  var serviceFilter = tabEn === 'buy' ? 'Kugura' : tabEn === 'rent' || tabEn === 'gukodesha' ? 'Gukodesha' : '';
+  // Price map (RWF)
+  var PM = {'10M':1e7,'30M':3e7,'50M':5e7,'80M':8e7,'100M':1e8,'150M':1.5e8,'200M':2e8,'300M':3e8,'500M+':5e8};
+  var minP = PM[minSel] || 0;
+  var maxP = PM[maxSel] || 0;
+
+  return props.filter(function(p) {
+    // District dropdown (skip "Akarere Kose" = all)
+    if (district && !district.includes('Kose')) {
+      var pd = (p.district||'').toLowerCase();
+      var parts = district.toLowerCase().split('—').map(function(s){return s.trim();});
+      if (!parts.some(function(part){ return pd.includes(part); })) return false;
+    }
+    // Free-text location
+    if (locTxt) {
+      var loc = ((p.district||'')+' '+(p.sector||'')).toLowerCase();
+      if (!loc.includes(locTxt)) return false;
+    }
+    // Type (prefer text input over dropdown)
+    var tf = typeTxt || (type && !type.includes('Bwose') && !type.includes('Ikindi') ? type.toLowerCase() : '');
+    if (tf && !(p.type||'').toLowerCase().includes(tf)) return false;
+    // Beds minimum
+    var bedsMin = bedsTxt ? parseInt(bedsTxt) : (beds ? parseInt(beds) : 0);
+    if (bedsMin > 0 && (parseInt(p.beds)||0) < bedsMin) return false;
+    // Price range
+    var pp = parseInt(p.price)||0;
+    if (minP && pp < minP) return false;
+    if (maxP && pp > maxP) return false;
+    // Size range
+    var ps = parseInt(p.size)||0;
+    if (sizeMin && ps < sizeMin) return false;
+    if (sizeMax && ps > sizeMax) return false;
+    // Service / tab
+    if (serviceFilter && p.service && p.service !== serviceFilter) return false;
+    return true;
+  });
+}
+
+// ── updateCount: real count from actual properties
 function updateCount() {
   var el = document.getElementById('sm-result-count');
   if (!el) return;
-  // Simulate smart count based on how many filters are active
-  var modal = document.getElementById('search-modal');
-  var activeFilters = 0;
-  modal.querySelectorAll('select').forEach(function(s){ if(s.selectedIndex > 0) activeFilters++; });
-  modal.querySelectorAll('.sm-chip.on').forEach(function(){ activeFilters++; });
-  var base = Math.max(3, 48 - (activeFilters * 7) + Math.floor(Math.random() * 5));
-  el.textContent = base;
+  var props = [];
+  try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+  var approved = props.filter(function(p){ return p.status === 'Approved'; });
+  el.textContent = applySearchFilters(approved).length;
+}
+
+// ── applyAndSearch: run filters then render matching cards on listings page
+function applyAndSearch() {
+  var props = [];
+  try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+  var approved = props.filter(function(p){ return p.status === 'Approved'; });
+  var filtered = applySearchFilters(approved);
+  window._filtersActive = true;
+  closeSearch();
+  go('listings');
+  setTimeout(function() {
+    var grids = document.querySelectorAll('#p-grid-main');
+    grids.forEach(function(grid) {
+      grid.querySelectorAll('.user-prop-card').forEach(function(el){ el.remove(); });
+      var empty = grid.querySelector('.empty-listings'); if (empty) empty.remove();
+      if (filtered.length === 0) {
+        var emptyDiv = document.createElement('div');
+        emptyDiv.className = 'empty-listings';
+        emptyDiv.style.cssText = 'grid-column:1/-1;text-align:center;padding:2rem 1rem;color:var(--muted)';
+        emptyDiv.innerHTML = '<div style="font-size:2.5rem;margin-bottom:.5rem">🔍</div>'
+          + '<div style="font-size:1rem;font-weight:600;color:var(--navy);margin-bottom:.4rem">'
+          + (curLang==='rw' ? 'Nta mitungo ihuye na gushakisha' : 'No properties match your search') + '</div>'
+          + '<button onclick="resetSearch()" class="btn btn-navy btn-sm" style="margin:.5rem auto;display:block">'
+          + 'Siba Filters →</button>';
+        grid.appendChild(emptyDiv);
+      } else {
+        filtered.forEach(function(prop) {
+          var wrap = document.createElement('div');
+          wrap.className = 'user-prop-card';
+          wrap.setAttribute('data-pid', String(prop.id));
+          wrap.innerHTML = renderUserPropCard(prop);
+          grid.appendChild(wrap);
+        });
+      }
+      var countEl = document.getElementById('listings-count');
+      if (countEl) countEl.textContent = filtered.length;
+    });
+  }, 150);
 }
 // Close modal on ESC key
 document.addEventListener('keydown', function(e) {
