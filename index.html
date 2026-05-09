@@ -1157,6 +1157,56 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .sm-count{background:rgba(255,255,255,.18);border-radius:100px;padding:.12rem .55rem;
   font-size:.72rem;font-weight:700;color:#fff;margin-left:.4rem}
 
+/* ── INSTANT SEARCH SUGGESTIONS ── */
+.qs-wrap{position:relative;max-width:540px}
+.qs-suggestions{
+  position:absolute;top:calc(100% + 8px);left:0;right:0;
+  background:#fff;border-radius:16px;
+  box-shadow:0 20px 56px rgba(8,20,58,.18),0 2px 8px rgba(0,0,0,.08);
+  border:1.5px solid var(--border);z-index:1600;overflow:hidden;
+  animation:smFade .18s ease;max-height:340px;overflow-y:auto;
+}
+.qs-item{
+  display:flex;align-items:center;gap:.85rem;
+  padding:.7rem 1.1rem;cursor:pointer;transition:background .12s;
+  border-bottom:1px solid var(--light);
+}
+.qs-item:last-of-type{border-bottom:none}
+.qs-item:hover,.qs-item.focused{background:#f5f8ff}
+.qs-thumb{width:48px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0}
+.qs-thumb-ph{
+  width:48px;height:40px;border-radius:8px;flex-shrink:0;
+  background:linear-gradient(135deg,#0D3B8C,#1657CC);
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem;
+}
+.qs-info{flex:1;min-width:0}
+.qs-title{font-size:.84rem;font-weight:600;color:var(--dark);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qs-meta{font-size:.72rem;color:var(--muted);margin-top:.06rem;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qs-price{font-size:.8rem;font-weight:700;color:var(--blue);flex-shrink:0;margin-left:.5rem}
+.qs-no-results{padding:1rem 1.1rem;text-align:center;color:var(--muted);font-size:.84rem}
+.qs-footer{
+  padding:.58rem 1.1rem;background:#f8faff;border-top:1px solid var(--border);
+  font-size:.75rem;color:var(--blue);font-weight:600;
+  display:flex;align-items:center;gap:.4rem;cursor:pointer;transition:opacity .12s;
+}
+.qs-footer:hover{opacity:.7}
+.qs-footer svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2}
+.qs-input-field{
+  background:none;border:none;outline:none;
+  font-family:'DM Sans',sans-serif;font-size:.84rem;color:var(--dark);
+  width:100%;min-width:0;padding:0;
+}
+.qs-input-field::placeholder{color:var(--muted)}
+.similar-results-note{
+  grid-column:1/-1;background:linear-gradient(135deg,#f0f5ff,#e8eeff);
+  border:1.5px solid rgba(22,87,204,.25);border-radius:14px;
+  padding:.9rem 1.4rem;margin-bottom:.3rem;
+  display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;
+}
+.similar-results-note span{font-size:.82rem;color:var(--navy);font-weight:600}
+
 @media(max-width:640px){
   .sm-overlay{padding:0}
   .sm-box{border-radius:24px 24px 0 0;margin-top:auto;max-height:92vh;overflow-y:auto}
@@ -1680,6 +1730,15 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 
     <div class="sm-body">
 
+      <!-- QUICK FULL-TEXT SEARCH -->
+      <div class="sm-field">
+        <label style="font-size:.67rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)">🔍 SHAKISHA VUBA</label>
+        <input type="search" id="sm-quick-search" autocomplete="off"
+          placeholder="Villa, Kigali, Gasabo, 3 beds..."
+          oninput="mqsHandleInput()" style="border-radius:10px">
+        <div id="sm-suggestions" class="qs-suggestions" style="display:none;position:relative;top:0;box-shadow:0 8px 24px rgba(0,0,0,.12)"></div>
+      </div>
+
       <!-- AHANTU — full width -->
       <div class="sm-field">
         <label data-rw="AHANTU" data-en="LOCATION">AHANTU</label>
@@ -2148,28 +2207,34 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           <button class="hero-chip" onclick="openSearch({type:'Apartimanı'})">🏢 Apartimanı</button>
         </div>
 
-        <!-- Search trigger bar -->
-        <div class="hero-search-bar" onclick="openSearch()">
-          <div class="hsb-inner">
-            <div class="hsb-item">
-              <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span>Ahantu...</span>
+        <!-- Quick search bar with instant suggestions -->
+        <div class="qs-wrap" style="margin-top:2rem">
+          <div class="hero-search-bar" style="margin-top:0;max-width:100%;cursor:default">
+            <div class="hsb-inner">
+              <div class="hsb-item" style="flex:2">
+                <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--blue);stroke-width:2;flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input id="qs-input" type="search" class="qs-input-field" autocomplete="off"
+                  placeholder="Villa, Gasabo, 3 ibyumba..."
+                  oninput="ksHandleInput()" onfocus="ksHandleInput()"
+                  onclick="event.stopPropagation()">
+              </div>
+              <div class="hsb-sep"></div>
+              <div class="hsb-item" onclick="openSearch()" style="cursor:pointer">
+                <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>
+                <span>Ubwoko...</span>
+              </div>
+              <div class="hsb-sep"></div>
+              <div class="hsb-item" onclick="openSearch()" style="cursor:pointer">
+                <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                <span>Igiciro...</span>
+              </div>
+              <button class="hsb-btn" onclick="qs_search()">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                Shakisha
+              </button>
             </div>
-            <div class="hsb-sep"></div>
-            <div class="hsb-item">
-              <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>
-              <span>Ubwoko...</span>
-            </div>
-            <div class="hsb-sep"></div>
-            <div class="hsb-item">
-              <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-              <span>Igiciro...</span>
-            </div>
-            <button class="hsb-btn">
-              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              Shakisha
-            </button>
           </div>
+          <div id="qs-suggestions" class="qs-suggestions" style="display:none"></div>
         </div>
 
         <div class="hero-stats">
@@ -4727,45 +4792,204 @@ function go(name) {
 
 
 // ── SEARCH MODAL
-// ── openSearch: accepts optional pre-fill {type, district, tab, chip}
+// ══════════════════════════════════════════════
+//  KOMISIYONERI — SMART SEARCH ENGINE v2
+// ══════════════════════════════════════════════
+
+// ── Property cache (5-second TTL) ──
+var _propsCache = null, _propsCacheTime = 0;
+function getApprovedProps() {
+  var now = Date.now();
+  if (!_propsCache || now - _propsCacheTime > 5000) {
+    var raw = [];
+    try { raw = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+    _propsCache = raw.filter(function(p){ return p.status === 'Approved'; });
+    _propsCacheTime = now;
+  }
+  return _propsCache;
+}
+function invalidatePropsCache() { _propsCache = null; }
+
+// ── Normalize text ──
+function kmNorm(s) {
+  return (s||'').toLowerCase()
+    .replace(/[àáâãäå]/g,'a').replace(/[èéêë]/g,'e')
+    .replace(/[ìíîï]/g,'i').replace(/[òóôõö]/g,'o')
+    .replace(/[ùúûü]/g,'u').replace(/ñ/g,'n')
+    .replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+}
+
+// ── Levenshtein distance (capped for speed) ──
+function kmLev(a, b) {
+  if (Math.abs(a.length - b.length) > 3) return 99;
+  var m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  var prev = [], curr = [];
+  for (var j = 0; j <= n; j++) prev[j] = j;
+  for (var i = 1; i <= m; i++) {
+    curr[0] = i;
+    for (var j = 1; j <= n; j++) {
+      curr[j] = a[i-1]===b[j-1] ? prev[j-1] : 1+Math.min(prev[j],curr[j-1],prev[j-1]);
+    }
+    prev = curr.slice();
+  }
+  return prev[n];
+}
+
+// ── Match query word against text (partial + fuzzy typo tolerance) ──
+function kmWordMatch(word, text) {
+  if (text.indexOf(word) !== -1) return true;
+  if (word.length <= 3) return false;
+  var maxDist = word.length <= 5 ? 1 : 2;
+  var tWords = text.split(' ');
+  for (var i = 0; i < tWords.length; i++) {
+    var tw = tWords[i];
+    if (Math.abs(tw.length - word.length) <= maxDist && kmLev(word, tw) <= maxDist) return true;
+  }
+  return false;
+}
+
+// ── Score property 0–100 against free-text query ──
+function kmScore(query, prop) {
+  var q = kmNorm(query);
+  if (!q) return 100;
+  var words = q.split(' ').filter(function(w){ return w.length > 1; });
+  if (!words.length) return 100;
+  var text = kmNorm([prop.title, prop.district, prop.sector, prop.type,
+    prop.description, prop.price ? String(prop.price) : ''].join(' '));
+  var matched = 0;
+  for (var i = 0; i < words.length; i++) {
+    if (kmWordMatch(words[i], text)) matched++;
+  }
+  return Math.round(matched / words.length * 100);
+}
+
+// ── Format price short ──
+function fmtPriceSh(p) {
+  var n = parseInt(p)||0; if (!n) return '';
+  if (n >= 1e9) return (n/1e9).toFixed(1).replace('.0','')+'B RWF';
+  if (n >= 1e6) return Math.round(n/1e6)+'M RWF';
+  return n.toLocaleString()+' RWF';
+}
+
+// ── Render suggestions into a dropdown ──
+function renderQsSuggestions(query, boxId) {
+  var box = document.getElementById(boxId); if (!box) return;
+  if (!query || query.length < 2) { box.style.display='none'; return; }
+  var props = getApprovedProps();
+  var scored = props.map(function(p){ return {p:p,s:kmScore(query,p)}; })
+    .filter(function(x){ return x.s >= 30; })
+    .sort(function(a,b){ return b.s-a.s; }).slice(0,5);
+  if (!scored.length) {
+    box.innerHTML='<div class="qs-no-results">Nta mituringo ihuye na "'+query.replace(/</g,'&lt;')+'"</div>';
+    box.style.display='block'; return;
+  }
+  var html = scored.map(function(x){
+    var p=x.p;
+    var hasImg = p.img1 && p.img1.length > 10;
+    var thumb = hasImg
+      ? '<img class="qs-thumb" src="'+p.img1+'" loading="lazy" onerror="this.style.display=\'none\'">'
+      : '<div class="qs-thumb-ph">🏠</div>';
+    var loc = [p.district,p.sector].filter(Boolean).join(', ');
+    return '<div class="qs-item" onclick="qs_openProp(\''+String(p.id)+'\',\''+boxId+'\')">'+thumb
+      +'<div class="qs-info"><div class="qs-title">'+(p.title||p.type||'Imitungo')+'</div>'
+      +'<div class="qs-meta">'+(loc||'Rwanda')+(p.type?' &middot; '+p.type:'')+'</div></div>'
+      +(p.price?'<div class="qs-price">'+fmtPriceSh(p.price)+'</div>':'')+'</div>';
+  }).join('');
+  html += '<div class="qs-footer" onclick="qs_search()">'
+    +'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
+    +' Reba ibisubizo byose &rarr;</div>';
+  box.innerHTML = html;
+  box.style.display = 'block';
+}
+
+// ── Debounce handlers ──
+var _qsT, _mqsT;
+function ksHandleInput() {
+  clearTimeout(_qsT);
+  _qsT = setTimeout(function(){
+    var inp=document.getElementById('qs-input');
+    if (inp) renderQsSuggestions(inp.value.trim(),'qs-suggestions');
+  }, 160);
+}
+function mqsHandleInput() {
+  clearTimeout(_mqsT);
+  _mqsT = setTimeout(function(){
+    var inp=document.getElementById('sm-quick-search');
+    if (inp) renderQsSuggestions(inp.value.trim(),'sm-suggestions');
+    updateCount();
+  }, 180);
+}
+
+function closeQsSuggestions() {
+  var b1=document.getElementById('qs-suggestions'); if (b1) b1.style.display='none';
+  var b2=document.getElementById('sm-suggestions'); if (b2) b2.style.display='none';
+}
+
+// ── Open single property in listings view ──
+function qs_openProp(id, boxId) {
+  var box=document.getElementById(boxId); if (box) box.style.display='none';
+  closeSearch();
+  var prop = getApprovedProps().filter(function(p){ return String(p.id)===String(id); })[0];
+  if (!prop) return;
+  window._filtersActive = true;
+  go('listings');
+  setTimeout(function(){
+    var grids=document.querySelectorAll('#p-grid-main');
+    grids.forEach(function(grid){
+      grid.querySelectorAll('.user-prop-card').forEach(function(el){ el.remove(); });
+      var e=grid.querySelector('.empty-listings'); if (e) e.remove();
+      var w=document.createElement('div');
+      w.className='user-prop-card'; w.setAttribute('data-pid',String(prop.id));
+      w.innerHTML=renderUserPropCard(prop); grid.appendChild(w);
+      var c=document.getElementById('listings-count'); if (c) c.textContent=1;
+    });
+  }, 100);
+}
+
+// ── Search from hero bar ──
+function qs_search() {
+  var inp=document.getElementById('qs-input'), q=inp?inp.value.trim():'';
+  window._qs_query = q;
+  closeQsSuggestions();
+  if (q) { var mq=document.getElementById('sm-quick-search'); if (mq) mq.value=q; }
+  applyAndSearch();
+}
+
+// ── openSearch: accepts optional pre-fill {type, district, tab, chip, query} ──
 function openSearch(opts) {
   document.getElementById('search-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
   if (opts) {
-    // Pre-select tab (buy / rent)
     if (opts.tab) {
       document.querySelectorAll('.sm-tab').forEach(function(t) {
-        var en = (t.getAttribute('data-en') || '').toLowerCase();
-        t.classList.toggle('active', en === opts.tab.toLowerCase());
+        var en=(t.getAttribute('data-en')||'').toLowerCase();
+        t.classList.toggle('active', en===opts.tab.toLowerCase());
       });
     }
-    // Pre-select district
     if (opts.district) {
-      var dSel = document.getElementById('srch-district');
-      if (dSel) {
-        for (var i = 0; i < dSel.options.length; i++) {
-          if (dSel.options[i].text.toLowerCase().includes(opts.district.toLowerCase())) {
-            dSel.selectedIndex = i; break;
-          }
+      var dSel=document.getElementById('srch-district');
+      if (dSel) for (var i=0;i<dSel.options.length;i++) {
+        if (dSel.options[i].text.toLowerCase().indexOf(opts.district.toLowerCase())!==-1) {
+          dSel.selectedIndex=i; break;
         }
       }
     }
-    // Pre-select property type
     if (opts.type) {
-      var tSel = document.getElementById('srch-type');
-      if (tSel) {
-        for (var i = 0; i < tSel.options.length; i++) {
-          if (tSel.options[i].text.toLowerCase().includes(opts.type.toLowerCase())) {
-            tSel.selectedIndex = i; break;
-          }
+      var tSel=document.getElementById('srch-type');
+      if (tSel) for (var i=0;i<tSel.options.length;i++) {
+        if (tSel.options[i].text.toLowerCase().indexOf(opts.type.toLowerCase())!==-1) {
+          tSel.selectedIndex=i; break;
         }
       }
     }
-    // Toggle an amenity chip (e.g. 3D Tour)
     if (opts.chip) {
       document.querySelectorAll('.sm-chip').forEach(function(c) {
-        if (c.textContent.trim() === opts.chip) c.classList.add('on');
+        if (c.textContent.trim()===opts.chip) c.classList.add('on');
       });
+    }
+    if (opts.query) {
+      var qs=document.getElementById('sm-quick-search'); if (qs) qs.value=opts.query;
     }
   }
   updateCount();
@@ -4773,142 +4997,134 @@ function openSearch(opts) {
 function closeSearch() {
   document.getElementById('search-modal').classList.remove('open');
   document.body.style.overflow = '';
+  closeQsSuggestions();
 }
 function setSmTab(btn) {
   btn.closest('.sm-tabs').querySelectorAll('.sm-tab').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
   updateCount();
 }
-// Reset search AND reload all listings
 function resetSearch() {
-  var modal = document.getElementById('search-modal');
-  modal.querySelectorAll('select').forEach(function(s){ s.selectedIndex = 0; });
-  modal.querySelectorAll('input[type="text"],input[type="number"]').forEach(function(i){ i.value = ''; });
+  var modal=document.getElementById('search-modal');
+  modal.querySelectorAll('select').forEach(function(s){ s.selectedIndex=0; });
+  modal.querySelectorAll('input[type="text"],input[type="number"],input[type="search"]').forEach(function(i){ i.value=''; });
   modal.querySelectorAll('.sm-chip').forEach(function(c){ c.classList.remove('on'); });
-  modal.querySelectorAll('.sm-tab').forEach(function(t,i){ t.classList.toggle('active', i===0); });
-  window._filtersActive = false;
-  updateCount();
-  loadApprovedProperties();
+  modal.querySelectorAll('.sm-tab').forEach(function(t,i){ t.classList.toggle('active',i===0); });
+  var inp=document.getElementById('qs-input'); if (inp) inp.value='';
+  window._filtersActive=false; window._qs_query='';
+  closeQsSuggestions(); invalidatePropsCache();
+  updateCount(); loadApprovedProperties();
 }
 function syncInput(selId, txtId) {
-  var sel = document.getElementById(selId);
-  var txt = document.getElementById(txtId);
-  if (!sel || !txt) return;
-  if (sel.value.includes('Ikindi') || sel.value.includes('Other')) {
-    txt.style.display = 'block'; txt.focus();
-  } else {
-    txt.style.display = 'none';
-  }
+  var sel=document.getElementById(selId), txt=document.getElementById(txtId);
+  if (!sel||!txt) return;
+  if (sel.value.indexOf('Ikindi')!==-1||sel.value.indexOf('Other')!==-1) {
+    txt.style.display='block'; txt.focus();
+  } else { txt.style.display='none'; }
 }
 
-// ── applySearchFilters: returns subset of props matching current modal state
+// ── applySearchFilters: fuzzy + structured matching ──
 function applySearchFilters(props) {
-  var g = function(id){ var el=document.getElementById(id); return el ? el.value.trim() : ''; };
-  var district  = g('srch-district');
-  var locTxt    = g('srch-location-txt').toLowerCase();
-  var type      = g('srch-type');
-  var typeTxt   = g('srch-type-txt').toLowerCase();
-  var beds      = g('srch-beds');
-  var bedsTxt   = g('srch-beds-txt');
-  var minSel    = g('srch-min');
-  var maxSel    = g('srch-max');
-  var sizeMin   = parseInt(g('srch-size-min')) || 0;
-  var sizeMax   = parseInt(g('srch-size-max')) || 0;
-  // Active tab → service filter
+  var g=function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
+  var district = g('srch-district');
+  var locTxt   = kmNorm(g('srch-location-txt'));
+  var type     = g('srch-type');
+  var typeTxt  = kmNorm(g('srch-type-txt'));
+  var beds     = g('srch-beds');
+  var bedsTxt  = g('srch-beds-txt');
+  var minSel   = g('srch-min'), minTxt = g('srch-min-txt').replace(/[^0-9]/g,'');
+  var maxSel   = g('srch-max'), maxTxt = g('srch-max-txt').replace(/[^0-9]/g,'');
+  var sizeMin  = parseInt(g('srch-size-min'))||0;
+  var sizeMax  = parseInt(g('srch-size-max'))||0;
+  var quickQ   = g('sm-quick-search') || (window._qs_query||'');
   var activeTabEl = document.querySelector('.sm-tab.active');
   var tabEn = activeTabEl ? (activeTabEl.getAttribute('data-en')||'').toLowerCase() : '';
-  var serviceFilter = tabEn === 'buy' ? 'Kugura' : tabEn === 'rent' || tabEn === 'gukodesha' ? 'Gukodesha' : '';
-  // Price map (RWF)
+  var serviceFilter = tabEn==='buy'?'Kugura':(tabEn==='rent'||tabEn==='gukodesha')?'Gukodesha':'';
   var PM = {'10M':1e7,'30M':3e7,'50M':5e7,'80M':8e7,'100M':1e8,'150M':1.5e8,'200M':2e8,'300M':3e8,'500M+':5e8};
-  var minP = PM[minSel] || 0;
-  var maxP = PM[maxSel] || 0;
+  var minP = minTxt ? parseInt(minTxt) : (PM[minSel]||0);
+  var maxP = maxTxt ? parseInt(maxTxt) : (PM[maxSel]||0);
 
   return props.filter(function(p) {
-    // District dropdown (skip "Akarere Kose" = all)
-    if (district && !district.includes('Kose')) {
-      var pd = (p.district||'').toLowerCase();
-      var parts = district.toLowerCase().split('—').map(function(s){return s.trim();});
-      if (!parts.some(function(part){ return pd.includes(part); })) return false;
+    if (quickQ && kmScore(quickQ, p) < 40) return false;
+    if (district && district.indexOf('Kose')===-1) {
+      var pd=kmNorm(p.district||'');
+      var dparts=district.toLowerCase().split('—').map(function(s){return s.trim();});
+      if (!dparts.some(function(part){ return pd.indexOf(part)!==-1; })) return false;
     }
-    // Free-text location
     if (locTxt) {
-      var loc = ((p.district||'')+' '+(p.sector||'')).toLowerCase();
-      if (!loc.includes(locTxt)) return false;
+      var loc=kmNorm((p.district||'')+' '+(p.sector||'')+' '+(p.title||''));
+      if (!locTxt.split(' ').filter(Boolean).every(function(w){ return kmWordMatch(w,loc); })) return false;
     }
-    // Type (prefer text input over dropdown)
-    var tf = typeTxt || (type && !type.includes('Bwose') && !type.includes('Ikindi') ? type.toLowerCase() : '');
-    if (tf && !(p.type||'').toLowerCase().includes(tf)) return false;
-    // Beds minimum
-    var bedsMin = bedsTxt ? parseInt(bedsTxt) : (beds ? parseInt(beds) : 0);
-    if (bedsMin > 0 && (parseInt(p.beds)||0) < bedsMin) return false;
-    // Price range
-    var pp = parseInt(p.price)||0;
-    if (minP && pp < minP) return false;
-    if (maxP && pp > maxP) return false;
-    // Size range
-    var ps = parseInt(p.size)||0;
-    if (sizeMin && ps < sizeMin) return false;
-    if (sizeMax && ps > sizeMax) return false;
-    // Service / tab
-    if (serviceFilter && p.service && p.service !== serviceFilter) return false;
+    var tf=typeTxt||(type&&type.indexOf('Bwose')===-1&&type.indexOf('Ikindi')===-1?kmNorm(type):'');
+    if (tf && !tf.split(' ').filter(Boolean).some(function(w){ return kmWordMatch(w,kmNorm(p.type||'')); })) return false;
+    var bedsMin=bedsTxt?parseInt(bedsTxt):(beds?parseInt(beds):0);
+    if (bedsMin>0 && (parseInt(p.beds)||0)<bedsMin) return false;
+    var pp=parseInt(p.price)||0;
+    if (minP && pp<minP) return false;
+    if (maxP && pp>maxP) return false;
+    var ps=parseInt(p.size)||0;
+    if (sizeMin && ps<sizeMin) return false;
+    if (sizeMax && ps>sizeMax) return false;
+    if (serviceFilter && p.service && p.service!==serviceFilter) return false;
     return true;
   });
 }
 
-// ── updateCount: real count from actual properties
+// ── updateCount ──
 function updateCount() {
-  var el = document.getElementById('sm-result-count');
-  if (!el) return;
-  var props = [];
-  try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-  var approved = props.filter(function(p){ return p.status === 'Approved'; });
-  el.textContent = applySearchFilters(approved).length;
+  var el=document.getElementById('sm-result-count'); if (!el) return;
+  el.textContent = applySearchFilters(getApprovedProps()).length;
 }
 
-// ── applyAndSearch: run filters then render matching cards on listings page
+// ── applyAndSearch: filter + show closest matches on zero results ──
 function applyAndSearch() {
-  var props = [];
-  try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-  var approved = props.filter(function(p){ return p.status === 'Approved'; });
-  var filtered = applySearchFilters(approved);
-  window._filtersActive = true;
-  closeSearch();
-  go('listings');
-  setTimeout(function() {
-    var grids = document.querySelectorAll('#p-grid-main');
-    grids.forEach(function(grid) {
+  var approved=getApprovedProps(), filtered=applySearchFilters(approved);
+  window._filtersActive=true;
+  closeSearch(); go('listings');
+  setTimeout(function(){
+    var grids=document.querySelectorAll('#p-grid-main');
+    grids.forEach(function(grid){
       grid.querySelectorAll('.user-prop-card').forEach(function(el){ el.remove(); });
-      var empty = grid.querySelector('.empty-listings'); if (empty) empty.remove();
-      if (filtered.length === 0) {
-        var emptyDiv = document.createElement('div');
-        emptyDiv.className = 'empty-listings';
-        emptyDiv.style.cssText = 'grid-column:1/-1;text-align:center;padding:2rem 1rem;color:var(--muted)';
-        emptyDiv.innerHTML = '<div style="font-size:2.5rem;margin-bottom:.5rem">🔍</div>'
-          + '<div style="font-size:1rem;font-weight:600;color:var(--navy);margin-bottom:.4rem">'
-          + (curLang==='rw' ? 'Nta mitungo ihuye na gushakisha' : 'No properties match your search') + '</div>'
-          + '<button onclick="resetSearch()" class="btn btn-navy btn-sm" style="margin:.5rem auto;display:block">'
-          + 'Siba Filters →</button>';
-        grid.appendChild(emptyDiv);
-      } else {
-        filtered.forEach(function(prop) {
-          var wrap = document.createElement('div');
-          wrap.className = 'user-prop-card';
-          wrap.setAttribute('data-pid', String(prop.id));
-          wrap.innerHTML = renderUserPropCard(prop);
-          grid.appendChild(wrap);
+      grid.querySelectorAll('.empty-listings,.similar-results-note').forEach(function(el){ el.remove(); });
+      var countEl=document.getElementById('listings-count');
+      if (filtered.length===0) {
+        var qText=window._qs_query||(function(){var el=document.getElementById('sm-quick-search');return el?el.value.trim():'';})();
+        var similar=approved.map(function(p){return{p:p,s:kmScore(qText||'',p)};})
+          .sort(function(a,b){return b.s-a.s;}).slice(0,3);
+        var note=document.createElement('div');
+        note.className='similar-results-note';
+        note.style.cssText='grid-column:1/-1';
+        note.innerHTML='<span>🔍 '+(curLang==='rw'?'Nta mitungo ihuye — hano ni imitungo ifanana:':'No exact match — showing closest results:')+'</span>'
+          +'&nbsp;<button onclick="resetSearch()" class="btn btn-navy btn-sm" style="margin:0">Siba →</button>';
+        grid.appendChild(note);
+        similar.forEach(function(x){
+          var w=document.createElement('div');
+          w.className='user-prop-card'; w.setAttribute('data-pid',String(x.p.id));
+          w.innerHTML=renderUserPropCard(x.p); grid.appendChild(w);
         });
+        if (countEl) countEl.textContent=0;
+      } else {
+        filtered.forEach(function(prop){
+          var w=document.createElement('div');
+          w.className='user-prop-card'; w.setAttribute('data-pid',String(prop.id));
+          w.innerHTML=renderUserPropCard(prop); grid.appendChild(w);
+        });
+        if (countEl) countEl.textContent=filtered.length;
       }
-      var countEl = document.getElementById('listings-count');
-      if (countEl) countEl.textContent = filtered.length;
     });
   }, 150);
 }
-// Close modal on ESC key
+
+// ESC + outside-click to close
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeSearch();
+  if (e.key==='Escape') { closeSearch(); closeQsSuggestions(); }
+});
+document.addEventListener('click', function(e) {
+  var qs=document.getElementById('qs-suggestions'), inp=document.getElementById('qs-input');
+  if (qs && qs.style.display!=='none' && !qs.contains(e.target) && e.target!==inp) qs.style.display='none';
 });
 
-// ── Init on load
+// ── Init on load ──
 window.addEventListener('DOMContentLoaded', function() {
   go('home');
   setLang('rw');
