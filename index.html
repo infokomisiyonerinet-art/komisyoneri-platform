@@ -5336,22 +5336,27 @@ function adminRender(filter) {
     list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">' + t('noPropsCat') + '</div>';
     return;
   }
-  list.innerHTML = filtered.map(function(prop, i) {
-    var globalIdx = props.indexOf(prop);
+  var propsIndexed = props.map(function(p, i) { return {p: p, idx: i}; });
+  var filteredIndexed = filter === 'all' ? propsIndexed : propsIndexed.filter(function(item) {
+    return (item.p.status||'').toLowerCase() === filter;
+  });
+  list.innerHTML = filteredIndexed.map(function(item) {
+    var prop = item.p;
+    var globalIdx = item.idx;
     var priceDisplay = prop.price ? Number(prop.price).toLocaleString()+' RWF' : '—';
     var statusColor = prop.status==='Approved'?'#27A84A':prop.status==='Rejected'?'#e53e3e':'#F5A623';
     return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.8rem;background:#fafbff">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;flex-wrap:wrap">'
       + '<div style="flex:1">'
-      + '<div style="font-weight:700;color:var(--navy);font-size:.95rem">'+prop.type+' — '+prop.district+(prop.sector?', '+prop.sector:'')+'</div>'
-      + '<div style="font-size:.8rem;color:var(--muted);margin:.2rem 0">👤 '+prop.owner+' | 📞 '+prop.contact+'</div>'
-      + '<div style="font-size:.8rem;color:var(--muted)">📧 '+(prop.ownerEmail||'—')+'</div>'
-      + '<div style="font-size:.85rem;margin:.4rem 0;font-weight:600">💰 '+priceDisplay+' ('+prop.service+')</div>'
-      + (prop.desc?'<div style="font-size:.78rem;color:#555;margin:.3rem 0;font-style:italic">'+prop.desc.substring(0,100)+'...</div>':'')
+      + '<div style="font-weight:700;color:var(--navy);font-size:.95rem">'+escapeHtml(prop.type||'')+' — '+escapeHtml(prop.district||'')+(prop.sector?', '+escapeHtml(prop.sector):'')+'</div>'
+      + '<div style="font-size:.8rem;color:var(--muted);margin:.2rem 0">👤 '+escapeHtml(prop.owner||'')+' | 📞 '+escapeHtml(prop.contact||'')+'</div>'
+      + '<div style="font-size:.8rem;color:var(--muted)">📧 '+escapeHtml(prop.ownerEmail||'—')+'</div>'
+      + '<div style="font-size:.85rem;margin:.4rem 0;font-weight:600">💰 '+priceDisplay+' ('+escapeHtml(prop.service||'')+')</div>'
+      + (prop.desc?'<div style="font-size:.78rem;color:#555;margin:.3rem 0;font-style:italic">'+escapeHtml(prop.desc.substring(0,100))+'...</div>':'')
       + '<div style="font-size:.72rem;color:var(--muted)">📅 '+(prop.date?new Date(prop.date).toLocaleString():'—')+'</div>'
       + '</div>'
       + '<div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">'
-      + '<div style="font-size:.7rem;font-weight:700;color:'+statusColor+';text-align:center">'+prop.status+'</div>'
+      + '<div style="font-size:.7rem;font-weight:700;color:'+statusColor+';text-align:center">'+escapeHtml(prop.status||'')+'</div>'
       + (filter!=='approved'?'<button onclick="adminApprove('+globalIdx+')" style="background:#27A84A;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">✅ Emeza</button>':'')
       + (filter!=='rejected'?'<button onclick="adminReject('+globalIdx+')" style="background:#e53e3e;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">❌ Kataa</button>':'')
       + '<button onclick="adminDelete('+globalIdx+')" style="background:#718096;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem">🗑️ Siba</button>'
@@ -5741,18 +5746,7 @@ setTimeout(loadSimilarProperties, 400);
 //  Google Sign-in + Phone OTP (Firebase)
 // ════════════════════════════════════════════════
 
-// Firebase config — user fills this in Firebase Console
-// Instructions: console.firebase.google.com → New Project → Add Web App
-var FIREBASE_CONFIG = {
-  apiKey: "AIzaSyAtNnbsXKFgABvP-nTvGwz6pooGnSWSshY",
-  authDomain: "komisiyoneri-78e82.firebaseapp.com",
-  databaseURL: "https://komisiyoneri-78e82-default-rtdb.firebaseio.com",
-  projectId: "komisiyoneri-78e82",
-  storageBucket: "komisiyoneri-78e82.firebasestorage.app",
-  messagingSenderId: "580559336922",
-  appId: "1:580559336922:web:2275a3013b07cf56c0fce3",
-  measurementId: "G-NE0PHMB885"
-};
+// Firebase is already initialized at the top of the page; no duplicate config needed.
 
 var firebaseApp = null;
 var firebaseAuth = null;
@@ -5762,15 +5756,23 @@ var recaptchaVerifier = null;
 // Initialize Firebase
 function initFirebase() {
   try {
-    if (typeof firebase !== 'undefined' && FIREBASE_CONFIG.apiKey !== 'YOUR_FIREBASE_API_KEY') {
-      if (!firebase.apps.length) {
-        firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
-      }
+    if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
       firebaseAuth = firebase.auth();
+      if (!window._authListenerAttached) {
+        window._authListenerAttached = true;
+        firebaseAuth.onAuthStateChanged(function(fbUser) {
+          if (!fbUser && currentUser && (currentUser.provider === 'google' || currentUser.provider === 'phone')) {
+            // Firebase session expired for social/phone users — clear local session too
+            currentUser = null;
+            try { localStorage.removeItem('km_current'); } catch(e) {}
+            updateNavForUser(null);
+          }
+        });
+      }
       return true;
     }
   } catch(e) {
-    console.log('Firebase not configured:', e.message);
+    console.log('Firebase not available:', e.message);
   }
   return false;
 }
@@ -5804,7 +5806,6 @@ function initGoogleSignIn() {
 }
 
 function handleGoogleResponse(response) {
-  // Decode JWT token from Google
   try {
     var parts = response.credential.split('.');
     var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
@@ -5817,19 +5818,39 @@ function handleGoogleResponse(response) {
       provider: 'google',
       date: new Date().toISOString()
     };
-    // Save and login
-    var users = [];
-    try { users = JSON.parse(localStorage.getItem('km_users') || '[]'); } catch(e){}
-    var existing = users.find(function(u) { return u.email === user.email; });
-    if (!existing) {
-      users.push(user);
-      try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
-    } else {
-      user = existing;
+
+    function finishGoogleLogin(user) {
+      var users = [];
+      try { users = JSON.parse(localStorage.getItem('km_users') || '[]'); } catch(e){}
+      var existing = users.find(function(u) { return u.email === user.email; });
+      if (!existing) {
+        users.push(user);
+        try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
+      } else {
+        user = existing;
+      }
+      saveUser(user);
+      showToast('Murakaza neza ' + user.name + '! (Google) 🎉');
+      setTimeout(function() { go('home'); }, 800);
     }
-    saveUser(user);
-    showToast('Murakaza neza ' + user.name + '! (Google) 🎉');
-    setTimeout(function() { go('home'); }, 800);
+
+    // Exchange Google credential with Firebase so Firebase recognizes this session
+    if (initFirebase() && firebaseAuth && typeof firebase.auth.GoogleAuthProvider !== 'undefined') {
+      var credential = firebase.auth.GoogleAuthProvider.credential(response.credential);
+      firebaseAuth.signInWithCredential(credential)
+        .then(function(result) {
+          user.name = result.user.displayName || user.name;
+          user.email = result.user.email || user.email;
+          user.avatar = result.user.photoURL || user.avatar;
+          finishGoogleLogin(user);
+        })
+        .catch(function() {
+          // Firebase exchange failed — still allow login via localStorage
+          finishGoogleLogin(user);
+        });
+    } else {
+      finishGoogleLogin(user);
+    }
   } catch(e) {
     showToast('Google sign-in error. Gerageza nanone.');
   }
@@ -5859,6 +5880,11 @@ function openPhoneAuth() {
 function closePhoneAuth() {
   var m = document.getElementById('phone-modal');
   if (m) m.style.display = 'none';
+  if (recaptchaVerifier) {
+    try { recaptchaVerifier.clear(); } catch(e) {}
+    recaptchaVerifier = null;
+  }
+  confirmationResult = null;
 }
 
 function sendOTP() {
@@ -5897,25 +5923,22 @@ function sendOTP() {
         })
         .catch(function(error) {
           console.error('Phone auth error:', error);
-          // Fallback to demo mode
           document.getElementById('phone-step1').style.display = 'none';
           document.getElementById('phone-step2').style.display = 'block';
-          window._demoOTP = '123456';
-          showToast('Demo Mode: Shyiramo OTP: 123456');
+          window._demoOTP = String(Math.floor(100000 + Math.random() * 900000));
+          showToast('Demo Mode: OTP: ' + window._demoOTP);
         });
     } catch(e) {
-      // Demo fallback
       document.getElementById('phone-step1').style.display = 'none';
       document.getElementById('phone-step2').style.display = 'block';
-      window._demoOTP = '123456';
-      showToast('Demo Mode: Shyiramo OTP: 123456');
+      window._demoOTP = String(Math.floor(100000 + Math.random() * 900000));
+      showToast('Demo Mode: OTP: ' + window._demoOTP);
     }
   } else {
-    // Demo mode
     document.getElementById('phone-step1').style.display = 'none';
     document.getElementById('phone-step2').style.display = 'block';
-    window._demoOTP = '123456';
-    showToast('Demo Mode: Shyiramo OTP: 123456');
+    window._demoOTP = String(Math.floor(100000 + Math.random() * 900000));
+    showToast('Demo Mode: OTP: ' + window._demoOTP);
   }
 }
 
@@ -6207,8 +6230,15 @@ function submitLead() {
 
 // === ADMIN LEAD DASHBOARD ===
 function openAdminLeads() {
-  var pass = prompt('Admin Password:');
-  if(!pass || pass !== 'KOMISIYONERI2026') { showToast('Password sibyo!'); return; }
+  var isAdmin = currentUser && (
+    currentUser.email === 'komisiyonericonnectproservices@gmail.com' ||
+    currentUser.email === 'admin@komisiyoneri.com' ||
+    currentUser.role === 'Admin'
+  );
+  if (!isAdmin) {
+    showToast(curLang==='rw' ? 'Ntabwo wemerewe! Admin gusa.' : 'Access denied. Admin only.');
+    return;
+  }
 
   var leads = [];
   var agents = [];
@@ -6892,10 +6922,11 @@ function updateHamburgerAuth() {
 
 function handleLogout() {
   currentUser = null;
-  try { localStorage.removeItem('km_current_user'); } catch(e) {}
-  // Firebase signout
+  try { localStorage.removeItem('km_current'); } catch(e) {}
+  updateNavForUser(null);
+  closeProfile();
   if(firebaseAuth) {
-    try { firebaseAuth.signOut(); } catch(e) {}
+    firebaseAuth.signOut().catch(function(e) { console.error('signOut error:', e); });
   }
   showToast(curLang==='rw' ? 'Wasohowe neza!' : 'Signed out successfully!');
   go('home');
@@ -7250,6 +7281,8 @@ go = function(page) {
 (function(){
   try {
     var rtdb = firebase.database();
+    var _set = localStorage.setItem.bind(localStorage);
+
     function syncFromFirebase() {
       rtdb.ref('properties').once('value')
         .then(function(s) {
@@ -7257,23 +7290,32 @@ go = function(page) {
           var p = [];
           s.forEach(function(c){ p.push(c.val()); });
           if(p.length > 0) {
-            localStorage.setItem('km_properties', JSON.stringify(p));
-            if(typeof renderListings==='function') renderListings();
-            if(typeof loadListings==='function') loadListings();
+            var local = [];
+            try { local = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+            // Only overwrite local data if Firebase has more or equal records
+            if(p.length >= local.length) {
+              _set('km_properties', JSON.stringify(p));
+              if(typeof renderListings==='function') renderListings();
+              if(typeof loadListings==='function') loadListings();
+            }
           }
-        });
+        })
+        .catch(function(e){ console.error('Firebase sync error:', e); });
     }
-    var _set = localStorage.setItem.bind(localStorage);
+
     localStorage.setItem = function(k,v) {
       _set(k,v);
       if(k==='km_properties') {
         try {
           JSON.parse(v||'[]').forEach(function(p) {
-            if(p.id) rtdb.ref('properties/'+p.id).set(p);
+            if(p.id) rtdb.ref('properties/'+p.id).set(p).catch(function(e){
+              console.error('RTDB write error for property '+p.id+':', e);
+            });
           });
         } catch(e){}
       }
     };
+
     document.readyState==='loading'
       ? document.addEventListener('DOMContentLoaded', syncFromFirebase)
       : syncFromFirebase();
