@@ -1847,7 +1847,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     <button class="nl active" id="nl-home" onclick="go('home')" aria-label="Ahabanza — Home page" aria-current="page" data-rw="Ahabanza" data-en="Home">Ahabanza</button>
     <button class="nl" id="nl-listings" onclick="go('listings')" aria-label="Imitungo — Properties page" data-rw="Imitungo" data-en="Properties">Imitungo</button>
     <button class="nl" id="nl-analytics" onclick="go('analytics')" aria-label="AI Analytics page" data-rw="AI Analytics" data-en="AI Analytics">AI Analytics</button>
-    <button class="nl" id="nl-dashboard" onclick="go('dashboard')" aria-label="Dashboard page" data-rw="Dashboard" data-en="Dashboard">Dashboard</button>
+    <button class="nl" id="nl-dashboard" onclick="go('dashboard')" aria-label="Dashboard page" data-rw="Dashboard" data-en="Dashboard" style="display:none">Dashboard</button>
     <button class="nl" id="nl-auth" onclick="go('auth')" data-rw="Injira" data-en="Sign In">Injira</button>
   </div>
   <div class="topnav-right">
@@ -3115,7 +3115,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <div class="ds-logo"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span>KOMISIYONERI</span></div>
       <div class="ds-section" data-rw="URUBUGA" data-en="MAIN">URUBUGA</div>
       <div class="dn active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span data-rw="Overview" data-en="Overview">Overview</span></div>
-      <div class="dn"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span data-rw="Imitungo Yanjye" data-en="My Listings">Imitungo Yanjye</span><span class="ds-badge">12</span></div>
+      <div class="dn"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span data-rw="Imitungo Yanjye" data-en="My Listings">Imitungo Yanjye</span><span class="ds-badge" id="dash-sidebar-listings">0</span></div>
       <div class="dn" onclick="go('listings')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span data-rw="Shakisha" data-en="Search">Shakisha</span></div>
       <div class="dn" onclick="go('analytics')"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Analytics</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Abakiliya" data-en="Clients">Abakiliya</span><span class="ds-badge">5</span></div>
@@ -3128,25 +3128,25 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     </aside>
     <main class="dash-content">
       <div class="dash-welcome">
-        <h2 data-rw="Murakaza neza, Agent!" data-en="Welcome back, Agent!">Murakaza neza, Agent!</h2>
+        <h2 id="dash-welcome-name" data-rw="Murakaza neza, Agent!" data-en="Welcome back, Agent!">Murakaza neza, Agent!</h2>
         <p data-rw="Ibyo bigezweho ku butunzi bwawe kuri uyu wa 3" data-en="Here's what's happening with your portfolio today">Ibyo bigezweho ku butunzi bwawe kuri uyu wa 3</p>
       </div>
       <!-- KPIs from pitch deck slide 9 -->
       <div class="kpis">
         <div class="kpi">
-          <div class="kpi-top"><div><span class="kpi-v">12</span><div class="kpi-l" data-rw="Imitungo Yanditswe" data-en="Active Listings">Active Listings</div></div><div class="kpi-icon ki-navy"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div></div>
+          <div class="kpi-top"><div><span class="kpi-v" id="dash-kpi-listings">0</span><div class="kpi-l" data-rw="Imitungo Yanditswe" data-en="Active Listings">Active Listings</div></div><div class="kpi-icon ki-navy"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div></div>
           <div class="delta d-up"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>+3 uku kwezi</div>
         </div>
         <div class="kpi">
-          <div class="kpi-top"><div><span class="kpi-v">4</span><div class="kpi-l" data-rw="Igurishwa Ryagenze" data-en="Sales Closed">Sales Closed</div></div><div class="kpi-icon ki-green"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div></div>
+          <div class="kpi-top"><div><span class="kpi-v" id="dash-kpi-sales">0</span><div class="kpi-l" data-rw="Igurishwa Ryagenze" data-en="Sales Closed">Sales Closed</div></div><div class="kpi-icon ki-green"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div></div>
           <div class="delta d-up"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>+1 vs last month</div>
         </div>
         <div class="kpi">
-          <div class="kpi-top"><div><span class="kpi-v">2.4M</span><div class="kpi-l" data-rw="Komisiyoni (RWF)" data-en="Commission (RWF)">Komisiyoni</div></div><div class="kpi-icon ki-gold"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div></div>
+          <div class="kpi-top"><div><span class="kpi-v" id="dash-kpi-commission">0</span><div class="kpi-l" data-rw="Komisiyoni (RWF)" data-en="Commission (RWF)">Komisiyoni</div></div><div class="kpi-icon ki-gold"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div></div>
           <div class="delta d-up"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>+18%</div>
         </div>
         <div class="kpi">
-          <div class="kpi-top"><div><span class="kpi-v">28</span><div class="kpi-l" data-rw="Abakiliya Basha" data-en="New Inquiries">New Inquiries</div></div><div class="kpi-icon ki-blue"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div></div>
+          <div class="kpi-top"><div><span class="kpi-v" id="dash-kpi-leads">0</span><div class="kpi-l" data-rw="Abakiliya Basha" data-en="New Inquiries">New Inquiries</div></div><div class="kpi-icon ki-blue"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div></div>
           <div class="delta d-up"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>+7 uyu munsi</div>
         </div>
       </div>
@@ -3154,26 +3154,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <!-- My Listings -->
         <div class="dc">
           <div class="dc-hdr"><span class="dc-title" data-rw="Imitungo Yanjye" data-en="My Listings">Imitungo Yanjye</span><button class="dc-action" onclick="go('listings')" data-rw="Reba Yose" data-en="View All">Reba Yose</button></div>
-          <div class="lr" onclick="go('detail')">
-            <div class="lt g1"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div>
-            <div class="li"><strong data-rw="Villa Kimironko — 4BR" data-en="Villa Kimironko — 4BR">Villa Kimironko — 4BR</strong><span><span class="sdot sd-green"></span><span data-rw="Iraboneka" data-en="Active">Iraboneka</span> · 8 views uyu munsi</span></div>
-            <span class="lr-price">120M</span>
-          </div>
-          <div class="lr" onclick="go('detail')">
-            <div class="lt g2"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
-            <div class="li"><strong data-rw="Apartimanı Niboye — 2BR" data-en="Apartment Niboye — 2BR">Apartimanı Niboye — 2BR</strong><span><span class="sdot sd-gold"></span><span data-rw="Irasabwa" data-en="Pending">Irasabwa</span> · Abakiliya 3 basaba</span></div>
-            <span class="lr-price" id="dash-prop-price">—</span>
-          </div>
-          <div class="lr" onclick="go('detail')">
-            <div class="lt g3"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg></div>
-            <div class="li"><strong data-rw="Inzu Musanze — 3BR" data-en="House Musanze — 3BR">Inzu Musanze — 3BR</strong><span><span class="sdot sd-green"></span><span data-rw="Iraboneka" data-en="Active">Iraboneka</span> · Rishya</span></div>
-            <span class="lr-price">85M</span>
-          </div>
-          <div class="lr" onclick="go('detail')">
-            <div class="lt g4"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div>
-            <div class="li"><strong data-rw="Inyubako CBD — 6 Floors" data-en="Office CBD — 6 Floors">Inyubako CBD — 6 Floors</strong><span><span class="sdot sd-muted"></span><span data-rw="Yagurishijwe" data-en="Sold">Yagurishijwe</span></span></div>
-            <span class="lr-price">220M</span>
-          </div>
+          <div id="dash-listings-rows"></div>
           <!-- mini bar chart -->
           <div class="mini-bars">
             <div class="mb-col"><div class="mb-bar" style="height:30px"></div><span class="mb-lbl">Mon</span></div>
@@ -3210,7 +3191,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           </div>
           <!-- Quick actions -->
           <div style="padding:1.1rem 1.4rem;border-top:1px solid var(--border);display:flex;gap:.6rem;flex-wrap:wrap">
-            <button class="btn btn-navy btn-sm" onclick="showToast('Imitungo mishya yanditswe!')">
+            <button class="btn btn-navy btn-sm" onclick="openAddProperty()">
               <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               <span data-rw="Andika Imitungo" data-en="Add Listing">Andika Imitungo</span>
             </button>
@@ -4478,6 +4459,68 @@ function updateNavForUser(user) {
   if(userArea) userArea.style.display='flex';
   var ini = (user.name||'U').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
   if(avatar) avatar.textContent = ini;
+  var dashBtn = document.getElementById('nl-dashboard');
+  if(dashBtn) dashBtn.style.display = (user.role === 'Agent' || user.role === 'Admin') ? '' : 'none';
+}
+
+function loadAgentDashboard() {
+  if (!currentUser) return;
+  var e = function(id){ return document.getElementById(id); };
+
+  // Personalize welcome
+  var wn = e('dash-welcome-name');
+  if (wn) wn.textContent = (curLang==='rw' ? 'Murakaza neza, ' : 'Welcome back, ') + (currentUser.name||'Agent') + '!';
+
+  var props = [], deals = [], leads = [], agents = [];
+  try { props  = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(err){}
+  try { deals  = JSON.parse(localStorage.getItem('km_deals')||'[]');      } catch(err){}
+  try { leads  = JSON.parse(localStorage.getItem('km_leads')||'[]');      } catch(err){}
+  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]');     } catch(err){}
+
+  var myProps    = props.filter(function(p){ return p.ownerEmail === currentUser.email; });
+  var approved   = myProps.filter(function(p){ return p.status === 'Approved'; });
+  var myLeads    = leads.filter(function(l){ return currentUser.agentId && l.assignedAgent === currentUser.agentId; });
+  var myDeals    = deals.filter(function(d){ return currentUser.agentId && d.agentId === currentUser.agentId; });
+  var salesClosed = myDeals.filter(function(d){ return d.status === 'Completed'; }).length;
+
+  var myAgent = agents.find(function(a){ return a.id === currentUser.agentId; });
+  var commission = myAgent ? (myAgent.commissionTotal || 0) : 0;
+  var commDisp = commission >= 1000000 ? (commission/1000000).toFixed(1)+'M'
+               : commission >= 1000    ? Math.round(commission/1000)+'K'
+               : String(commission);
+
+  if(e('dash-kpi-listings'))   e('dash-kpi-listings').textContent   = approved.length;
+  if(e('dash-kpi-sales'))      e('dash-kpi-sales').textContent      = salesClosed;
+  if(e('dash-kpi-commission')) e('dash-kpi-commission').textContent = commDisp || '0';
+  if(e('dash-kpi-leads'))      e('dash-kpi-leads').textContent      = myLeads.length;
+  if(e('dash-sidebar-listings')) e('dash-sidebar-listings').textContent = approved.length;
+
+  renderDashboardListings(approved);
+}
+
+function renderDashboardListings(props) {
+  var el = document.getElementById('dash-listings-rows');
+  if (!el) return;
+  if (!props || props.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.88rem">'
+      + (curLang==='rw' ? 'Nta mitungo yanditswe. Fungura bikorwa!' : 'No listings yet. Add your first property!')
+      + '</div>';
+    return;
+  }
+  var gradients = ['g1','g2','g3','g4','g5','g6','g7'];
+  el.innerHTML = props.slice(0,4).map(function(prop, i) {
+    var gc = gradients[i % 7];
+    var price = prop.price ? (Number(prop.price)>=1000000 ? (Number(prop.price)/1000000).toFixed(0)+'M RWF' : Number(prop.price).toLocaleString()+' RWF') : '—';
+    var statusColor = prop.status==='Approved' ? 'sd-green' : prop.status==='Pending' ? 'sd-gold' : 'sd-muted';
+    var statusLabel = prop.status==='Approved' ? (curLang==='rw'?'Iraboneka':'Active')
+                    : prop.status==='Pending'  ? (curLang==='rw'?'Irasabwa':'Pending') : escapeHtml(prop.status||'');
+    return '<div class="lr" onclick="go(\'listings\')">'
+      + '<div class="lt '+gc+'"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div>'
+      + '<div class="li"><strong>'+escapeHtml((prop.type||'')+' — '+(prop.district||''))+'</strong>'
+      + '<span><span class="sdot '+statusColor+'"></span>'+statusLabel+'</span></div>'
+      + '<span class="lr-price">'+price+'</span>'
+      + '</div>';
+  }).join('');
 }
 
 function openProfile() {
@@ -4751,6 +4794,20 @@ function animateKPIs() {
 
 // ── UNIFIED go() — page navigation + title + analytics
 function go(name) {
+  if (name === 'dashboard') {
+    if (!currentUser) {
+      showToast(curLang==='rw' ? 'Injira mbere!' : 'Please log in first!');
+      name = 'auth';
+    } else if (currentUser.role === 'PendingAgent') {
+      showToast(curLang==='rw' ? '⏳ Iyandikishe ryawe irimo gusuzumwa! KOMISIYONERI izakugezaho mu masaa 24.' : '⏳ Your application is under review! We will contact you within 24 hours.');
+      return;
+    } else if (currentUser.role !== 'Agent' && currentUser.role !== 'Admin') {
+      showToast(curLang==='rw' ? 'Dashboard irabana n\'Agents gusa!' : 'Dashboard is for Agents only!');
+      return;
+    } else {
+      loadAgentDashboard();
+    }
+  }
   // Hide all pages, deactivate all nav links
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nl').forEach(b => {
@@ -5144,7 +5201,6 @@ window.addEventListener('DOMContentLoaded', function() {
 //  KOMISIYONERI — PROPERTY SUBMISSION SYSTEM
 // ============================================
 
-var ADMIN_PASS = 'KOMISIYONERI2026';
 var adminCurrentFilter = 'pending';
 
 // --- RENDER USER PROPERTY CARD ---
@@ -5276,9 +5332,13 @@ function loadApprovedProperties() {
 
 // --- OPEN ADMIN PANEL ---
 function openAdmin() {
-  var pass = prompt('Injiza ijambo banga rya Admin (KOMISIYONERI2026):');
-  if (!pass || pass !== ADMIN_PASS) {
-    showToast('Ijambo banga sibyo! Admin gusa.');
+  var isAdmin = currentUser && (
+    currentUser.email === 'komisiyonericonnectproservices@gmail.com' ||
+    currentUser.email === 'admin@komisiyoneri.com' ||
+    currentUser.role === 'Admin'
+  );
+  if (!isAdmin) {
+    showToast(curLang==='rw' ? 'Ntabwo wemerewe! Admin gusa.' : 'Access denied. Admin only.');
     return;
   }
   var m = document.getElementById('admin-modal');
@@ -5988,7 +6048,7 @@ function verifyOTP() {
       showToast('Wainjiye neza! 🎉');
       setTimeout(function() { go('home'); }, 800);
     } else {
-      showToast('Code sibyo! Demo: 123456');
+      showToast(curLang==='rw' ? 'Code sibyo! Gerageza nanone.' : 'Wrong code! Try again.');
     }
   }
 }
@@ -6098,6 +6158,8 @@ function submitAgentReg() {
   if(!g('ag-phone')){showToast('Shyira telefoni yawe!');return;}
   if(!g('ag-id')){showToast('Shyira numero y\'indangamuntu!');return;}
   if(!g('ag-zone')){showToast('Hitamo akarere kawe!');return;}
+  var agEmail = g('ag-email');
+  if(agEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(agEmail)){showToast('Imeyili ntabwo ari nziza!');return;}
   if(!document.getElementById('ag-agree').checked){showToast('Emeza amasezerano mbere!');return;}
 
   var langs = [];
@@ -6131,9 +6193,9 @@ function submitAgentReg() {
   agents.push(agent);
   try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
 
-  // Update current user to agent role
+  // Update current user to pending agent — full Agent role granted on admin approval
   if(currentUser) {
-    currentUser.role = 'Agent';
+    currentUser.role = 'PendingAgent';
     currentUser.agentId = agent.id;
     currentUser.zone = agent.zone;
     saveUser(currentUser);
@@ -7131,9 +7193,18 @@ function adminAgentApprove(idx) {
   if(agents[idx]) {
     agents[idx].status = 'Active';
     try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
+    // Promote the matching user's role to 'Agent'
+    var agentId = agents[idx].id;
+    var users = [];
+    try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
+    var updated = false;
+    users = users.map(function(u) {
+      if (u.agentId === agentId) { u.role = 'Agent'; updated = true; }
+      return u;
+    });
+    if (updated) try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
     showToast('✅ Agent yemejwe! Ubu ashobora guhabwa leads.');
     renderAdminAgents();
-    // Notify via WhatsApp
     var a = agents[idx];
     if(a.phone) window.open('https://wa.me/'+a.phone.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent('Muraho '+a.name+'! KOMISIYONERI irashimishijwe kukemeza iyandikishe ryawe nka agent. Witeguye guhabwa leads. Urakoze!'), '_blank');
   }
@@ -7145,6 +7216,15 @@ function adminAgentSuspend(idx) {
   if(agents[idx]) {
     agents[idx].status = 'Suspended';
     try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
+    // Revoke Agent role from matching user
+    var agentId = agents[idx].id;
+    var users = [];
+    try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
+    users = users.map(function(u) {
+      if (u.agentId === agentId && u.role === 'Agent') { u.role = 'PendingAgent'; }
+      return u;
+    });
+    try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
     showToast('⏸ Agent yahagaritswe.');
     renderAdminAgents();
   }
