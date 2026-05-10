@@ -4798,6 +4798,9 @@ function go(name) {
     if (!currentUser) {
       showToast(curLang==='rw' ? 'Injira mbere!' : 'Please log in first!');
       name = 'auth';
+    } else if (currentUser.role === 'PendingAgent') {
+      showToast(curLang==='rw' ? '⏳ Iyandikishe ryawe irimo gusuzumwa! KOMISIYONERI izakugezaho mu masaa 24.' : '⏳ Your application is under review! We will contact you within 24 hours.');
+      return;
     } else if (currentUser.role !== 'Agent' && currentUser.role !== 'Admin') {
       showToast(curLang==='rw' ? 'Dashboard irabana n\'Agents gusa!' : 'Dashboard is for Agents only!');
       return;
@@ -6190,9 +6193,9 @@ function submitAgentReg() {
   agents.push(agent);
   try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
 
-  // Update current user to agent role
+  // Update current user to pending agent — full Agent role granted on admin approval
   if(currentUser) {
-    currentUser.role = 'Agent';
+    currentUser.role = 'PendingAgent';
     currentUser.agentId = agent.id;
     currentUser.zone = agent.zone;
     saveUser(currentUser);
@@ -7190,9 +7193,18 @@ function adminAgentApprove(idx) {
   if(agents[idx]) {
     agents[idx].status = 'Active';
     try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
+    // Promote the matching user's role to 'Agent'
+    var agentId = agents[idx].id;
+    var users = [];
+    try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
+    var updated = false;
+    users = users.map(function(u) {
+      if (u.agentId === agentId) { u.role = 'Agent'; updated = true; }
+      return u;
+    });
+    if (updated) try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
     showToast('✅ Agent yemejwe! Ubu ashobora guhabwa leads.');
     renderAdminAgents();
-    // Notify via WhatsApp
     var a = agents[idx];
     if(a.phone) window.open('https://wa.me/'+a.phone.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent('Muraho '+a.name+'! KOMISIYONERI irashimishijwe kukemeza iyandikishe ryawe nka agent. Witeguye guhabwa leads. Urakoze!'), '_blank');
   }
@@ -7204,6 +7216,15 @@ function adminAgentSuspend(idx) {
   if(agents[idx]) {
     agents[idx].status = 'Suspended';
     try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
+    // Revoke Agent role from matching user
+    var agentId = agents[idx].id;
+    var users = [];
+    try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
+    users = users.map(function(u) {
+      if (u.agentId === agentId && u.role === 'Agent') { u.role = 'PendingAgent'; }
+      return u;
+    });
+    try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
     showToast('⏸ Agent yahagaritswe.');
     renderAdminAgents();
   }
