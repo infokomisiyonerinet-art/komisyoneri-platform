@@ -1995,7 +1995,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 <div class="modal-wrap" id="add-prop-modal" style="display:none">
   <div class="modal" style="max-width:500px;max-height:90vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border);padding-bottom:.8rem">
-      <div class="modal-title">+ Andika Imitungo Nshya</div>
+      <div class="modal-title" data-rw="+ Andika Imitungo Nshya" data-en="+ Add New Property">+ Andika Imitungo Nshya</div>
       <button class="modal-x" onclick="closeAddProperty()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div style="display:flex;flex-direction:column;gap:.8rem;padding:.5rem 0">
@@ -3340,7 +3340,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           <button onclick="adminFilter('pending')" id="adm-btn-pending" class="btn btn-navy btn-sm" style="font-size:.72rem">⏳ Pending (<span id="adm-count-pending">0</span>)</button>
           <button onclick="adminFilter('approved')" id="adm-btn-approved" class="btn btn-sm" style="font-size:.72rem;border:1.5px solid var(--border)">✅ Approved (<span id="adm-count-approved">0</span>)</button>
           <button onclick="adminFilter('rejected')" id="adm-btn-rejected" class="btn btn-sm" style="font-size:.72rem;border:1.5px solid var(--border)">❌ Rejected (<span id="adm-count-rejected">0</span>)</button>
-          <button onclick="adminDeleteAll('approved')" style="font-size:.7rem;border:none;background:#fee2e2;color:#e53e3e;padding:.3rem .6rem;border-radius:6px;cursor:pointer;font-weight:600">🗑️ Siba Yemejwe</button>
+          <button onclick="adminDeleteAll('approved')" style="font-size:.7rem;border:none;background:#fee2e2;color:#e53e3e;padding:.3rem .6rem;border-radius:6px;cursor:pointer;font-weight:600" data-rw="🗑️ Siba Yemejwe" data-en="🗑️ Delete Approved">🗑️ Siba Yemejwe</button>
         </div>
       </div>
       <div id="admin-list"></div>
@@ -3935,10 +3935,54 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 
 // ── LANGUAGE TOGGLE
 let curLang = 'rw';
+
+var TX = {
+  rw: {
+    verified:      'Yemejwe',
+    viewDetail:    'Reba Birenzeho',
+    noListings:    'Nta mitungo irahari ubu',
+    demoBtn:       '✦ Reba Demo Listings',
+    noPropsCat:    'Nta mitungo muri iyi categorie',
+    noMyProps:     'Nta mitungo wanditse kuri platform.',
+    addProp:       '+ Andika Imitungo',
+    waMsg:         'Muraho! Ndi gushakisha imitungo: ',
+    waMsgEnd:      '. Mushobora kunsobanurira birenzeho?',
+    delConfirm:    'Ugukosora? Imitungo izasibwa burundu.',
+    deleted:       '🗑️ Imitungo yasibwe.',
+    delAllConfirm: 'Ugukosora? Imitungo YOSE izasibwa burundu!',
+    delAllDone:    '🗑️ Imitungo yose yasibwe. (',
+    labApproved:   'Yemejwe',
+    labRejected:   'Yananiwe',
+    labAll:        'Zose'
+  },
+  en: {
+    verified:      'Verified',
+    viewDetail:    'View Details',
+    noListings:    'No listings yet',
+    demoBtn:       '✦ View Demo Listings',
+    noPropsCat:    'No properties in this category',
+    noMyProps:     'You have not listed any properties yet.',
+    addProp:       '+ Add Property',
+    waMsg:         'Hello! I am looking for a property: ',
+    waMsgEnd:      '. Could you give me more details?',
+    delConfirm:    'Are you sure? This property will be permanently deleted.',
+    deleted:       '🗑️ Property deleted.',
+    delAllConfirm: 'Are you sure? ALL properties will be permanently deleted!',
+    delAllDone:    '🗑️ All properties deleted. (',
+    labApproved:   'Approved',
+    labRejected:   'Rejected',
+    labAll:        'All'
+  }
+};
+
+function t(key) {
+  return (TX[curLang] || TX.rw)[key] || key;
+}
+
 function setLang(lang) {
   curLang = lang;
   document.documentElement.lang = lang === 'rw' ? 'rw' : 'en';
-  document.title = lang === 'rw' 
+  document.title = lang === 'rw'
     ? 'KOMISIYONERI — Imitungo mu Rwanda | Rwanda Real Estate Platform'
     : 'KOMISIYONERI — Buy & Sell Property in Rwanda | Real Estate Platform';
   document.querySelectorAll('[data-rw],[data-en]').forEach(el => {
@@ -3947,6 +3991,8 @@ function setLang(lang) {
   });
   document.getElementById('lb-rw').classList.toggle('active', lang === 'rw');
   document.getElementById('lb-en').classList.toggle('active', lang === 'en');
+  // Re-render dynamic content so hardcoded strings also update
+  loadApprovedProperties();
 }
 
 // ── SEARCH TABS
@@ -5146,11 +5192,11 @@ function renderUserPropCard(prop) {
   }
 
   // Verified bottom-left badge
-  var verifiedBadge = prop.verified ? '<div class="p-verified"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Yemejwe</div>' : '';
+  var verifiedBadge = prop.verified ? '<div class="p-verified"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' + t('verified') + '</div>' : '';
 
   // WhatsApp message
   var propName = (prop.type||'Imitungo') + (prop.district ? ' — '+prop.district : '');
-  var waText = encodeURIComponent('Muraho! Ndi gushakisha imitungo: ' + propName + ' (' + priceLabel + '). Mushobora kunsobanurira birenzeho?');
+  var waText = encodeURIComponent(t('waMsg') + propName + ' (' + priceLabel + ')' + t('waMsgEnd'));
   var waPhone = prop.phone || '250783177254';
 
   return '<div class="p-card" data-pid="' + pid + '" style="cursor:pointer">'
@@ -5169,7 +5215,7 @@ function renderUserPropCard(prop) {
     +   '<div class="p-feats">' + featsHtml + '</div>'
     + '</div>'
     + '<div class="p-card-footer">'
-    +   '<button class="p-btn-detail" onclick="openPropDetail(\'' + pid + '\')">Reba Birenzeho</button>'
+    +   '<button class="p-btn-detail" onclick="openPropDetail(\'' + pid + '\')">' + t('viewDetail') + '</button>'
     +   '<button class="p-btn-wa" onclick="event.stopPropagation();window.open(\'https://wa.me/' + waPhone + '?text=' + waText + '\',\'_blank\')">'
     +     '<svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>'
     +     'WhatsApp'
@@ -5200,9 +5246,9 @@ function loadApprovedProperties() {
       emptyDiv.style.cssText = 'grid-column:1/-1;text-align:center;padding:2rem 1rem;color:var(--muted)';
       emptyDiv.innerHTML = '<div style="font-size:2.5rem;margin-bottom:.5rem">🏠</div>'
         + '<div style="font-size:1rem;font-weight:600;color:var(--navy);margin-bottom:.4rem">'
-        + (curLang==="rw" ? "Nta mitungo irahari ubu" : "No listings yet") + '</div>'
+        + t('noListings') + '</div>'
         + '<button onclick="loadDemoListings()" class="btn btn-navy btn-sm" style="margin:.5rem auto">'
-        + '✦ Reba Demo Listings</button>';
+        + t('demoBtn') + '</button>';
       grid.appendChild(emptyDiv);
     } else {
       // Add all approved (demos + real)
@@ -5280,7 +5326,7 @@ function adminRender(filter) {
   var list = document.getElementById('admin-list');
   if (!list) return;
   if (filtered.length === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">Nta mitungo muri iyi categorie</div>';
+    list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">' + t('noPropsCat') + '</div>';
     return;
   }
   list.innerHTML = filtered.map(function(prop, i) {
@@ -5342,24 +5388,24 @@ function adminReject(idx) {
 }
 
 function adminDelete(idx) {
-  if (!confirm('Ugukosora? Imitungo izasibwa burundu.')) return;
+  if (!confirm(t('delConfirm'))) return;
   var props = [];
   try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
   props.splice(idx, 1);
   try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
-  showToast('🗑️ Imitungo yasibwe.');
+  showToast(t('deleted'));
   adminRender(adminCurrentFilter);
   loadApprovedProperties();
 }
 
 function adminDeleteAll(status) {
-  var label = status === 'approved' ? 'Yemejwe' : status === 'rejected' ? 'Yananiwe' : 'Zose';
-  if (!confirm('Ugukosora? Imitungo ' + label + ' YOSE izasibwa burundu!')) return;
+  var label = status === 'approved' ? t('labApproved') : status === 'rejected' ? t('labRejected') : t('labAll');
+  if (!confirm(label + ': ' + t('delAllConfirm'))) return;
   var props = [];
   try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
   var kept = props.filter(function(p){ return (p.status||'').toLowerCase() !== status; });
   try { localStorage.setItem('km_properties', JSON.stringify(kept)); } catch(e){}
-  showToast('🗑️ Imitungo ' + label + ' yose yasibwe. (' + (props.length - kept.length) + ')');
+  showToast(t('delAllDone') + (props.length - kept.length) + ')');
   adminRender(adminCurrentFilter);
   loadApprovedProperties();
 }
@@ -5377,8 +5423,8 @@ function openMyProps() {
   if (mine.length === 0) {
     list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">'
       + '<div style="font-size:2rem;margin-bottom:.5rem">🏠</div>'
-      + '<div>Nta mitungo wanditse kuri platform.</div>'
-      + '<button class="btn btn-navy btn-sm" style="margin-top:1rem" onclick="openAddProperty()">+ Andika Imitungo</button>'
+      + '<div>' + t('noMyProps') + '</div>'
+      + '<button class="btn btn-navy btn-sm" style="margin-top:1rem" onclick="openAddProperty()">' + t('addProp') + '</button>'
       + '</div>';
     return;
   }
