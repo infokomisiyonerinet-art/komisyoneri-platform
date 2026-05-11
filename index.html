@@ -6012,12 +6012,12 @@ function loadSimilarProperties() {
   var empty = document.getElementById('similar-empty');
   if (!list) return;
 
+  var cur = window._currentProp;
   var props = [];
   try { props = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
 
-  // Show only approved properties
   var approved = props.filter(function(p) {
-    return p.status === 'Approved';
+    return p.status === 'Approved' && (!cur || String(p.id) !== String(cur.id));
   });
 
   if (approved.length === 0) {
@@ -6025,30 +6025,40 @@ function loadSimilarProperties() {
     return;
   }
 
+  // Score by relevance: same type + same district = 2, one match = 1, no match = 0
+  var scored = approved.map(function(p) {
+    var score = 0;
+    if (cur) {
+      if (p.type === cur.type) score++;
+      if (p.district === cur.district) score++;
+    }
+    return { p: p, score: score };
+  });
+  scored.sort(function(a, b) { return b.score - a.score; });
+
   if (empty) empty.style.display = 'none';
-
-  // Show max 4 similar properties
-  var show = approved.slice(0, 4);
   var colors = ['g1','g2','g3','g4','g5','g6'];
+  var show = scored.slice(0, 4);
 
-  list.innerHTML = show.map(function(prop, i) {
+  list.innerHTML = show.map(function(item, i) {
+    var prop = item.p;
     var priceDisplay = prop.price
       ? (parseInt(prop.price) >= 1000000
         ? Math.round(parseInt(prop.price)/1000000) + 'M RWF'
         : Math.round(parseInt(prop.price)/1000) + 'K RWF')
       : '—';
     if (prop.service === 'Gukodesha') priceDisplay += '/mo';
-
-    var imgStyle = prop.img1
-      ? 'background:url(' + prop.img1 + ') center/cover no-repeat'
-      : '';
-    var colorClass = colors[i % colors.length];
-
-    var divStyle = 'display:flex;align-items:center;gap:.7rem;cursor:pointer;padding:.5rem;border-radius:9px;transition:var(--tr)';
-    return '<div style="'+divStyle+'" onclick="go(\'listings\')">'
-      + '<div style="width:52px;height:46px;border-radius:8px;flex-shrink:0;' + imgStyle + '" class="' + (prop.img1 ? '' : colorClass) + '"></div>'
-      + '<div>'
-      + '<div style="font-size:.84rem;font-weight:600">' + prop.type + ' — ' + (prop.district || '') + '</div>'
+    var imgStyle = prop.img1 ? 'background:url(' + prop.img1 + ') center/cover no-repeat' : '';
+    var colorClass = prop.img1 ? '' : colors[i % colors.length];
+    var matchBadge = item.score === 2
+      ? '<span style="font-size:.68rem;background:var(--green);color:#fff;border-radius:4px;padding:.1rem .35rem;margin-left:.3rem">✓ Ifanana</span>'
+      : (item.score === 1 ? '<span style="font-size:.68rem;background:var(--light);color:var(--muted);border-radius:4px;padding:.1rem .35rem;margin-left:.3rem">~ ' + (prop.type === (cur&&cur.type) ? prop.type : prop.district) + '</span>' : '');
+    return '<div style="display:flex;align-items:center;gap:.7rem;cursor:pointer;padding:.5rem;border-radius:9px;transition:var(--tr)" '
+      + 'onmouseover="this.style.background=\'var(--light)\'" onmouseout="this.style.background=\'\'" '
+      + 'onclick="openPropDetail(' + JSON.stringify(prop).replace(/"/g,'&quot;') + ')">'
+      + '<div style="width:52px;height:46px;border-radius:8px;flex-shrink:0;' + imgStyle + '" class="' + colorClass + '"></div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:.84rem;font-weight:600;display:flex;align-items:center;flex-wrap:wrap">' + (prop.title || (prop.type + ' — ' + (prop.district||''))) + matchBadge + '</div>'
       + '<div style="font-size:.76rem;color:var(--muted)">' + priceDisplay + '</div>'
       + '</div></div>';
   }).join('');
