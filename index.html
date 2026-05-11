@@ -2007,7 +2007,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           Hindura
         </button>
-        <button class="btn" style="flex:1;justify-content:center;border:1.5px solid var(--border)" onclick="closeProfile();openAddProperty()">+ Imitungo</button>
+        <button id="profile-add-prop-btn" class="btn" style="flex:1;justify-content:center;border:1.5px solid var(--border)" onclick="closeProfile();openAddProperty()">+ Imitungo</button>
         <button class="btn" style="justify-content:center;border:1.5px solid var(--border);padding:.5rem .7rem" onclick="logoutUser()">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
@@ -4666,6 +4666,12 @@ function openProfile() {
   if (!m) return;
   m.style.display = 'flex';
   var e = function(id){ return document.getElementById(id); };
+  // Show Add Property button only for approved agents and admin
+  var addPropBtn = e('profile-add-prop-btn');
+  if (addPropBtn) {
+    var canAdd = currentUser.role === 'Agent' || currentUser.email === 'komisiyonericonnectproservices@gmail.com';
+    addPropBtn.style.display = canAdd ? '' : 'none';
+  }
   // ensure view mode is shown
   if(e('profile-view')) e('profile-view').style.display = '';
   if(e('profile-edit')) e('profile-edit').style.display = 'none';
@@ -4770,6 +4776,19 @@ function openAddProperty() {
     showToast(curLang==='rw'?'Injira mbere yo kongeramo imitungo!':'Please login first!');
     go('auth'); return;
   }
+  var isAdminUser = currentUser.email === 'komisiyonericonnectproservices@gmail.com';
+  if (!isAdminUser && currentUser.role !== 'Agent') {
+    if (currentUser.role === 'PendingAgent') {
+      showToast(curLang==='rw'
+        ? '⏳ Konti yawe irimo gusuzumwa. Tegereza kwemererwa.'
+        : '⏳ Your account is under review. Wait for approval.');
+    } else {
+      showToast(curLang==='rw'
+        ? '🔒 Agents bemewe gusa ni bo bashobora kongeramo imitungo. Iyandikishe nk\'Agent!'
+        : '🔒 Only approved agents can add listings. Register as an Agent!');
+    }
+    return;
+  }
   var m = document.getElementById('add-prop-modal');
   if(m) m.style.display='flex';
   var c = document.getElementById('prop-contact');
@@ -4792,11 +4811,17 @@ function submitProperty() {
     return;
   }
 
+  var isAdmin = currentUser.email === 'komisiyonericonnectproservices@gmail.com';
+  if (!isAdmin && currentUser.role !== 'Agent') {
+    showToast(curLang==='rw'
+      ? '🔒 Agents bemewe gusa ni bo bashobora ohereza imitungo.'
+      : '🔒 Only approved agents can submit listings.');
+    return;
+  }
+
   if(!g('prop-price')) { showToast(curLang==='rw'?'Shyira igiciro!':'Enter price!'); return; }
   if(!g('prop-type')) { showToast('Hitamo ubwoko!'); return; }
   if(!g('prop-district')) { showToast('Hitamo akarere!'); return; }
-
-  var isAdmin = currentUser.email === 'komisiyonericonnectproservices@gmail.com';
 
   if(isAdmin) {
     // === ADMIN: YouTube + URL images, auto-approved ===
@@ -7352,7 +7377,8 @@ function updateHamburgerAuth() {
   var show = function(id, v){ var el=document.getElementById(id); if(el) el.style.display=v?'flex':'none'; };
   show('hm-login-btn', !isLoggedIn);
   show('hm-profile-btn', isLoggedIn);
-  show('hm-addprop-btn', isLoggedIn);
+  var isAgent = isLoggedIn && (currentUser.role === 'Agent' || isAdmin);
+  show('hm-addprop-btn', isAgent);
   show('hm-agent-btn', isLoggedIn);
   show('hm-logout-btn', isLoggedIn);
   show('hm-admin-btn', isAdmin);
