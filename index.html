@@ -3368,7 +3368,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin:.9rem 0">
             <label style="display:flex;align-items:center;gap:.45rem;font-size:.8rem;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--blue)"><span data-rw="Nyumba" data-en="Remember me">Nyumba</span></label>
-            <a style="font-size:.8rem;color:var(--blue);font-weight:600;cursor:pointer" data-rw="Wibagiwe ijambo banga?" data-en="Forgot password?">Wibagiwe ijambo banga?</a>
+            <a style="font-size:.8rem;color:var(--blue);font-weight:600;cursor:pointer" data-rw="Wibagiwe ijambo banga?" data-en="Forgot password?" onclick="handleForgotPassword()">Wibagiwe ijambo banga?</a>
           </div>
           <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="handleLogin()">
             <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
@@ -4944,6 +4944,35 @@ function _submitPropertyBase64(fileList, propData) {
     };
     reader.readAsDataURL(f.files[0]);
   });
+}
+
+function handleForgotPassword() {
+  var emailEl = document.getElementById('login-email');
+  var email = emailEl ? emailEl.value.trim() : '';
+  if (!email) {
+    showToast(curLang==='rw' ? 'Shyira imeyili yawe mbere!' : 'Enter your email address first!');
+    if (emailEl) emailEl.focus();
+    return;
+  }
+  if (!firebaseAuth) {
+    showToast(curLang==='rw' ? 'Serivisi ntiboneka. Ongera ugerageze.' : 'Service unavailable. Try again.');
+    return;
+  }
+  firebaseAuth.sendPasswordResetEmail(email)
+    .then(function() {
+      showToast(curLang==='rw'
+        ? '📧 Imeyili yoherejwe kuri ' + email + '. Reba inbox yawe!'
+        : '📧 Reset email sent to ' + email + '. Check your inbox!');
+    })
+    .catch(function(err) {
+      if (err.code === 'auth/user-not-found') {
+        showToast(curLang==='rw' ? 'Nta konti ifite iyo meyili.' : 'No account found with that email.');
+      } else if (err.code === 'auth/invalid-email') {
+        showToast(curLang==='rw' ? 'Imeyili ntabwo ari yo.' : 'Invalid email address.');
+      } else {
+        showToast(curLang==='rw' ? 'Habayeho ikosa. Ongera ugerageze.' : 'Error. Please try again.');
+      }
+    });
 }
 
 function handleLogin() {
