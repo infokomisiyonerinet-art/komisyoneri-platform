@@ -2193,9 +2193,9 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           💡 Amafoto azabikwa kuri imgbb.com ubuntu. Uzabona URL nyuma yo kuranga.
         </div>
       </div>
-      <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center;margin-top:.4rem" onclick="submitProperty()">
+      <button id="submit-prop-btn" class="btn btn-navy btn-lg" style="width:100%;justify-content:center;margin-top:.4rem" onclick="submitProperty()">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-        Ohereza Imitungo
+        <span id="submit-prop-label">Ohereza Imitungo</span>
       </button>
     </div>
   </div>
@@ -4771,6 +4771,57 @@ function logoutUser() {
   go('home');
 }
 
+var _editPropId = null;
+
+function openEditProperty(prop) {
+  // Only Pending properties can be edited
+  if (prop.status !== 'Pending') {
+    showToast(curLang==='rw' ? 'Imitungo yemejwe ntishobora guhindurwa.' : 'Approved properties cannot be edited.');
+    return;
+  }
+  _editPropId = prop.id;
+
+  // Open the modal (bypasses role check since user already owns this property)
+  var m = document.getElementById('add-prop-modal');
+  if (m) m.style.display = 'flex';
+
+  // Update modal title and submit label
+  var title = document.querySelector('#add-prop-modal .modal-title');
+  if (title) title.textContent = curLang==='rw' ? '✏️ Hindura Imitungo' : '✏️ Edit Property';
+  var lbl = document.getElementById('submit-prop-label');
+  if (lbl) lbl.textContent = curLang==='rw' ? 'Bika Impinduka' : 'Save Changes';
+
+  // Pre-fill all fields
+  var s = function(id, val) { var el=document.getElementById(id); if(el) el.value = val||''; };
+  var c = function(id, val) { var el=document.getElementById(id); if(el) el.checked = !!val; };
+  s('prop-type',    prop.type);
+  s('prop-service', prop.service);
+  s('prop-district',prop.district);
+  s('prop-sector',  prop.sector);
+  s('prop-price',   prop.price);
+  s('prop-beds',    prop.beds);
+  s('prop-baths',   prop.baths);
+  s('prop-size',    prop.size);
+  s('prop-desc',    prop.desc);
+  s('prop-contact', prop.contact || prop.phone);
+  s('prop-title',   prop.title);
+  s('prop-year',    prop.yearBuilt);
+  s('prop-deed',    prop.titleDeed);
+  s('prop-floors',  prop.floors);
+  s('prop-parking', prop.parking);
+  s('prop-doc-luc', prop.docLuc);
+  s('prop-doc-id',  prop.docId);
+  s('prop-doc-permit', prop.docPermit);
+  var ams = ['garden','pool','garage','solar','fibre','security','generator'];
+  ams.forEach(function(a) { c('am-'+a, prop.amenities && prop.amenities.indexOf(a) !== -1); });
+
+  // Show user media section (file re-upload optional)
+  var userSec = document.getElementById('user-media-section');
+  var adminSec = document.getElementById('admin-media-section');
+  if (userSec) userSec.style.display = 'flex';
+  if (adminSec) adminSec.style.display = 'none';
+}
+
 function openAddProperty() {
   if (!currentUser) {
     showToast(curLang==='rw'?'Injira mbere yo kongeramo imitungo!':'Please login first!');
@@ -4798,6 +4849,11 @@ function openAddProperty() {
 function closeAddProperty() {
   var m = document.getElementById('add-prop-modal');
   if(m) m.style.display='none';
+  _editPropId = null;
+  var title = document.querySelector('#add-prop-modal .modal-title');
+  if (title) { title.setAttribute('data-rw','+ Andika Imitungo Nshya'); title.textContent = curLang==='rw'?'+ Andika Imitungo Nshya':'+ Add New Property'; }
+  var lbl = document.getElementById('submit-prop-label');
+  if (lbl) lbl.textContent = curLang==='rw' ? 'Ohereza Imitungo' : 'Submit Property';
 }
 
 function submitProperty() {
@@ -4816,6 +4872,47 @@ function submitProperty() {
     showToast(curLang==='rw'
       ? '🔒 Agents bemewe gusa ni bo bashobora ohereza imitungo.'
       : '🔒 Only approved agents can submit listings.');
+    return;
+  }
+
+  // === EDIT MODE: update existing Pending property in-place ===
+  if (_editPropId) {
+    var editId = _editPropId;
+    var props = [];
+    try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+    var idx = -1;
+    for (var i=0; i<props.length; i++) { if (String(props[i].id) === String(editId)) { idx=i; break; } }
+    if (idx === -1) { showToast('Imitungo ntiboneka.'); closeAddProperty(); return; }
+    if (props[idx].status !== 'Pending') {
+      showToast(curLang==='rw' ? 'Imitungo yemejwe ntishobora guhindurwa.' : 'Only pending listings can be edited.');
+      closeAddProperty(); return;
+    }
+    // Merge new field values into the existing property, keeping system fields unchanged
+    var updated = props[idx];
+    updated.type     = g('prop-type')    || updated.type;
+    updated.service  = g('prop-service') || updated.service;
+    updated.district = g('prop-district')|| updated.district;
+    updated.sector   = g('prop-sector');
+    updated.price    = g('prop-price')   || updated.price;
+    updated.beds     = g('prop-beds');
+    updated.baths    = g('prop-baths');
+    updated.size     = g('prop-size');
+    updated.desc     = g('prop-desc');
+    updated.contact  = g('prop-contact') || updated.contact;
+    updated.phone    = g('prop-contact') || updated.phone;
+    updated.title    = g('prop-title') || (updated.type + (updated.district ? ' — '+updated.district : ''));
+    updated.yearBuilt= g('prop-year');
+    updated.titleDeed= g('prop-deed');
+    updated.floors   = g('prop-floors');
+    updated.parking  = g('prop-parking');
+    updated.amenities= ['garden','pool','garage','solar','fibre','security','generator'].filter(function(a){ var el=document.getElementById('am-'+a); return el&&el.checked; });
+    updated.docLuc   = g('prop-doc-luc');
+    updated.docId    = g('prop-doc-id');
+    updated.docPermit= g('prop-doc-permit');
+    props[idx] = updated;
+    try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
+    closeAddProperty();
+    showToast(curLang==='rw' ? '✅ Imitungo yahinduwe! Irasabwa kwemezwa.' : '✅ Listing updated! Awaiting approval.');
     return;
   }
 
@@ -5797,12 +5894,18 @@ function openMyProps() {
     var statusColor = prop.status==='Approved'?'#27A84A':prop.status==='Rejected'?'#e53e3e':'#F5A623';
     var statusIcon = prop.status==='Approved'?'✅':prop.status==='Rejected'?'❌':'⏳';
     var priceDisplay = prop.price ? Number(prop.price).toLocaleString()+' RWF' : '—';
+    var editBtn = prop.status === 'Pending'
+      ? '<button onclick=\'openEditProperty('+JSON.stringify(prop).replace(/\'/g,"\\'")+');document.getElementById("my-props-modal").style.display="none"\' '
+        + 'style="background:none;border:1.5px solid var(--navy);color:var(--navy);border-radius:7px;padding:.25rem .6rem;font-size:.72rem;font-weight:700;cursor:pointer;margin-top:.4rem">✏️ '
+        + (curLang==='rw'?'Hindura':'Edit') + '</button>'
+      : '';
     return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.9rem;margin-bottom:.7rem">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">'
       + '<div style="flex:1">'
       + '<div style="font-weight:700;color:var(--navy)">'+prop.type+' — '+prop.district+'</div>'
       + '<div style="font-size:.82rem;color:var(--muted);margin:.2rem 0">'+prop.service+' | '+priceDisplay+'</div>'
       + (prop.desc?'<div style="font-size:.78rem;color:#555;font-style:italic">'+prop.desc.substring(0,60)+'...</div>':'')
+      + editBtn
       + '</div>'
       + '<div style="text-align:center;flex-shrink:0">'
       + '<div style="font-size:1.2rem">'+statusIcon+'</div>'
