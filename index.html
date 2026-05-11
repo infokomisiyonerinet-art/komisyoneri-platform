@@ -7291,6 +7291,26 @@ function switchAdminTab(tab) {
 // ═══════════════════════════════════════════════════════════
 
 function renderAdminAgents() {
+  var list = document.getElementById('admin-agents-list');
+  if(!list) return;
+  list.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:.82rem">⏳ Gutegura...</div>';
+
+  // Pull live from Firebase first, then render
+  try {
+    firebase.database().ref('agents').once('value').then(function(s) {
+      if(s.exists()) {
+        var fbAgents = [];
+        s.forEach(function(c){ fbAgents.push(c.val()); });
+        if(fbAgents.length > 0) {
+          localStorage.setItem('km_agents', JSON.stringify(fbAgents));
+        }
+      }
+      _renderAdminAgentsList();
+    }).catch(function(){ _renderAdminAgentsList(); });
+  } catch(e){ _renderAdminAgentsList(); }
+}
+
+function _renderAdminAgentsList() {
   var agents = [];
   try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
   if(agents.length === 0) agents = getDemoAgents();
@@ -7303,7 +7323,12 @@ function renderAdminAgents() {
     return;
   }
 
-  list.innerHTML = '<div style="font-weight:700;font-size:.82rem;color:var(--navy);margin-bottom:.7rem">Agents '+ agents.length +' — Shinja cyangwa Emeza</div>'
+  var pending = agents.filter(function(a){ return a.status === 'Pending Verification'; });
+  var pendingBanner = pending.length > 0
+    ? '<div style="background:#fff3cd;border:1.5px solid #ffc107;border-radius:8px;padding:.6rem .9rem;margin-bottom:.7rem;font-size:.8rem;font-weight:600">⏳ ' + pending.length + ' agent(s) bategereje kwemezwa</div>'
+    : '';
+
+  list.innerHTML = pendingBanner + '<div style="font-weight:700;font-size:.82rem;color:var(--navy);margin-bottom:.7rem">Agents '+ agents.length +' — Shinja cyangwa Emeza</div>'
     + agents.map(function(agent, idx) {
     var isActive = agent.status === 'Active';
     var isPending = agent.status === 'Pending Verification';
@@ -7512,17 +7537,21 @@ go = function(page) {
           var p = [];
           s.forEach(function(c){ p.push(c.val()); });
           if(p.length > 0) {
-            var local = [];
-            try { local = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-            // Only overwrite local data if Firebase has more or equal records
-            if(p.length >= local.length) {
-              _set('km_properties', JSON.stringify(p));
-              if(typeof renderListings==='function') renderListings();
-              if(typeof loadListings==='function') loadListings();
-            }
+            _set('km_properties', JSON.stringify(p));
+            if(typeof renderListings==='function') renderListings();
+            if(typeof loadListings==='function') loadListings();
           }
-        })
-        .catch(function(e){ console.error('Firebase sync error:', e); });
+        });
+      rtdb.ref('agents').once('value')
+        .then(function(s) {
+          if(!s.exists()) return;
+          var agents = [];
+          s.forEach(function(c){ agents.push(c.val()); });
+          if(agents.length > 0) {
+            _set('km_agents', JSON.stringify(agents));
+            if(typeof loadApprovedProperties==='function') loadApprovedProperties();
+          }
+        });
     }
 
     localStorage.setItem = function(k,v) {
@@ -7533,6 +7562,13 @@ go = function(page) {
             if(p.id) rtdb.ref('properties/'+p.id).set(p).catch(function(e){
               console.error('RTDB write error for property '+p.id+':', e);
             });
+          });
+        } catch(e){}
+      }
+      if(k==='km_agents') {
+        try {
+          JSON.parse(v||'[]').forEach(function(a) {
+            if(a.id) rtdb.ref('agents/'+a.id).set(a);
           });
         } catch(e){}
       }
