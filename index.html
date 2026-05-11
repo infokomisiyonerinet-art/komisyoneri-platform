@@ -3328,6 +3328,11 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           </div>
         </div>
       </div>
+      <!-- Upcoming Visits -->
+      <div class="dc" style="margin-top:1.4rem">
+        <div class="dc-hdr"><span class="dc-title" data-rw="Inzira Ziteganijwe" data-en="Upcoming Visits">Inzira Ziteganijwe</span></div>
+        <div id="dash-bookings-rows"></div>
+      </div>
     </main>
   </div>
 </div>
@@ -4633,6 +4638,39 @@ function loadAgentDashboard() {
   if(e('dash-sidebar-listings')) e('dash-sidebar-listings').textContent = approved.length;
 
   renderDashboardListings(approved);
+
+  // Upcoming visits
+  var bookings = [];
+  try { bookings = JSON.parse(localStorage.getItem('km_bookings')||'[]'); } catch(err){}
+  var myBookings = bookings.filter(function(b){ return b.agentEmail === currentUser.email; });
+  myBookings.sort(function(a,b){ return (a.date||'') < (b.date||'') ? -1 : 1; });
+  renderDashboardBookings(myBookings);
+}
+
+function renderDashboardBookings(bookings) {
+  var el = document.getElementById('dash-bookings-rows');
+  if (!el) return;
+  if (!bookings || bookings.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.88rem">'
+      + (curLang==='rw' ? 'Nta nzira ziteganijwe.' : 'No upcoming visits yet.') + '</div>';
+    return;
+  }
+  el.innerHTML = bookings.slice(0,8).map(function(b) {
+    var dateStr = b.date ? new Date(b.date+'T00:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}) : '—';
+    var timeStr = b.time || '';
+    var propLabel = escapeHtml(b.propTitle || (curLang==='rw'?'Imitungo':'Property'));
+    var visitor   = escapeHtml(b.name || '—');
+    var phone     = escapeHtml(b.phone || '');
+    return '<div class="lr" style="cursor:default">'
+      + '<div class="lt g2" style="min-width:48px;min-height:48px">'
+      + '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>'
+      + '<div class="li">'
+      + '<strong>'+propLabel+'</strong>'
+      + '<span>'+visitor+(phone?' · '+phone:'')+'</span>'
+      + '</div>'
+      + '<span class="lr-price" style="font-size:.82rem;color:var(--navy);white-space:nowrap">'+dateStr+(timeStr?' '+timeStr:'')+'</span>'
+      + '</div>';
+  }).join('');
 }
 
 function renderDashboardListings(props) {
@@ -5955,9 +5993,19 @@ function submitBooking() {
   if(!phone||!phone.value){showToast('Shyira telefoni yawe!');return;}
   if(!date||!date.value){showToast('Hitamo itariki!');return;}
   var time = document.getElementById('book-time');
+  var cur = window._currentProp || {};
   var bookings = [];
   try{bookings=JSON.parse(localStorage.getItem('km_bookings')||'[]');}catch(e){}
-  bookings.push({name:name.value,phone:phone.value,date:date.value,time:time?time.value:'',note:(document.getElementById('book-note')||{}).value||'',created:new Date().toISOString()});
+  bookings.push({
+    id: 'BK-' + Date.now(),
+    name: name.value, phone: phone.value, date: date.value,
+    time: time ? time.value : '',
+    note: (document.getElementById('book-note')||{}).value || '',
+    propId:     cur.id        || null,
+    propTitle:  cur.title     || (cur.type && cur.district ? cur.type + ' — ' + cur.district : null),
+    agentEmail: cur.ownerEmail|| null,
+    created: new Date().toISOString()
+  });
   try{localStorage.setItem('km_bookings',JSON.stringify(bookings));}catch(e){}
   closeBooking();
   showToast('Gahunda yashyizweho! Agent azakuhamagara kuri '+phone.value+'. ✅');
