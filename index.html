@@ -2107,6 +2107,64 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <textarea id="prop-desc" rows="3" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;resize:vertical" placeholder="Sobanura inzu yawe: ibikoresho, ahantu hihutirwa, ibiranga..."></textarea>
       </div>
       <div class="field"><label>Telefoni yo Gutumanahana</label><input type="tel" id="prop-contact" placeholder="+250 7XX XXX XXX"></div>
+      <!-- ─── Extra Details (optional) ─── -->
+      <div style="background:var(--light);border-radius:8px;padding:.7rem;font-size:.78rem;color:var(--navy);font-weight:600">
+        📋 Amakuru Yuzuye (Ntibisabwa)
+      </div>
+      <div class="field">
+        <label>📝 Izina ry'Imitungo (Ntibisabwa)</label>
+        <input type="text" id="prop-title" placeholder="urugero: Villa Nziza i Kimironko">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+        <div class="field"><label>📅 Umwaka Wayubakiwe</label>
+          <input type="number" id="prop-year" placeholder="2020" min="1950" max="2030">
+        </div>
+        <div class="field"><label>📜 Amasezerano y'Ubutaka</label>
+          <select id="prop-deed" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
+            <option value="">Hitamo...</option>
+            <option value="LUC">LUC</option>
+            <option value="Freehold">Freehold</option>
+            <option value="Leasehold">Leasehold</option>
+            <option value="Ntabwo">Ntabwo afite</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+        <div class="field"><label>🏢 Intera (Floors)</label>
+          <input type="number" id="prop-floors" placeholder="2" min="1">
+        </div>
+        <div class="field"><label>🚗 Parking (Ibyumba)</label>
+          <input type="number" id="prop-parking" placeholder="1" min="0">
+        </div>
+      </div>
+      <div class="field">
+        <label>✅ Ibiranga / Amenities</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem .7rem;margin-top:.3rem">
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:400;cursor:pointer"><input type="checkbox" id="am-garden"> 🌳 Garden</label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:400;cursor:pointer"><input type="checkbox" id="am-pool"> 🏊 Pool</label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:400;cursor:pointer"><input type="checkbox" id="am-garage"> 🚗 Garage</label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:400;cursor:pointer"><input type="checkbox" id="am-solar"> ☀️ Solar</label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:400;cursor:pointer"><input type="checkbox" id="am-fibre"> 🌐 Fibre Net</label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:400;cursor:pointer"><input type="checkbox" id="am-security"> 🔒 Security</label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:400;cursor:pointer"><input type="checkbox" id="am-generator"> ⚡ Generator</label>
+        </div>
+      </div>
+      <!-- Documents section -->
+      <div style="background:#fff7e6;border:1.5px solid #f59e0b;border-radius:8px;padding:.7rem;font-size:.78rem;color:#92400e;font-weight:600">
+        📄 Inyandiko z'Imitungo (Documents)
+      </div>
+      <div class="field"><label>📋 LUC / Title Deed URL (Ntibisabwa)</label>
+        <input type="url" id="prop-doc-luc" placeholder="https://drive.google.com/... (link ya LUC)">
+      </div>
+      <div class="field"><label>🪪 Indangamuntu ya Nyir'Imitungo (Ntibisabwa)</label>
+        <input type="url" id="prop-doc-id" placeholder="https://drive.google.com/... (link ya ID card)">
+      </div>
+      <div class="field"><label>🏗️ Building Permit (Ntibisabwa)</label>
+        <input type="url" id="prop-doc-permit" placeholder="https://drive.google.com/... (link y'uruhushya)">
+      </div>
+      <div style="font-size:.73rem;color:var(--muted);background:var(--light);border-radius:8px;padding:.5rem">
+        💡 Shyiramo inyandiko kuri Google Drive cyangwa Dropbox (Public link). Inyandiko ntizohererewe muri internet niba utazishyize.
+      </div>
       <!-- Media Upload — Admin vs User -->
       <div id="admin-media-section" style="display:none;flex-direction:column;gap:.8rem">
         <div style="background:#e8f0fb;border-radius:8px;padding:.7rem;font-size:.78rem;color:var(--navy);font-weight:600">
@@ -2825,10 +2883,10 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <div id="tab-desc">
         <p style="font-size:.9rem;color:var(--muted);line-height:1.85;margin-bottom:1.2rem" data-rw="Inzu nziza cyane iri mu Kimironko, Gasabo — ahantu hateye amashyo, hagurutse, kandi hafite amahoro. Iri ni inzu ya squaremetre 320, ifite amazu 4, ubushumbusho 2, garage, n'imbuga nziza hanze." data-en="A beautiful property in Kimironko, Gasabo — a prestigious, elevated and peaceful location. This 320m² property features 4 bedrooms, 2 bathrooms, a garage, and a stunning outdoor garden.">Inzu nziza cyane iri mu Kimironko, Gasabo — ahantu hateye amashyo, hagurutse, kandi hafite amahoro. Iri ni inzu ya squaremetre 320, ifite amazu 4, ubushumbusho 2, garage, n'imbuga nziza hanze.</p>
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-bottom:1.4rem">
-          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Uburebure" data-en="Year Built">Uburebure</span><strong>2020</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Uburebure" data-en="Year Built">Uburebure</span><strong id="det-year-built">—</strong></div>
           <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Ubwoko" data-en="Type">Ubwoko</span><strong data-rw="Villa" data-en="Villa">Villa</strong></div>
           <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Status" data-en="Status">Status</span><strong style="color:var(--green)" data-rw="Iboneka" data-en="Available">Iboneka</strong></div>
-          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Amasezerano" data-en="Title Deed">Amasezerano</span><strong style="color:var(--green)" data-rw="Afite LUC" data-en="Has LUC">Afite LUC</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Amasezerano" data-en="Title Deed">Amasezerano</span><strong id="det-title-deed" style="color:var(--muted)">—</strong></div>
         </div>
         <!-- 3D TOUR VIEWER (shown on this tab for preview) -->
         <h3 class="h3" style="margin-bottom:1rem" data-rw="Virtual Tour 3D" data-en="3D Virtual Tour">Virtual Tour 3D</h3>
@@ -4753,6 +4811,16 @@ function submitProperty() {
       contact: g('prop-contact') || '+250 783 177 254',
       img1: g('prop-img1'), img2: g('prop-img2'), img3: g('prop-img3'),
       video: videoUrl, tour3dUrl: g('prop-tour3d'),
+      title:     g('prop-title') || (g('prop-type') + (g('prop-district') ? ' — ' + g('prop-district') : '')),
+      phone:     g('prop-contact') || '+250 783 177 254',
+      yearBuilt: g('prop-year'),
+      titleDeed: g('prop-deed'),
+      floors:    g('prop-floors'),
+      parking:   g('prop-parking'),
+      amenities: ['garden','pool','garage','solar','fibre','security','generator'].filter(function(a){ var el=document.getElementById('am-'+a); return el&&el.checked; }),
+      docLuc:    g('prop-doc-luc'),
+      docId:     g('prop-doc-id'),
+      docPermit: g('prop-doc-permit'),
       owner: 'KOMISIYONERI', ownerEmail: currentUser.email,
       verified: true, rating: 5.0, reviews: 0,
       date: new Date().toISOString(), status: 'Approved'
@@ -4787,6 +4855,16 @@ function submitProperty() {
       contact: g('prop-contact') || currentUser.phone || '+250 783 177 254',
       img1: '', img2: '', img3: '',
       video: '', tour3dUrl: '',
+      title:     g('prop-title') || (g('prop-type') + (g('prop-district') ? ' — ' + g('prop-district') : '')),
+      phone:     g('prop-contact') || currentUser.phone || '+250 783 177 254',
+      yearBuilt: g('prop-year'),
+      titleDeed: g('prop-deed'),
+      floors:    g('prop-floors'),
+      parking:   g('prop-parking'),
+      amenities: ['garden','pool','garage','solar','fibre','security','generator'].filter(function(a){ var el=document.getElementById('am-'+a); return el&&el.checked; }),
+      docLuc:    g('prop-doc-luc'),
+      docId:     g('prop-doc-id'),
+      docPermit: g('prop-doc-permit'),
       owner: currentUser.name, ownerEmail: currentUser.email,
       date: new Date().toISOString(), status: 'Pending'
     };
@@ -6927,7 +7005,7 @@ function openPropDetail(propId) {
 
   // === TITLE + PRICE (hero overlay) ===
   var titleEl = document.getElementById('det-prop-title');
-  if(titleEl) titleEl.textContent = (prop.type||'Imitungo') + ' — ' + (prop.district||'') + (prop.sector ? ', '+prop.sector : '');
+  if(titleEl) titleEl.textContent = prop.title || ((prop.type||'Imitungo') + ' — ' + (prop.district||'') + (prop.sector ? ', '+prop.sector : ''));
 
   var priceEl = document.querySelector('.det-price');
   if(priceEl) priceEl.innerHTML = priceStr + '<small>('+(prop.service||'Kugurisha')+')</small>';
@@ -6945,13 +7023,21 @@ function openPropDetail(propId) {
   // === FEATURES (beds/baths/size) ===
   var featsEl = document.querySelector('#det-prop-title + div + div');
   if(featsEl) {
-    var bedStr = prop.beds && prop.beds !== '0' ? prop.beds + ' ' + (curLang==='rw'?'Ibyumba':'Bedrooms') : '';
-    var bathStr = prop.baths && prop.baths !== '0' ? prop.baths + ' ' + (curLang==='rw'?'Bafu':'Bathrooms') : '';
-    var sizeStr = prop.size ? prop.size + 'm²' : '';
-    var locStr = [prop.district, prop.sector].filter(Boolean).join(', ');
-    featsEl.innerHTML = [bedStr, bathStr, sizeStr, locStr].filter(Boolean).map(function(f){
+    var bedStr    = prop.beds && prop.beds !== '0' ? prop.beds + ' ' + (curLang==='rw'?'Ibyumba':'Bedrooms') : '';
+    var bathStr   = prop.baths && prop.baths !== '0' ? prop.baths + ' ' + (curLang==='rw'?'Bafu':'Bathrooms') : '';
+    var sizeStr   = prop.size ? prop.size + 'm²' : '';
+    var locStr    = [prop.district, prop.sector].filter(Boolean).join(', ');
+    var floorsStr = prop.floors ? prop.floors + ' ' + (curLang==='rw'?'Intera':'Floors') : '';
+    var parkStr   = prop.parking ? prop.parking + ' Parking' : '';
+    featsEl.innerHTML = [bedStr, bathStr, sizeStr, floorsStr, parkStr, locStr].filter(Boolean).map(function(f){
       return '<span class="p-feat" style="font-size:.88rem">'+f+'</span>';
     }).join('');
+    if (prop.amenities && prop.amenities.length) {
+      var icons = {garden:'🌳',pool:'🏊',garage:'🚗',solar:'☀️',fibre:'🌐',security:'🔒',generator:'⚡'};
+      featsEl.innerHTML += '<div style="margin-top:.5rem;display:flex;flex-wrap:wrap;gap:.3rem">'
+        + prop.amenities.map(function(a){ return '<span style="background:var(--light);border-radius:6px;padding:.2rem .5rem;font-size:.78rem">'+(icons[a]||'')+' '+a+'</span>'; }).join('')
+        + '</div>';
+    }
   }
 
   // === DESCRIPTION TAB ===
@@ -6973,6 +7059,13 @@ function openPropDetail(propId) {
         s.style.color = prop.status === 'Approved' ? 'var(--green)' : 'var(--muted)';
       }
     });
+    var ybEl = document.getElementById('det-year-built');
+    if (ybEl) ybEl.textContent = prop.yearBuilt || '—';
+    var tdEl = document.getElementById('det-title-deed');
+    if (tdEl) {
+      tdEl.textContent = prop.titleDeed || '—';
+      tdEl.style.color = prop.titleDeed ? 'var(--green)' : 'var(--muted)';
+    }
   }
 
   // === GALLERY (thumbnails) ===
