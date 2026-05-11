@@ -5734,7 +5734,7 @@ function submitMessage() {
   if(!text||!text.value){showToast('Andika ubutumwa bwawe!');return;}
   var msgs = [];
   try{msgs=JSON.parse(localStorage.getItem('km_messages')||'[]');}catch(e){}
-  msgs.push({name:name.value,phone:(phone||{}).value||'',email:(document.getElementById('msg-email')||{}).value||'',text:text.value,date:new Date().toISOString(),status:'unread'});
+  msgs.push({id:'MSG-'+Date.now(),name:name.value,phone:(phone||{}).value||'',email:(document.getElementById('msg-email')||{}).value||'',text:text.value,date:new Date().toISOString(),status:'unread'});
   try{localStorage.setItem('km_messages',JSON.stringify(msgs));}catch(e){}
   // Open WhatsApp with message
   var waText = 'KOMISIYONERI+Platform+-+'+encodeURIComponent(name.value)+'-+Tel:+'+encodeURIComponent((phone||{}).value||'N/A')+'-+'+encodeURIComponent(text.value);
@@ -5867,7 +5867,7 @@ function submitReview() {
   if(!text||!text.value){showToast('Andika ibitekerezo byawe!');return;}
   var reviews = [];
   try{reviews=JSON.parse(localStorage.getItem('km_reviews')||'[]');}catch(e){}
-  reviews.push({name:name.value,rating:currentRating,text:text.value,date:new Date().toLocaleDateString()});
+  reviews.push({id:'RVW-'+Date.now(),name:name.value,rating:currentRating,text:text.value,date:new Date().toLocaleDateString()});
   try{localStorage.setItem('km_reviews',JSON.stringify(reviews));}catch(e){}
   // Add to visible list
   var list = document.getElementById('reviews-list');
@@ -7552,6 +7552,20 @@ go = function(page) {
             if(typeof loadApprovedProperties==='function') loadApprovedProperties();
           }
         });
+      ['leads','messages','reviews'].forEach(function(key) {
+        rtdb.ref(key).once('value').then(function(s) {
+          if(!s.exists()) return;
+          var items = [];
+          s.forEach(function(c){ items.push(c.val()); });
+          if(items.length) _set('km_'+key, JSON.stringify(items));
+        });
+      });
+      rtdb.ref('users').once('value').then(function(s) {
+        if(!s.exists()) return;
+        var users = [];
+        s.forEach(function(c){ users.push(c.val()); });
+        if(users.length) _set('km_users', JSON.stringify(users));
+      });
     }
 
     localStorage.setItem = function(k,v) {
@@ -7569,6 +7583,34 @@ go = function(page) {
         try {
           JSON.parse(v||'[]').forEach(function(a) {
             if(a.id) rtdb.ref('agents/'+a.id).set(a);
+          });
+        } catch(e){}
+      }
+      if(k==='km_leads') {
+        try {
+          JSON.parse(v||'[]').forEach(function(l) {
+            if(l.id) rtdb.ref('leads/'+l.id).set(l);
+          });
+        } catch(e){}
+      }
+      if(k==='km_messages') {
+        try {
+          JSON.parse(v||'[]').forEach(function(m) {
+            if(m.id) rtdb.ref('messages/'+m.id).set(m);
+          });
+        } catch(e){}
+      }
+      if(k==='km_reviews') {
+        try {
+          JSON.parse(v||'[]').forEach(function(r) {
+            if(r.id) rtdb.ref('reviews/'+r.id).set(r);
+          });
+        } catch(e){}
+      }
+      if(k==='km_users') {
+        try {
+          JSON.parse(v||'[]').forEach(function(u) {
+            if(u.email) rtdb.ref('users/'+btoa(u.email).replace(/[.#$[\]]/g,'_')).set(u);
           });
         } catch(e){}
       }
