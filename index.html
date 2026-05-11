@@ -4572,7 +4572,20 @@ function saveUser(user) {
 function loadSavedUser() {
   try {
     var u = localStorage.getItem('km_current');
-    if (u) { currentUser = JSON.parse(u); updateNavForUser(currentUser); }
+    if (u) {
+      currentUser = JSON.parse(u);
+      // Refresh role from km_users in case admin approved/changed it since last session
+      try {
+        var users = JSON.parse(localStorage.getItem('km_users')||'[]');
+        var fresh = users.find(function(x){ return x.email === currentUser.email; });
+        if (fresh && fresh.role && fresh.role !== currentUser.role) {
+          currentUser.role = fresh.role;
+          if (fresh.agentId) currentUser.agentId = fresh.agentId;
+          try { localStorage.setItem('km_current', JSON.stringify(currentUser)); } catch(e2){}
+        }
+      } catch(e2){}
+      updateNavForUser(currentUser);
+    }
   } catch(e){}
 }
 
@@ -8060,7 +8073,28 @@ go = function(page) {
         if (!s.exists()) return;
         var users = [];
         s.forEach(function(c){ users.push(c.val()); });
-        if (users.length) _set('km_users', JSON.stringify(users));
+        if (!users.length) return;
+        _set('km_users', JSON.stringify(users));
+        // Refresh currentUser role live — no re-login required
+        if (currentUser && currentUser.email) {
+          var fresh = users.find(function(u){ return u.email === currentUser.email; });
+          if (fresh && fresh.role && fresh.role !== currentUser.role) {
+            var oldRole = currentUser.role;
+            currentUser.role = fresh.role;
+            if (fresh.agentId) currentUser.agentId = fresh.agentId;
+            try { _set('km_current', JSON.stringify(currentUser)); } catch(e){}
+            if (typeof updateNavForUser === 'function') updateNavForUser(currentUser);
+            if (typeof updateHamburgerAuth === 'function') updateHamburgerAuth();
+            if (typeof showToast === 'function') {
+              var msg = (fresh.role === 'Agent')
+                ? (typeof curLang !== 'undefined' && curLang === 'rw'
+                    ? '✅ Wemejwe! Uri Agent ubu — wongera imitungo!'
+                    : '✅ Approved! You are now an Agent — add listings!')
+                : '🔔 Role updated: ' + fresh.role;
+              showToast(msg);
+            }
+          }
+        }
       });
     }
 
