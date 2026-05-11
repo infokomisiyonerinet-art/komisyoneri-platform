@@ -615,7 +615,25 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .r-chip{padding:.28rem .82rem;border-radius:100px;border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.65);font-size:.73rem;cursor:pointer;background:transparent;font-family:'DM Sans',sans-serif;transition:var(--tr)}
 .r-chip.active,.r-chip:hover{background:var(--gold);color:var(--dark);border-color:var(--gold)}
 
-/* AI VALUATION CARD */
+/* TOUR MODAL */
+#tour-modal{position:fixed;inset:0;z-index:3000;background:#000;display:none;flex-direction:column}
+#tour-modal.open{display:flex}
+.tour-top-bar{display:flex;align-items:center;justify-content:space-between;padding:.65rem 1rem;background:rgba(0,0,0,.7);flex-shrink:0;gap:.5rem}
+.tour-top-bar-title{color:#fff;font-weight:700;font-size:.85rem;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tour-top-counter{color:rgba(255,255,255,.7);font-size:.75rem;background:rgba(255,255,255,.12);padding:.2rem .6rem;border-radius:20px;flex-shrink:0}
+.tour-close-btn{background:rgba(255,255,255,.15);border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tour-photo-wrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:#000}
+#tour-photo{max-width:100%;max-height:100%;object-fit:contain;transition:opacity .2s}
+.tour-nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;border-radius:50%;width:44px;height:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.tour-nav-btn:hover{background:rgba(255,255,255,.3)}
+.tour-nav-btn:disabled{opacity:.25;cursor:default}
+#tour-prev{left:.6rem}
+#tour-next{right:.6rem}
+.tour-room-bar{display:flex;gap:.45rem;justify-content:center;padding:.65rem 1rem;flex-wrap:wrap;background:rgba(0,0,0,.75);flex-shrink:0}
+.tr-chip{padding:.3rem .85rem;border-radius:100px;border:1.5px solid rgba(255,255,255,.25);color:rgba(255,255,255,.65);font-size:.72rem;cursor:pointer;background:transparent;font-family:'DM Sans',sans-serif;font-weight:600;transition:.15s}
+.tr-chip.active{background:var(--gold);color:#1a1a1a;border-color:var(--gold)}
+
+
 .ai-val{background:linear-gradient(135deg,var(--navy),#1249b3);border-radius:var(--r);padding:1.6rem;color:#fff;margin-bottom:1.4rem}
 .ai-val-lbl{font-size:.67rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:.35rem}
 .ai-val-price{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;color:var(--gold);line-height:1;margin-bottom:.55rem}
@@ -2095,6 +2113,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           🔐 Admin Mode — YouTube URL + Image URLs
         </div>
         <div class="field"><label>🎥 YouTube Video URL</label><input type="url" id="prop-video" placeholder="https://youtube.com/watch?v=..."></div>
+        <div class="field"><label>🌐 Virtual Tour 3D URL (Ntibisabwa)</label><input type="url" id="prop-tour3d" placeholder="Matterport, Kuula, YouTube 360° link..."></div>
         <div class="field"><label>🖼️ Ifoto 1 (URL)</label><input type="url" id="prop-img1" placeholder="https://i.ibb.co/xxxxx/inzu.jpg"></div>
         <div class="field"><label>🖼️ Ifoto 2 (Ntibisabwa)</label><input type="url" id="prop-img2" placeholder="https://i.ibb.co/xxxxx/imbere.jpg"></div>
         <div class="field"><label>🖼️ Ifoto 3 (Ntibisabwa)</label><input type="url" id="prop-img3" placeholder="https://i.ibb.co/xxxxx/igikari.jpg"></div>
@@ -2822,16 +2841,16 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
             <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
             <div class="tour-lbl" data-rw="Kanda hano kugira ngo utangire Virtual Tour 3D" data-en="Click below to start the 3D Virtual Tour">Kanda hano kugira ngo utangire Virtual Tour 3D</div>
             <div class="tour-btns">
-              <button class="t-btn" onclick="showToast('Virtual 3D Tour iratangira...')"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg><span data-rw="Tangira Tour" data-en="Start Tour">Tangira Tour</span></button>
-              <button class="t-btn" onclick="showToast('VR Mode irakora — fungura app yawe ya VR!')"><svg viewBox="0 0 24 24"><path d="M2 8a4 4 0 014-4h12a4 4 0 014 4v6a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><circle cx="8.5" cy="11" r="2.5"/><circle cx="15.5" cy="11" r="2.5"/></svg><span>VR Mode</span></button>
-              <button class="t-btn" onclick="showToast('Kugenda hejuru no hasi...')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span data-rw="Nyigira Inzu" data-en="Walk Through">Nyigira Inzu</span></button>
+              <button class="t-btn" onclick="openTour(0)"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg><span data-rw="Tangira Tour" data-en="Start Tour">Tangira Tour</span></button>
+              <button class="t-btn" onclick="openVR()"><svg viewBox="0 0 24 24"><path d="M2 8a4 4 0 014-4h12a4 4 0 014 4v6a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><circle cx="8.5" cy="11" r="2.5"/><circle cx="15.5" cy="11" r="2.5"/></svg><span data-rw="VR Mode" data-en="VR Mode">VR Mode</span></button>
+              <button class="t-btn" onclick="openTour(0)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span data-rw="Nyigira Inzu" data-en="Walk Through">Nyigira Inzu</span></button>
             </div>
             <div class="room-chips">
-              <button class="r-chip active" data-rw="Salon" data-en="Living Room">Salon</button>
-              <button class="r-chip" data-rw="Icumba" data-en="Bedroom">Icumba</button>
-              <button class="r-chip" data-rw="Igikoni" data-en="Kitchen">Igikoni</button>
-              <button class="r-chip" data-rw="Hanze" data-en="Garden">Hanze</button>
-              <button class="r-chip" data-rw="Garage" data-en="Garage">Garage</button>
+              <button class="r-chip active" data-rw="Salon" data-en="Living Room" onclick="openTour(0)">Salon</button>
+              <button class="r-chip" data-rw="Icumba" data-en="Bedroom" onclick="openTour(1)">Icumba</button>
+              <button class="r-chip" data-rw="Igikoni" data-en="Kitchen" onclick="openTour(2)">Igikoni</button>
+              <button class="r-chip" data-rw="Hanze" data-en="Garden" onclick="openTour(3)">Hanze</button>
+              <button class="r-chip" data-rw="Garage" data-en="Garage" onclick="openTour(4)">Garage</button>
             </div>
           </div>
         </div>
@@ -4733,7 +4752,7 @@ function submitProperty() {
       baths: g('prop-baths'), size: g('prop-size'), desc: g('prop-desc'),
       contact: g('prop-contact') || '+250 783 177 254',
       img1: g('prop-img1'), img2: g('prop-img2'), img3: g('prop-img3'),
-      video: videoUrl,
+      video: videoUrl, tour3dUrl: g('prop-tour3d'),
       owner: 'KOMISIYONERI', ownerEmail: currentUser.email,
       verified: true, rating: 5.0, reviews: 0,
       date: new Date().toISOString(), status: 'Approved'
@@ -4767,7 +4786,7 @@ function submitProperty() {
       baths: g('prop-baths'), size: g('prop-size'), desc: g('prop-desc'),
       contact: g('prop-contact') || currentUser.phone || '+250 783 177 254',
       img1: '', img2: '', img3: '',
-      video: '',
+      video: '', tour3dUrl: '',
       owner: currentUser.name, ownerEmail: currentUser.email,
       date: new Date().toISOString(), status: 'Pending'
     };
@@ -6355,6 +6374,131 @@ function submitAgentReg() {
   }, 800);
 }
 
+// ═══════════════════════════════════════════════════════════
+//  VIRTUAL TOUR 3D
+// ═══════════════════════════════════════════════════════════
+var _tourImgs = [];
+var _tourIdx  = 0;
+var _tourRoomLabels = {
+  rw: ['Salon','Icumba','Igikoni','Hanze','Garage'],
+  en: ['Living Room','Bedroom','Kitchen','Garden','Garage']
+};
+
+function openTour(startIdx) {
+  var prop = window._currentProp;
+  if (!prop) { showToast(curLang==='rw'?'Fungura imitungo mbere!':'Open a property first!'); return; }
+  var modal = document.getElementById('tour-modal');
+  if (!modal) return;
+
+  var titleEl  = document.getElementById('tour-title');
+  var cntEl    = document.getElementById('tour-counter');
+  var iframe   = document.getElementById('tour-iframe');
+  var photoWrap= document.getElementById('tour-photo-wrap');
+  var roomBar  = document.getElementById('tour-room-bar');
+
+  if (titleEl) titleEl.textContent = (prop.type||'') + (prop.district?' — '+prop.district:'');
+
+  if (prop.tour3dUrl) {
+    // ── Embed the 3D tour URL ──
+    iframe.style.display = 'block';
+    iframe.src = prop.tour3dUrl;
+    photoWrap.style.display = 'none';
+    roomBar.style.display = 'none';
+    if (cntEl) cntEl.textContent = '3D Tour';
+  } else {
+    // ── Photo slideshow ──
+    _tourImgs = [prop.img1, prop.img2, prop.img3].filter(Boolean);
+    if (!_tourImgs.length) {
+      showToast(curLang==='rw'?'Nta mafoto arashyizweho':'No photos available');
+      return;
+    }
+    iframe.style.display = 'none';
+    photoWrap.style.display = 'flex';
+
+    // Build room chips (one per photo)
+    var labels = _tourRoomLabels[curLang] || _tourRoomLabels.rw;
+    roomBar.style.display = 'flex';
+    roomBar.innerHTML = _tourImgs.map(function(_, i) {
+      return '<button class="tr-chip'+(i===0?' active':'')+'" onclick="tourGoRoom('+i+')">'
+        + (labels[i]||('Photo '+(i+1)))+'</button>';
+    }).join('');
+
+    _tourIdx = startIdx || 0;
+    _tourShowImg(_tourIdx);
+  }
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Swipe (initialised once)
+  if (!openTour._swipe) {
+    openTour._swipe = true;
+    var sx = 0;
+    document.addEventListener('touchstart', function(e){
+      if (!document.getElementById('tour-modal').classList.contains('open')) return;
+      sx = e.touches[0].clientX;
+    }, {passive:true});
+    document.addEventListener('touchend', function(e){
+      if (!document.getElementById('tour-modal').classList.contains('open')) return;
+      var dx = sx - e.changedTouches[0].clientX;
+      if (Math.abs(dx) > 50) { if(dx>0) tourNext(); else tourPrev(); }
+    }, {passive:true});
+    document.addEventListener('keydown', function(e){
+      if (!document.getElementById('tour-modal').classList.contains('open')) return;
+      if (e.key==='ArrowRight') tourNext();
+      if (e.key==='ArrowLeft')  tourPrev();
+      if (e.key==='Escape')     closeTour();
+    });
+  }
+}
+
+function _tourShowImg(idx) {
+  _tourIdx = Math.max(0, Math.min(idx, _tourImgs.length-1));
+  var img  = document.getElementById('tour-photo');
+  var cnt  = document.getElementById('tour-counter');
+  var prev = document.getElementById('tour-prev');
+  var next = document.getElementById('tour-next');
+  if (img) {
+    img.style.opacity = '0';
+    setTimeout(function(){ img.src = _tourImgs[_tourIdx]; img.style.opacity='1'; }, 150);
+  }
+  if (cnt) cnt.textContent = (_tourIdx+1)+' / '+_tourImgs.length;
+  if (prev) prev.disabled = _tourIdx === 0;
+  if (next) next.disabled = _tourIdx === _tourImgs.length-1;
+  document.querySelectorAll('.tr-chip').forEach(function(b,i){
+    b.classList.toggle('active', i===_tourIdx);
+  });
+}
+
+function tourNext()        { if(_tourIdx < _tourImgs.length-1) _tourShowImg(_tourIdx+1); }
+function tourPrev()        { if(_tourIdx > 0)                  _tourShowImg(_tourIdx-1); }
+function tourGoRoom(idx)   { _tourShowImg(idx); }
+
+function openVR() {
+  var prop = window._currentProp;
+  if (!prop) return;
+  if (prop.tour3dUrl) {
+    window.open(prop.tour3dUrl, '_blank');
+  } else {
+    var msg = encodeURIComponent(
+      (curLang==='rw'?'Muraho! Ndashaka Virtual Tour 3D ya: ':'Hello! I want a 3D Virtual Tour for: ')
+      + (prop.type||'property') + (prop.district?' — '+prop.district:'')
+      + (curLang==='rw'?' . Mufite?':'. Do you have one?')
+    );
+    window.open('https://wa.me/250783177254?text='+msg, '_blank');
+  }
+}
+
+function closeTour() {
+  var modal = document.getElementById('tour-modal');
+  if (modal) modal.classList.remove('open');
+  document.body.style.overflow = '';
+  var iframe = document.getElementById('tour-iframe');
+  if (iframe) { iframe.src=''; iframe.style.display='none'; }
+  var photoWrap = document.getElementById('tour-photo-wrap');
+  if (photoWrap) photoWrap.style.display = 'flex';
+}
+
 // === LEAD MANAGEMENT ===
 function openLead() {
   var m = document.getElementById('lead-modal');
@@ -6794,6 +6938,7 @@ function openPropDetail(propId) {
     badgesEl.innerHTML = (prop.isDemo ? '<span class="badge b-gold">✦ DEMO</span>' : '')
       + (prop.verified ? '<span class="badge b-green">✅ Verified</span>' : '')
       + (prop.service === 'Gukodesha' ? '<span class="badge b-muted">Gukodesha</span>' : '<span class="badge b-navy">Kugura</span>')
+      + (prop.tour3dUrl ? '<span class="badge" style="background:#7c3aed;color:#fff;cursor:pointer" onclick="openTour(0)">🌐 3D Tour</span>' : '')
       + (prop.rating ? '<span class="badge" style="background:var(--light);color:var(--navy)">★ '+prop.rating+'</span>' : '');
   }
 
@@ -7524,6 +7669,28 @@ go = function(page) {
   });
 })()
 </script>
+<!-- ═══ VIRTUAL TOUR MODAL ═══ -->
+<div id="tour-modal">
+  <div class="tour-top-bar">
+    <div class="tour-top-bar-title" id="tour-title"></div>
+    <div class="tour-top-counter" id="tour-counter"></div>
+    <button class="tour-close-btn" onclick="closeTour()">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <iframe id="tour-iframe" style="display:none;width:100%;flex:1;border:0" allowfullscreen allow="xr-spatial-tracking"></iframe>
+  <div class="tour-photo-wrap" id="tour-photo-wrap">
+    <img id="tour-photo" src="" alt="Tour photo" loading="lazy">
+    <button class="tour-nav-btn" id="tour-prev" onclick="tourPrev()">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="tour-nav-btn" id="tour-next" onclick="tourNext()">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+  <div class="tour-room-bar" id="tour-room-bar"></div>
+</div>
+
 <script>
 (function(){
   try {
