@@ -4449,6 +4449,7 @@ document.querySelectorAll('.rt').forEach(btn => {
 
 // --- USER AUTH SYSTEM ---
 var currentUser = null;
+var _pendingAction = null;
 
 function saveUser(user) {
   try { localStorage.setItem('km_current', JSON.stringify(user)); } catch(e){}
@@ -4659,7 +4660,11 @@ function handleLogin() {
   var user = found || { name:email.value.split('@')[0], email:email.value, phone:'', role:'Buyer', date:new Date().toISOString() };
   saveUser(user);
   showToast((curLang==='rw'?'Murakaza neza ':'Welcome ')+user.name+'! 🎉');
-  setTimeout(function(){ go('home'); }, 900);
+  setTimeout(function(){
+    var pa = _pendingAction; _pendingAction = null;
+    if (pa === 'agent-reg') { go('home'); openAgentReg(); }
+    else { go('home'); }
+  }, 900);
 }
 
 function handleRegister() {
@@ -4685,7 +4690,11 @@ function handleRegister() {
   try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
   saveUser(user);
   showToast((curLang==='rw'?'Murakaza neza ':'Welcome ')+name+'! 🎉');
-  setTimeout(function(){ go('home'); }, 900);
+  setTimeout(function(){
+    var pa = _pendingAction; _pendingAction = null;
+    if (pa === 'agent-reg') { go('home'); openAgentReg(); }
+    else { go('home'); }
+  }, 900);
 }
 
 document.addEventListener('DOMContentLoaded', loadSavedUser);
@@ -6287,7 +6296,7 @@ function loadAgentLeads() {
 
 // Add Agent Registration to navbar
 function showBecomeAgent() {
-  if(!currentUser) { go('auth'); return; }
+  if(!currentUser) { _pendingAction = 'agent-reg'; go('auth'); return; }
   openAgentReg();
 }
 
