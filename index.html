@@ -1847,7 +1847,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     <button class="nl active" id="nl-home" onclick="go('home')" aria-label="Ahabanza — Home page" aria-current="page" data-rw="Ahabanza" data-en="Home">Ahabanza</button>
     <button class="nl" id="nl-listings" onclick="go('listings')" aria-label="Imitungo — Properties page" data-rw="Imitungo" data-en="Properties">Imitungo</button>
     <button class="nl" id="nl-analytics" onclick="go('analytics')" aria-label="AI Analytics page" data-rw="AI Analytics" data-en="AI Analytics">AI Analytics</button>
-    <button class="nl" id="nl-dashboard" onclick="go('dashboard')" aria-label="Dashboard page" data-rw="Dashboard" data-en="Dashboard">Dashboard</button>
+    <button class="nl" id="nl-dashboard" onclick="go('dashboard')" aria-label="Dashboard page" data-rw="Dashboard" data-en="Dashboard" style="display:none">Dashboard</button>
     <button class="nl" id="nl-auth" onclick="go('auth')" data-rw="Injira" data-en="Sign In">Injira</button>
   </div>
   <div class="topnav-right">
@@ -1954,40 +1954,89 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <div class="modal-title" id="profile-title">Profile Yange</div>
       <button class="modal-x" onclick="closeProfile()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <div style="text-align:center;padding:1.2rem 0 .8rem">
-      <div id="profile-avatar-big" style="width:72px;height:72px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.8rem;margin:0 auto .8rem;border:3px solid var(--gold)">U</div>
-      <div id="profile-name-big" style="font-weight:700;font-size:1.1rem;color:var(--navy)">Amazina</div>
-      <div id="profile-role-badge" style="display:inline-block;background:var(--light);border-radius:100px;padding:.2rem .8rem;font-size:.72rem;color:var(--muted);margin-top:.3rem">Buyer</div>
+
+    <!-- VIEW MODE -->
+    <div id="profile-view">
+      <div style="text-align:center;padding:1.2rem 0 .8rem">
+        <div id="profile-avatar-big" style="width:72px;height:72px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.8rem;margin:0 auto .8rem;border:3px solid var(--gold);background-size:cover;background-position:center">U</div>
+        <div id="profile-name-big" style="font-weight:700;font-size:1.1rem;color:var(--navy)">Amazina</div>
+        <div id="profile-role-badge" style="display:inline-block;background:var(--light);border-radius:100px;padding:.2rem .8rem;font-size:.72rem;color:var(--muted);margin-top:.3rem">Buyer</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.6rem;padding:.5rem 0">
+        <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem;background:var(--light);border-radius:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .5h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.37a16 16 0 006.29 6.29l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          <div><div style="font-size:.7rem;color:var(--muted)">Telefoni</div><div id="profile-phone" style="font-size:.9rem;font-weight:600">—</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem;background:var(--light);border-radius:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <div><div style="font-size:.7rem;color:var(--muted)">Imeyili</div><div id="profile-email" style="font-size:.9rem;font-weight:600">—</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem;background:var(--light);border-radius:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <div><div style="font-size:.7rem;color:var(--muted)">Yiyandikishije</div><div id="profile-date" style="font-size:.9rem;font-weight:600">—</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem;background:var(--light);border-radius:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <div><div style="font-size:.7rem;color:var(--muted)">Aho Atuye</div><div id="profile-location" style="font-size:.9rem;font-weight:600">—</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem;background:var(--light);border-radius:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <div><div style="font-size:.7rem;color:var(--muted)">Icyo Ashaka</div><div id="profile-preference" style="font-size:.9rem;font-weight:600">—</div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:.6rem;margin-top:.8rem">
+        <button class="btn btn-navy btn-lg" style="flex:1;justify-content:center" onclick="openEditProfile()">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Hindura
+        </button>
+        <button class="btn" style="flex:1;justify-content:center;border:1.5px solid var(--border)" onclick="closeProfile();openAddProperty()">+ Imitungo</button>
+        <button class="btn" style="justify-content:center;border:1.5px solid var(--border);padding:.5rem .7rem" onclick="logoutUser()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:.6rem;padding:.5rem 0">
-      <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem;background:var(--light);border-radius:8px">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .5h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.37a16 16 0 006.29 6.29l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-        <div><div style="font-size:.7rem;color:var(--muted)">Telefoni</div><div id="profile-phone" style="font-size:.9rem;font-weight:600">—</div></div>
+
+    <!-- EDIT MODE -->
+    <div id="profile-edit" style="display:none">
+      <div style="text-align:center;padding:1rem 0 .6rem">
+        <div id="profile-edit-avatar" onclick="document.getElementById('profile-photo-input').click()" style="width:72px;height:72px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.8rem;margin:0 auto .4rem;border:3px solid var(--gold);cursor:pointer;background-size:cover;background-position:center;position:relative">U</div>
+        <input type="file" id="profile-photo-input" accept="image/*" style="display:none" onchange="onProfilePhotoChange(this)">
+        <div style="font-size:.7rem;color:var(--muted)">Kanda kuzindura ifoto</div>
       </div>
-      <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem;background:var(--light);border-radius:8px">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-        <div><div style="font-size:.7rem;color:var(--muted)">Imeyili</div><div id="profile-email" style="font-size:.9rem;font-weight:600">—</div></div>
+      <div style="display:flex;flex-direction:column;gap:.6rem;padding:.4rem 0">
+        <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem;background:var(--light);border-radius:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <div><div style="font-size:.7rem;color:var(--muted)">Amazina (ntishobora guhindurwa)</div><div id="edit-name-display" style="font-size:.85rem;color:var(--muted)">—</div></div>
+        </div>
+        <div>
+          <label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:.2rem">Telefoni</label>
+          <input id="edit-phone" type="tel" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:.2rem">Aho Atuye</label>
+          <input id="edit-location" type="text" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:.2rem">Icyo Nashaka</label>
+          <select id="edit-preference" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;box-sizing:border-box;background:#fff">
+            <option value="Kugura">Kugura</option>
+            <option value="Kugurisha">Kugurisha</option>
+            <option value="Gukoresha">Gukoresha</option>
+            <option value="Agent">Agent</option>
+            <option value="Icindi">Icindi</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem;background:var(--light);border-radius:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <div><div style="font-size:.7rem;color:var(--muted)">Imeyili (ntishobora guhindurwa)</div><div id="edit-email-display" style="font-size:.85rem;color:var(--muted)">—</div></div>
+        </div>
       </div>
-      <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem;background:var(--light);border-radius:8px">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <div><div style="font-size:.7rem;color:var(--muted)">Yiyandikishije</div><div id="profile-date" style="font-size:.9rem;font-weight:600">—</div></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem;background:var(--light);border-radius:8px">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        <div><div style="font-size:.7rem;color:var(--muted)">Aho Atuye</div><div id="profile-location" style="font-size:.9rem;font-weight:600">—</div></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem;background:var(--light);border-radius:8px">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <div><div style="font-size:.7rem;color:var(--muted)">Icyo Ashaka</div><div id="profile-preference" style="font-size:.9rem;font-weight:600">—</div></div>
+      <div style="display:flex;gap:.6rem;margin-top:.8rem">
+        <button class="btn btn-navy btn-lg" style="flex:1;justify-content:center" onclick="saveEditProfile()">Bika</button>
+        <button class="btn" style="flex:1;justify-content:center;border:1.5px solid var(--border)" onclick="closeEditProfile()">Reka</button>
       </div>
     </div>
-    <div style="display:flex;gap:.6rem;margin-top:.8rem">
-      <button class="btn btn-navy btn-lg" style="flex:1;justify-content:center" onclick="closeProfile();openAddProperty()">+ Imitungo</button>
-      <button class="btn" style="flex:1;justify-content:center;border:1.5px solid var(--border)" onclick="logoutUser()">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Sohoka
-      </button>
-    </div>
+
   </div>
 </div>
 
@@ -3115,7 +3164,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <div class="ds-logo"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span>KOMISIYONERI</span></div>
       <div class="ds-section" data-rw="URUBUGA" data-en="MAIN">URUBUGA</div>
       <div class="dn active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span data-rw="Overview" data-en="Overview">Overview</span></div>
-      <div class="dn"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span data-rw="Imitungo Yanjye" data-en="My Listings">Imitungo Yanjye</span><span class="ds-badge">12</span></div>
+      <div class="dn"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span data-rw="Imitungo Yanjye" data-en="My Listings">Imitungo Yanjye</span><span class="ds-badge" id="dash-sidebar-listings">0</span></div>
       <div class="dn" onclick="go('listings')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span data-rw="Shakisha" data-en="Search">Shakisha</span></div>
       <div class="dn" onclick="go('analytics')"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Analytics</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Abakiliya" data-en="Clients">Abakiliya</span><span class="ds-badge">5</span></div>
@@ -3128,25 +3177,25 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     </aside>
     <main class="dash-content">
       <div class="dash-welcome">
-        <h2 data-rw="Murakaza neza, Agent!" data-en="Welcome back, Agent!">Murakaza neza, Agent!</h2>
+        <h2 id="dash-welcome-name" data-rw="Murakaza neza, Agent!" data-en="Welcome back, Agent!">Murakaza neza, Agent!</h2>
         <p data-rw="Ibyo bigezweho ku butunzi bwawe kuri uyu wa 3" data-en="Here's what's happening with your portfolio today">Ibyo bigezweho ku butunzi bwawe kuri uyu wa 3</p>
       </div>
       <!-- KPIs from pitch deck slide 9 -->
       <div class="kpis">
         <div class="kpi">
-          <div class="kpi-top"><div><span class="kpi-v">12</span><div class="kpi-l" data-rw="Imitungo Yanditswe" data-en="Active Listings">Active Listings</div></div><div class="kpi-icon ki-navy"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div></div>
+          <div class="kpi-top"><div><span class="kpi-v" id="dash-kpi-listings">0</span><div class="kpi-l" data-rw="Imitungo Yanditswe" data-en="Active Listings">Active Listings</div></div><div class="kpi-icon ki-navy"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div></div>
           <div class="delta d-up"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>+3 uku kwezi</div>
         </div>
         <div class="kpi">
-          <div class="kpi-top"><div><span class="kpi-v">4</span><div class="kpi-l" data-rw="Igurishwa Ryagenze" data-en="Sales Closed">Sales Closed</div></div><div class="kpi-icon ki-green"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div></div>
+          <div class="kpi-top"><div><span class="kpi-v" id="dash-kpi-sales">0</span><div class="kpi-l" data-rw="Igurishwa Ryagenze" data-en="Sales Closed">Sales Closed</div></div><div class="kpi-icon ki-green"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div></div>
           <div class="delta d-up"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>+1 vs last month</div>
         </div>
         <div class="kpi">
-          <div class="kpi-top"><div><span class="kpi-v">2.4M</span><div class="kpi-l" data-rw="Komisiyoni (RWF)" data-en="Commission (RWF)">Komisiyoni</div></div><div class="kpi-icon ki-gold"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div></div>
+          <div class="kpi-top"><div><span class="kpi-v" id="dash-kpi-commission">0</span><div class="kpi-l" data-rw="Komisiyoni (RWF)" data-en="Commission (RWF)">Komisiyoni</div></div><div class="kpi-icon ki-gold"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div></div>
           <div class="delta d-up"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>+18%</div>
         </div>
         <div class="kpi">
-          <div class="kpi-top"><div><span class="kpi-v">28</span><div class="kpi-l" data-rw="Abakiliya Basha" data-en="New Inquiries">New Inquiries</div></div><div class="kpi-icon ki-blue"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div></div>
+          <div class="kpi-top"><div><span class="kpi-v" id="dash-kpi-leads">0</span><div class="kpi-l" data-rw="Abakiliya Basha" data-en="New Inquiries">New Inquiries</div></div><div class="kpi-icon ki-blue"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div></div>
           <div class="delta d-up"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>+7 uyu munsi</div>
         </div>
       </div>
@@ -3154,26 +3203,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <!-- My Listings -->
         <div class="dc">
           <div class="dc-hdr"><span class="dc-title" data-rw="Imitungo Yanjye" data-en="My Listings">Imitungo Yanjye</span><button class="dc-action" onclick="go('listings')" data-rw="Reba Yose" data-en="View All">Reba Yose</button></div>
-          <div class="lr" onclick="go('detail')">
-            <div class="lt g1"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div>
-            <div class="li"><strong data-rw="Villa Kimironko — 4BR" data-en="Villa Kimironko — 4BR">Villa Kimironko — 4BR</strong><span><span class="sdot sd-green"></span><span data-rw="Iraboneka" data-en="Active">Iraboneka</span> · 8 views uyu munsi</span></div>
-            <span class="lr-price">120M</span>
-          </div>
-          <div class="lr" onclick="go('detail')">
-            <div class="lt g2"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
-            <div class="li"><strong data-rw="Apartimanı Niboye — 2BR" data-en="Apartment Niboye — 2BR">Apartimanı Niboye — 2BR</strong><span><span class="sdot sd-gold"></span><span data-rw="Irasabwa" data-en="Pending">Irasabwa</span> · Abakiliya 3 basaba</span></div>
-            <span class="lr-price" id="dash-prop-price">—</span>
-          </div>
-          <div class="lr" onclick="go('detail')">
-            <div class="lt g3"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg></div>
-            <div class="li"><strong data-rw="Inzu Musanze — 3BR" data-en="House Musanze — 3BR">Inzu Musanze — 3BR</strong><span><span class="sdot sd-green"></span><span data-rw="Iraboneka" data-en="Active">Iraboneka</span> · Rishya</span></div>
-            <span class="lr-price">85M</span>
-          </div>
-          <div class="lr" onclick="go('detail')">
-            <div class="lt g4"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div>
-            <div class="li"><strong data-rw="Inyubako CBD — 6 Floors" data-en="Office CBD — 6 Floors">Inyubako CBD — 6 Floors</strong><span><span class="sdot sd-muted"></span><span data-rw="Yagurishijwe" data-en="Sold">Yagurishijwe</span></span></div>
-            <span class="lr-price">220M</span>
-          </div>
+          <div id="dash-listings-rows"></div>
           <!-- mini bar chart -->
           <div class="mini-bars">
             <div class="mb-col"><div class="mb-bar" style="height:30px"></div><span class="mb-lbl">Mon</span></div>
@@ -3210,7 +3240,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           </div>
           <!-- Quick actions -->
           <div style="padding:1.1rem 1.4rem;border-top:1px solid var(--border);display:flex;gap:.6rem;flex-wrap:wrap">
-            <button class="btn btn-navy btn-sm" onclick="showToast('Imitungo mishya yanditswe!')">
+            <button class="btn btn-navy btn-sm" onclick="openAddProperty()">
               <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               <span data-rw="Andika Imitungo" data-en="Add Listing">Andika Imitungo</span>
             </button>
@@ -4478,7 +4508,79 @@ function updateNavForUser(user) {
   if(guest) guest.style.display='none';
   if(userArea) userArea.style.display='flex';
   var ini = (user.name||'U').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
-  if(avatar) avatar.textContent = ini;
+  if (avatar) {
+    if (user.photo) {
+      avatar.textContent = '';
+      avatar.style.backgroundImage = 'url(' + user.photo + ')';
+      avatar.style.backgroundSize = 'cover';
+      avatar.style.backgroundPosition = 'center';
+    } else {
+      avatar.style.backgroundImage = '';
+      avatar.textContent = ini;
+    }
+  }
+  var dashBtn = document.getElementById('nl-dashboard');
+  if(dashBtn) dashBtn.style.display = (user.role === 'Agent' || user.role === 'Admin') ? '' : 'none';
+}
+
+function loadAgentDashboard() {
+  if (!currentUser) return;
+  var e = function(id){ return document.getElementById(id); };
+
+  // Personalize welcome
+  var wn = e('dash-welcome-name');
+  if (wn) wn.textContent = (curLang==='rw' ? 'Murakaza neza, ' : 'Welcome back, ') + (currentUser.name||'Agent') + '!';
+
+  var props = [], deals = [], leads = [], agents = [];
+  try { props  = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(err){}
+  try { deals  = JSON.parse(localStorage.getItem('km_deals')||'[]');      } catch(err){}
+  try { leads  = JSON.parse(localStorage.getItem('km_leads')||'[]');      } catch(err){}
+  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]');     } catch(err){}
+
+  var myProps    = props.filter(function(p){ return p.ownerEmail === currentUser.email; });
+  var approved   = myProps.filter(function(p){ return p.status === 'Approved'; });
+  var myLeads    = leads.filter(function(l){ return currentUser.agentId && l.assignedAgent === currentUser.agentId; });
+  var myDeals    = deals.filter(function(d){ return currentUser.agentId && d.agentId === currentUser.agentId; });
+  var salesClosed = myDeals.filter(function(d){ return d.status === 'Completed'; }).length;
+
+  var myAgent = agents.find(function(a){ return a.id === currentUser.agentId; });
+  var commission = myAgent ? (myAgent.commissionTotal || 0) : 0;
+  var commDisp = commission >= 1000000 ? (commission/1000000).toFixed(1)+'M'
+               : commission >= 1000    ? Math.round(commission/1000)+'K'
+               : String(commission);
+
+  if(e('dash-kpi-listings'))   e('dash-kpi-listings').textContent   = approved.length;
+  if(e('dash-kpi-sales'))      e('dash-kpi-sales').textContent      = salesClosed;
+  if(e('dash-kpi-commission')) e('dash-kpi-commission').textContent = commDisp || '0';
+  if(e('dash-kpi-leads'))      e('dash-kpi-leads').textContent      = myLeads.length;
+  if(e('dash-sidebar-listings')) e('dash-sidebar-listings').textContent = approved.length;
+
+  renderDashboardListings(approved);
+}
+
+function renderDashboardListings(props) {
+  var el = document.getElementById('dash-listings-rows');
+  if (!el) return;
+  if (!props || props.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.88rem">'
+      + (curLang==='rw' ? 'Nta mitungo yanditswe. Fungura bikorwa!' : 'No listings yet. Add your first property!')
+      + '</div>';
+    return;
+  }
+  var gradients = ['g1','g2','g3','g4','g5','g6','g7'];
+  el.innerHTML = props.slice(0,4).map(function(prop, i) {
+    var gc = gradients[i % 7];
+    var price = prop.price ? (Number(prop.price)>=1000000 ? (Number(prop.price)/1000000).toFixed(0)+'M RWF' : Number(prop.price).toLocaleString()+' RWF') : '—';
+    var statusColor = prop.status==='Approved' ? 'sd-green' : prop.status==='Pending' ? 'sd-gold' : 'sd-muted';
+    var statusLabel = prop.status==='Approved' ? (curLang==='rw'?'Iraboneka':'Active')
+                    : prop.status==='Pending'  ? (curLang==='rw'?'Irasabwa':'Pending') : escapeHtml(prop.status||'');
+    return '<div class="lr" onclick="go(\'listings\')">'
+      + '<div class="lt '+gc+'"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div>'
+      + '<div class="li"><strong>'+escapeHtml((prop.type||'')+' — '+(prop.district||''))+'</strong>'
+      + '<span><span class="sdot '+statusColor+'"></span>'+statusLabel+'</span></div>'
+      + '<span class="lr-price">'+price+'</span>'
+      + '</div>';
+  }).join('');
 }
 
 function openProfile() {
@@ -4486,9 +4588,21 @@ function openProfile() {
   var m = document.getElementById('profile-modal');
   if (!m) return;
   m.style.display = 'flex';
-  var ini = (currentUser.name||'U').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
   var e = function(id){ return document.getElementById(id); };
-  if(e('profile-avatar-big')) e('profile-avatar-big').textContent = ini;
+  // ensure view mode is shown
+  if(e('profile-view')) e('profile-view').style.display = '';
+  if(e('profile-edit')) e('profile-edit').style.display = 'none';
+  var av = e('profile-avatar-big');
+  if (av) {
+    if (currentUser.photo) {
+      av.textContent = '';
+      av.style.backgroundImage = 'url(' + currentUser.photo + ')';
+    } else {
+      var ini = (currentUser.name||'U').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+      av.style.backgroundImage = '';
+      av.textContent = ini;
+    }
+  }
   if(e('profile-name-big')) e('profile-name-big').textContent = currentUser.name||'—';
   if(e('profile-role-badge')) e('profile-role-badge').textContent = currentUser.role||'Buyer';
   if(e('profile-phone')) e('profile-phone').textContent = currentUser.phone||'—';
@@ -4501,6 +4615,68 @@ function openProfile() {
 function closeProfile() {
   var m = document.getElementById('profile-modal');
   if(m) m.style.display='none';
+}
+
+function openEditProfile() {
+  var e = function(id){ return document.getElementById(id); };
+  if(e('profile-view')) e('profile-view').style.display = 'none';
+  if(e('profile-edit')) e('profile-edit').style.display = '';
+  window._profileNewPhoto = null;
+  if(e('edit-name-display')) e('edit-name-display').textContent = currentUser.name||'—';
+  if(e('edit-phone')) e('edit-phone').value = currentUser.phone||'';
+  if(e('edit-location')) e('edit-location').value = currentUser.location||'';
+  if(e('edit-preference')) e('edit-preference').value = currentUser.preference||'Kugura';
+  if(e('edit-email-display')) e('edit-email-display').textContent = currentUser.email||'—';
+  var av = e('profile-edit-avatar');
+  if (av) {
+    if (currentUser.photo) {
+      av.textContent = '';
+      av.style.backgroundImage = 'url(' + currentUser.photo + ')';
+    } else {
+      var ini = (currentUser.name||'U').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+      av.style.backgroundImage = '';
+      av.textContent = ini;
+    }
+  }
+}
+
+function closeEditProfile() {
+  openProfile();
+}
+
+function saveEditProfile() {
+  var g = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
+  if (window._profileNewPhoto) currentUser.photo = window._profileNewPhoto;
+  currentUser.phone = g('edit-phone');
+  currentUser.location = g('edit-location');
+  var prefEl = document.getElementById('edit-preference');
+  if (prefEl) currentUser.preference = prefEl.value;
+  saveUser(currentUser);
+  // sync to km_users array
+  var users = [];
+  try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
+  users = users.map(function(u) {
+    if (u.email === currentUser.email) {
+      u.phone = currentUser.phone;
+      u.location = currentUser.location;
+      u.preference = currentUser.preference;
+      if (currentUser.photo) u.photo = currentUser.photo;
+    }
+    return u;
+  });
+  try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
+  showToast(curLang==='rw'?'✅ Profile yawe yavuguruwe!':'✅ Profile updated!');
+  closeEditProfile();
+}
+
+function onProfilePhotoChange(input) {
+  var f = input.files && input.files[0];
+  if (!f) return;
+  convertFileToBase64(f, function(data) {
+    window._profileNewPhoto = data;
+    var av = document.getElementById('profile-edit-avatar');
+    if (av) { av.textContent = ''; av.style.backgroundImage = 'url('+data+')'; av.style.backgroundSize='cover'; av.style.backgroundPosition='center'; }
+  });
 }
 
 function logoutUser() {
@@ -4760,6 +4936,20 @@ function animateKPIs() {
 
 // ── UNIFIED go() — page navigation + title + analytics
 function go(name) {
+  if (name === 'dashboard') {
+    if (!currentUser) {
+      showToast(curLang==='rw' ? 'Injira mbere!' : 'Please log in first!');
+      name = 'auth';
+    } else if (currentUser.role === 'PendingAgent') {
+      showToast(curLang==='rw' ? '⏳ Iyandikishe ryawe irimo gusuzumwa! KOMISIYONERI izakugezaho mu masaa 24.' : '⏳ Your application is under review! We will contact you within 24 hours.');
+      return;
+    } else if (currentUser.role !== 'Agent' && currentUser.role !== 'Admin') {
+      showToast(curLang==='rw' ? 'Dashboard irabana n\'Agents gusa!' : 'Dashboard is for Agents only!');
+      return;
+    } else {
+      loadAgentDashboard();
+    }
+  }
   // Hide all pages, deactivate all nav links
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nl').forEach(b => {
@@ -5153,7 +5343,6 @@ window.addEventListener('DOMContentLoaded', function() {
 //  KOMISIYONERI — PROPERTY SUBMISSION SYSTEM
 // ============================================
 
-var ADMIN_PASS = 'KOMISIYONERI2026';
 var adminCurrentFilter = 'pending';
 
 // --- RENDER USER PROPERTY CARD ---
@@ -5285,9 +5474,13 @@ function loadApprovedProperties() {
 
 // --- OPEN ADMIN PANEL ---
 function openAdmin() {
-  var pass = prompt('Injiza ijambo banga rya Admin (KOMISIYONERI2026):');
-  if (!pass || pass !== ADMIN_PASS) {
-    showToast('Ijambo banga sibyo! Admin gusa.');
+  var isAdmin = currentUser && (
+    currentUser.email === 'komisiyonericonnectproservices@gmail.com' ||
+    currentUser.email === 'admin@komisiyoneri.com' ||
+    currentUser.role === 'Admin'
+  );
+  if (!isAdmin) {
+    showToast(curLang==='rw' ? 'Ntabwo wemerewe! Admin gusa.' : 'Access denied. Admin only.');
     return;
   }
   var m = document.getElementById('admin-modal');
@@ -5345,22 +5538,27 @@ function adminRender(filter) {
     list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">' + t('noPropsCat') + '</div>';
     return;
   }
-  list.innerHTML = filtered.map(function(prop, i) {
-    var globalIdx = props.indexOf(prop);
+  var propsIndexed = props.map(function(p, i) { return {p: p, idx: i}; });
+  var filteredIndexed = filter === 'all' ? propsIndexed : propsIndexed.filter(function(item) {
+    return (item.p.status||'').toLowerCase() === filter;
+  });
+  list.innerHTML = filteredIndexed.map(function(item) {
+    var prop = item.p;
+    var globalIdx = item.idx;
     var priceDisplay = prop.price ? Number(prop.price).toLocaleString()+' RWF' : '—';
     var statusColor = prop.status==='Approved'?'#27A84A':prop.status==='Rejected'?'#e53e3e':'#F5A623';
     return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.8rem;background:#fafbff">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;flex-wrap:wrap">'
       + '<div style="flex:1">'
-      + '<div style="font-weight:700;color:var(--navy);font-size:.95rem">'+prop.type+' — '+prop.district+(prop.sector?', '+prop.sector:'')+'</div>'
-      + '<div style="font-size:.8rem;color:var(--muted);margin:.2rem 0">👤 '+prop.owner+' | 📞 '+prop.contact+'</div>'
-      + '<div style="font-size:.8rem;color:var(--muted)">📧 '+(prop.ownerEmail||'—')+'</div>'
-      + '<div style="font-size:.85rem;margin:.4rem 0;font-weight:600">💰 '+priceDisplay+' ('+prop.service+')</div>'
-      + (prop.desc?'<div style="font-size:.78rem;color:#555;margin:.3rem 0;font-style:italic">'+prop.desc.substring(0,100)+'...</div>':'')
+      + '<div style="font-weight:700;color:var(--navy);font-size:.95rem">'+escapeHtml(prop.type||'')+' — '+escapeHtml(prop.district||'')+(prop.sector?', '+escapeHtml(prop.sector):'')+'</div>'
+      + '<div style="font-size:.8rem;color:var(--muted);margin:.2rem 0">👤 '+escapeHtml(prop.owner||'')+' | 📞 '+escapeHtml(prop.contact||'')+'</div>'
+      + '<div style="font-size:.8rem;color:var(--muted)">📧 '+escapeHtml(prop.ownerEmail||'—')+'</div>'
+      + '<div style="font-size:.85rem;margin:.4rem 0;font-weight:600">💰 '+priceDisplay+' ('+escapeHtml(prop.service||'')+')</div>'
+      + (prop.desc?'<div style="font-size:.78rem;color:#555;margin:.3rem 0;font-style:italic">'+escapeHtml(prop.desc.substring(0,100))+'...</div>':'')
       + '<div style="font-size:.72rem;color:var(--muted)">📅 '+(prop.date?new Date(prop.date).toLocaleString():'—')+'</div>'
       + '</div>'
       + '<div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">'
-      + '<div style="font-size:.7rem;font-weight:700;color:'+statusColor+';text-align:center">'+prop.status+'</div>'
+      + '<div style="font-size:.7rem;font-weight:700;color:'+statusColor+';text-align:center">'+escapeHtml(prop.status||'')+'</div>'
       + (filter!=='approved'?'<button onclick="adminApprove('+globalIdx+')" style="background:#27A84A;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">✅ Emeza</button>':'')
       + (filter!=='rejected'?'<button onclick="adminReject('+globalIdx+')" style="background:#e53e3e;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">❌ Kataa</button>':'')
       + '<button onclick="adminDelete('+globalIdx+')" style="background:#718096;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem">🗑️ Siba</button>'
@@ -5750,18 +5948,7 @@ setTimeout(loadSimilarProperties, 400);
 //  Google Sign-in + Phone OTP (Firebase)
 // ════════════════════════════════════════════════
 
-// Firebase config — user fills this in Firebase Console
-// Instructions: console.firebase.google.com → New Project → Add Web App
-var FIREBASE_CONFIG = {
-  apiKey: "AIzaSyAtNnbsXKFgABvP-nTvGwz6pooGnSWSshY",
-  authDomain: "komisiyoneri-78e82.firebaseapp.com",
-  databaseURL: "https://komisiyoneri-78e82-default-rtdb.firebaseio.com",
-  projectId: "komisiyoneri-78e82",
-  storageBucket: "komisiyoneri-78e82.firebasestorage.app",
-  messagingSenderId: "580559336922",
-  appId: "1:580559336922:web:2275a3013b07cf56c0fce3",
-  measurementId: "G-NE0PHMB885"
-};
+// Firebase is already initialized at the top of the page; no duplicate config needed.
 
 var firebaseApp = null;
 var firebaseAuth = null;
@@ -5771,15 +5958,23 @@ var recaptchaVerifier = null;
 // Initialize Firebase
 function initFirebase() {
   try {
-    if (typeof firebase !== 'undefined' && FIREBASE_CONFIG.apiKey !== 'YOUR_FIREBASE_API_KEY') {
-      if (!firebase.apps.length) {
-        firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
-      }
+    if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
       firebaseAuth = firebase.auth();
+      if (!window._authListenerAttached) {
+        window._authListenerAttached = true;
+        firebaseAuth.onAuthStateChanged(function(fbUser) {
+          if (!fbUser && currentUser && (currentUser.provider === 'google' || currentUser.provider === 'phone')) {
+            // Firebase session expired for social/phone users — clear local session too
+            currentUser = null;
+            try { localStorage.removeItem('km_current'); } catch(e) {}
+            updateNavForUser(null);
+          }
+        });
+      }
       return true;
     }
   } catch(e) {
-    console.log('Firebase not configured:', e.message);
+    console.log('Firebase not available:', e.message);
   }
   return false;
 }
@@ -5813,7 +6008,6 @@ function initGoogleSignIn() {
 }
 
 function handleGoogleResponse(response) {
-  // Decode JWT token from Google
   try {
     var parts = response.credential.split('.');
     var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
@@ -5826,19 +6020,39 @@ function handleGoogleResponse(response) {
       provider: 'google',
       date: new Date().toISOString()
     };
-    // Save and login
-    var users = [];
-    try { users = JSON.parse(localStorage.getItem('km_users') || '[]'); } catch(e){}
-    var existing = users.find(function(u) { return u.email === user.email; });
-    if (!existing) {
-      users.push(user);
-      try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
-    } else {
-      user = existing;
+
+    function finishGoogleLogin(user) {
+      var users = [];
+      try { users = JSON.parse(localStorage.getItem('km_users') || '[]'); } catch(e){}
+      var existing = users.find(function(u) { return u.email === user.email; });
+      if (!existing) {
+        users.push(user);
+        try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
+      } else {
+        user = existing;
+      }
+      saveUser(user);
+      showToast('Murakaza neza ' + user.name + '! (Google) 🎉');
+      setTimeout(function() { go('home'); }, 800);
     }
-    saveUser(user);
-    showToast('Murakaza neza ' + user.name + '! (Google) 🎉');
-    setTimeout(function() { go('home'); }, 800);
+
+    // Exchange Google credential with Firebase so Firebase recognizes this session
+    if (initFirebase() && firebaseAuth && typeof firebase.auth.GoogleAuthProvider !== 'undefined') {
+      var credential = firebase.auth.GoogleAuthProvider.credential(response.credential);
+      firebaseAuth.signInWithCredential(credential)
+        .then(function(result) {
+          user.name = result.user.displayName || user.name;
+          user.email = result.user.email || user.email;
+          user.avatar = result.user.photoURL || user.avatar;
+          finishGoogleLogin(user);
+        })
+        .catch(function() {
+          // Firebase exchange failed — still allow login via localStorage
+          finishGoogleLogin(user);
+        });
+    } else {
+      finishGoogleLogin(user);
+    }
   } catch(e) {
     showToast('Google sign-in error. Gerageza nanone.');
   }
@@ -5868,6 +6082,11 @@ function openPhoneAuth() {
 function closePhoneAuth() {
   var m = document.getElementById('phone-modal');
   if (m) m.style.display = 'none';
+  if (recaptchaVerifier) {
+    try { recaptchaVerifier.clear(); } catch(e) {}
+    recaptchaVerifier = null;
+  }
+  confirmationResult = null;
 }
 
 function sendOTP() {
@@ -5906,25 +6125,22 @@ function sendOTP() {
         })
         .catch(function(error) {
           console.error('Phone auth error:', error);
-          // Fallback to demo mode
           document.getElementById('phone-step1').style.display = 'none';
           document.getElementById('phone-step2').style.display = 'block';
-          window._demoOTP = '123456';
-          showToast('Demo Mode: Shyiramo OTP: 123456');
+          window._demoOTP = String(Math.floor(100000 + Math.random() * 900000));
+          showToast('Demo Mode: OTP: ' + window._demoOTP);
         });
     } catch(e) {
-      // Demo fallback
       document.getElementById('phone-step1').style.display = 'none';
       document.getElementById('phone-step2').style.display = 'block';
-      window._demoOTP = '123456';
-      showToast('Demo Mode: Shyiramo OTP: 123456');
+      window._demoOTP = String(Math.floor(100000 + Math.random() * 900000));
+      showToast('Demo Mode: OTP: ' + window._demoOTP);
     }
   } else {
-    // Demo mode
     document.getElementById('phone-step1').style.display = 'none';
     document.getElementById('phone-step2').style.display = 'block';
-    window._demoOTP = '123456';
-    showToast('Demo Mode: Shyiramo OTP: 123456');
+    window._demoOTP = String(Math.floor(100000 + Math.random() * 900000));
+    showToast('Demo Mode: OTP: ' + window._demoOTP);
   }
 }
 
@@ -5974,7 +6190,7 @@ function verifyOTP() {
       showToast('Wainjiye neza! 🎉');
       setTimeout(function() { go('home'); }, 800);
     } else {
-      showToast('Code sibyo! Demo: 123456');
+      showToast(curLang==='rw' ? 'Code sibyo! Gerageza nanone.' : 'Wrong code! Try again.');
     }
   }
 }
@@ -6084,6 +6300,8 @@ function submitAgentReg() {
   if(!g('ag-phone')){showToast('Shyira telefoni yawe!');return;}
   if(!g('ag-id')){showToast('Shyira numero y\'indangamuntu!');return;}
   if(!g('ag-zone')){showToast('Hitamo akarere kawe!');return;}
+  var agEmail = g('ag-email');
+  if(agEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(agEmail)){showToast('Imeyili ntabwo ari nziza!');return;}
   if(!document.getElementById('ag-agree').checked){showToast('Emeza amasezerano mbere!');return;}
 
   var langs = [];
@@ -6117,9 +6335,9 @@ function submitAgentReg() {
   agents.push(agent);
   try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
 
-  // Update current user to agent role
+  // Update current user to pending agent — full Agent role granted on admin approval
   if(currentUser) {
-    currentUser.role = 'Agent';
+    currentUser.role = 'PendingAgent';
     currentUser.agentId = agent.id;
     currentUser.zone = agent.zone;
     saveUser(currentUser);
@@ -6216,8 +6434,15 @@ function submitLead() {
 
 // === ADMIN LEAD DASHBOARD ===
 function openAdminLeads() {
-  var pass = prompt('Admin Password:');
-  if(!pass || pass !== 'KOMISIYONERI2026') { showToast('Password sibyo!'); return; }
+  var isAdmin = currentUser && (
+    currentUser.email === 'komisiyonericonnectproservices@gmail.com' ||
+    currentUser.email === 'admin@komisiyoneri.com' ||
+    currentUser.role === 'Admin'
+  );
+  if (!isAdmin) {
+    showToast(curLang==='rw' ? 'Ntabwo wemerewe! Admin gusa.' : 'Access denied. Admin only.');
+    return;
+  }
 
   var leads = [];
   var agents = [];
@@ -6901,10 +7126,11 @@ function updateHamburgerAuth() {
 
 function handleLogout() {
   currentUser = null;
-  try { localStorage.removeItem('km_current_user'); } catch(e) {}
-  // Firebase signout
+  try { localStorage.removeItem('km_current'); } catch(e) {}
+  updateNavForUser(null);
+  closeProfile();
   if(firebaseAuth) {
-    try { firebaseAuth.signOut(); } catch(e) {}
+    firebaseAuth.signOut().catch(function(e) { console.error('signOut error:', e); });
   }
   showToast(curLang==='rw' ? 'Wasohowe neza!' : 'Signed out successfully!');
   go('home');
@@ -7134,9 +7360,18 @@ function adminAgentApprove(idx) {
   if(agents[idx]) {
     agents[idx].status = 'Active';
     try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
+    // Promote the matching user's role to 'Agent'
+    var agentId = agents[idx].id;
+    var users = [];
+    try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
+    var updated = false;
+    users = users.map(function(u) {
+      if (u.agentId === agentId) { u.role = 'Agent'; updated = true; }
+      return u;
+    });
+    if (updated) try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
     showToast('✅ Agent yemejwe! Ubu ashobora guhabwa leads.');
     renderAdminAgents();
-    // Notify via WhatsApp
     var a = agents[idx];
     if(a.phone) window.open('https://wa.me/'+a.phone.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent('Muraho '+a.name+'! KOMISIYONERI irashimishijwe kukemeza iyandikishe ryawe nka agent. Witeguye guhabwa leads. Urakoze!'), '_blank');
   }
@@ -7148,6 +7383,15 @@ function adminAgentSuspend(idx) {
   if(agents[idx]) {
     agents[idx].status = 'Suspended';
     try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
+    // Revoke Agent role from matching user
+    var agentId = agents[idx].id;
+    var users = [];
+    try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
+    users = users.map(function(u) {
+      if (u.agentId === agentId && u.role === 'Agent') { u.role = 'PendingAgent'; }
+      return u;
+    });
+    try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
     showToast('⏸ Agent yahagaritswe.');
     renderAdminAgents();
   }
@@ -7284,6 +7528,8 @@ go = function(page) {
 (function(){
   try {
     var rtdb = firebase.database();
+    var _set = localStorage.setItem.bind(localStorage);
+
     function syncFromFirebase() {
       rtdb.ref('properties').once('value')
         .then(function(s) {
@@ -7307,13 +7553,15 @@ go = function(page) {
           }
         });
     }
-    var _set = localStorage.setItem.bind(localStorage);
+
     localStorage.setItem = function(k,v) {
       _set(k,v);
       if(k==='km_properties') {
         try {
           JSON.parse(v||'[]').forEach(function(p) {
-            if(p.id) rtdb.ref('properties/'+p.id).set(p);
+            if(p.id) rtdb.ref('properties/'+p.id).set(p).catch(function(e){
+              console.error('RTDB write error for property '+p.id+':', e);
+            });
           });
         } catch(e){}
       }
@@ -7325,6 +7573,7 @@ go = function(page) {
         } catch(e){}
       }
     };
+
     document.readyState==='loading'
       ? document.addEventListener('DOMContentLoaded', syncFromFirebase)
       : syncFromFirebase();
