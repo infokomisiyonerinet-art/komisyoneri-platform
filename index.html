@@ -7816,41 +7816,61 @@ go = function(page) {
     var rtdb = firebase.database();
     var _set = localStorage.setItem.bind(localStorage);
 
-    function syncFromFirebase() {
-      rtdb.ref('properties').once('value')
-        .then(function(s) {
-          if(!s.exists()) return;
-          var p = [];
-          s.forEach(function(c){ p.push(c.val()); });
-          if(p.length > 0) {
-            _set('km_properties', JSON.stringify(p));
-            if(typeof renderListings==='function') renderListings();
-            if(typeof loadListings==='function') loadListings();
-          }
-        });
-      rtdb.ref('agents').once('value')
-        .then(function(s) {
-          if(!s.exists()) return;
-          var agents = [];
-          s.forEach(function(c){ agents.push(c.val()); });
-          if(agents.length > 0) {
-            _set('km_agents', JSON.stringify(agents));
-            if(typeof loadApprovedProperties==='function') loadApprovedProperties();
-          }
-        });
-      ['leads','messages','reviews'].forEach(function(key) {
-        rtdb.ref(key).once('value').then(function(s) {
-          if(!s.exists()) return;
+    function attachRealtimeListeners() {
+      // Properties — keep homepage fresh + refresh admin listings tab if open
+      rtdb.ref('properties').on('value', function(s) {
+        if (!s.exists()) return;
+        var items = [];
+        s.forEach(function(c){ items.push(c.val()); });
+        if (!items.length) return;
+        _set('km_properties', JSON.stringify(items));
+        if (typeof loadApprovedProperties === 'function') loadApprovedProperties();
+        var adminModal = document.getElementById('admin-modal');
+        if (adminModal && adminModal.style.display !== 'none' && adminCurrentTab === 'listings') {
+          if (typeof adminRender === 'function') adminRender(adminCurrentFilter || 'pending');
+        }
+      });
+
+      // Agents — re-render admin agents tab if active
+      rtdb.ref('agents').on('value', function(s) {
+        if (!s.exists()) return;
+        var agents = [];
+        s.forEach(function(c){ agents.push(c.val()); });
+        if (!agents.length) return;
+        _set('km_agents', JSON.stringify(agents));
+        var adminModal = document.getElementById('admin-modal');
+        if (adminModal && adminModal.style.display !== 'none' && adminCurrentTab === 'agents') {
+          if (typeof _renderAdminAgentsList === 'function') _renderAdminAgentsList();
+        }
+      });
+
+      // Leads — re-render admin deals tab if active
+      rtdb.ref('leads').on('value', function(s) {
+        if (!s.exists()) return;
+        var items = [];
+        s.forEach(function(c){ items.push(c.val()); });
+        if (!items.length) return;
+        _set('km_leads', JSON.stringify(items));
+        var adminModal = document.getElementById('admin-modal');
+        if (adminModal && adminModal.style.display !== 'none' && adminCurrentTab === 'deals') {
+          if (typeof renderAdminDeals === 'function') renderAdminDeals();
+        }
+      });
+
+      // Messages, reviews, users — keep localStorage in sync
+      ['messages', 'reviews'].forEach(function(key) {
+        rtdb.ref(key).on('value', function(s) {
+          if (!s.exists()) return;
           var items = [];
           s.forEach(function(c){ items.push(c.val()); });
-          if(items.length) _set('km_'+key, JSON.stringify(items));
+          if (items.length) _set('km_' + key, JSON.stringify(items));
         });
       });
-      rtdb.ref('users').once('value').then(function(s) {
-        if(!s.exists()) return;
+      rtdb.ref('users').on('value', function(s) {
+        if (!s.exists()) return;
         var users = [];
         s.forEach(function(c){ users.push(c.val()); });
-        if(users.length) _set('km_users', JSON.stringify(users));
+        if (users.length) _set('km_users', JSON.stringify(users));
       });
     }
 
@@ -7903,8 +7923,8 @@ go = function(page) {
     };
 
     document.readyState==='loading'
-      ? document.addEventListener('DOMContentLoaded', syncFromFirebase)
-      : syncFromFirebase();
+      ? document.addEventListener('DOMContentLoaded', attachRealtimeListeners)
+      : attachRealtimeListeners();
   } catch(e){ console.error('Sync error:',e); }
 })();
 </script>/body></html>
