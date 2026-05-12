@@ -4,6 +4,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <script>
   // Firebase Configuration yawe nyayo
@@ -26,6 +27,20 @@ const storage = firebase.storage();
 firebase.analytics();
 
 console.log("Firebase yafungutse neza!");
+
+  // ── EmailJS config — replace placeholders in your EmailJS dashboard ──
+  var _ejsKey          = 'YOUR_EMAILJS_PUBLIC_KEY';
+  var _ejsSvc          = 'service_komisiyoneri';
+  var _ejsTmplLead     = 'tmpl_lead';
+  var _ejsTmplApproval = 'tmpl_approval';
+  var _ejsTmplBooking  = 'tmpl_booking';
+
+  function kmSendEmail(templateId, params) {
+    if (!_ejsKey || _ejsKey === 'YOUR_EMAILJS_PUBLIC_KEY') return;
+    if (typeof emailjs === 'undefined') return;
+    emailjs.send(_ejsSvc, templateId, params, _ejsKey)
+      .catch(function(err){ console.warn('[EmailJS]', err); });
+  }
 </script>
 <!DOCTYPE html>
 <html lang="rw" dir="ltr" itemscope itemtype="https://schema.org/WebSite">
@@ -5988,7 +6003,7 @@ function submitBooking() {
   var cur = window._currentProp || {};
   var bookings = [];
   try{bookings=JSON.parse(localStorage.getItem('km_bookings')||'[]');}catch(e){}
-  bookings.push({
+  var bk = {
     id: 'BK-' + Date.now(),
     name: name.value, phone: phone.value, date: date.value,
     time: time ? time.value : '',
@@ -5997,10 +6012,23 @@ function submitBooking() {
     propTitle:  cur.title     || (cur.type && cur.district ? cur.type + ' — ' + cur.district : null),
     agentEmail: cur.ownerEmail|| null,
     created: new Date().toISOString()
-  });
+  };
+  bookings.push(bk);
   try{localStorage.setItem('km_bookings',JSON.stringify(bookings));}catch(e){}
   closeBooking();
   showToast('Gahunda yashyizweho! Agent azakuhamagara kuri '+phone.value+'. ✅');
+  if (bk.agentEmail) {
+    kmSendEmail(_ejsTmplBooking, {
+      to_email:     bk.agentEmail,
+      prop_title:   bk.propTitle  || '',
+      visitor_name: bk.name,
+      visitor_phone:bk.phone,
+      visit_date:   bk.date,
+      visit_time:   bk.time,
+      note:         bk.note,
+      booking_id:   bk.id
+    });
+  }
 }
 
 // === MESSAGE OWNER SYSTEM ===
@@ -6995,8 +7023,9 @@ function submitLead() {
     // Assign to agent with fewest leads (fairness)
     zoneAgents.sort(function(a,b){ return (a.leads||[]).length - (b.leads||[]).length; });
     lead.assignedAgent = zoneAgents[0].id;
-    lead.agentName = zoneAgents[0].name;
+    lead.agentName  = zoneAgents[0].name;
     lead.agentPhone = zoneAgents[0].phone;
+    lead.agentEmail = zoneAgents[0].email || '';
 
     // Update agent leads
     var agentIdx = agents.indexOf(zoneAgents[0]);
@@ -7015,6 +7044,20 @@ function submitLead() {
 
   if(lead.agentName) {
     showToast('✅ Lead yoherejwe! Agent ' + lead.agentName + ' azakuhamagara mu masaa 2.');
+    if (lead.agentEmail) {
+      kmSendEmail(_ejsTmplLead, {
+        to_email:    lead.agentEmail,
+        agent_name:  lead.agentName,
+        client_name: lead.clientName,
+        client_phone:lead.clientPhone,
+        zone:        zone,
+        budget_min:  lead.budgetMin,
+        budget_max:  lead.budgetMax,
+        action:      lead.action,
+        notes:       lead.notes,
+        lead_id:     lead.id
+      });
+    }
   } else {
     showToast('✅ Lead yoherejwe! KOMISIYONERI izakuhuza na agent vuba.');
     // Notify admin via WhatsApp
@@ -8049,6 +8092,12 @@ function adminAgentApprove(idx) {
     renderAdminAgents();
     var a = agents[idx];
     if(a.phone) window.open('https://wa.me/'+a.phone.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent('Muraho '+a.name+'! KOMISIYONERI irashimishijwe kukemeza iyandikishe ryawe nka agent. Witeguye guhabwa leads. Urakoze!'), '_blank');
+    if(a.email) {
+      kmSendEmail(_ejsTmplApproval, {
+        to_email:   a.email,
+        agent_name: a.name || ''
+      });
+    }
   }
 }
 
