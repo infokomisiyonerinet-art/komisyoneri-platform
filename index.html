@@ -3535,38 +3535,19 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 
 <!-- === PROPERTY COMPARISON === -->
 <div class="modal-wrap" id="compare-modal" style="display:none">
-  <div class="modal" style="max-width:600px;overflow-x:auto">
+  <div class="modal" style="max-width:620px;overflow-x:auto">
     <div class="modal-hdr">
       <div class="modal-title">⚖️ Gusuzuma Inzu 2 — Property Comparison</div>
       <button class="modal-x" onclick="closeCompare()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <div style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:.85rem">
-        <thead>
-          <tr>
-            <th style="text-align:left;padding:.7rem .5rem;border-bottom:2px solid var(--border);color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em">Ibiranga</th>
-            <th style="text-align:center;padding:.7rem .5rem;border-bottom:2px solid var(--navy);color:var(--navy);font-size:.82rem">🏠 Villa Kimironko</th>
-            <th style="text-align:center;padding:.7rem .5rem;border-bottom:2px solid var(--blue);color:var(--blue);font-size:.82rem">🏢 Apartimanı Niboye</th>
-          </tr>
-        </thead>
-        <tbody id="compare-body">
-          <tr style="background:var(--light)"><td style="padding:.65rem .5rem;font-weight:600">💰 Igiciro</td><td style="text-align:center;padding:.65rem .5rem;color:var(--navy);font-weight:700">120M RWF</td><td style="text-align:center;padding:.65rem .5rem;color:var(--blue);font-weight:700">450K/mo</td></tr>
-          <tr><td style="padding:.65rem .5rem;font-weight:600">📍 Ahantu</td><td style="text-align:center;padding:.65rem .5rem">Gasabo, Kimironko</td><td style="text-align:center;padding:.65rem .5rem">Kicukiro, Niboye</td></tr>
-          <tr style="background:var(--light)"><td style="padding:.65rem .5rem;font-weight:600">🛏️ Ibyumba</td><td style="text-align:center;padding:.65rem .5rem">4 BR</td><td style="text-align:center;padding:.65rem .5rem">2 BR</td></tr>
-          <tr><td style="padding:.65rem .5rem;font-weight:600">🚿 Bafu</td><td style="text-align:center;padding:.65rem .5rem">2 BA</td><td style="text-align:center;padding:.65rem .5rem">1 BA</td></tr>
-          <tr style="background:var(--light)"><td style="padding:.65rem .5rem;font-weight:600">📐 Ubuso</td><td style="text-align:center;padding:.65rem .5rem">320 m²</td><td style="text-align:center;padding:.65rem .5rem">85 m²</td></tr>
-          <tr><td style="padding:.65rem .5rem;font-weight:600">🔑 Ubwoko</td><td style="text-align:center;padding:.65rem .5rem">Kugura</td><td style="text-align:center;padding:.65rem .5rem">Gukodesha</td></tr>
-          <tr style="background:var(--light)"><td style="padding:.65rem .5rem;font-weight:600">🎥 3D Tour</td><td style="text-align:center;padding:.65rem .5rem">✅</td><td style="text-align:center;padding:.65rem .5rem">✅</td></tr>
-          <tr><td style="padding:.65rem .5rem;font-weight:600">✅ Verified</td><td style="text-align:center;padding:.65rem .5rem">✅ LUC</td><td style="text-align:center;padding:.65rem .5rem">✅ LUC</td></tr>
-          <tr style="background:var(--light)"><td style="padding:.65rem .5rem;font-weight:600">⭐ Rating</td><td style="text-align:center;padding:.65rem .5rem;color:var(--gold)">★★★★★ 4.9</td><td style="text-align:center;padding:.65rem .5rem;color:var(--gold)">★★★★☆ 4.5</td></tr>
-          <tr><td style="padding:.65rem .5rem;font-weight:600">💵 Igiciro/m²</td><td style="text-align:center;padding:.65rem .5rem;color:var(--green);font-weight:600">375,000 RWF</td><td style="text-align:center;padding:.65rem .5rem;color:var(--navy)">N/A (Ubukode)</td></tr>
-        </tbody>
-      </table>
+    <div id="compare-content">
+      <div style="text-align:center;padding:2rem;color:var(--muted)">
+        <div style="font-size:2rem;margin-bottom:.5rem">⚖️</div>
+        <div style="font-weight:600;color:var(--navy);margin-bottom:.4rem">Hitamo Imitungo 2 Ugereranye</div>
+        <div style="font-size:.83rem">Kanda <strong>⚖️</strong> ku karita ka nyuma ubone iyi mfumo.</div>
+      </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-top:1rem">
-      <button onclick="closeCompare();openDepositPay()" class="btn btn-navy btn-sm" style="justify-content:center">Villa — Tangira</button>
-      <button onclick="closeCompare();openBooking()" class="btn btn-outline btn-sm" style="justify-content:center">Apartimanı — Gusura</button>
-    </div>
+    <div id="compare-actions" style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-top:1rem"></div>
   </div>
 </div>
 
@@ -5730,6 +5711,7 @@ function renderUserPropCard(prop) {
     + '</div>'
     + '<div class="p-card-footer">'
     +   '<button class="p-btn-detail" onclick="openPropDetail(\'' + pid + '\')">' + t('viewDetail') + '</button>'
+    +   '<button title="Add to Compare" onclick="event.stopPropagation();addToCompare(\'' + pid + '\')" style="padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:.82rem;color:var(--muted);transition:var(--tr)" onmouseover="this.style.borderColor=\'var(--navy)\';this.style.color=\'var(--navy)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--muted)\'">⚖️</button>'
     +   '<button class="p-btn-wa" onclick="event.stopPropagation();window.open(\'https://wa.me/' + waPhone + '?text=' + waText + '\',\'_blank\')">'
     +     '<svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>'
     +     'WhatsApp'
@@ -6155,10 +6137,107 @@ function calcMortgage() {
 }
 
 // === PROPERTY COMPARISON ===
+var _comparePropB = null;
+
+function addToCompare(propId) {
+  var props = [];
+  try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+  var prop = props.find(function(p){ return String(p.id) === String(propId); });
+  if (!prop) return;
+  _comparePropB = prop;
+  var label = prop.title || ((prop.type||'Imitungo') + (prop.district ? ' — '+prop.district : ''));
+  showToast('⚖️ ' + escapeHtml(label) + ' — ' + (curLang==='rw' ? 'Fungura indi imitungo ukande Compare!' : 'Now open another property and click Compare!'));
+}
+
 function openCompare() {
   var m = document.getElementById('compare-modal');
-  if(m) m.style.display = 'flex';
+  if (!m) return;
+  m.style.display = 'flex';
+  var propA = window._currentProp || null;
+  var propB = _comparePropB || null;
+  var content = document.getElementById('compare-content');
+  var actions = document.getElementById('compare-actions');
+  if (!content) return;
+
+  if (!propA && !propB) {
+    content.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)"><div style="font-size:2rem;margin-bottom:.5rem">⚖️</div><div style="font-weight:600;color:var(--navy);margin-bottom:.4rem">'+(curLang==='rw'?'Hitamo Imitungo 2':'Select 2 Properties')+'</div><div style="font-size:.83rem">'+(curLang==='rw'?'Kanda ⚖️ ku karita igereranye.':'Click ⚖️ on any listing card to add it.')+'</div></div>';
+    if (actions) actions.innerHTML = '';
+    return;
+  }
+  if (!propB) {
+    content.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted)"><div style="font-size:1.6rem;margin-bottom:.5rem">⚖️</div><div style="font-weight:600;color:var(--navy);margin-bottom:.3rem">'+(propA ? escapeHtml(propA.title||(propA.type+' — '+(propA.district||''))) : '')+'</div><div style="font-size:.83rem;margin-top:.4rem">'+(curLang==='rw'?'Kanda ⚖️ ku karita ya kabiri kugira ngo ugereranye.':'Click ⚖️ on a second listing card to compare.')+'</div></div>';
+    if (actions) actions.innerHTML = '';
+    return;
+  }
+  renderCompareTable(propA || propB, propB);
 }
+
+function renderCompareTable(propA, propB) {
+  var content = document.getElementById('compare-content');
+  var actions = document.getElementById('compare-actions');
+  if (!content) return;
+
+  function fmt(p) {
+    var n = parseInt(p.price)||0;
+    var s = n>=1000000 ? (n/1000000).toFixed(0)+'M RWF' : n>=1000 ? Math.round(n/1000)+'K RWF' : (n||'—')+' RWF';
+    return p.service==='Gukodesha' ? s+'/mo' : s;
+  }
+  function hi(vA, vB, higherBetter) {
+    var na = parseFloat(vA), nb = parseFloat(vB);
+    if (isNaN(na)||isNaN(nb)) return ['',''];
+    var better = higherBetter ? na > nb : na < nb;
+    var worse  = higherBetter ? na < nb : na > nb;
+    return [better?'color:var(--green);font-weight:700':worse?'color:#e53e3e':'', worse?'color:var(--green);font-weight:700':better?'color:#e53e3e':''];
+  }
+
+  var priceH = hi(propA.price, propB.price, false);
+  var bedH  = hi(propA.beds,  propB.beds,  true);
+  var bathH = hi(propA.baths, propB.baths, true);
+  var sizeH = hi(propA.size,  propB.size,  true);
+  var rateH = hi(propA.rating||0, propB.rating||0, true);
+
+  var nameA = escapeHtml(propA.title||(propA.type+' — '+(propA.district||'')));
+  var nameB = escapeHtml(propB.title||(propB.type+' — '+(propB.district||'')));
+
+  var pricePmA = (propA.service!=='Gukodesha'&&propA.price&&propA.size) ? Math.round(parseInt(propA.price)/parseInt(propA.size)).toLocaleString()+' RWF/m²' : '—';
+  var pricePmB = (propB.service!=='Gukodesha'&&propB.price&&propB.size) ? Math.round(parseInt(propB.price)/parseInt(propB.size)).toLocaleString()+' RWF/m²' : '—';
+
+  var rows = [
+    ['💰 Igiciro/Price', fmt(propA), fmt(propB), priceH[0], priceH[1]],
+    ['📍 Ahantu/Location', escapeHtml([propA.district,propA.sector].filter(Boolean).join(', ')||'—'), escapeHtml([propB.district,propB.sector].filter(Boolean).join(', ')||'—'), '', ''],
+    ['🏠 Ubwoko/Type', escapeHtml(propA.type||'—'), escapeHtml(propB.type||'—'), '', ''],
+    ['🔑 Serivisi', propA.service==='Gukodesha'?'Gukodesha':'Kugura', propB.service==='Gukodesha'?'Gukodesha':'Kugura', '', ''],
+    ['🛏 Ibyumba/Beds', propA.beds&&propA.beds!=='0'?propA.beds+' BR':'—', propB.beds&&propB.beds!=='0'?propB.beds+' BR':'—', bedH[0], bedH[1]],
+    ['🚿 Bafu/Baths', propA.baths&&propA.baths!=='0'?propA.baths+' BA':'—', propB.baths&&propB.baths!=='0'?propB.baths+' BA':'—', bathH[0], bathH[1]],
+    ['📐 Ubuso/Size', propA.size?propA.size+'m²':'—', propB.size?propB.size+'m²':'—', sizeH[0], sizeH[1]],
+    ['🏗️ Yubatswe/Year', propA.yearBuilt||'—', propB.yearBuilt||'—', '', ''],
+    ['📋 Title Deed', escapeHtml(propA.titleDeed||'—'), escapeHtml(propB.titleDeed||'—'), '', ''],
+    ['🌐 3D Tour', propA.tour3dUrl?'✅':'—', propB.tour3dUrl?'✅':'—', '', ''],
+    ['⭐ Rating', propA.rating?'★ '+propA.rating:'—', propB.rating?'★ '+propB.rating:'—', rateH[0], rateH[1]],
+    ['💵 Igiciro/m²', pricePmA, pricePmB, '', '']
+  ];
+
+  var tbody = rows.map(function(r, i) {
+    var bg = i%2===0 ? 'background:var(--light)' : '';
+    return '<tr style="'+bg+'"><td style="padding:.6rem .5rem;font-weight:600;font-size:.82rem">'+r[0]+'</td>'
+      +'<td style="text-align:center;padding:.6rem .5rem;font-size:.83rem;'+r[3]+'">'+r[1]+'</td>'
+      +'<td style="text-align:center;padding:.6rem .5rem;font-size:.83rem;'+r[4]+'">'+r[2]+'</td></tr>';
+  }).join('');
+
+  content.innerHTML = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">'
+    +'<thead><tr>'
+    +'<th style="text-align:left;padding:.7rem .5rem;border-bottom:2px solid var(--border);color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em">Ibiranga</th>'
+    +'<th style="text-align:center;padding:.7rem .5rem;border-bottom:2px solid var(--navy);color:var(--navy);font-size:.8rem;max-width:160px">🏠 '+nameA+'</th>'
+    +'<th style="text-align:center;padding:.7rem .5rem;border-bottom:2px solid var(--blue);color:var(--blue);font-size:.8rem;max-width:160px">🏢 '+nameB+'</th>'
+    +'</tr></thead><tbody>'+tbody+'</tbody></table></div>';
+
+  if (actions) {
+    var pidA = String(propA.id), pidB = String(propB.id);
+    actions.innerHTML = '<button onclick="closeCompare();openPropDetail(\''+pidA+'\')" class="btn btn-navy btn-sm" style="justify-content:center">'+nameA+' — Detail</button>'
+      +'<button onclick="closeCompare();openPropDetail(\''+pidB+'\')" class="btn btn-outline btn-sm" style="justify-content:center">'+nameB+' — Detail</button>';
+  }
+}
+
 function closeCompare() {
   var m = document.getElementById('compare-modal');
   if(m) m.style.display = 'none';
