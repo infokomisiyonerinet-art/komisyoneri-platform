@@ -691,6 +691,12 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .ps-lbl{font-size:.69rem;color:var(--muted)}
 .pay-step.active .ps-lbl{color:var(--blue);font-weight:600}
 .pay-methods{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:1.15rem}
+.km-toggle{display:inline-flex;align-items:center;gap:.4rem;cursor:pointer;user-select:none}
+.km-toggle input{display:none}
+.km-toggle-track{width:36px;height:20px;border-radius:10px;background:var(--border);transition:.2s;position:relative;flex-shrink:0}
+.km-toggle input:checked+.km-toggle-track{background:var(--navy)}
+.km-toggle-track::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:2px;left:2px;transition:.2s}
+.km-toggle input:checked+.km-toggle-track::after{transform:translateX(16px)}
 .pay-m{border:2px solid var(--border);border-radius:10px;padding:1rem;text-align:center;cursor:pointer;transition:var(--tr)}
 .pay-m:hover,.pay-m.active{border-color:var(--blue);background:rgba(22,87,204,.04)}
 .pay-m svg{width:28px;height:28px;fill:none;stroke:var(--muted);stroke-width:1.5;margin:0 auto .38rem;display:block}
@@ -3446,6 +3452,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           <button onclick="switchAdminTab('listings')" id="adm-tab-listings" class="btn btn-navy btn-sm" style="font-size:.75rem">🏠 Imitungo</button>
           <button onclick="switchAdminTab('agents')" id="adm-tab-agents" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">👔 Agents</button>
           <button onclick="switchAdminTab('deals')" id="adm-tab-deals" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">💰 Deals</button>
+          <button onclick="switchAdminTab('platform')" id="adm-tab-platform" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">⚙️ Platform</button>
         </div>
         <!-- Listings sub-tabs -->
         <div id="adm-listings-filters" style="display:flex;gap:.4rem;flex-wrap:wrap">
@@ -3457,6 +3464,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         </div>
       </div>
       <div id="admin-list"></div>
+      <div id="admin-platform-panel" style="display:none;padding:.5rem 0"></div>
     </div>
   </div>
 </div>
@@ -3881,40 +3889,20 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 <div class="modal-wrap" id="deposit-modal" style="display:none">
   <div class="modal" style="max-width:420px">
     <div class="modal-hdr">
-      <div class="modal-title">💰 Kwishyura Deposit — Tangira Transaction</div>
+      <div class="modal-title">💰 Kwishyura Deposit</div>
       <button class="modal-x" onclick="closeDepositPay()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <div style="background:var(--light);border-radius:10px;padding:1rem;margin-bottom:1rem">
-      <div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">Deposit (10% y'igiciro)</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--navy)">12,000,000 RWF</div>
-      <div style="font-size:.75rem;color:var(--muted);margin-top:.2rem">Igiciro cyose: 120,000,000 RWF</div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:.8rem;padding:.3rem 0">
-      <div class="field"><label>Amazina Yawe</label><input type="text" id="dep-name" placeholder="Amazina yuzuye"></div>
-      <div class="field"><label>Telefoni (MoMo / Airtel)</label><input type="tel" id="dep-phone" placeholder="+250 7XX XXX XXX"></div>
-      <div class="field"><label>Uburyo bwo Kwishyura</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.3rem">
-          <div id="dep-m1" onclick="selectDepMethod(this)" style="border:2px solid var(--navy);border-radius:8px;padding:.6rem;text-align:center;cursor:pointer;background:rgba(13,59,140,.06)">
-            <div style="font-weight:700;font-size:.82rem;color:var(--navy)">📱 MTN MoMo</div>
-          </div>
-          <div id="dep-m2" onclick="selectDepMethod(this)" style="border:1.5px solid var(--border);border-radius:8px;padding:.6rem;text-align:center;cursor:pointer">
-            <div style="font-weight:700;font-size:.82rem">📱 Airtel Money</div>
-          </div>
-          <div id="dep-m3" onclick="selectDepMethod(this)" style="border:1.5px solid var(--border);border-radius:8px;padding:.6rem;text-align:center;cursor:pointer">
-            <div style="font-weight:700;font-size:.82rem">💳 Karita ya Banki</div>
-          </div>
-          <div id="dep-m4" onclick="selectDepMethod(this)" style="border:1.5px solid var(--border);border-radius:8px;padding:.6rem;text-align:center;cursor:pointer">
-            <div style="font-weight:700;font-size:.82rem">🏦 Bank Transfer</div>
-          </div>
-        </div>
+    <div style="text-align:center;padding:2rem 1rem">
+      <div style="font-size:3rem;margin-bottom:.8rem">🚧</div>
+      <div style="font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:.5rem" data-rw="Vuba Aha" data-en="Coming Soon">Vuba Aha</div>
+      <div style="font-size:.85rem;color:var(--muted);line-height:1.5" data-rw="Serivisi yo kwishyura ku mbuga izatangira vuba. Watumanahaza kuri WhatsApp kugira ngo uhite utangira." data-en="Online payment is coming soon. Contact us via WhatsApp to proceed with your deposit now.">Serivisi yo kwishyura ku mbuga izatangira vuba. Watumanahaza kuri WhatsApp kugira ngo uhite utangira.</div>
+      <div style="display:flex;gap:.7rem;justify-content:center;margin-top:1.4rem">
+        <a href="https://wa.me/250783177254?text=Ndashaka%20gutanga%20deposit" target="_blank" class="btn btn-gold" style="text-decoration:none">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.106 1.508 5.831L0 24l6.335-1.654A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.797 9.797 0 01-5.031-1.389l-.36-.214-3.732.976.999-3.648-.235-.374A9.786 9.786 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
+          WhatsApp
+        </a>
+        <button class="btn btn-navy" onclick="closeDepositPay()">Funga</button>
       </div>
-      <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:.7rem;font-size:.78rem;color:#856404">
-        ⚠️ Deposit igarukira kuri account ya KOMISIYONERI. Amasezerano azakufikira mu masaha 24.
-      </div>
-      <button class="btn btn-gold btn-lg" style="width:100%;justify-content:center" onclick="submitDeposit()">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        Emeza Kwishyura Deposit
-      </button>
     </div>
   </div>
 </div>
@@ -3925,42 +3913,21 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 <div class="modal-wrap" id="pay-modal">
   <div class="modal">
     <div class="modal-hdr">
-      <div class="modal-title" data-rw="Kwishyura — Digital Payment" data-en="Digital Payment">Kwishyura — Digital Payment</div>
+      <div class="modal-title" data-rw="Kwishyura" data-en="Payment">Kwishyura</div>
       <button class="modal-x" onclick="closePay()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <div class="pay-progress">
-      <div class="pay-step active"><div class="ps-circle">1</div><div class="ps-lbl" data-rw="Uburyo" data-en="Method">Uburyo</div></div>
-      <div class="pay-step"><div class="ps-circle">2</div><div class="ps-lbl" data-rw="Amakuru" data-en="Details">Amakuru</div></div>
-      <div class="pay-step"><div class="ps-circle">3</div><div class="ps-lbl" data-rw="Kwemeza" data-en="Confirm">Kwemeza</div></div>
-    </div>
-    <div style="background:var(--light);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.3rem;display:flex;justify-content:space-between;align-items:center">
-      <div><div style="font-size:.8rem;color:var(--muted)" data-rw="Igiteranyo cy'Amafaranga" data-en="Total Amount">Igiteranyo cy'Amafaranga</div><div style="font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:700;color:var(--navy)">120,000,000 RWF</div></div>
-      <span class="badge b-green"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span data-rw="Bwizewe" data-en="Secured">Bwizewe</span></span>
-    </div>
-    <div style="font-size:.78rem;font-weight:700;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.75rem" data-rw="Hitamo Uburyo bwo Kwishyura" data-en="Select Payment Method">Hitamo Uburyo bwo Kwishyura</div>
-    <div class="pay-methods">
-      <div class="pay-m active" onclick="this.parentElement.querySelectorAll('.pay-m').forEach(x=>x.classList.remove('active'));this.classList.add('active')">
-        <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18" stroke-width="2"/></svg>
-        <span>MTN Mobile Money</span>
-      </div>
-      <div class="pay-m" onclick="this.parentElement.querySelectorAll('.pay-m').forEach(x=>x.classList.remove('active'));this.classList.add('active')">
-        <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18" stroke-width="2"/></svg>
-        <span>Airtel Money</span>
-      </div>
-      <div class="pay-m" onclick="this.parentElement.querySelectorAll('.pay-m').forEach(x=>x.classList.remove('active'));this.classList.add('active')">
-        <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-        <span data-rw="Karita ya Banki" data-en="Bank Card">Karita ya Banki</span>
-      </div>
-      <div class="pay-m" onclick="this.parentElement.querySelectorAll('.pay-m').forEach(x=>x.classList.remove('active'));this.classList.add('active')">
-        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span data-rw="Kure ya Banki" data-en="Bank Transfer">Bank Transfer</span>
+    <div style="text-align:center;padding:2rem 1rem">
+      <div style="font-size:3rem;margin-bottom:.8rem">🚧</div>
+      <div style="font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:.5rem" data-rw="Vuba Aha" data-en="Coming Soon">Vuba Aha</div>
+      <div style="font-size:.85rem;color:var(--muted);line-height:1.5" data-rw="Serivisi yo kwishyura ku mbuga izatangira vuba. Watumanahaza kuri WhatsApp kugira ngo uhite utangira." data-en="Online payment is coming soon. Contact us via WhatsApp to proceed now.">Serivisi yo kwishyura ku mbuga izatangira vuba. Watumanahaza kuri WhatsApp kugira ngo uhite utangira.</div>
+      <div style="display:flex;gap:.7rem;justify-content:center;margin-top:1.4rem">
+        <a href="https://wa.me/250783177254?text=Ndashaka%20kwishyura" target="_blank" class="btn btn-gold" style="text-decoration:none">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.106 1.508 5.831L0 24l6.335-1.654A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.797 9.797 0 01-5.031-1.389l-.36-.214-3.732.976.999-3.648-.235-.374A9.786 9.786 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
+          WhatsApp
+        </a>
+        <button class="btn btn-navy" onclick="closePay()">Funga</button>
       </div>
     </div>
-    <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center;margin-top:.5rem" onclick="closePay();showToast('Kwishyura kwaratangiye! Uzabona ubutumwa.')">
-      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span data-rw="Emeza Kwishyura" data-en="Confirm Payment">Emeza Kwishyura</span>
-    </button>
-    <div class="sec-badge"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span data-rw="256-bit SSL" data-en="256-bit SSL">256-bit SSL</span><span data-rw="Kwishyura bwizewe na KOMISIYONERI" data-en="Secured by KOMISIYONERI">Secured by KOMISIYONERI</span></div>
   </div>
 </div>
 
@@ -4163,7 +4130,10 @@ document.querySelectorAll('.p-fav').forEach(btn => {
 });
 
 // ── PAYMENT MODAL
-function openPay() { document.getElementById('pay-modal').classList.add('open'); }
+function openPay() {
+  if(kmFlag('payments')) injectRealPayForm();
+  document.getElementById('pay-modal').classList.add('open');
+}
 function closePay() { document.getElementById('pay-modal').classList.remove('open'); }
 document.getElementById('pay-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closePay(); });
 
@@ -4873,6 +4843,7 @@ function openAddProperty() {
     }
     return;
   }
+  if(!window._listingsOpen) { showToast('⛔ New listings are currently paused.'); return; }
   var m = document.getElementById('add-prop-modal');
   if(m) m.style.display='flex';
   var c = document.getElementById('prop-contact');
@@ -5161,6 +5132,7 @@ function handleRegister() {
 }
 
 document.addEventListener('DOMContentLoaded', loadSavedUser);
+document.addEventListener('DOMContentLoaded', applyPlatformFlags);
 setTimeout(loadSavedUser, 200);
 
 // ── AUTH SWITCH (login <-> register)
@@ -5699,7 +5671,7 @@ function renderUserPropCard(prop) {
   // WhatsApp message
   var propName = (prop.type||'Imitungo') + (prop.district ? ' — '+prop.district : '');
   var waText = encodeURIComponent(t('waMsg') + propName + ' (' + priceLabel + ')' + t('waMsgEnd'));
-  var waPhone = prop.phone || '250783177254';
+  var waPhone = '250783177254';
 
   return '<div class="p-card" data-pid="' + pid + '" style="cursor:pointer">'
     + '<div class="p-img ' + gclass + '"' + imgBg + ' style="position:relative' + (imgBg ? ';background-size:cover;background-position:center' : '') + '" onclick="openPropDetail(\'' + pid + '\')">'
@@ -6077,9 +6049,10 @@ function submitMessage() {
 
 // === DEPOSIT PAYMENT SYSTEM ===
 function openDepositPay() {
+  if(kmFlag('payments')) injectRealDepositForm();
   var m = document.getElementById('deposit-modal');
   if(m) m.style.display = 'flex';
-  if(currentUser) {
+  if(kmFlag('payments') && currentUser) {
     var n = document.getElementById('dep-name');
     var p = document.getElementById('dep-phone');
     if(n&&!n.value) n.value = currentUser.name||'';
@@ -6776,6 +6749,7 @@ go = function(page) {
 var agentCurrentStep = 1;
 
 function openAgentReg() {
+  if(!window._agentRegOpen) { showToast('⛔ Agent registration is currently closed.'); return; }
   var m = document.getElementById('agent-reg-modal');
   if(m) m.style.display = 'flex';
   agentStep(1);
@@ -6968,7 +6942,7 @@ function openVR() {
       + (prop.type||'property') + (prop.district?' — '+prop.district:'')
       + (curLang==='rw'?' . Mufite?':'. Do you have one?')
     );
-    window.open('https://wa.me/250783177254?text='+msg, '_blank');
+    window.open('https://wa.me/250783177254?text=' + msg, '_blank');
   }
 }
 
@@ -7064,6 +7038,13 @@ function submitLead() {
         lead_id:     lead.id
       });
     }
+    var agPhone = (lead.agentPhone || '250783177254').replace(/[^0-9]/g, '');
+    var agMsg = encodeURIComponent(
+      'LEAD NSHYA — Client: ' + lead.clientName +
+      ' — Tel: ' + lead.clientPhone +
+      ' — Zone: ' + zone
+    );
+    setTimeout(function(){ window.open('https://wa.me/' + agPhone + '?text=' + agMsg, '_blank'); }, 500);
   } else {
     showToast('✅ Lead yoherejwe! KOMISIYONERI izakuhuza na agent vuba.');
     // Notify admin via WhatsApp
@@ -7985,7 +7966,7 @@ function switchAdminTab(tab) {
   adminCurrentTab = tab;
 
   // Update tab buttons
-  ['listings','agents','deals'].forEach(function(t) {
+  ['listings','agents','deals','platform'].forEach(function(t) {
     var btn = document.getElementById('adm-tab-'+t);
     if(!btn) return;
     if(t === tab) {
@@ -8000,14 +7981,226 @@ function switchAdminTab(tab) {
   var listingsFilters = document.getElementById('adm-listings-filters');
   var agentsPanel = document.getElementById('admin-agents-panel');
   var dealsPanel = document.getElementById('admin-deals-panel');
+  var platformPanel = document.getElementById('admin-platform-panel');
 
   if(listingsPanel) listingsPanel.style.display = tab === 'listings' ? 'block' : 'none';
   if(listingsFilters) listingsFilters.style.display = tab === 'listings' ? 'flex' : 'none';
   if(agentsPanel) agentsPanel.style.display = tab === 'agents' ? 'block' : 'none';
   if(dealsPanel) dealsPanel.style.display = tab === 'deals' ? 'block' : 'none';
+  if(platformPanel) platformPanel.style.display = tab === 'platform' ? 'block' : 'none';
 
   if(tab === 'agents') renderAdminAgents();
   if(tab === 'deals') renderAdminDeals();
+  if(tab === 'platform') renderAdminPlatform();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PLATFORM FLAGS — feature toggles persisted in localStorage
+// ═══════════════════════════════════════════════════════════
+
+function kmFlag(key) {
+  // features that are OFF by default until admin explicitly enables them
+  var offByDefault = { payments: true };
+  try {
+    var f = JSON.parse(localStorage.getItem('km_platform_flags') || '{}');
+    if(f[key] === undefined) return !offByDefault[key];
+    return f[key] !== false;
+  } catch(e) { return !offByDefault[key]; }
+}
+
+function kmSetFlag(key, val) {
+  try {
+    var f = JSON.parse(localStorage.getItem('km_platform_flags') || '{}');
+    f[key] = val;
+    localStorage.setItem('km_platform_flags', JSON.stringify(f));
+  } catch(e) {}
+  applyPlatformFlags();
+  renderAdminPlatform();
+}
+
+function applyPlatformFlags() {
+  window._agentRegOpen = kmFlag('agent_reg');
+  window._listingsOpen = kmFlag('new_listings');
+}
+
+function injectRealDepositForm() {
+  var modal = document.querySelector('#deposit-modal .modal');
+  if(!modal) return;
+  modal.innerHTML =
+    '<div class="modal-hdr">' +
+      '<div class="modal-title">💰 Kwishyura Deposit — Tangira Transaction</div>' +
+      '<button class="modal-x" onclick="closeDepositPay()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' +
+    '</div>' +
+    '<div style="background:var(--light);border-radius:10px;padding:1rem;margin-bottom:1rem">' +
+      '<div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">Deposit (10% y\'igiciro)</div>' +
+      '<div style="font-family:\'Cormorant Garamond\',serif;font-size:2rem;font-weight:700;color:var(--navy)" id="dep-amount-display">— RWF</div>' +
+    '</div>' +
+    '<div style="display:flex;flex-direction:column;gap:.8rem;padding:.3rem 0">' +
+      '<div class="field"><label>Amazina Yawe</label><input type="text" id="dep-name" placeholder="Amazina yuzuye"></div>' +
+      '<div class="field"><label>Telefoni (MoMo / Airtel)</label><input type="tel" id="dep-phone" placeholder="+250 7XX XXX XXX"></div>' +
+      '<div class="field"><label>Uburyo bwo Kwishyura</label>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.3rem">' +
+          '<div id="dep-m1" onclick="selectDepMethod(this)" style="border:2px solid var(--navy);border-radius:8px;padding:.6rem;text-align:center;cursor:pointer;background:rgba(13,59,140,.06)"><div style="font-weight:700;font-size:.82rem;color:var(--navy)">📱 MTN MoMo</div></div>' +
+          '<div id="dep-m2" onclick="selectDepMethod(this)" style="border:1.5px solid var(--border);border-radius:8px;padding:.6rem;text-align:center;cursor:pointer"><div style="font-weight:700;font-size:.82rem">📱 Airtel Money</div></div>' +
+          '<div id="dep-m3" onclick="selectDepMethod(this)" style="border:1.5px solid var(--border);border-radius:8px;padding:.6rem;text-align:center;cursor:pointer"><div style="font-weight:700;font-size:.82rem">💳 Karita ya Banki</div></div>' +
+          '<div id="dep-m4" onclick="selectDepMethod(this)" style="border:1.5px solid var(--border);border-radius:8px;padding:.6rem;text-align:center;cursor:pointer"><div style="font-weight:700;font-size:.82rem">🏦 Bank Transfer</div></div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:.7rem;font-size:.78rem;color:#856404">⚠️ Deposit igarukira kuri account ya KOMISIYONERI. Amasezerano azakufikira mu masaha 24.</div>' +
+      '<button class="btn btn-gold btn-lg" style="width:100%;justify-content:center" onclick="submitDeposit()">' +
+        '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' +
+        ' Emeza Kwishyura Deposit' +
+      '</button>' +
+    '</div>';
+}
+
+function injectRealPayForm() {
+  var modal = document.querySelector('#pay-modal .modal');
+  if(!modal) return;
+  modal.innerHTML =
+    '<div class="modal-hdr">' +
+      '<div class="modal-title">💳 Kwishyura — Digital Payment</div>' +
+      '<button class="modal-x" onclick="closePay()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' +
+    '</div>' +
+    '<div style="background:var(--light);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.3rem;display:flex;justify-content:space-between;align-items:center">' +
+      '<div><div style="font-size:.8rem;color:var(--muted)">Igiteranyo cy\'Amafaranga</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:1.7rem;font-weight:700;color:var(--navy)" id="pay-total-display">— RWF</div></div>' +
+      '<span class="badge b-green"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Bwizewe</span>' +
+    '</div>' +
+    '<div style="font-size:.78rem;font-weight:700;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.75rem">Hitamo Uburyo bwo Kwishyura</div>' +
+    '<div class="pay-methods">' +
+      '<div class="pay-m active" onclick="this.parentElement.querySelectorAll(\'.pay-m\').forEach(x=>x.classList.remove(\'active\'));this.classList.add(\'active\')"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18" stroke-width="2"/></svg><span>MTN Mobile Money</span></div>' +
+      '<div class="pay-m" onclick="this.parentElement.querySelectorAll(\'.pay-m\').forEach(x=>x.classList.remove(\'active\'));this.classList.add(\'active\')"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18" stroke-width="2"/></svg><span>Airtel Money</span></div>' +
+      '<div class="pay-m" onclick="this.parentElement.querySelectorAll(\'.pay-m\').forEach(x=>x.classList.remove(\'active\'));this.classList.add(\'active\')"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span>Karita ya Banki</span></div>' +
+      '<div class="pay-m" onclick="this.parentElement.querySelectorAll(\'.pay-m\').forEach(x=>x.classList.remove(\'active\'));this.classList.add(\'active\')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Bank Transfer</span></div>' +
+    '</div>' +
+    '<button class="btn btn-navy btn-lg" style="width:100%;justify-content:center;margin-top:.5rem" onclick="closePay();showToast(\'Kwishyura kwaratangiye! Uzabona ubutumwa.\')">' +
+      '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Emeza Kwishyura' +
+    '</button>' +
+    '<div class="sec-badge"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>256-bit SSL</span><span>Secured by KOMISIYONERI</span></div>';
+}
+
+function renderAdminPlatform() {
+  var panel = document.getElementById('admin-platform-panel');
+  if(!panel) return;
+
+  var flags = {};
+  try { flags = JSON.parse(localStorage.getItem('km_platform_flags') || '{}'); } catch(e) {}
+
+  var f = {
+    payments:     flags.payments    === true,   // off by default
+    agent_reg:    flags.agent_reg   !== false,  // on by default
+    new_listings: flags.new_listings !== false  // on by default
+  };
+
+  // Count live features for score
+  var liveCount = 28 + (f.payments ? 1 : 0) + (f.agent_reg ? 1 : 0) + (f.new_listings ? 1 : 0);
+  var totalCount = 31;
+  var pct = Math.round(liveCount / totalCount * 100);
+  var scoreColor = pct >= 90 ? '#16a34a' : pct >= 70 ? '#d97706' : '#dc2626';
+
+  function toggle(key, val) {
+    return 'kmSetFlag(\'' + key + '\',' + val + ')';
+  }
+  function toggleRow(label, key, desc) {
+    var on = flags[key] !== false;
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:.55rem 0;border-bottom:1px solid var(--border)">' +
+      '<div>' +
+        '<div style="font-size:.82rem;font-weight:600">' + label + '</div>' +
+        '<div style="font-size:.72rem;color:var(--muted)">' + desc + '</div>' +
+      '</div>' +
+      '<label class="km-toggle" onclick="' + toggle(key, !on) + '">' +
+        '<input type="checkbox"' + (on ? ' checked' : '') + ' readonly>' +
+        '<div class="km-toggle-track"></div>' +
+        '<span style="font-size:.72rem;color:' + (on ? 'var(--navy)' : 'var(--muted)') + ';font-weight:600">' + (on ? 'ON' : 'OFF') + '</span>' +
+      '</label>' +
+    '</div>';
+  }
+  function liveRow(label, desc) {
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)">' +
+      '<div>' +
+        '<div style="font-size:.82rem;font-weight:600">' + label + '</div>' +
+        '<div style="font-size:.72rem;color:var(--muted)">' + desc + '</div>' +
+      '</div>' +
+      '<span style="font-size:.72rem;font-weight:700;color:#16a34a;background:#dcfce7;padding:.2rem .5rem;border-radius:20px">✅ Live</span>' +
+    '</div>';
+  }
+  function group(title, rows) {
+    return '<div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:1rem 1.2rem;margin-bottom:.8rem">' +
+      '<div style="font-size:.7rem;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem">' + title + '</div>' +
+      rows +
+    '</div>';
+  }
+
+  var html =
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">' +
+      '<div style="font-size:1rem;font-weight:700;color:var(--navy)">Platform Readiness</div>' +
+      '<div style="font-size:1.1rem;font-weight:800;color:' + scoreColor + ';background:' + (pct>=90?'#dcfce7':pct>=70?'#fef3c7':'#fee2e2') + ';padding:.3rem .9rem;border-radius:20px">' + pct + '% Ready</div>' +
+    '</div>' +
+
+    group('🏠 Property Listings',
+      liveRow('Add / Edit / Delete', 'Full form with images, coords, amenities') +
+      liveRow('Search & Filters', 'Fuzzy search, type/location/price/beds/size filters') +
+      liveRow('Detail View', '5 tabs: Description, Tour, Map, Docs, Reviews') +
+      toggleRow('New Listings Open', 'new_listings', 'Agents can submit new property listings')
+    ) +
+
+    group('👔 Agent Management',
+      toggleRow('Agent Registration', 'agent_reg', 'New agents can apply to join the platform') +
+      liveRow('Approval Flow', 'Admin approves → live role update, no re-login') +
+      liveRow('Agent Dashboard', 'KPIs, my listings, upcoming visits, leads') +
+      liveRow('Lead Auto-Assignment', 'Fairness algorithm by zone & fewest leads')
+    ) +
+
+    group('🔐 Authentication',
+      liveRow('Email / Password', 'Register + login') +
+      liveRow('Google Sign-In', 'Firebase + Google Identity Services') +
+      liveRow('Phone OTP', 'Firebase Phone Auth + reCAPTCHA') +
+      liveRow('Password Reset', 'Email reset via Firebase')
+    ) +
+
+    group('💬 Communication',
+      liveRow('WhatsApp Links', 'Property cards + detail page → admin number') +
+      liveRow('Lead Capture', 'Zone auto-assignment with agent WhatsApp notify') +
+      liveRow('Email Notifications', 'EmailJS — leads, bookings, approvals') +
+      liveRow('AI Chat', 'Claude-powered property assistant')
+    ) +
+
+    group('💰 Payments',
+      toggleRow('Payment Gateway', 'payments', 'Show real payment form instead of Coming Soon')
+    ) +
+
+    group('🗺️ Maps & Discovery',
+      liveRow('Dynamic Map', 'Exact coords → district fallback → Kigali default') +
+      liveRow('Nearby POI', 'School, hospital, bank cards per district') +
+      liveRow('Property Comparison', 'Side-by-side dynamic picker') +
+      liveRow('Mortgage Calculator', 'Real-time amortization')
+    ) +
+
+    group('⭐ Reviews & Bookings',
+      liveRow('Reviews & Ratings', 'Per-property, live avg recalculation') +
+      liveRow('Site Visits / Bookings', 'Saved per property + visible in agent dashboard')
+    ) +
+
+    group('🔥 Firebase & Data',
+      liveRow('Realtime Listeners', 'on(\'value\') for all 6 collections') +
+      liveRow('Firebase Storage', 'Image upload with imgbb fallback') +
+      liveRow('Bidirectional Sync', 'localStorage writes pushed to RTDB')
+    ) +
+
+    group('📱 PWA & Mobile',
+      liveRow('Install Prompt', 'iOS / Samsung / Chrome platform-specific guide') +
+      liveRow('Offline Indicator', 'online/offline event banner') +
+      liveRow('Service Worker', 'Network-first + cache fallback') +
+      liveRow('Push Notifications', 'Leads, bookings, approvals via SW')
+    ) +
+
+    group('🌐 Translation',
+      liveRow('RW / EN Toggle', 'data-rw / data-en on all UI strings')
+    ) +
+
+    '<div style="font-size:.7rem;color:var(--muted);text-align:center;margin-top:.5rem">Last updated: ' + new Date().toLocaleString() + '</div>';
+
+  panel.innerHTML = html;
 }
 
 // ═══════════════════════════════════════════════════════════
