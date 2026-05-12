@@ -2165,6 +2165,21 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <div style="font-size:.73rem;color:var(--muted);background:var(--light);border-radius:8px;padding:.5rem">
         💡 Shyiramo inyandiko kuri Google Drive cyangwa Dropbox (Public link). Inyandiko ntizohererewe muri internet niba utazishyize.
       </div>
+      <!-- Location Coordinates -->
+      <div style="background:#e8f5e9;border:1.5px solid #4caf50;border-radius:8px;padding:.7rem;font-size:.78rem;color:#1b5e20;font-weight:600">
+        📍 Aho Imitungo Iri Hafi (Coordinates) — <span style="font-weight:400">Ntibisabwa — Ikoresha Google Maps</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+        <div class="field"><label>🌐 Latitude (Ubuso)</label>
+          <input type="number" id="prop-lat" step="0.000001" min="-3" max="-1" placeholder="-1.9441 (Rwanda: -1 kugeza -3)">
+        </div>
+        <div class="field"><label>🌐 Longitude (Uburebure)</label>
+          <input type="number" id="prop-lng" step="0.000001" min="28" max="31" placeholder="30.0619 (Rwanda: 28 kugeza 31)">
+        </div>
+      </div>
+      <div style="font-size:.73rem;color:var(--muted);background:var(--light);border-radius:8px;padding:.5rem">
+        💡 Shakisha coordinates kuri <strong>maps.google.com</strong> → Kanda hejuru y'aho imitungo iri → Kopi umubare ugaragara munsi. Urugero: <em>-1.9441, 30.1044</em>
+      </div>
       <!-- Media Upload — Admin vs User -->
       <div id="admin-media-section" style="display:none;flex-direction:column;gap:.8rem">
         <div style="background:#e8f0fb;border-radius:8px;padding:.7rem;font-size:.78rem;color:var(--navy);font-weight:600">
@@ -2982,8 +2997,8 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <!-- MAP TAB CONTENT -->
       <div id="tab-map" style="display:none">
         <div style="border-radius:12px;overflow:hidden;border:1.5px solid var(--border);margin-bottom:1rem">
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3987.4777!2d30.1044!3d-1.9441!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca6b03b50e0ff%3A0xb366c23cde1ae8b0!2sKimironko%2C+Kigali!5e0!3m2!1sen!2srw!4v1"
+          <iframe id="det-map-frame"
+            src="https://maps.google.com/maps?q=Kigali,+Rwanda&z=13&output=embed"
             width="100%" height="320" style="border:0;display:block" allowfullscreen loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>
@@ -4863,6 +4878,8 @@ function openEditProperty(prop) {
   s('prop-doc-luc', prop.docLuc);
   s('prop-doc-id',  prop.docId);
   s('prop-doc-permit', prop.docPermit);
+  s('prop-lat',     prop.latitude);
+  s('prop-lng',     prop.longitude);
   var ams = ['garden','pool','garage','solar','fibre','security','generator'];
   ams.forEach(function(a) { c('am-'+a, prop.amenities && prop.amenities.indexOf(a) !== -1); });
 
@@ -4960,6 +4977,8 @@ function submitProperty() {
     updated.docLuc   = g('prop-doc-luc');
     updated.docId    = g('prop-doc-id');
     updated.docPermit= g('prop-doc-permit');
+    updated.latitude = g('prop-lat') ? parseFloat(g('prop-lat')) : (updated.latitude || null);
+    updated.longitude= g('prop-lng') ? parseFloat(g('prop-lng')) : (updated.longitude || null);
     props[idx] = updated;
     try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
     closeAddProperty();
@@ -4994,6 +5013,8 @@ function submitProperty() {
       docLuc:    g('prop-doc-luc'),
       docId:     g('prop-doc-id'),
       docPermit: g('prop-doc-permit'),
+      latitude:  g('prop-lat')  ? parseFloat(g('prop-lat'))  : null,
+      longitude: g('prop-lng')  ? parseFloat(g('prop-lng'))  : null,
       owner: 'KOMISIYONERI', ownerEmail: currentUser.email,
       verified: true, rating: 5.0, reviews: 0,
       date: new Date().toISOString(), status: 'Approved'
@@ -5038,6 +5059,8 @@ function submitProperty() {
       docLuc:    g('prop-doc-luc'),
       docId:     g('prop-doc-id'),
       docPermit: g('prop-doc-permit'),
+      latitude:  g('prop-lat')  ? parseFloat(g('prop-lat'))  : null,
+      longitude: g('prop-lng')  ? parseFloat(g('prop-lng'))  : null,
       owner: currentUser.name, ownerEmail: currentUser.email,
       date: new Date().toISOString(), status: 'Pending'
     };
@@ -7294,6 +7317,20 @@ function openPropDetail(propId) {
       tdEl.textContent = prop.titleDeed || '—';
       tdEl.style.color = prop.titleDeed ? 'var(--green)' : 'var(--muted)';
     }
+  }
+
+  // === MAP TAB — dynamic embed ===
+  var mapFrame = document.getElementById('det-map-frame');
+  if (mapFrame) {
+    var mapSrc;
+    if (prop.latitude && prop.longitude) {
+      mapSrc = 'https://maps.google.com/maps?q=' + prop.latitude + ',' + prop.longitude + '&z=16&output=embed';
+    } else if (prop.district) {
+      mapSrc = 'https://maps.google.com/maps?q=' + encodeURIComponent(prop.district + ', Rwanda') + '&z=13&output=embed';
+    } else {
+      mapSrc = 'https://maps.google.com/maps?q=Kigali,+Rwanda&z=12&output=embed';
+    }
+    mapFrame.src = mapSrc;
   }
 
   // === GALLERY (thumbnails) ===
