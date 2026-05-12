@@ -7023,6 +7023,13 @@ function submitLead() {
         lead_id:     lead.id
       });
     }
+    var agPhone = (lead.agentPhone || '250783177254').replace(/[^0-9]/g, '');
+    var agMsg = encodeURIComponent(
+      'LEAD NSHYA — Client: ' + lead.clientName +
+      ' — Tel: ' + lead.clientPhone +
+      ' — Zone: ' + zone
+    );
+    setTimeout(function(){ window.open('https://wa.me/' + agPhone + '?text=' + agMsg, '_blank'); }, 500);
   } else {
     showToast('✅ Lead yoherejwe! KOMISIYONERI izakuhuza na agent vuba.');
     // Notify admin via WhatsApp
