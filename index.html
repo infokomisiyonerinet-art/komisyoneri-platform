@@ -3881,40 +3881,20 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 <div class="modal-wrap" id="deposit-modal" style="display:none">
   <div class="modal" style="max-width:420px">
     <div class="modal-hdr">
-      <div class="modal-title">💰 Kwishyura Deposit — Tangira Transaction</div>
+      <div class="modal-title">💰 Kwishyura Deposit</div>
       <button class="modal-x" onclick="closeDepositPay()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <div style="background:var(--light);border-radius:10px;padding:1rem;margin-bottom:1rem">
-      <div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">Deposit (10% y'igiciro)</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--navy)">12,000,000 RWF</div>
-      <div style="font-size:.75rem;color:var(--muted);margin-top:.2rem">Igiciro cyose: 120,000,000 RWF</div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:.8rem;padding:.3rem 0">
-      <div class="field"><label>Amazina Yawe</label><input type="text" id="dep-name" placeholder="Amazina yuzuye"></div>
-      <div class="field"><label>Telefoni (MoMo / Airtel)</label><input type="tel" id="dep-phone" placeholder="+250 7XX XXX XXX"></div>
-      <div class="field"><label>Uburyo bwo Kwishyura</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.3rem">
-          <div id="dep-m1" onclick="selectDepMethod(this)" style="border:2px solid var(--navy);border-radius:8px;padding:.6rem;text-align:center;cursor:pointer;background:rgba(13,59,140,.06)">
-            <div style="font-weight:700;font-size:.82rem;color:var(--navy)">📱 MTN MoMo</div>
-          </div>
-          <div id="dep-m2" onclick="selectDepMethod(this)" style="border:1.5px solid var(--border);border-radius:8px;padding:.6rem;text-align:center;cursor:pointer">
-            <div style="font-weight:700;font-size:.82rem">📱 Airtel Money</div>
-          </div>
-          <div id="dep-m3" onclick="selectDepMethod(this)" style="border:1.5px solid var(--border);border-radius:8px;padding:.6rem;text-align:center;cursor:pointer">
-            <div style="font-weight:700;font-size:.82rem">💳 Karita ya Banki</div>
-          </div>
-          <div id="dep-m4" onclick="selectDepMethod(this)" style="border:1.5px solid var(--border);border-radius:8px;padding:.6rem;text-align:center;cursor:pointer">
-            <div style="font-weight:700;font-size:.82rem">🏦 Bank Transfer</div>
-          </div>
-        </div>
+    <div style="text-align:center;padding:2rem 1rem">
+      <div style="font-size:3rem;margin-bottom:.8rem">🚧</div>
+      <div style="font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:.5rem" data-rw="Vuba Aha" data-en="Coming Soon">Vuba Aha</div>
+      <div style="font-size:.85rem;color:var(--muted);line-height:1.5" data-rw="Serivisi yo kwishyura ku mbuga izatangira vuba. Watumanahaza kuri WhatsApp kugira ngo uhite utangira." data-en="Online payment is coming soon. Contact us via WhatsApp to proceed with your deposit now.">Serivisi yo kwishyura ku mbuga izatangira vuba. Watumanahaza kuri WhatsApp kugira ngo uhite utangira.</div>
+      <div style="display:flex;gap:.7rem;justify-content:center;margin-top:1.4rem">
+        <a href="https://wa.me/250783177254?text=Ndashaka%20gutanga%20deposit" target="_blank" class="btn btn-gold" style="text-decoration:none">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.106 1.508 5.831L0 24l6.335-1.654A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.797 9.797 0 01-5.031-1.389l-.36-.214-3.732.976.999-3.648-.235-.374A9.786 9.786 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
+          WhatsApp
+        </a>
+        <button class="btn btn-navy" onclick="closeDepositPay()">Funga</button>
       </div>
-      <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:.7rem;font-size:.78rem;color:#856404">
-        ⚠️ Deposit igarukira kuri account ya KOMISIYONERI. Amasezerano azakufikira mu masaha 24.
-      </div>
-      <button class="btn btn-gold btn-lg" style="width:100%;justify-content:center" onclick="submitDeposit()">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        Emeza Kwishyura Deposit
-      </button>
     </div>
   </div>
 </div>
@@ -3925,42 +3905,21 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 <div class="modal-wrap" id="pay-modal">
   <div class="modal">
     <div class="modal-hdr">
-      <div class="modal-title" data-rw="Kwishyura — Digital Payment" data-en="Digital Payment">Kwishyura — Digital Payment</div>
+      <div class="modal-title" data-rw="Kwishyura" data-en="Payment">Kwishyura</div>
       <button class="modal-x" onclick="closePay()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <div class="pay-progress">
-      <div class="pay-step active"><div class="ps-circle">1</div><div class="ps-lbl" data-rw="Uburyo" data-en="Method">Uburyo</div></div>
-      <div class="pay-step"><div class="ps-circle">2</div><div class="ps-lbl" data-rw="Amakuru" data-en="Details">Amakuru</div></div>
-      <div class="pay-step"><div class="ps-circle">3</div><div class="ps-lbl" data-rw="Kwemeza" data-en="Confirm">Kwemeza</div></div>
-    </div>
-    <div style="background:var(--light);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.3rem;display:flex;justify-content:space-between;align-items:center">
-      <div><div style="font-size:.8rem;color:var(--muted)" data-rw="Igiteranyo cy'Amafaranga" data-en="Total Amount">Igiteranyo cy'Amafaranga</div><div style="font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:700;color:var(--navy)">120,000,000 RWF</div></div>
-      <span class="badge b-green"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span data-rw="Bwizewe" data-en="Secured">Bwizewe</span></span>
-    </div>
-    <div style="font-size:.78rem;font-weight:700;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.75rem" data-rw="Hitamo Uburyo bwo Kwishyura" data-en="Select Payment Method">Hitamo Uburyo bwo Kwishyura</div>
-    <div class="pay-methods">
-      <div class="pay-m active" onclick="this.parentElement.querySelectorAll('.pay-m').forEach(x=>x.classList.remove('active'));this.classList.add('active')">
-        <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18" stroke-width="2"/></svg>
-        <span>MTN Mobile Money</span>
-      </div>
-      <div class="pay-m" onclick="this.parentElement.querySelectorAll('.pay-m').forEach(x=>x.classList.remove('active'));this.classList.add('active')">
-        <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18" stroke-width="2"/></svg>
-        <span>Airtel Money</span>
-      </div>
-      <div class="pay-m" onclick="this.parentElement.querySelectorAll('.pay-m').forEach(x=>x.classList.remove('active'));this.classList.add('active')">
-        <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-        <span data-rw="Karita ya Banki" data-en="Bank Card">Karita ya Banki</span>
-      </div>
-      <div class="pay-m" onclick="this.parentElement.querySelectorAll('.pay-m').forEach(x=>x.classList.remove('active'));this.classList.add('active')">
-        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span data-rw="Kure ya Banki" data-en="Bank Transfer">Bank Transfer</span>
+    <div style="text-align:center;padding:2rem 1rem">
+      <div style="font-size:3rem;margin-bottom:.8rem">🚧</div>
+      <div style="font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:.5rem" data-rw="Vuba Aha" data-en="Coming Soon">Vuba Aha</div>
+      <div style="font-size:.85rem;color:var(--muted);line-height:1.5" data-rw="Serivisi yo kwishyura ku mbuga izatangira vuba. Watumanahaza kuri WhatsApp kugira ngo uhite utangira." data-en="Online payment is coming soon. Contact us via WhatsApp to proceed now.">Serivisi yo kwishyura ku mbuga izatangira vuba. Watumanahaza kuri WhatsApp kugira ngo uhite utangira.</div>
+      <div style="display:flex;gap:.7rem;justify-content:center;margin-top:1.4rem">
+        <a href="https://wa.me/250783177254?text=Ndashaka%20kwishyura" target="_blank" class="btn btn-gold" style="text-decoration:none">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.106 1.508 5.831L0 24l6.335-1.654A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.797 9.797 0 01-5.031-1.389l-.36-.214-3.732.976.999-3.648-.235-.374A9.786 9.786 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
+          WhatsApp
+        </a>
+        <button class="btn btn-navy" onclick="closePay()">Funga</button>
       </div>
     </div>
-    <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center;margin-top:.5rem" onclick="closePay();showToast('Kwishyura kwaratangiye! Uzabona ubutumwa.')">
-      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span data-rw="Emeza Kwishyura" data-en="Confirm Payment">Emeza Kwishyura</span>
-    </button>
-    <div class="sec-badge"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span data-rw="256-bit SSL" data-en="256-bit SSL">256-bit SSL</span><span data-rw="Kwishyura bwizewe na KOMISIYONERI" data-en="Secured by KOMISIYONERI">Secured by KOMISIYONERI</span></div>
   </div>
 </div>
 
