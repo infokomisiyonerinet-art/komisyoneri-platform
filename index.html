@@ -3064,32 +3064,19 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <div id="tab-reviews" style="display:none">
         <div style="display:flex;align-items:center;gap:1.5rem;padding:1rem;background:var(--light);border-radius:12px;margin-bottom:1rem">
           <div style="text-align:center">
-            <div style="font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:700;color:var(--navy);line-height:1">4.8</div>
+            <div id="det-avg-rating" style="font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:700;color:var(--navy);line-height:1">—</div>
             <div style="color:var(--gold);font-size:1rem">★★★★★</div>
-            <div style="font-size:.72rem;color:var(--muted)">12 Reviews</div>
+            <div id="det-review-count" style="font-size:.72rem;color:var(--muted)">0 Reviews</div>
           </div>
-          <div style="flex:1">
-            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem"><span style="font-size:.75rem;width:20px">5★</span><div style="flex:1;height:6px;background:#e2e8f0;border-radius:3px"><div style="width:75%;height:100%;background:var(--gold);border-radius:3px"></div></div><span style="font-size:.72rem;color:var(--muted)">75%</span></div>
-            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem"><span style="font-size:.75rem;width:20px">4★</span><div style="flex:1;height:6px;background:#e2e8f0;border-radius:3px"><div style="width:17%;height:100%;background:var(--gold);border-radius:3px"></div></div><span style="font-size:.72rem;color:var(--muted)">17%</span></div>
-            <div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.75rem;width:20px">3★</span><div style="flex:1;height:6px;background:#e2e8f0;border-radius:3px"><div style="width:8%;height:100%;background:var(--gold);border-radius:3px"></div></div><span style="font-size:.72rem;color:var(--muted)">8%</span></div>
+          <div id="det-rating-bars" style="flex:1">
+            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem"><span style="font-size:.75rem;width:20px">5★</span><div style="flex:1;height:6px;background:#e2e8f0;border-radius:3px"><div style="width:0%;height:100%;background:var(--gold);border-radius:3px"></div></div><span style="font-size:.72rem;color:var(--muted)">0%</span></div>
+            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem"><span style="font-size:.75rem;width:20px">4★</span><div style="flex:1;height:6px;background:#e2e8f0;border-radius:3px"><div style="width:0%;height:100%;background:var(--gold);border-radius:3px"></div></div><span style="font-size:.72rem;color:var(--muted)">0%</span></div>
+            <div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.75rem;width:20px">3★</span><div style="flex:1;height:6px;background:#e2e8f0;border-radius:3px"><div style="width:0%;height:100%;background:var(--gold);border-radius:3px"></div></div><span style="font-size:.72rem;color:var(--muted)">0%</span></div>
           </div>
         </div>
         <div id="reviews-list" style="display:flex;flex-direction:column;gap:.8rem">
-          <div style="padding:.9rem;border:1.5px solid var(--border);border-radius:10px">
-            <div style="display:flex;justify-content:space-between;margin-bottom:.4rem">
-              <div style="font-weight:700;font-size:.88rem">Patrick K.</div>
-              <div style="color:var(--gold);font-size:.85rem">★★★★★</div>
-            </div>
-            <div style="font-size:.8rem;color:var(--muted);margin-bottom:.4rem">2 Werurwe 2026</div>
-            <div style="font-size:.85rem;color:#444">Inzu nziza cyane, agent NOHERI yadukunze cyane. Amakuru yose yari ari ukuri. Ndashimira KOMISIYONERI!</div>
-          </div>
-          <div style="padding:.9rem;border:1.5px solid var(--border);border-radius:10px">
-            <div style="display:flex;justify-content:space-between;margin-bottom:.4rem">
-              <div style="font-weight:700;font-size:.88rem">Sylvie M.</div>
-              <div style="color:var(--gold);font-size:.85rem">★★★★☆</div>
-            </div>
-            <div style="font-size:.8rem;color:var(--muted);margin-bottom:.4rem">15 Gashyantare 2026</div>
-            <div style="font-size:.85rem;color:#444">Platform iri nziza kandi yoroshye gukoresha. Nabonye apartimanı nziza i Kicukiro. Murakoze!</div>
+          <div style="text-align:center;padding:1rem;color:var(--muted);font-size:.83rem" id="reviews-empty-msg">
+            Nta review irashyizweho — uba uwa mbere!
           </div>
         </div>
         <button onclick="openReviewForm()" class="btn btn-navy btn-sm" style="margin-top:1rem;width:100%;justify-content:center">
@@ -6179,6 +6166,54 @@ function closeCompare() {
 
 // === REVIEWS ===
 var currentRating = 0;
+function renderReviewsTab(prop) {
+  var reviews = [];
+  try { reviews = JSON.parse(localStorage.getItem('km_reviews')||'[]'); } catch(e) {}
+  var propRevs = reviews.filter(function(r){ return r.propId && String(r.propId) === String(prop.id); });
+  var count = propRevs.length;
+  var avg = count > 0
+    ? Math.round(propRevs.reduce(function(s,r){ return s+(r.rating||0); },0) / count * 10) / 10
+    : null;
+
+  var avgEl = document.getElementById('det-avg-rating');
+  if (avgEl) avgEl.textContent = avg !== null ? avg.toFixed(1) : (prop.rating ? String(prop.rating) : '—');
+
+  var cntEl = document.getElementById('det-review-count');
+  if (cntEl) cntEl.textContent = count + ' ' + (curLang==='rw' ? 'Ibitekerezo' : (count === 1 ? 'Review' : 'Reviews'));
+
+  var barsEl = document.getElementById('det-rating-bars');
+  if (barsEl) {
+    var barsHtml = '';
+    [5,4,3,2,1].forEach(function(star) {
+      var n = count > 0 ? propRevs.filter(function(r){ return Math.round(r.rating) === star; }).length : 0;
+      var pct = count > 0 ? Math.round(n / count * 100) : 0;
+      barsHtml += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem">'
+        + '<span style="font-size:.75rem;width:20px">'+star+'★</span>'
+        + '<div style="flex:1;height:6px;background:#e2e8f0;border-radius:3px"><div style="width:'+pct+'%;height:100%;background:var(--gold);border-radius:3px"></div></div>'
+        + '<span style="font-size:.72rem;color:var(--muted)">'+pct+'%</span></div>';
+    });
+    barsEl.innerHTML = barsHtml;
+  }
+
+  var list = document.getElementById('reviews-list');
+  if (list) {
+    if (count === 0) {
+      list.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:.83rem">'
+        + (curLang==='rw' ? 'Nta review irashyizweho — uba uwa mbere!' : 'No reviews yet — be the first!') + '</div>';
+    } else {
+      list.innerHTML = propRevs.slice().reverse().map(function(r) {
+        var stars = '★'.repeat(r.rating||0) + '☆'.repeat(5-(r.rating||0));
+        return '<div style="padding:.9rem;border:1.5px solid var(--border);border-radius:10px">'
+          + '<div style="display:flex;justify-content:space-between;margin-bottom:.4rem">'
+          + '<div style="font-weight:700;font-size:.88rem">'+escapeHtml(r.name||'—')+'</div>'
+          + '<div style="color:var(--gold);font-size:.85rem">'+stars+'</div></div>'
+          + '<div style="font-size:.8rem;color:var(--muted);margin-bottom:.4rem">'+escapeHtml(r.date||'')+'</div>'
+          + '<div style="font-size:.85rem;color:#444">'+escapeHtml(r.text||'')+'</div></div>';
+      }).join('');
+    }
+  }
+}
+
 function openReviewForm() {
   var m = document.getElementById('review-modal');
   if(m) m.style.display = 'flex';
@@ -6203,21 +6238,40 @@ function submitReview() {
   if(!name||!name.value){showToast('Shyira amazina yawe!');return;}
   if(currentRating === 0){showToast('Hitamo inyenyeri (rating)!');return;}
   if(!text||!text.value){showToast('Andika ibitekerezo byawe!');return;}
+  var cur = window._currentProp || {};
   var reviews = [];
   try{reviews=JSON.parse(localStorage.getItem('km_reviews')||'[]');}catch(e){}
-  reviews.push({id:'RVW-'+Date.now(),name:name.value,rating:currentRating,text:text.value,date:new Date().toLocaleDateString()});
+  reviews.push({
+    id: 'RVW-'+Date.now(),
+    name: name.value, rating: currentRating, text: text.value,
+    date: new Date().toLocaleDateString(),
+    propId: cur.id || null
+  });
   try{localStorage.setItem('km_reviews',JSON.stringify(reviews));}catch(e){}
-  // Add to visible list
-  var list = document.getElementById('reviews-list');
-  if(list) {
-    var div = document.createElement('div');
-    div.style.cssText = 'padding:.9rem;border:1.5px solid var(--border);border-radius:10px';
-    var stars = '★'.repeat(currentRating) + '☆'.repeat(5-currentRating);
-    div.innerHTML = '<div style="display:flex;justify-content:space-between;margin-bottom:.4rem"><div style="font-weight:700;font-size:.88rem">'+name.value+'</div><div style="color:var(--gold);font-size:.85rem">'+stars+'</div></div><div style="font-size:.8rem;color:var(--muted);margin-bottom:.4rem">'+new Date().toLocaleDateString()+'</div><div style="font-size:.85rem;color:#444">'+text.value+'</div>';
-    list.insertBefore(div, list.firstChild);
+
+  // Recalculate and persist avg rating on the property
+  if (cur.id) {
+    var propRevs = reviews.filter(function(r){ return r.propId && String(r.propId) === String(cur.id); });
+    var newAvg = Math.round(propRevs.reduce(function(s,r){ return s+(r.rating||0); },0) / propRevs.length * 10) / 10;
+    var props = [];
+    try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+    var pidx = -1;
+    for(var i=0;i<props.length;i++){ if(String(props[i].id)===String(cur.id)){pidx=i;break;} }
+    if(pidx !== -1) {
+      props[pidx].rating = newAvg;
+      props[pidx].reviews = propRevs.length;
+      try { localStorage.setItem('km_properties',JSON.stringify(props)); } catch(e){}
+      if(window._currentProp){ window._currentProp.rating = newAvg; window._currentProp.reviews = propRevs.length; }
+    }
+    renderReviewsTab(cur);
+    // Update the ★ badge in the hero
+    document.querySelectorAll('.badge').forEach(function(b){
+      if(b.textContent.match(/^★\s*[\d.]+$/)) b.textContent = '★ '+newAvg;
+    });
   }
+
   closeReviewForm();
-  showToast('Review yawe yoherejwe! Murakoze. ★'.repeat(currentRating));
+  showToast('Review yawe yoherejwe! Murakoze. ' + '★'.repeat(currentRating));
   name.value=''; text.value=''; setRating(0);
 }
 
@@ -7380,6 +7434,9 @@ function openPropDetail(propId) {
       btn.onclick = function(){ window.location.href='tel:'+cleanPhone; };
     }
   });
+
+  // === REVIEWS TAB — real data ===
+  renderReviewsTab(prop);
 
   // Navigate to detail page
   go('detail');
