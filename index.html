@@ -1890,6 +1890,11 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     </div>
     <!-- Avatar (logged in) -->
     <div id="nav-avatar" onclick="openProfile()" style="display:none;width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;cursor:pointer;border:2px solid var(--gold)">U</div>
+    <!-- Notification Bell -->
+    <button id="notif-bell" onclick="requestNotifPermission()" style="position:relative;background:none;border:1.5px solid var(--border);border-radius:8px;padding:.38rem .5rem;cursor:pointer;width:38px;height:38px;font-size:1.1rem;line-height:1" aria-label="Notifications" title="Enable notifications">
+      🔔
+      <span id="notif-badge" style="display:none;position:absolute;top:2px;right:2px;background:#e53e3e;color:#fff;border-radius:50%;font-size:.55rem;font-weight:700;width:14px;height:14px;align-items:center;justify-content:center">0</span>
+    </button>
     <!-- Hamburger Menu Button -->
     <button onclick="toggleHamburger()" id="hamburger-btn" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:.38rem .5rem;cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;width:38px;height:38px" aria-label="Menu">
       <span id="hb1" style="display:block;width:18px;height:2px;background:var(--navy);border-radius:2px;transition:.3s"></span>
@@ -6015,6 +6020,7 @@ function submitBooking() {
   };
   bookings.push(bk);
   try{localStorage.setItem('km_bookings',JSON.stringify(bookings));}catch(e){}
+  if (bk.id) try { rtdb.ref('bookings/' + bk.id).set(bk); } catch(e){}
   closeBooking();
   showToast('Gahunda yashyizweho! Agent azakuhamagara kuri '+phone.value+'. ✅');
   if (bk.agentEmail) {
@@ -8276,6 +8282,44 @@ go = function(page) {
     var rtdb = firebase.database();
     var _set = localStorage.setItem.bind(localStorage);
 
+    // ── Desktop / Push Notification helpers ──
+    var _kmSeenLeads    = new Set(JSON.parse(localStorage.getItem('km_seen_leads')   ||'[]'));
+    var _kmSeenBookings = new Set(JSON.parse(localStorage.getItem('km_seen_bookings')||'[]'));
+    var _kmUnread = 0;
+
+    function _kmBadge(delta) {
+      _kmUnread = Math.max(0, _kmUnread + delta);
+      var badge = document.getElementById('notif-badge');
+      if (!badge) return;
+      if (_kmUnread > 0) { badge.style.display='flex'; badge.textContent=_kmUnread>9?'9+':String(_kmUnread); }
+      else { badge.style.display='none'; }
+    }
+
+    function kmNotify(title, body, tag) {
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        try { new Notification(title, { body: body, icon: '/icon-192.svg', badge: '/icon-192.svg', tag: tag||'km' }); } catch(e){}
+      }
+      _kmBadge(1);
+    }
+
+    function requestNotifPermission() {
+      if (!currentUser) { showToast(curLang==='rw' ? 'Injira kugira ngo wemeze notifications.' : 'Log in to enable notifications.'); return; }
+      if (typeof Notification === 'undefined') { showToast('Iyi browser ntishyigikira notifications.'); return; }
+      if (Notification.permission === 'granted') {
+        _kmBadge(-_kmUnread);
+        showToast(curLang==='rw' ? '✅ Notifications zashyizweho kare.' : '✅ Notifications already enabled.');
+        return;
+      }
+      Notification.requestPermission().then(function(perm) {
+        if (perm === 'granted') {
+          showToast(curLang==='rw' ? '✅ Notifications zemewe!' : '✅ Notifications enabled!');
+          kmNotify('KOMISIYONERI', curLang==='rw' ? 'Uzabona leads, bookings na approvals vuba!' : 'You will be notified for new leads, bookings and approvals!', 'welcome');
+        } else {
+          showToast(curLang==='rw' ? 'Notifications zananiwe. Hindura settings za browser.' : 'Notifications blocked. Update your browser settings.');
+        }
+      });
+    }
+
     function attachRealtimeListeners() {
       // Properties — keep homepage fresh + refresh admin listings tab if open
       rtdb.ref('properties').on('value', function(s) {
@@ -8304,7 +8348,7 @@ go = function(page) {
         }
       });
 
-      // Leads — re-render admin deals tab if active
+      // Leads — re-render admin deals tab if active + notify assigned agent
       rtdb.ref('leads').on('value', function(s) {
         if (!s.exists()) return;
         var items = [];
@@ -8314,6 +8358,19 @@ go = function(page) {
         var adminModal = document.getElementById('admin-modal');
         if (adminModal && adminModal.style.display !== 'none' && adminCurrentTab === 'deals') {
           if (typeof renderAdminDeals === 'function') renderAdminDeals();
+        }
+        if (currentUser && currentUser.role === 'Agent' && currentUser.email) {
+          items.forEach(function(lead) {
+            if (lead.agentEmail === currentUser.email && lead.id && !_kmSeenLeads.has(lead.id)) {
+              _kmSeenLeads.add(lead.id);
+              kmNotify(
+                curLang==='rw' ? 'Lead Nshya! 🏠' : 'New Lead! 🏠',
+                (lead.clientName||'') + ' — ' + (lead.zone||''),
+                'lead-' + lead.id
+              );
+            }
+          });
+          try { localStorage.setItem('km_seen_leads', JSON.stringify(Array.from(_kmSeenLeads))); } catch(e){}
         }
       });
 
@@ -8326,6 +8383,28 @@ go = function(page) {
           if (items.length) _set('km_' + key, JSON.stringify(items));
         });
       });
+      // Bookings — notify agent of new visits on their listings
+      rtdb.ref('bookings').on('value', function(s) {
+        if (!s.exists()) return;
+        var items = [];
+        s.forEach(function(c){ items.push(c.val()); });
+        if (!items.length) return;
+        _set('km_bookings', JSON.stringify(items));
+        if (currentUser && currentUser.role === 'Agent' && currentUser.email) {
+          items.forEach(function(bk) {
+            if (bk.agentEmail === currentUser.email && bk.id && !_kmSeenBookings.has(bk.id)) {
+              _kmSeenBookings.add(bk.id);
+              kmNotify(
+                curLang==='rw' ? 'Gahunda Nshya! 📅' : 'New Booking! 📅',
+                (bk.name||'') + ' — ' + (bk.propTitle||'') + ' ' + (bk.date||''),
+                'booking-' + bk.id
+              );
+            }
+          });
+          try { localStorage.setItem('km_seen_bookings', JSON.stringify(Array.from(_kmSeenBookings))); } catch(e){}
+        }
+      });
+
       rtdb.ref('users').on('value', function(s) {
         if (!s.exists()) return;
         var users = [];
@@ -8349,6 +8428,13 @@ go = function(page) {
                     : '✅ Approved! You are now an Agent — add listings!')
                 : '🔔 Role updated: ' + fresh.role;
               showToast(msg);
+              if (fresh.role === 'Agent') {
+                kmNotify(
+                  curLang==='rw' ? 'Wemejwe! ✅' : 'Account Approved! ✅',
+                  curLang==='rw' ? 'Uri Agent ubu — wongera imitungo!' : 'You are now an Agent — add listings!',
+                  'approval'
+                );
+              }
             }
           }
         }
