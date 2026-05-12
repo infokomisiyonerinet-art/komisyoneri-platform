@@ -7999,10 +7999,13 @@ function switchAdminTab(tab) {
 // ═══════════════════════════════════════════════════════════
 
 function kmFlag(key) {
+  // features that are OFF by default until admin explicitly enables them
+  var offByDefault = { payments: true };
   try {
     var f = JSON.parse(localStorage.getItem('km_platform_flags') || '{}');
+    if(f[key] === undefined) return !offByDefault[key];
     return f[key] !== false;
-  } catch(e) { return true; }
+  } catch(e) { return !offByDefault[key]; }
 }
 
 function kmSetFlag(key, val) {
@@ -8084,9 +8087,9 @@ function renderAdminPlatform() {
   try { flags = JSON.parse(localStorage.getItem('km_platform_flags') || '{}'); } catch(e) {}
 
   var f = {
-    payments:    flags.payments    !== false,
-    agent_reg:   flags.agent_reg   !== false,
-    new_listings:flags.new_listings !== false
+    payments:     flags.payments    === true,   // off by default
+    agent_reg:    flags.agent_reg   !== false,  // on by default
+    new_listings: flags.new_listings !== false  // on by default
   };
 
   // Count live features for score
