@@ -5658,7 +5658,7 @@ function renderUserPropCard(prop) {
   // WhatsApp message
   var propName = (prop.type||'Imitungo') + (prop.district ? ' — '+prop.district : '');
   var waText = encodeURIComponent(t('waMsg') + propName + ' (' + priceLabel + ')' + t('waMsgEnd'));
-  var waPhone = prop.phone || '250783177254';
+  var waPhone = '250783177254';
 
   return '<div class="p-card" data-pid="' + pid + '" style="cursor:pointer">'
     + '<div class="p-img ' + gclass + '"' + imgBg + ' style="position:relative' + (imgBg ? ';background-size:cover;background-position:center' : '') + '" onclick="openPropDetail(\'' + pid + '\')">'
@@ -6927,8 +6927,7 @@ function openVR() {
       + (prop.type||'property') + (prop.district?' — '+prop.district:'')
       + (curLang==='rw'?' . Mufite?':'. Do you have one?')
     );
-    var waNum = (prop.phone || '250783177254').replace(/[^0-9]/g, '');
-    window.open('https://wa.me/' + waNum + '?text=' + msg, '_blank');
+    window.open('https://wa.me/250783177254?text=' + msg, '_blank');
   }
 }
 
@@ -7024,13 +7023,6 @@ function submitLead() {
         lead_id:     lead.id
       });
     }
-    var agPhone = (lead.agentPhone || '250783177254').replace(/[^0-9]/g, '');
-    var agMsg = encodeURIComponent(
-      (curLang==='rw' ? 'Muraho ' : 'Hello ') + lead.agentName +
-      '! Lead nshya — Client: ' + lead.clientName +
-      ' — Tel: ' + lead.clientPhone
-    );
-    setTimeout(function(){ window.open('https://wa.me/' + agPhone + '?text=' + agMsg, '_blank'); }, 500);
   } else {
     showToast('✅ Lead yoherejwe! KOMISIYONERI izakuhuza na agent vuba.');
     // Notify admin via WhatsApp
