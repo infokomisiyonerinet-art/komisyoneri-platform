@@ -1824,13 +1824,13 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <div>
           <span class="sm-chips-label">SERIVISI <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#aab">(Ntibisabwa)</span></span>
           <div class="sm-chips">
-            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Garage</button>
-            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Piscine</button>
-            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Umurima</button>
-            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Solar</button>
-            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Fibre</button>
-            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">3D Tour</button>
-            <button class="sm-chip" onclick="this.classList.toggle('on');updateCount()">Guarded</button>
+            <button class="sm-chip" data-amenity="garage" onclick="this.classList.toggle('on');updateCount()">Garage</button>
+            <button class="sm-chip" data-amenity="pool" onclick="this.classList.toggle('on');updateCount()">Piscine</button>
+            <button class="sm-chip" data-amenity="garden" onclick="this.classList.toggle('on');updateCount()">Umurima</button>
+            <button class="sm-chip" data-amenity="solar" onclick="this.classList.toggle('on');updateCount()">Solar</button>
+            <button class="sm-chip" data-amenity="fibre" onclick="this.classList.toggle('on');updateCount()">Fibre</button>
+            <button class="sm-chip" data-amenity="3dtour" onclick="this.classList.toggle('on');updateCount()">3D Tour</button>
+            <button class="sm-chip" data-amenity="security" onclick="this.classList.toggle('on');updateCount()">Guarded</button>
           </div>
         </div>
 
@@ -5515,6 +5515,7 @@ function applySearchFilters(props) {
   var activeTabEl = document.querySelector('.sm-tab.active');
   var tabEn = activeTabEl ? (activeTabEl.getAttribute('data-en')||'').toLowerCase() : '';
   var serviceFilter = tabEn==='buy'?'Kugura':(tabEn==='rent'||tabEn==='gukodesha')?'Gukodesha':'';
+  var activeChips = Array.from(document.querySelectorAll('.sm-chip.on')).map(function(c){ return c.getAttribute('data-amenity'); }).filter(Boolean);
   // Parse price text: "80M"→80000000, "80000000"→80000000
   function parseP(s) {
     if (!s) return 0;
@@ -5541,6 +5542,15 @@ function applySearchFilters(props) {
     if (sizeMin && ps<sizeMin) return false;
     if (sizeMax && ps>sizeMax) return false;
     if (serviceFilter && p.service && p.service!==serviceFilter) return false;
+    if (activeChips.length > 0) {
+      var has3d = activeChips.indexOf('3dtour') !== -1;
+      var amenityChips = activeChips.filter(function(a){ return a !== '3dtour'; });
+      if (has3d && !p.tour3dUrl) return false;
+      if (amenityChips.length > 0) {
+        var pAm = p.amenities || [];
+        if (!amenityChips.every(function(a){ return pAm.indexOf(a) !== -1; })) return false;
+      }
+    }
     return true;
   });
 }
