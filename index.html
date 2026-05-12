@@ -3002,31 +3002,8 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
             width="100%" height="320" style="border:0;display:block" allowfullscreen loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
-          <div style="background:var(--light);border-radius:10px;padding:.8rem;display:flex;align-items:center;gap:.6rem">
-            <span style="font-size:1.4rem">🏫</span>
-            <div><div style="font-size:.7rem;color:var(--muted)">Amashuri</div><div style="font-size:.82rem;font-weight:600">Green Hills Academy — 1.2km</div></div>
-          </div>
-          <div style="background:var(--light);border-radius:10px;padding:.8rem;display:flex;align-items:center;gap:.6rem">
-            <span style="font-size:1.4rem">🏥</span>
-            <div><div style="font-size:.7rem;color:var(--muted)">Ivuriro</div><div style="font-size:.82rem;font-weight:600">King Faisal Hospital — 2.1km</div></div>
-          </div>
-          <div style="background:var(--light);border-radius:10px;padding:.8rem;display:flex;align-items:center;gap:.6rem">
-            <span style="font-size:1.4rem">🛒</span>
-            <div><div style="font-size:.7rem;color:var(--muted)">Supermarket</div><div style="font-size:.82rem;font-weight:600">Nakumatt Kimironko — 0.8km</div></div>
-          </div>
-          <div style="background:var(--light);border-radius:10px;padding:.8rem;display:flex;align-items:center;gap:.6rem">
-            <span style="font-size:1.4rem">🚌</span>
-            <div><div style="font-size:.7rem;color:var(--muted)">Gari ya Moshi</div><div style="font-size:.82rem;font-weight:600">Bus Stop — 0.3km</div></div>
-          </div>
-          <div style="background:var(--light);border-radius:10px;padding:.8rem;display:flex;align-items:center;gap:.6rem">
-            <span style="font-size:1.4rem">🏦</span>
-            <div><div style="font-size:.7rem;color:var(--muted)">Banki</div><div style="font-size:.82rem;font-weight:600">BK Kimironko — 0.5km</div></div>
-          </div>
-          <div style="background:var(--light);border-radius:10px;padding:.8rem;display:flex;align-items:center;gap:.6rem">
-            <span style="font-size:1.4rem">✈️</span>
-            <div><div style="font-size:.7rem;color:var(--muted)">Aéroport</div><div style="font-size:.82rem;font-weight:600">RIA Kanombe — 8km</div></div>
-          </div>
+        <div id="det-poi-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+          <!-- Filled dynamically by updatePoiCards() in openPropDetail() -->
         </div>
       </div>
 
@@ -7338,6 +7315,53 @@ openAddProperty = function() {
 // === OPEN PROPERTY DETAIL PAGE ===
 window._currentProp = null;
 
+// === NEARBY POI DATA — keyed by Rwanda district ===
+var _poiData = {
+  'Gasabo':     [['🏫','Amashuri','Green Hills Academy','1.2km'],['🏥','Ivuriro','King Faisal Hospital','2.1km'],['🛒','Supermarket','Nakumatt Kimironko','0.8km'],['🚌','Gari ya Moshi','Bus Stop Kimironko','0.3km'],['🏦','Banki','BK Kimironko','0.5km'],['✈️','Aéroport','RIA Kanombe','8km']],
+  'Kicukiro':   [['🏫','Amashuri','GS Kicukiro Centre','0.9km'],['🏥','Ivuriro','CHUK Hospital','1.8km'],['🛒','Supermarket','Simba Supermarket','1.1km'],['🚌','Gari ya Moshi','Bus Stop Sonatubes','0.4km'],['🏦','Banki','Equity Bank Kicukiro','0.6km'],['✈️','Aéroport','RIA Kanombe','5km']],
+  'Nyarugenge':  [['🏫','Amashuri','Lycée de Kigali','0.7km'],['🏥','Ivuriro','CHUK Hospital','1.2km'],['🛒','Supermarket','Spar City Centre','0.5km'],['🚌','Gari ya Moshi','Bus Stop Nyabugogo','0.6km'],['🏦','Banki','BK City Tower','0.3km'],['✈️','Aéroport','RIA Kanombe','10km']],
+  'Musanze':    [['🏫','Amashuri','GS Musanze','0.8km'],['🏥','Ivuriro','Ruhengeri Referral Hospital','1.5km'],['🛒','Supermarket','Inyange Shop Musanze','0.6km'],['🚌','Gari ya Moshi','Bus Stop Musanze','0.3km'],['🏦','Banki','BPR Musanze','0.5km'],['✈️','Aéroport','RIA Kanombe','85km']],
+  'Rubavu':     [['🏫','Amashuri','GS Rubavu','1.0km'],['🏥','Ivuriro','Gisenyi District Hospital','1.8km'],['🛒','Supermarket','Lake Side Market','0.9km'],['🚌','Gari ya Moshi','Bus Stop Gisenyi','0.4km'],['🏦','Banki','BK Rubavu','0.7km'],['✈️','Aéroport','RIA Kanombe','160km']],
+  'Huye':       [['🏫','Amashuri','National Univ. of Rwanda','1.1km'],['🏥','Ivuriro','CHUB University Hospital','1.4km'],['🛒','Supermarket','Huye Market Shop','0.7km'],['🚌','Gari ya Moshi','Bus Stop Butare','0.4km'],['🏦','Banki','BPR Huye','0.6km'],['✈️','Aéroport','RIA Kanombe','130km']],
+  'Nyagatare':  [['🏫','Amashuri','GS Nyagatare','0.9km'],['🏥','Ivuriro','Nyagatare District Hospital','1.6km'],['🛒','Supermarket','City Mart Nyagatare','0.8km'],['🚌','Gari ya Moshi','Bus Stop Nyagatare','0.3km'],['🏦','Banki','BK Nyagatare','0.5km'],['✈️','Aéroport','RIA Kanombe','110km']],
+  'Rwamagana':  [['🏫','Amashuri','GS Rwamagana','0.8km'],['🏥','Ivuriro','Rwamagana District Hospital','1.3km'],['🛒','Supermarket','Rwamagana Market','0.5km'],['🚌','Gari ya Moshi','Bus Stop Rwamagana','0.3km'],['🏦','Banki','Equity Bank Rwamagana','0.6km'],['✈️','Aéroport','RIA Kanombe','45km']],
+  'Bugesera':   [['🏫','Amashuri','GS Bugesera','1.0km'],['🏥','Ivuriro','Bugesera District Hospital','1.5km'],['🛒','Supermarket','Bugesera Market','0.8km'],['🚌','Gari ya Moshi','Bus Stop Bugesera','0.4km'],['🏦','Banki','BPR Bugesera','0.6km'],['✈️','Aéroport','RIA Kanombe','38km']],
+  'Gatsibo':    [['🏫','Amashuri','GS Gatsibo','0.9km'],['🏥','Ivuriro','Gatsibo District Hospital','1.4km'],['🛒','Supermarket','Gatsibo Market','0.7km'],['🚌','Gari ya Moshi','Bus Stop Gatsibo','0.4km'],['🏦','Banki','BK Gatsibo','0.5km'],['✈️','Aéroport','RIA Kanombe','95km']],
+  'Kayonza':    [['🏫','Amashuri','GS Kayonza','0.8km'],['🏥','Ivuriro','Kayonza District Hospital','1.3km'],['🛒','Supermarket','Kayonza Market','0.6km'],['🚌','Gari ya Moshi','Bus Stop Kayonza','0.3km'],['🏦','Banki','BPR Kayonza','0.5km'],['✈️','Aéroport','RIA Kanombe','70km']],
+  'Kirehe':     [['🏫','Amashuri','GS Kirehe','1.0km'],['🏥','Ivuriro','Kirehe District Hospital','1.6km'],['🛒','Supermarket','Kirehe Market','0.8km'],['🚌','Gari ya Moshi','Bus Stop Kirehe','0.4km'],['🏦','Banki','BK Kirehe','0.6km'],['✈️','Aéroport','RIA Kanombe','120km']],
+  'Ngoma':      [['🏫','Amashuri','GS Ngoma','0.9km'],['🏥','Ivuriro','Ngoma District Hospital','1.4km'],['🛒','Supermarket','Ngoma Market','0.7km'],['🚌','Gari ya Moshi','Bus Stop Ngoma','0.3km'],['🏦','Banki','BPR Ngoma','0.5km'],['✈️','Aéroport','RIA Kanombe','65km']],
+  'Burera':     [['🏫','Amashuri','GS Burera','1.0km'],['🏥','Ivuriro','Burera District Hospital','1.5km'],['🛒','Supermarket','Burera Market','0.8km'],['🚌','Gari ya Moshi','Bus Stop Cyanika','0.4km'],['🏦','Banki','BPR Burera','0.6km'],['✈️','Aéroport','RIA Kanombe','105km']],
+  'Gakenke':    [['🏫','Amashuri','GS Gakenke','0.9km'],['🏥','Ivuriro','Gakenke District Hospital','1.4km'],['🛒','Supermarket','Gakenke Market','0.7km'],['🚌','Gari ya Moshi','Bus Stop Gakenke','0.4km'],['🏦','Banki','BK Gakenke','0.5km'],['✈️','Aéroport','RIA Kanombe','98km']],
+  'Gicumbi':    [['🏫','Amashuri','GS Gicumbi','0.8km'],['🏥','Ivuriro','Gicumbi District Hospital','1.3km'],['🛒','Supermarket','Gicumbi Market','0.6km'],['🚌','Gari ya Moshi','Bus Stop Gicumbi','0.3km'],['🏦','Banki','BPR Gicumbi','0.5km'],['✈️','Aéroport','RIA Kanombe','55km']],
+  'Rulindo':    [['🏫','Amashuri','GS Rulindo','0.9km'],['🏥','Ivuriro','Rulindo District Hospital','1.5km'],['🛒','Supermarket','Rulindo Market','0.7km'],['🚌','Gari ya Moshi','Bus Stop Rulindo','0.4km'],['🏦','Banki','BK Rulindo','0.6km'],['✈️','Aéroport','RIA Kanombe','48km']],
+  'Gisagara':   [['🏫','Amashuri','GS Gisagara','1.0km'],['🏥','Ivuriro','Gisagara District Hospital','1.5km'],['🛒','Supermarket','Gisagara Market','0.8km'],['🚌','Gari ya Moshi','Bus Stop Gisagara','0.4km'],['🏦','Banki','BPR Gisagara','0.6km'],['✈️','Aéroport','RIA Kanombe','145km']],
+  'Kamonyi':    [['🏫','Amashuri','GS Kamonyi','0.8km'],['🏥','Ivuriro','Kamonyi District Hospital','1.3km'],['🛒','Supermarket','Kamonyi Market','0.6km'],['🚌','Gari ya Moshi','Bus Stop Kamonyi','0.3km'],['🏦','Banki','BK Kamonyi','0.5km'],['✈️','Aéroport','RIA Kanombe','40km']],
+  'Muhanga':    [['🏫','Amashuri','GS Muhanga','0.9km'],['🏥','Ivuriro','Kabgayi District Hospital','1.4km'],['🛒','Supermarket','Muhanga Market','0.7km'],['🚌','Gari ya Moshi','Bus Stop Gitarama','0.4km'],['🏦','Banki','BPR Muhanga','0.5km'],['✈️','Aéroport','RIA Kanombe','55km']],
+  'Nyamagabe':  [['🏫','Amashuri','GS Nyamagabe','1.0km'],['🏥','Ivuriro','Nyamagabe District Hospital','1.6km'],['🛒','Supermarket','Nyamagabe Market','0.8km'],['🚌','Gari ya Moshi','Bus Stop Nyamagabe','0.4km'],['🏦','Banki','BK Nyamagabe','0.6km'],['✈️','Aéroport','RIA Kanombe','120km']],
+  'Nyanza':     [['🏫','Amashuri','GS Nyanza','0.8km'],['🏥','Ivuriro','Nyanza District Hospital','1.3km'],['🛒','Supermarket','Nyanza Market','0.6km'],['🚌','Gari ya Moshi','Bus Stop Nyanza','0.3km'],['🏦','Banki','BPR Nyanza','0.5km'],['✈️','Aéroport','RIA Kanombe','90km']],
+  'Nyaruguru':  [['🏫','Amashuri','GS Nyaruguru','1.0km'],['🏥','Ivuriro','Nyaruguru District Hospital','1.6km'],['🛒','Supermarket','Nyaruguru Market','0.8km'],['🚌','Gari ya Moshi','Bus Stop Nyaruguru','0.4km'],['🏦','Banki','BK Nyaruguru','0.6km'],['✈️','Aéroport','RIA Kanombe','155km']],
+  'Ruhango':    [['🏫','Amashuri','GS Ruhango','0.9km'],['🏥','Ivuriro','Ruhango District Hospital','1.4km'],['🛒','Supermarket','Ruhango Market','0.7km'],['🚌','Gari ya Moshi','Bus Stop Ruhango','0.3km'],['🏦','Banki','BPR Ruhango','0.5km'],['✈️','Aéroport','RIA Kanombe','75km']],
+  'Karongi':    [['🏫','Amashuri','GS Karongi','0.9km'],['🏥','Ivuriro','Kibuye District Hospital','1.5km'],['🛒','Supermarket','Kibuye Market','0.7km'],['🚌','Gari ya Moshi','Bus Stop Kibuye','0.4km'],['🏦','Banki','BK Karongi','0.6km'],['✈️','Aéroport','RIA Kanombe','110km']],
+  'Ngororero':  [['🏫','Amashuri','GS Ngororero','0.9km'],['🏥','Ivuriro','Ngororero District Hospital','1.4km'],['🛒','Supermarket','Ngororero Market','0.7km'],['🚌','Gari ya Moshi','Bus Stop Ngororero','0.4km'],['🏦','Banki','BPR Ngororero','0.5km'],['✈️','Aéroport','RIA Kanombe','80km']],
+  'Nyabihu':    [['🏫','Amashuri','GS Nyabihu','1.0km'],['🏥','Ivuriro','Nyabihu District Hospital','1.5km'],['🛒','Supermarket','Nyabihu Market','0.8km'],['🚌','Gari ya Moshi','Bus Stop Nyabihu','0.4km'],['🏦','Banki','BK Nyabihu','0.6km'],['✈️','Aéroport','RIA Kanombe','130km']],
+  'Nyamasheke': [['🏫','Amashuri','GS Nyamasheke','0.9km'],['🏥','Ivuriro','Nyamasheke District Hospital','1.5km'],['🛒','Supermarket','Nyamasheke Market','0.7km'],['🚌','Gari ya Moshi','Bus Stop Nyamasheke','0.4km'],['🏦','Banki','BPR Nyamasheke','0.5km'],['✈️','Aéroport','RIA Kanombe','150km']],
+  'Rusizi':     [['🏫','Amashuri','GS Rusizi','0.9km'],['🏥','Ivuriro','Kamembe District Hospital','1.4km'],['🛒','Supermarket','Kamembe Market','0.7km'],['🚌','Gari ya Moshi','Bus Stop Kamembe','0.3km'],['🏦','Banki','BK Rusizi','0.5km'],['✈️','Aéroport','RIA Kanombe','185km']],
+  'Rutsiro':    [['🏫','Amashuri','GS Rutsiro','1.0km'],['🏥','Ivuriro','Rutsiro District Hospital','1.6km'],['🛒','Supermarket','Rutsiro Market','0.8km'],['🚌','Gari ya Moshi','Bus Stop Rutsiro','0.4km'],['🏦','Banki','BPR Rutsiro','0.6km'],['✈️','Aéroport','RIA Kanombe','120km']]
+};
+
+function updatePoiCards(district) {
+  var grid = document.getElementById('det-poi-grid');
+  if (!grid) return;
+  var pois = _poiData[district] || _poiData['Gasabo'];
+  grid.innerHTML = pois.map(function(p) {
+    return '<div style="background:var(--light);border-radius:10px;padding:.8rem;display:flex;align-items:center;gap:.6rem">'
+      + '<span style="font-size:1.4rem">'+p[0]+'</span>'
+      + '<div><div style="font-size:.7rem;color:var(--muted)">'+p[1]+'</div>'
+      + '<div style="font-size:.82rem;font-weight:600">'+escapeHtml(p[2])+' — '+p[3]+'</div></div>'
+      + '</div>';
+  }).join('');
+}
+
 function openPropDetail(propId) {
   if(!propId) { console.warn('openPropDetail: no propId'); return; }
   // Find property in localStorage
@@ -7465,6 +7489,7 @@ function openPropDetail(propId) {
     }
     mapFrame.src = mapSrc;
   }
+  updatePoiCards(prop.district || '');
 
   // === GALLERY (thumbnails) ===
   var imgs = [prop.img1, prop.img2, prop.img3].filter(Boolean);
