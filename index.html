@@ -6927,7 +6927,8 @@ function openVR() {
       + (prop.type||'property') + (prop.district?' — '+prop.district:'')
       + (curLang==='rw'?' . Mufite?':'. Do you have one?')
     );
-    window.open('https://wa.me/250783177254?text='+msg, '_blank');
+    var waNum = (prop.phone || '250783177254').replace(/[^0-9]/g, '');
+    window.open('https://wa.me/' + waNum + '?text=' + msg, '_blank');
   }
 }
 
@@ -7023,6 +7024,13 @@ function submitLead() {
         lead_id:     lead.id
       });
     }
+    var agPhone = (lead.agentPhone || '250783177254').replace(/[^0-9]/g, '');
+    var agMsg = encodeURIComponent(
+      (curLang==='rw' ? 'Muraho ' : 'Hello ') + lead.agentName +
+      '! Lead nshya — Client: ' + lead.clientName +
+      ' — Tel: ' + lead.clientPhone
+    );
+    setTimeout(function(){ window.open('https://wa.me/' + agPhone + '?text=' + agMsg, '_blank'); }, 500);
   } else {
     showToast('✅ Lead yoherejwe! KOMISIYONERI izakuhuza na agent vuba.');
     // Notify admin via WhatsApp
