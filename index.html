@@ -271,7 +271,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .b-red{background:#fee2e2;color:#dc2626}
 
 /* FORM CONTROLS */
-.field{display:flex;flex-direction:column;gap:.32rem}
+.field{display:flex;flex-direction:column;gap:.55rem}
 .field label{font-size:.69rem;font-weight:700;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
 .field input,.field select,.field textarea{padding:.6rem .9rem;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:.86rem;color:var(--dark);background:#fff;outline:none;transition:var(--tr);appearance:none;-webkit-appearance:none}
 .field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(22,87,204,.1)}
@@ -336,7 +336,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .logo-mark svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.9}
 .logo-text strong{display:block;font-family:'Cormorant Garamond',serif;font-size:1.12rem;font-weight:700;color:var(--navy);line-height:1}
 .logo-text span{font-size:.56rem;color:var(--muted);letter-spacing:.18em;text-transform:uppercase}
-.topnav-links{display:flex;gap:.1rem}
+.topnav-links{display:flex;gap:.4rem}
 .nl{background:none;border:none;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;color:var(--muted);padding:.4rem .9rem;border-radius:8px;transition:var(--tr)}
 .nl:hover,.nl.active{background:var(--light);color:var(--blue);font-weight:600}
 .topnav-right{display:flex;align-items:center;gap:.6rem;flex-shrink:0}
@@ -1786,6 +1786,38 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   .auth-box{padding:1.2rem}
   .cta-box{padding:2rem 1.2rem}
 }
+
+/* ── UX STEP 5: BUTTON LOADING STATE ── */
+.btn-loading{pointer-events:none;opacity:.72}
+.btn-spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:btn-spin .65s linear infinite;margin-right:.4rem;vertical-align:middle;flex-shrink:0}
+@keyframes btn-spin{to{transform:rotate(360deg)}}
+
+/* ── UX STEP 5: FIELD ERROR STATE ── */
+.field-error>.field-inputs input,
+.field-error>.field-inputs select,
+.field-error>.field-inputs textarea,
+.field-error>input,
+.field-error>select,
+.field-error>textarea{border-color:#dc2626!important;box-shadow:0 0 0 3px rgba(220,38,38,.1)!important}
+.field-err-msg{display:none;font-size:.67rem;color:#dc2626;margin-top:.18rem;font-weight:600;letter-spacing:.02em}
+.field-error .field-err-msg{display:block}
+
+/* ── UX STEP 5: SKELETON LOADER ── */
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skeleton-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.2rem;padding:1rem 0}
+.skeleton-card{background:#fff;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.skeleton-img{height:180px;background:linear-gradient(90deg,var(--light) 25%,#e2e8f0 50%,var(--light) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
+.skeleton-body{padding:.9rem}
+.skeleton-line{height:.7rem;border-radius:4px;background:linear-gradient(90deg,var(--light) 25%,#e2e8f0 50%,var(--light) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;margin-bottom:.5rem}
+.skeleton-line.sl-title{height:.85rem;width:70%}
+.skeleton-line.sl-sub{width:50%}
+.skeleton-line.sl-price{width:40%;height:.8rem}
+
+/* ── UX STEP 5: EMPTY STATE ── */
+.empty-state{grid-column:1/-1;text-align:center;padding:3.5rem 1rem}
+.empty-state .es-icon{font-size:2.8rem;margin-bottom:.65rem;line-height:1}
+.empty-state .es-title{font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:.3rem}
+.empty-state .es-sub{font-size:.84rem;color:var(--muted);margin-bottom:1.1rem;max-width:280px;margin-left:auto;margin-right:auto}
 </style>
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -2548,6 +2580,10 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         </button>
       </div>
       <div class="p-grid" id="p-grid-main">
+        <!-- skeleton cards shown until loadApprovedProperties() replaces them -->
+        <div class="skeleton-card sk-init"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line sl-title"></div><div class="skeleton-line sl-sub"></div><div class="skeleton-line sl-price"></div></div></div>
+        <div class="skeleton-card sk-init"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line sl-title"></div><div class="skeleton-line sl-sub"></div><div class="skeleton-line sl-price"></div></div></div>
+        <div class="skeleton-card sk-init"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line sl-title"></div><div class="skeleton-line sl-sub"></div><div class="skeleton-line sl-price"></div></div></div>
         </div>
     </div>
   </section>
@@ -3430,7 +3466,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           </div>
           <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="handleLogin()">
             <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            <span data-rw="Injira" data-en="Sign In">Injira</span>
+            <span id="login-btn-label" data-rw="Injira" data-en="Sign In">Injira</span>
           </button>
           <div class="dvdr" data-rw="cyangwa" data-en="or">cyangwa</div>
           <!-- Google Sign-In Button (Real) -->
@@ -3460,7 +3496,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           </div>
           <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center;margin-top:.4rem" onclick="handleRegister()">
             <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-            <span data-rw="Iyandikishe Ubuntu" data-en="Register Free">Iyandikishe Ubuntu</span>
+            <span id="register-btn-label" data-rw="Iyandikishe Ubuntu" data-en="Register Free">Iyandikishe Ubuntu</span>
           </button>
         </div>
         <div class="auth-switch"><span id="auth-switch-txt" data-rw="Nta konti ufite?" data-en="Don't have an account?">Nta konti ufite?</span> <button onclick="toggleAuthMode()" id="auth-switch-btn" data-rw="Iyandikishe hano" data-en="Register here">Iyandikishe hano</button></div>
@@ -4736,7 +4772,7 @@ function showToast(msg) {
   tm.textContent = msg;
   t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 5000);
 }
 
 // ── STAB (search type) active
@@ -5220,6 +5256,10 @@ function submitProperty() {
     }
 
     showToast(curLang==='rw' ? 'Amafoto arakopiwa...' : 'Uploading photos...');
+    var _sbtn = document.getElementById('submit-prop-btn');
+    var _slbl = document.getElementById('submit-prop-label');
+    if(_sbtn){ _sbtn.disabled=true; _sbtn.classList.add('btn-loading');
+      if(_slbl) _slbl.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Kopiwa...':'Uploading...'); }
 
     var propId = Date.now();
     var fileList = [file1El, file2El, file3El].filter(function(f){ return f && f.files && f.files[0]; });
@@ -5262,6 +5302,8 @@ function submitProperty() {
           try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
           props.push(propData);
           try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
+          var sbtn2=document.getElementById('submit-prop-btn'),slbl2=document.getElementById('submit-prop-label');
+          if(sbtn2){ sbtn2.disabled=false; sbtn2.classList.remove('btn-loading'); if(slbl2) slbl2.textContent=(curLang==='rw'?'Ohereza Imitungo':'Submit Property'); }
           closeAddProperty();
           showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Admin azayisuzuma vuba.' : '✅ Property submitted for review!');
         })
@@ -5291,6 +5333,8 @@ function _submitPropertyBase64(fileList, propData) {
         try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
         props.push(propData);
         try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
+        var sbtn3=document.getElementById('submit-prop-btn'),slbl3=document.getElementById('submit-prop-label');
+        if(sbtn3){ sbtn3.disabled=false; sbtn3.classList.remove('btn-loading'); if(slbl3) slbl3.textContent=(curLang==='rw'?'Ohereza Imitungo':'Submit Property'); }
         closeAddProperty();
         showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Admin azayisuzuma vuba.' : '✅ Property submitted for review!');
       }
@@ -5331,8 +5375,24 @@ function handleForgotPassword() {
 function handleLogin() {
   var email = document.getElementById('login-email');
   var pass = document.getElementById('login-pass');
-  if (!email||!email.value) { showToast(curLang==='rw'?'Shyira imeyili!':'Enter email!'); return; }
-  if (!pass||!pass.value) { showToast(curLang==='rw'?'Shyira ijambo banga!':'Enter password!'); return; }
+  if (!email||!email.value) {
+    showToast(curLang==='rw'?'Shyira imeyili!':'Enter email!');
+    if(email){ email.closest('.field').classList.add('field-error'); email.focus(); }
+    return;
+  }
+  if (!pass||!pass.value) {
+    showToast(curLang==='rw'?'Shyira ijambo banga!':'Enter password!');
+    if(pass){ pass.closest('.field').classList.add('field-error'); pass.focus(); }
+    return;
+  }
+  // clear any previous error highlights
+  document.querySelectorAll('#page-auth .field-error').forEach(function(f){ f.classList.remove('field-error'); });
+
+  var btn = document.querySelector('#page-auth [onclick="handleLogin()"]');
+  var lbl = document.getElementById('login-btn-label');
+  if(btn){ btn.disabled=true; btn.classList.add('btn-loading');
+    if(lbl) lbl.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Tegereza...':'Signing in...'); }
+
   var users = [];
   try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
   var found = null;
@@ -5341,6 +5401,8 @@ function handleLogin() {
   saveUser(user);
   showToast((curLang==='rw'?'Murakaza neza ':'Welcome ')+user.name+'! 🎉');
   setTimeout(function(){
+    if(btn){ btn.disabled=false; btn.classList.remove('btn-loading');
+      if(lbl) lbl.textContent=(curLang==='rw'?'Injira':'Sign In'); }
     var pa = _pendingAction; _pendingAction = null;
     if (pa === 'agent-reg') { go('home'); openAgentReg(); }
     else { go('home'); }
@@ -5350,14 +5412,29 @@ function handleLogin() {
 function handleRegister() {
   var g = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
   var name=g('reg-name'), phone=g('reg-phone'), email=g('reg-email'), pass=g('reg-pass'), pass2=g('reg-pass2');
-  if (!name){ showToast(curLang==='rw'?'Shyira amazina yawe!':'Enter your name!'); return; }
-  if (!phone){ showToast(curLang==='rw'?'Shyira telefoni yawe!':'Enter your phone!'); return; }
-  if (!email){ showToast(curLang==='rw'?'Shyira imeyili yawe!':'Enter your email!'); return; }
-  if (!pass||pass.length<6){ showToast(curLang==='rw'?'Ijambo banga rigomba inyuguti 6+!':'Password needs 6+ chars!'); return; }
-  if (pass!==pass2){ showToast(curLang==='rw'?'Amagambo banga ntahura!':'Passwords do not match!'); return; }
+
+  // clear previous errors
+  document.querySelectorAll('#form-register .field-error').forEach(function(f){ f.classList.remove('field-error'); });
+
+  function fieldErr(id, msg) {
+    var el = document.getElementById(id);
+    if(el){ el.closest('.field').classList.add('field-error'); el.focus(); }
+    showToast(msg);
+  }
+  if (!name){ fieldErr('reg-name', curLang==='rw'?'Shyira amazina yawe!':'Enter your name!'); return; }
+  if (!phone){ fieldErr('reg-phone', curLang==='rw'?'Shyira telefoni yawe!':'Enter your phone!'); return; }
+  if (!email){ fieldErr('reg-email', curLang==='rw'?'Shyira imeyili yawe!':'Enter your email!'); return; }
+  if (!pass||pass.length<6){ fieldErr('reg-pass', curLang==='rw'?'Ijambo banga rigomba inyuguti 6+!':'Password needs 6+ chars!'); return; }
+  if (pass!==pass2){ fieldErr('reg-pass2', curLang==='rw'?'Amagambo banga ntahura!':'Passwords do not match!'); return; }
   var users = [];
   try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
-  for(var i=0;i<users.length;i++){ if(users[i].email===email){ showToast(curLang==='rw'?'Imeyili isanzwe ikoreshwa!':'Email already registered!'); return; } }
+  for(var i=0;i<users.length;i++){ if(users[i].email===email){ fieldErr('reg-email', curLang==='rw'?'Imeyili isanzwe ikoreshwa!':'Email already registered!'); return; } }
+
+  var btn = document.querySelector('#form-register [onclick="handleRegister()"]');
+  var lbl = document.getElementById('register-btn-label');
+  if(btn){ btn.disabled=true; btn.classList.add('btn-loading');
+    if(lbl) lbl.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Tegereza...':'Creating account...'); }
+
   var roleEl = document.querySelector('.rt.active');
   var locEl = document.getElementById('reg-location');
   var prefEl = document.getElementById('reg-preference');
@@ -5371,6 +5448,8 @@ function handleRegister() {
   saveUser(user);
   showToast((curLang==='rw'?'Murakaza neza ':'Welcome ')+name+'! 🎉');
   setTimeout(function(){
+    if(btn){ btn.disabled=false; btn.classList.remove('btn-loading');
+      if(lbl) lbl.textContent=(curLang==='rw'?'Iyandikishe Ubuntu':'Register Free'); }
     var pa = _pendingAction; _pendingAction = null;
     if (pa === 'agent-reg') { go('home'); openAgentReg(); }
     else { go('home'); }
@@ -5956,19 +6035,17 @@ function loadApprovedProperties() {
   var approved = props.filter(function(p){ return p.status === 'Approved'; });
 
   grids.forEach(function(grid) {
-    grid.querySelectorAll('.user-prop-card').forEach(function(el){ el.remove(); });
+    grid.querySelectorAll('.user-prop-card,.sk-init').forEach(function(el){ el.remove(); });
     var empty = grid.querySelector('.empty-listings');
     if(empty) empty.remove();
 
     if(approved.length === 0) {
-      // No listings at all
       var emptyDiv = document.createElement('div');
-      emptyDiv.className = 'empty-listings';
-      emptyDiv.style.cssText = 'grid-column:1/-1;text-align:center;padding:2rem 1rem;color:var(--muted)';
-      emptyDiv.innerHTML = '<div style="font-size:2.5rem;margin-bottom:.5rem">🏠</div>'
-        + '<div style="font-size:1rem;font-weight:600;color:var(--navy);margin-bottom:.4rem">'
-        + t('noListings') + '</div>'
-        + '<button onclick="loadDemoListings()" class="btn btn-navy btn-sm" style="margin:.5rem auto">'
+      emptyDiv.className = 'empty-listings empty-state';
+      emptyDiv.innerHTML = '<div class="es-icon">🏠</div>'
+        + '<div class="es-title">' + t('noListings') + '</div>'
+        + '<div class="es-sub">' + (curLang==='rw'?'Nta mitungo yemejwe ubu. Gerageza demo!':'No approved listings yet. Try demo listings!') + '</div>'
+        + '<button onclick="loadDemoListings()" class="btn btn-navy btn-sm">'
         + t('demoBtn') + '</button>';
       grid.appendChild(emptyDiv);
     } else {
@@ -8142,9 +8219,14 @@ function renderAgentsGrid(agents) {
   if(!grid) return;
 
   if(agents.length === 0) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--muted)">'
-      + '<div style="font-size:3rem;margin-bottom:1rem">👔</div>'
-      + '<div style="font-weight:600;color:var(--navy)">Nta agents babonetse</div>'
+    var noMsg = curLang==='rw' ? 'Nta agents babonetse' : 'No agents found';
+    var noSub = curLang==='rw' ? 'Gerageza guhindura ubushakashatsi cyangwa zone.' : 'Try changing your search or zone filter.';
+    var noBtn = curLang==='rw' ? 'Iyandikishe nk\'Agent' : 'Register as Agent';
+    grid.innerHTML = '<div class="empty-state">'
+      + '<div class="es-icon">👔</div>'
+      + '<div class="es-title">' + noMsg + '</div>'
+      + '<div class="es-sub">' + noSub + '</div>'
+      + '<button class="btn btn-navy btn-sm" onclick="go(\'auth\')">' + noBtn + '</button>'
       + '</div>';
     return;
   }
