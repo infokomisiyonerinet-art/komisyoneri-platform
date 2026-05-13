@@ -321,6 +321,8 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
   background:rgba(255,255,255,.97);backdrop-filter:blur(18px);
   border-bottom:1.5px solid var(--border);
   box-shadow:0 2px 20px rgba(13,59,140,.06);
+  padding-left:max(3.5%,env(safe-area-inset-left));
+  padding-right:max(3.5%,env(safe-area-inset-right));
 }
 .topnav-logo{display:flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0}
 .logo-mark{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--navy),var(--blue));display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(13,59,140,.3)}
@@ -557,7 +559,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 ══════════════════════════════════════ */
 .list-hdr{background:linear-gradient(135deg,var(--navy),var(--blue));padding:3rem 4% 2.5rem}
 .list-hdr h1{color:#fff;font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;margin-bottom:.3rem}
-.list-hdr p{color:rgba(255,255,255,.65);font-size:.88rem}
+.list-hdr p{color:rgba(255,255,255,.82);font-size:.88rem}
 .list-body{display:grid;grid-template-columns:270px 1fr;gap:2rem;padding:2rem 4%;max-width:1240px;margin:0 auto}
 .filters{position:sticky;top:80px;height:fit-content}
 .filt-card{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);padding:1.5rem;box-shadow:var(--sh)}
@@ -596,7 +598,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .det-back svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2}
 .det-hero-info{position:absolute;bottom:1.8rem;left:4%;right:4%;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem}
 .det-price{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:700;color:#fff;line-height:1}
-.det-price small{font-size:.95rem;font-weight:400;color:rgba(255,255,255,.65);margin-left:.35rem}
+.det-price small{font-size:.95rem;font-weight:400;color:rgba(255,255,255,.82);margin-left:.35rem}
 .det-thumbs{display:flex;gap:.7rem;padding:.9rem 4%;background:#fff;border-bottom:1.5px solid var(--border);overflow-x:auto}
 .thumb{width:88px;height:62px;border-radius:8px;overflow:hidden;cursor:pointer;border:2.5px solid transparent;transition:var(--tr);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem}
 .thumb.active,.thumb:hover{border-color:var(--blue)}
@@ -615,13 +617,13 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .tour-walls::after{right:0;border-left:600px solid transparent}
 .tour-center{position:relative;z-index:2;text-align:center}
 .tour-center svg{width:62px;height:62px;fill:none;stroke:rgba(255,255,255,.4);stroke-width:1;margin-bottom:.9rem}
-.tour-lbl{color:rgba(255,255,255,.65);font-size:.88rem;margin-bottom:1.4rem}
+.tour-lbl{color:rgba(255,255,255,.82);font-size:.88rem;margin-bottom:1.4rem}
 .tour-btns{display:flex;gap:.7rem;justify-content:center;flex-wrap:wrap;margin-bottom:.9rem}
 .t-btn{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.2);color:#fff;padding:.48rem 1.05rem;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:.4rem;transition:var(--tr)}
 .t-btn:hover{background:rgba(255,255,255,.22)}
 .t-btn svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2}
 .room-chips{display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap}
-.r-chip{padding:.28rem .82rem;border-radius:100px;border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.65);font-size:.73rem;cursor:pointer;background:transparent;font-family:'DM Sans',sans-serif;transition:var(--tr)}
+.r-chip{padding:.28rem .82rem;border-radius:100px;border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.82);font-size:.73rem;cursor:pointer;background:transparent;font-family:'DM Sans',sans-serif;transition:var(--tr)}
 .r-chip.active,.r-chip:hover{background:var(--gold);color:var(--dark);border-color:var(--gold)}
 
 /* TOUR MODAL */
@@ -639,7 +641,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 #tour-prev{left:.6rem}
 #tour-next{right:.6rem}
 .tour-room-bar{display:flex;gap:.45rem;justify-content:center;padding:.65rem 1rem;flex-wrap:wrap;background:rgba(0,0,0,.75);flex-shrink:0}
-.tr-chip{padding:.3rem .85rem;border-radius:100px;border:1.5px solid rgba(255,255,255,.25);color:rgba(255,255,255,.65);font-size:.72rem;cursor:pointer;background:transparent;font-family:'DM Sans',sans-serif;font-weight:600;transition:.15s}
+.tr-chip{padding:.3rem .85rem;border-radius:100px;border:1.5px solid rgba(255,255,255,.25);color:rgba(255,255,255,.82);font-size:.72rem;cursor:pointer;background:transparent;font-family:'DM Sans',sans-serif;font-weight:600;transition:.15s}
 .tr-chip.active{background:var(--gold);color:#1a1a1a;border-color:var(--gold)}
 
 
@@ -980,7 +982,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 /* ══════════════════════════════════════
    FOOTER
 ══════════════════════════════════════ */
-footer{background:var(--dark);color:rgba(255,255,255,.5);padding:3.8rem 4% 1.8rem}
+footer{background:var(--dark);color:rgba(255,255,255,.5);padding:3.8rem 4% calc(1.8rem + env(safe-area-inset-bottom));padding-left:max(4%,env(safe-area-inset-left));padding-right:max(4%,env(safe-area-inset-right))}
 .ft-inner{max-width:1240px;margin:0 auto}
 .ft-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1.3fr;gap:3.5rem;margin-bottom:2.8rem}
 .ft-brand p{font-size:.82rem;line-height:1.78;margin-top:.7rem;max-width:260px}
@@ -1469,12 +1471,12 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   margin-left: -9px; flex-shrink: 0;
 }
 .trust-av:first-child { margin-left: 0; }
-.trust-txt { font-size: .8rem; color: rgba(255,255,255,.65); }
+.trust-txt { font-size: .8rem; color: rgba(255,255,255,.82); }
 .trust-txt strong { color: #FFBE00; }
 .trust-vline { width: 1px; height: 20px; background: rgba(255,255,255,.15); }
 .trust-badge {
   display: flex; align-items: center; gap: .4rem;
-  font-size: .78rem; color: rgba(255,255,255,.65);
+  font-size: .78rem; color: rgba(255,255,255,.82);
 }
 .trust-badge svg { width: 15px; height: 15px; fill: none; stroke: #FFBE00; stroke-width: 2.2; flex-shrink: 0; }
 @media(max-width:660px){
@@ -1625,7 +1627,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 
 /* ── FLOATING WHATSAPP BUTTON ── */
 .wa-fab {
-  position: fixed; bottom: 5.5rem; right: 2rem;
+  position: fixed; bottom: calc(5.5rem + env(safe-area-inset-bottom)); right: max(2rem, env(safe-area-inset-right));
   width: 56px; height: 56px; border-radius: 50%;
   background: #25D366; border: none;
   display: flex; align-items: center; justify-content: center;
@@ -2047,15 +2049,15 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           <div><div style="font-size:.7rem;color:var(--muted)">Amazina (ntishobora guhindurwa)</div><div id="edit-name-display" style="font-size:.85rem;color:var(--muted)">—</div></div>
         </div>
         <div>
-          <label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:.2rem">Telefoni</label>
+          <label for="edit-phone" style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:.2rem">Telefoni</label>
           <input id="edit-phone" type="tel" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;box-sizing:border-box">
         </div>
         <div>
-          <label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:.2rem">Aho Atuye</label>
+          <label for="edit-location" style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:.2rem">Aho Atuye</label>
           <input id="edit-location" type="text" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;box-sizing:border-box">
         </div>
         <div>
-          <label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:.2rem">Icyo Nashaka</label>
+          <label for="edit-preference" style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:.2rem">Icyo Nashaka</label>
           <select id="edit-preference" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;box-sizing:border-box;background:#fff">
             <option value="Kugura">Kugura</option>
             <option value="Kugurisha">Kugurisha</option>
@@ -2599,9 +2601,9 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     <div class="wrap">
       <div class="cta-box">
         <div style="position:relative;z-index:1">
-          <div class="eyebrow" style="color:rgba(255,255,255,.65)" data-rw="Tangira Ubu Ubu" data-en="Get Started Today">Tangira Ubu Ubu</div>
+          <div class="eyebrow" style="color:rgba(255,255,255,.82)" data-rw="Tangira Ubu Ubu" data-en="Get Started Today">Tangira Ubu Ubu</div>
           <h2 class="h2" style="color:#fff;margin-top:.35rem;margin-bottom:.75rem" data-rw="Iyandikishe Ubuntu — Ubu!" data-en="Register for Free — Now!">Iyandikishe Ubuntu — Ubu!</h2>
-          <p style="color:rgba(255,255,255,.65);font-size:.95rem;max-width:500px;margin:0 auto 2.2rem" data-rw="Iyandikishe kuri KOMISIYONERI ubone inzu yawe y'inzozi mu Rwanda. Nta mafaranga asabwa kugira konti." data-en="Register on KOMISIYONERI and find your dream property in Rwanda. No payment required.">Iyandikishe kuri KOMISIYONERI ubone inzu yawe y'inzozi mu Rwanda. Nta mafaranga asabwa kugira konti.</p>
+          <p style="color:rgba(255,255,255,.82);font-size:.95rem;max-width:500px;margin:0 auto 2.2rem" data-rw="Iyandikishe kuri KOMISIYONERI ubone inzu yawe y'inzozi mu Rwanda. Nta mafaranga asabwa kugira konti." data-en="Register on KOMISIYONERI and find your dream property in Rwanda. No payment required.">Iyandikishe kuri KOMISIYONERI ubone inzu yawe y'inzozi mu Rwanda. Nta mafaranga asabwa kugira konti.</p>
           <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
             <button class="btn btn-gold btn-lg" onclick="go('auth')">
               <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
@@ -3352,7 +3354,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <div style="position:relative;z-index:1">
         <img src="/images/logo.png" width="70" height="70" loading="lazy" style="object-fit:contain;margin-bottom:2rem" alt="KOMISIYONERI Logo">
         <h1 style="color:#fff;font-size:clamp(2rem,4vw,3rem);margin-bottom:1rem" data-rw="Murakaza neza kuri KOMISIYONERI" data-en="Welcome to KOMISIYONERI">Murakaza neza kuri KOMISIYONERI</h1>
-        <p style="color:rgba(255,255,255,.65);font-size:.92rem;line-height:1.8;max-width:400px;margin-bottom:2rem" data-rw="Iyandikishe kuri platform y'imitungo nziza mu Rwanda — itangira ubuntu, ntukeneye karita ya banki." data-en="Register on Rwanda's leading real estate platform — start free, no credit card required.">Iyandikishe kuri platform y'imitungo nziza mu Rwanda — itangira ubuntu, ntukeneye karita ya banki.</p>
+        <p style="color:rgba(255,255,255,.82);font-size:.92rem;line-height:1.8;max-width:400px;margin-bottom:2rem" data-rw="Iyandikishe kuri platform y'imitungo nziza mu Rwanda — itangira ubuntu, ntukeneye karita ya banki." data-en="Register on Rwanda's leading real estate platform — start free, no credit card required.">Iyandikishe kuri platform y'imitungo nziza mu Rwanda — itangira ubuntu, ntukeneye karita ya banki.</p>
         <div style="display:flex;flex-direction:column;gap:.85rem">
           <div style="display:flex;align-items:center;gap:.75rem;color:rgba(255,255,255,.75);font-size:.88rem"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-rw="Smart Listings — Imitungo irenga 1,240" data-en="Smart Listings — 1,240+ properties">Smart Listings — Imitungo irenga 1,240</span></div>
           <div style="display:flex;align-items:center;gap:.75rem;color:rgba(255,255,255,.75);font-size:.88rem"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-rw="Virtual Tours 3D/VR — Reba utajya ahandi" data-en="Virtual Tours 3D/VR — view without visiting">Virtual Tours 3D/VR — Reba utajya ahandi</span></div>
@@ -3374,8 +3376,8 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <!-- Login form -->
         <div id="form-login">
           <div style="display:flex;flex-direction:column;gap:.8rem">
-            <div class="field"><label data-rw="Imeyili" data-en="Email">Imeyili</label><input type="email" id="login-email" placeholder="imeyili@gmail.com"></div>
-            <div class="field"><label data-rw="Ijambo Banga" data-en="Password">Ijambo Banga</label><input type="password" id="login-pass" placeholder="••••••••"></div>
+            <div class="field"><label for="login-email" data-rw="Imeyili" data-en="Email">Imeyili</label><input type="email" id="login-email" placeholder="imeyili@gmail.com" aria-required="true"></div>
+            <div class="field"><label for="login-pass" data-rw="Ijambo Banga" data-en="Password">Ijambo Banga</label><input type="password" id="login-pass" placeholder="••••••••" aria-required="true"></div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin:.9rem 0">
             <label style="display:flex;align-items:center;gap:.45rem;font-size:.8rem;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--blue)"><span data-rw="Nyumba" data-en="Remember me">Nyumba</span></label>
@@ -3397,14 +3399,14 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         </div>
         <!-- Register form (hidden by default) -->
         <div id="form-register" style="display:none;flex-direction:column;gap:.8rem">
-          <div class="field"><label data-rw="Amazina Yose" data-en="Full Name">Amazina Yose</label><input type="text" id="reg-name" placeholder="Amazina na Nkunda"></div>
-          <div class="field"><label data-rw="Telefoni" data-en="Phone Number">Telefoni</label><input type="tel" id="reg-phone" placeholder="+250 7XX XXX XXX"></div>
-          <div class="field"><label data-rw="Imeyili" data-en="Email">Imeyili</label><input type="email" id="reg-email" placeholder="imeyili@gmail.com"></div>
-          <div class="field"><label data-rw="Ijambo Banga" data-en="Password">Ijambo Banga</label><input type="password" id="reg-pass" placeholder="Byibura inyuguti 8"></div>
-          <div class="field"><label data-rw="Emeza Ijambo Banga" data-en="Confirm Password">Emeza Ijambo Banga</label><input type="password" id="reg-pass2" placeholder="Subiramo ijambo banga"></div>
-          <div class="field"><label data-rw="Aho Utuye" data-en="Your Location">Aho Utuye</label><input type="text" id="reg-location" placeholder="urugero: Kigali, Gasabo"></div>
-          <div class="field"><label data-rw="Icyo Ushaka" data-en="I want to">Icyo Ushaka</label>
-            <select id="reg-preference" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
+          <div class="field"><label for="reg-name" data-rw="Amazina Yose" data-en="Full Name">Amazina Yose</label><input type="text" id="reg-name" placeholder="Amazina na Nkunda" aria-required="true"></div>
+          <div class="field"><label for="reg-phone" data-rw="Telefoni" data-en="Phone Number">Telefoni</label><input type="tel" id="reg-phone" placeholder="+250 7XX XXX XXX" aria-required="true"></div>
+          <div class="field"><label for="reg-email" data-rw="Imeyili" data-en="Email">Imeyili</label><input type="email" id="reg-email" placeholder="imeyili@gmail.com" aria-required="true"></div>
+          <div class="field"><label for="reg-pass" data-rw="Ijambo Banga" data-en="Password">Ijambo Banga</label><input type="password" id="reg-pass" placeholder="Byibura inyuguti 8" aria-required="true"></div>
+          <div class="field"><label for="reg-pass2" data-rw="Emeza Ijambo Banga" data-en="Confirm Password">Emeza Ijambo Banga</label><input type="password" id="reg-pass2" placeholder="Subiramo ijambo banga" aria-required="true"></div>
+          <div class="field"><label for="reg-location" data-rw="Aho Utuye" data-en="Your Location">Aho Utuye</label><input type="text" id="reg-location" placeholder="urugero: Kigali, Gasabo" aria-required="true"></div>
+          <div class="field"><label for="reg-preference" data-rw="Icyo Ushaka" data-en="I want to">Icyo Ushaka</label>
+            <select id="reg-preference" aria-required="true" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
               <option value="Kugura">🏠 Kugura Inzu</option>
               <option value="Gukodesha">🔑 Gukodesha Inzu</option>
               <option value="Kugurisha">💰 Kugurisha Imitungo Yanjye</option>
@@ -3547,7 +3549,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     <div class="wrap">
       <div class="eyebrow tag-green">🔒 Amabwiriza</div>
       <h1 class="h1" data-rw="Politiki y'Ubucungezi bw'Amakuru" data-en="Privacy Policy">Politiki y'Ubucungezi bw'Amakuru</h1>
-      <p style="color:rgba(255,255,255,.65);font-size:.85rem" data-rw="Itariki yatangiye gukurikizwa: Mutarama 2025" data-en="Effective date: January 2025">Itariki yatangiye gukurikizwa: Mutarama 2025</p>
+      <p style="color:rgba(255,255,255,.82);font-size:.85rem" data-rw="Itariki yatangiye gukurikizwa: Mutarama 2025" data-en="Effective date: January 2025">Itariki yatangiye gukurikizwa: Mutarama 2025</p>
     </div>
   </div>
 
@@ -3611,7 +3613,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     <div class="wrap">
       <div class="eyebrow tag-green">📋 Amabwiriza</div>
       <h1 class="h1" data-rw="Amabwiriza y'Ikoreshwa" data-en="Terms of Service">Amabwiriza y'Ikoreshwa</h1>
-      <p style="color:rgba(255,255,255,.65);font-size:.85rem" data-rw="Itariki yatangiye gukurikizwa: Mutarama 2025" data-en="Effective date: January 2025">Itariki yatangiye gukurikizwa: Mutarama 2025</p>
+      <p style="color:rgba(255,255,255,.82);font-size:.85rem" data-rw="Itariki yatangiye gukurikizwa: Mutarama 2025" data-en="Effective date: January 2025">Itariki yatangiye gukurikizwa: Mutarama 2025</p>
     </div>
   </div>
 
@@ -5550,7 +5552,7 @@ function renderQsSuggestions(query, boxId) {
     var p=x.p;
     var hasImg = p.img1 && p.img1.length > 10;
     var thumb = hasImg
-      ? '<img class="qs-thumb" src="'+p.img1+'" loading="lazy" onerror="this.style.display=\'none\'">'
+      ? '<img class="qs-thumb" src="'+p.img1+'" loading="lazy" alt="'+p.title+'" onerror="this.style.display=\'none\'">'
       : '<div class="qs-thumb-ph">🏠</div>';
     var loc = [p.district,p.sector].filter(Boolean).join(', ');
     return '<div class="qs-item" onclick="qs_openProp(\''+String(p.id)+'\',\''+boxId+'\')">'+thumb
