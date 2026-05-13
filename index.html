@@ -275,6 +275,13 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .field label{font-size:.69rem;font-weight:700;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
 .field input,.field select,.field textarea{padding:.6rem .9rem;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:.86rem;color:var(--dark);background:#fff;outline:none;transition:var(--tr);appearance:none;-webkit-appearance:none}
 .field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(22,87,204,.1)}
+/* iOS Safari: font-size < 16px on focused inputs triggers viewport zoom */
+@media(max-width:768px){
+  .field input,.field select,.field textarea,
+  input[type="email"],input[type="password"],input[type="text"],
+  input[type="tel"],input[type="number"],input[type="url"],
+  select,textarea{font-size:16px!important}
+}
 .sel-wrap{position:relative}
 .sel-wrap::after{content:'';position:absolute;right:.75rem;top:50%;transform:translateY(-50%);width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--muted);pointer-events:none}
 .sel-wrap select{padding-right:2rem;width:100%}
@@ -318,7 +325,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .topnav{
   position:fixed;top:0;left:0;right:0;height:64px;z-index:1000;
   display:flex;align-items:center;justify-content:space-between;padding:0 3.5%;
-  background:rgba(255,255,255,.97);backdrop-filter:blur(18px);
+  background:rgba(255,255,255,.97);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
   border-bottom:1.5px solid var(--border);
   box-shadow:0 2px 20px rgba(13,59,140,.06);
   padding-left:max(3.5%,env(safe-area-inset-left));
@@ -481,7 +488,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .p-img{height:195px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background-size:cover;background-position:center;background-repeat:no-repeat}
 .p-img-inner svg{width:72px;height:72px;fill:none;stroke:rgba(255,255,255,.55);stroke-width:1}.p-img[style*="background-image"] .p-img-inner{display:none}
 .p-tag{position:absolute;top:11px;left:11px}
-.p-price{position:absolute;bottom:11px;right:11px;background:rgba(255,255,255,.95);backdrop-filter:blur(6px);padding:.26rem .78rem;border-radius:100px;font-size:.76rem;font-weight:700;color:var(--navy);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.p-price{position:absolute;bottom:11px;right:11px;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);padding:.26rem .78rem;border-radius:100px;font-size:.76rem;font-weight:700;color:var(--navy);box-shadow:0 2px 8px rgba(0,0,0,.12)}
 .p-fav{position:absolute;top:11px;right:11px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
 .p-fav svg{width:14px;height:14px;fill:none;stroke:var(--muted);stroke-width:2}
 .p-fav:hover svg,.p-fav.on svg{stroke:#e53e3e;fill:#e53e3e}
@@ -593,7 +600,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .det-hero-bg svg{width:110px;height:110px;fill:none;stroke:rgba(255,255,255,.2);stroke-width:.8}
 .det-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(8,24,70,.75) 0%,transparent 55%)}
 .det-top-bar{position:absolute;top:0;left:0;right:0;padding:1.2rem 4%;display:flex;justify-content:space-between;align-items:center}
-.det-back{background:rgba(255,255,255,.14);backdrop-filter:blur(10px);border:1.5px solid rgba(255,255,255,.22);color:#fff;padding:.48rem 1.1rem;border-radius:8px;font-size:.81rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.4rem;font-family:'DM Sans',sans-serif;transition:var(--tr)}
+.det-back{background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1.5px solid rgba(255,255,255,.22);color:#fff;padding:.48rem 1.1rem;border-radius:8px;font-size:.81rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.4rem;font-family:'DM Sans',sans-serif;transition:var(--tr)}
 .det-back:hover{background:rgba(255,255,255,.25)}
 .det-back svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2}
 .det-hero-info{position:absolute;bottom:1.8rem;left:4%;right:4%;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem}
@@ -668,7 +675,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .ag-acts{display:flex;flex-direction:column;gap:.55rem}
 
 /* PAYMENT MODAL */
-.modal-wrap{position:fixed;inset:0;background:rgba(8,20,58,.55);backdrop-filter:blur(5px);z-index:2000;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-wrap{position:fixed;inset:0;background:rgba(8,20,58,.55);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);z-index:2000;display:none;align-items:center;justify-content:center;padding:1rem}
 .modal-wrap.open{display:flex}
 .modal{background:#fff;border-radius:22px;padding:2.1rem;width:100%;max-width:510px;box-shadow:0 24px 90px rgba(0,0,0,.28);animation:mIn .28s ease}
 @keyframes mIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
@@ -1119,7 +1126,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
    SEARCH MODAL — Full Screen
 ══════════════════════════════════════ */
 .sm-overlay{
-  position:fixed;inset:0;background:rgba(8,20,58,.72);backdrop-filter:blur(8px);
+  position:fixed;inset:0;background:rgba(8,20,58,.72);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   z-index:1500;display:none;align-items:flex-start;justify-content:center;
   padding:64px 1rem 1rem;overflow-y:auto;
 }
@@ -1268,7 +1275,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 ══════════════════════════════ */
 .search-trigger-bar{
   position:sticky;top:64px;z-index:900;
-  background:rgba(255,255,255,.97);backdrop-filter:blur(16px);
+  background:rgba(255,255,255,.97);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
   border-bottom:1.5px solid var(--border);
   padding:.55rem 4%;
   display:none;
@@ -1421,6 +1428,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 /* Hero pill — more visible */
 .hero-pill {
   background: rgba(255,255,255,.12) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
   backdrop-filter: blur(12px) !important;
   border: 1px solid rgba(255,255,255,.22) !important;
   border-radius: 100px !important;
@@ -1566,6 +1574,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 /* Price tag — pill style */
 .p-price {
   background: rgba(255,255,255,.96) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
   backdrop-filter: blur(10px) !important;
   padding: .3rem .9rem !important;
   border-radius: 100px !important;
@@ -1579,6 +1588,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .p-verified {
   position: absolute; bottom: 11px; left: 11px;
   background: rgba(22,163,74,.92);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   padding: .22rem .65rem; border-radius: 100px;
   font-size: .62rem; font-weight: 800; color: #fff;
@@ -1665,6 +1675,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   font-weight: 600; cursor: pointer;
   font-family: 'DM Sans', sans-serif;
   transition: var(--tr); white-space: nowrap;
+  -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
 }
 .hero-chip:hover, .hero-chip.on {
@@ -1740,6 +1751,40 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   .p-grid { grid-template-columns: 1fr !important; }
   .p-card-footer { flex-direction: column; }
   .p-btn-wa { justify-content: center; }
+}
+
+/* ── HAMBURGER: hide on desktop, show on mobile ── */
+@media(min-width:661px){ #hamburger-btn{display:none!important} }
+@media(max-width:660px){ #hamburger-btn{display:flex!important} }
+
+/* ── FOOTER: single column on small phones ── */
+@media(max-width:480px){
+  .ft-grid{grid-template-columns:1fr!important;gap:1.8rem}
+  .ft-bottom{text-align:center}
+  .ft-bottom>div{justify-content:center}
+}
+
+/* ── TABLET (768px) — tighten mid-range layouts ── */
+@media(max-width:768px){
+  /* analytics sidebar stays readable */
+  .an-body{grid-template-columns:1fr}
+  /* dashboard nav icons only */
+  .dn span{display:none}
+  /* auth box full width on tablets */
+  .auth-box{max-width:100%;padding:1.6rem}
+  /* listing filter panel: collapse but keep toggle accessible */
+  .list-hdr .wrap{padding:1.5rem 4%}
+}
+
+/* ── SMALL ANDROID (≤360px) ── */
+@media(max-width:360px){
+  .hero{padding:2rem 4% 2rem}
+  .s-card{margin:0 2%;margin-top:-20px;padding:1rem}
+  .wrap{padding-left:3%;padding-right:3%}
+  .btn{padding:.55rem 1rem;font-size:.82rem}
+  .topnav{padding:0 3%;padding-left:max(3%,env(safe-area-inset-left));padding-right:max(3%,env(safe-area-inset-right))}
+  .auth-box{padding:1.2rem}
+  .cta-box{padding:2rem 1.2rem}
 }
 </style>
   <!-- Google Identity Services -->
@@ -1985,7 +2030,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   </div>
 </div>
 <!-- Hamburger overlay -->
-<div id="hamburger-overlay" onclick="closeHamburger()" style="display:none;position:fixed;inset:0;z-index:998;background:rgba(0,0,0,.3);backdrop-filter:blur(2px)"></div>
+<div id="hamburger-overlay" onclick="closeHamburger()" style="display:none;position:fixed;inset:0;z-index:998;background:rgba(0,0,0,.3);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)"></div>
 
 <!-- ═══ PROFILE MODAL ═══ -->
 <div class="modal-wrap" id="profile-modal" style="display:none">
