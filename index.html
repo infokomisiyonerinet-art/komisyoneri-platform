@@ -2662,11 +2662,11 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           <li><a onclick="go('dashboard')" data-rw="Agent Dashboard" data-en="Agent Dashboard">Agent Dashboard</a></li>
         </ul></div>
         <div class="ft-col"><h5 data-rw="Sosiyete" data-en="Company">Sosiyete</h5><ul>
-          <li><a data-rw="Abo Turi Bo" data-en="About Us">Abo Turi Bo</a></li>
-          <li><a data-rw="Abakomisiyoneri" data-en="Our Agents">Abakomisiyoneri</a></li>
-          <li><a data-rw="Amakuru y'Isoko" data-en="Market News">Amakuru y'Isoko</a></li>
-          <li><a data-rw="Akazi" data-en="Careers">Akazi</a></li>
-          <li><a data-rw="Kumenyekanisha" data-en="Advertise">Kumenyekanisha</a></li>
+          <li><a onclick="go('about')" style="cursor:pointer" data-rw="Abo Turi Bo" data-en="About Us">Abo Turi Bo</a></li>
+          <li><a onclick="go('agents')" style="cursor:pointer" data-rw="Abakomisiyoneri" data-en="Our Agents">Abakomisiyoneri</a></li>
+          <li><a onclick="go('analytics')" style="cursor:pointer" data-rw="Amakuru y'Isoko" data-en="Market News">Amakuru y'Isoko</a></li>
+          <li><a onclick="go('privacy')" style="cursor:pointer" data-rw="Politiki y'Ubucungezi" data-en="Privacy Policy">Politiki y'Ubucungezi</a></li>
+          <li><a onclick="go('terms')" style="cursor:pointer" data-rw="Amabwiriza" data-en="Terms of Service">Amabwiriza</a></li>
         </ul></div>
         <div class="ft-col"><h5 data-rw="Twandikire" data-en="Contact">Twandikire</h5>
           <div class="ft-ct"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Kigali, Rwanda</div>
@@ -2694,6 +2694,13 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           </a>
         </div>
         <p data-rw="© 2026 KOMISIYONERI Connectpro Services Ltd. Uburenganzira bwose burabitswe." data-en="© 2026 KOMISIYONERI Connectpro Services Ltd. All rights reserved.">© 2026 KOMISIYONERI Connectpro Services Ltd. Uburenganzira bwose burabitswe.</p>
+        <div style="display:flex;gap:1.2rem;flex-wrap:wrap;margin-top:.4rem">
+          <a onclick="go('privacy')" style="cursor:pointer;color:rgba(255,255,255,.4);font-size:.75rem;text-decoration:none;transition:.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.4)'" data-rw="Politiki y'Ubucungezi" data-en="Privacy Policy">Politiki y'Ubucungezi</a>
+          <span style="color:rgba(255,255,255,.2);font-size:.75rem">·</span>
+          <a onclick="go('terms')" style="cursor:pointer;color:rgba(255,255,255,.4);font-size:.75rem;text-decoration:none;transition:.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.4)'" data-rw="Amabwiriza" data-en="Terms of Service">Amabwiriza</a>
+          <span style="color:rgba(255,255,255,.2);font-size:.75rem">·</span>
+          <a onclick="go('about')" style="cursor:pointer;color:rgba(255,255,255,.4);font-size:.75rem;text-decoration:none;transition:.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.4)'" data-rw="Abo Turi Bo" data-en="About Us">Abo Turi Bo</a>
+        </div>
         <p style="color:rgba(255,255,255,.3)" data-rw="Yakozwe mu Rwanda" data-en="Made with love in Rwanda">Yakozwe mu <span style="color:var(--green);font-weight:700">Rwanda</span></p>
       </div>
     </div>
@@ -3459,6 +3466,204 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       </div>
       <div id="admin-list"></div>
       <div id="admin-platform-panel" style="display:none;padding:.5rem 0"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PAGE: ABOUT
+════════════════════════════════════ -->
+<div class="page" id="page-about">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">🏢 Sosiyete yacu</div>
+      <h1 class="h1" data-rw="Abo Turi Bo" data-en="About Us">Abo Turi Bo</h1>
+      <p style="color:rgba(255,255,255,.75);font-size:.95rem;max-width:600px;line-height:1.7" data-rw="KOMISIYONERI Connectpro Services ni sosiyete y'imitungo ikomoka mu Rwanda." data-en="KOMISIYONERI Connectpro Services is Rwanda's leading digital real estate platform, connecting buyers, sellers, and agents simply and safely.">KOMISIYONERI Connectpro Services ni sosiyete y'imitungo ikomoka mu Rwanda, ihuza abantu n'imitungo itimurika mu buryo bworoshye kandi bwizewe.</p>
+    </div>
+  </div>
+
+  <div class="wrap" style="padding:2.5rem 0 5rem">
+
+    <!-- Mission & Vision -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:2.5rem">
+      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:1.8rem">
+        <div style="font-size:2rem;margin-bottom:.7rem">🎯</div>
+        <h3 style="color:var(--navy);margin-bottom:.6rem" data-rw="Intego Yacu" data-en="Our Mission">Intego Yacu</h3>
+        <p style="color:var(--text2);font-size:.9rem;line-height:1.7" data-rw="Gukora kugira ngo buri wese abashe kugura, kugurisha, no gukodesha inzu mu Rwanda mu buryo bworoshye, burambuye kandi bwizewe." data-en="To make buying, selling, and renting property in Rwanda simple, transparent, and trustworthy for everyone.">Gukora kugira ngo buri wese abashe kugura, kugurisha, no gukodesha inzu mu Rwanda mu buryo bworoshye, burambuye kandi bwizewe.</p>
+      </div>
+      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:1.8rem">
+        <div style="font-size:2rem;margin-bottom:.7rem">🔭</div>
+        <h3 style="color:var(--navy);margin-bottom:.6rem" data-rw="Icyo Tutekereza" data-en="Our Vision">Icyo Tutekereza</h3>
+        <p style="color:var(--text2);font-size:.9rem;line-height:1.7" data-rw="Kuba platform y'imitungo nziza kuruta izindi mu Africa y'Iburasirazuba — aho ikoranabuhanga rihuza abantu n'amazu yabo y'itorero." data-en="To be East Africa's most trusted property platform — where technology brings people and their dream homes together.">Kuba platform y'imitungo nziza kuruta izindi mu Africa y'Iburasirazuba — aho ikoranabuhanga rihuza abantu n'amazu yabo y'itorero.</p>
+      </div>
+      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:1.8rem">
+        <div style="font-size:2rem;margin-bottom:.7rem">💎</div>
+        <h3 style="color:var(--navy);margin-bottom:.6rem" data-rw="Indangagaciro" data-en="Our Values">Indangagaciro</h3>
+        <p style="color:var(--text2);font-size:.9rem;line-height:1.7" data-rw="Ubunyamahanga, ubwizerane, no kugira impinduka — ni wo murongo tukurikira buri munsi." data-en="Integrity, transparency, and innovation — these guide every decision we make.">Ubunyamahanga, ubwizerane, no kugira impinduka — ni wo murongo tukurikira buri munsi.</p>
+      </div>
+    </div>
+
+    <!-- Key Stats -->
+    <div style="background:var(--navy);border-radius:16px;padding:2rem;margin-bottom:2.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1.2rem;text-align:center">
+      <div><div style="font-size:1.8rem;font-weight:700;color:var(--gold)">1,240+</div><div style="color:rgba(255,255,255,.7);font-size:.82rem" data-rw="Imitungo" data-en="Listings">Imitungo</div></div>
+      <div><div style="font-size:1.8rem;font-weight:700;color:var(--gold)">3</div><div style="color:rgba(255,255,255,.7);font-size:.82rem" data-rw="Imijyi" data-en="Cities">Imijyi</div></div>
+      <div><div style="font-size:1.8rem;font-weight:700;color:var(--gold)">100+</div><div style="color:rgba(255,255,255,.7);font-size:.82rem" data-rw="Abajyanama" data-en="Agents">Abajyanama</div></div>
+      <div><div style="font-size:1.8rem;font-weight:700;color:var(--gold)">2024</div><div style="color:rgba(255,255,255,.7);font-size:.82rem" data-rw="Yaratangiye" data-en="Founded">Yaratangiye</div></div>
+    </div>
+
+    <!-- Contact Info -->
+    <h2 style="color:var(--navy);margin-bottom:1.2rem;font-size:1.3rem" data-rw="Twandikire" data-en="Contact Us">Twandikire</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin-bottom:1.5rem">
+      <div style="display:flex;align-items:center;gap:.9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:1.2rem">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div><div style="font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:.05em" data-rw="Aderesi" data-en="Address">Aderesi</div><div style="font-weight:600;color:var(--navy)">Kigali, Rwanda</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:1.2rem">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        <div><div style="font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:.05em" data-rw="Telefoni" data-en="Phone">Telefoni</div><a href="tel:+250783177254" style="font-weight:600;color:var(--navy);text-decoration:none">+250 783 177 254</a></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:1.2rem">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <div><div style="font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">Email</div><a href="mailto:komisiyonericonnectproservices@gmail.com" style="font-weight:600;color:var(--navy);text-decoration:none;font-size:.88rem">komisiyonericonnectproservices@gmail.com</a></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:1.2rem">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        <div><div style="font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">WhatsApp</div><a href="https://wa.me/250783177254" target="_blank" style="font-weight:600;color:#25D366;text-decoration:none">+250 783 177 254</a></div>
+      </div>
+    </div>
+
+    <a href="mailto:komisiyonericonnectproservices@gmail.com" class="btn btn-gold" style="display:inline-flex;align-items:center;gap:.5rem">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      <span data-rw="Twandikire ubutumwa" data-en="Send us a message">Twandikire ubutumwa</span>
+    </a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PAGE: PRIVACY POLICY
+════════════════════════════════════ -->
+<div class="page" id="page-privacy">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">🔒 Amabwiriza</div>
+      <h1 class="h1" data-rw="Politiki y'Ubucungezi bw'Amakuru" data-en="Privacy Policy">Politiki y'Ubucungezi bw'Amakuru</h1>
+      <p style="color:rgba(255,255,255,.65);font-size:.85rem" data-rw="Itariki yatangiye gukurikizwa: Mutarama 2025" data-en="Effective date: January 2025">Itariki yatangiye gukurikizwa: Mutarama 2025</p>
+    </div>
+  </div>
+
+  <div class="wrap" style="padding:2.5rem 0 5rem;max-width:780px">
+    <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:2rem;line-height:1.8;color:var(--text1)">
+
+      <h2 style="color:var(--navy);font-size:1.1rem;margin:0 0 .8rem" data-rw="1. Amakuru Tukusanya" data-en="1. Information We Collect">1. Amakuru Tukusanya / Information We Collect</h2>
+      <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.4rem" data-rw="Dusanya amakuru akurikira iyo ukoresheje KOMISIYONERI:" data-en="We collect the following information when you use KOMISIYONERI:">Dusanya amakuru akurikira iyo ukoresheje KOMISIYONERI: <br><br>
+        • <strong data-rw="Amakuru y'umwirondoro" data-en="Account information">Amakuru y'umwirondoro</strong> — izina, imeri, nimero ya telefoni iyo uyandikisha.<br>
+        • <strong data-rw="Amakuru y'isoko" data-en="Search &amp; browsing data">Amakuru y'isoko</strong> — imitungo washakishije, wayifunguriye, cyangwa wayasubiriyeho.<br>
+        • <strong data-rw="Amakuru y'ikigo" data-en="Device &amp; technical data">Amakuru y'ikigo</strong> — ubwoko bwa browser, aderesi ya IP, na OS.<br>
+        • <strong data-rw="Amakuru utuzanira" data-en="Information you provide">Amakuru utuzanira</strong> — imitungo wishyize kurubuga, ibitekerezo, cyangwa ubutumwa bwohereje.
+      </p>
+
+      <h2 style="color:var(--navy);font-size:1.1rem;margin:0 0 .8rem" data-rw="2. Uko Dukoresha Amakuru Yawe" data-en="2. How We Use Your Information">2. Uko Dukoresha Amakuru Yawe / How We Use Your Information</h2>
+      <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.4rem">
+        • <span data-rw="Gucunga konti yawe no gutanga serivisi" data-en="Managing your account and providing services">Gucunga konti yawe no gutanga serivisi</span><br>
+        • <span data-rw="Kohereza imenyesha (email, WhatsApp) bijyanye na gahunda yawe" data-en="Sending notifications (email, WhatsApp) related to your bookings">Kohereza imenyesha (email, WhatsApp) bijyanye na gahunda yawe</span><br>
+        • <span data-rw="Kunoza platform — isesengura ry'imikorere" data-en="Improving the platform through analytics">Kunoza platform — isesengura ry'imikorere</span><br>
+        • <span data-rw="Kuzuza inshingano z'amategeko" data-en="Complying with legal obligations">Kuzuza inshingano z'amategeko</span>
+      </p>
+
+      <h2 style="color:var(--navy);font-size:1.1rem;margin:0 0 .8rem" data-rw="3. Ababona Amakuru Yawe" data-en="3. Third Parties Who May Access Your Data">3. Ababona Amakuru Yawe / Third Parties</h2>
+      <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.4rem">
+        <span data-rw="Dukoresha serivisi zikurikira zifite amakuru yawe:" data-en="We use the following services that may process your data:">Dukoresha serivisi zikurikira zifite amakuru yawe:</span><br><br>
+        • <strong>Firebase (Google)</strong> — <span data-rw="imbuga yo kubika amakuru na konti" data-en="authentication and database hosting">imbuga yo kubika amakuru na konti</span><br>
+        • <strong>EmailJS</strong> — <span data-rw="kohereza email z'imenyesha" data-en="sending notification emails">kohereza email z'imenyesha</span><br>
+        • <strong>Google Analytics</strong> — <span data-rw="isesengura ry'imikorere y'urubuga (amakuru atacyo buri wese)" data-en="anonymous site usage analytics">isesengura ry'imikorere y'urubuga (amakuru atavuga uwo ari we)</span><br>
+        • <strong>Google Maps</strong> — <span data-rw="kwerekana aho imitungo iri" data-en="showing property locations">kwerekana aho imitungo iri</span>
+      </p>
+
+      <h2 style="color:var(--navy);font-size:1.1rem;margin:0 0 .8rem" data-rw="4. Uburenganzira Bwawe" data-en="4. Your Rights">4. Uburenganzira Bwawe / Your Rights</h2>
+      <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.4rem">
+        <span data-rw="Ufite uburenganzira bwo:" data-en="You have the right to:">Ufite uburenganzira bwo:</span><br><br>
+        • <span data-rw="Gusaba amakuru yawe yose" data-en="Request a copy of your data">Gusaba amakuru yawe yose</span><br>
+        • <span data-rw="Gusaba ko amakuru yawe asibwa" data-en="Request deletion of your data">Gusaba ko amakuru yawe asibwa</span><br>
+        • <span data-rw="Guhagarika ugukoreshwa kw'amakuru yawe" data-en="Withdraw consent for data processing">Guhagarika ugukoreshwa kw'amakuru yawe</span><br>
+        • <span data-rw="Gusaba guhindura amakuru atunganye" data-en="Request correction of inaccurate data">Gusaba guhindura amakuru atunganye</span><br><br>
+        <span data-rw="Kugira ngo ubone uburenganzira bwawe, twandikire:" data-en="To exercise your rights, contact us at:">Kugira ngo ubone uburenganzira bwawe, twandikire:</span> <a href="mailto:komisiyonericonnectproservices@gmail.com" style="color:var(--navy);font-weight:600">komisiyonericonnectproservices@gmail.com</a>
+      </p>
+
+      <h2 style="color:var(--navy);font-size:1.1rem;margin:0 0 .8rem" data-rw="5. Kubika Amakuru" data-en="5. Data Retention">5. Kubika Amakuru / Data Retention</h2>
+      <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.4rem" data-rw="Dufite amakuru yawe nk'uko konti yawe ikiriho. Konti iyo yasibwe, amakuru asibwa mu gihe cy'iminsi 30." data-en="We retain your data for as long as your account is active. Upon account deletion, your data is removed within 30 days.">Dufite amakuru yawe nk'uko konti yawe ikiriho. Konti iyo yasibwe, amakuru asibwa mu gihe cy'iminsi 30.</p>
+
+      <h2 style="color:var(--navy);font-size:1.1rem;margin:0 0 .8rem" data-rw="6. Twandikire" data-en="6. Contact">6. Twandikire / Contact</h2>
+      <p style="color:var(--text2);font-size:.9rem">
+        <strong>KOMISIYONERI Connectpro Services Ltd</strong><br>
+        Kigali, Rwanda<br>
+        <a href="mailto:komisiyonericonnectproservices@gmail.com" style="color:var(--navy)">komisiyonericonnectproservices@gmail.com</a><br>
+        +250 783 177 254
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PAGE: TERMS OF SERVICE
+════════════════════════════════════ -->
+<div class="page" id="page-terms">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">📋 Amabwiriza</div>
+      <h1 class="h1" data-rw="Amabwiriza y'Ikoreshwa" data-en="Terms of Service">Amabwiriza y'Ikoreshwa</h1>
+      <p style="color:rgba(255,255,255,.65);font-size:.85rem" data-rw="Itariki yatangiye gukurikizwa: Mutarama 2025" data-en="Effective date: January 2025">Itariki yatangiye gukurikizwa: Mutarama 2025</p>
+    </div>
+  </div>
+
+  <div class="wrap" style="padding:2.5rem 0 5rem;max-width:780px">
+    <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:2rem;line-height:1.8;color:var(--text1)">
+
+      <h2 style="color:var(--navy);font-size:1.1rem;margin:0 0 .8rem" data-rw="1. Kwemera Amabwiriza" data-en="1. Acceptance of Terms">1. Kwemera Amabwiriza / Acceptance of Terms</h2>
+      <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.4rem" data-rw="Iyo ukoresheje KOMISIYONERI, wemera amabwiriza yose akubiyemo hano. Niba udashyigikiye amabwiriza yose, reka gukomeza gukoresha platform." data-en="By using KOMISIYONERI, you agree to these Terms of Service. If you do not agree, please discontinue use of the platform.">Iyo ukoresheje KOMISIYONERI, wemera amabwiriza yose akubiyemo hano. Niba udashyigikiye amabwiriza yose, reka gukomeza gukoresha platform.</p>
+
+      <h2 style="color:var(--navy);font-size:1.1rem;margin:0 0 .8rem" data-rw="2. Serivisi Dutanga" data-en="2. Services Provided">2. Serivisi Dutanga / Services Provided</h2>
+      <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.4rem">
+        <span data-rw="KOMISIYONERI itanga:" data-en="KOMISIYONERI provides:">KOMISIYONERI itanga:</span><br><br>
+        • <span data-rw="Ishusho ya digital yo gushakisha no gutanga imitungo" data-en="A digital marketplace for listing and discovering properties">Ishusho ya digital yo gushakisha no gutanga imitungo</span><br>
+        • <span data-rw="Ikoranabuhanga ryo guhuza abantu n'abajyanama bemewe" data-en="Tools to connect with verified real estate agents">Ikoranabuhanga ryo guhuza abantu n'abajyanama bemewe</span><br>
+        • <span data-rw="AI Analytics — isesengura ry'isoko ry'imitungo mu Rwanda" data-en="AI-powered market analytics for Rwanda real estate">AI Analytics — isesengura ry'isoko ry'imitungo mu Rwanda</span><br>
+        • <span data-rw="Virtual Tours 3D n'amafoto y'imitungo" data-en="Virtual 3D tours and property photo galleries">Virtual Tours 3D n'amafoto y'imitungo</span>
+      </p>
+
+      <h2 style="color:var(--navy);font-size:1.1rem;margin:0 0 .8rem" data-rw="3. Inshingano z'Abakoresha" data-en="3. User Responsibilities">3. Inshingano z'Abakoresha / User Responsibilities</h2>
+      <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.4rem">
+        <span data-rw="Ukoresheje KOMISIYONERI, wiyemeza:" data-en="By using KOMISIYONERI, you agree to:">Ukoresheje KOMISIYONERI, wiyemeza:</span><br><br>
+        • <span data-rw="Gutanga amakuru y'ukuri ku mitungo ushyira ku rubuga" data-en="Provide accurate and truthful information for any listings you post">Gutanga amakuru y'ukuri ku mitungo ushyira ku rubuga</span><br>
+        • <span data-rw="Kutarema na nimero ya telefoni ya mugenzi wawe utatumyeho" data-en="Not to contact other users without their consent">Kutarema na nimero ya telefoni ya mugenzi wawe utatumyeho</span><br>
+        • <span data-rw="Kutakoresha platform mu buryo butemewe cyangwa bwangiriza abandi" data-en="Not use the platform for illegal or harmful purposes">Kutakoresha platform mu buryo butemewe cyangwa bwangiriza abandi</span><br>
+        • <span data-rw="Kwubahiriza amategeko y'u Rwanda" data-en="Comply with all applicable laws of Rwanda">Kwubahiriza amategeko y'u Rwanda</span>
+      </p>
+
+      <h2 style="color:var(--navy);font-size:1.1rem;margin:0 0 .8rem" data-rw="4. Imitungo Itemewe" data-en="4. Prohibited Content">4. Imitungo Itemewe / Prohibited Content</h2>
+      <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.4rem">
+        <span data-rw="Birabujijwe gushyira ku rubuga:" data-en="The following is strictly prohibited:">Birabujijwe gushyira ku rubuga:</span><br><br>
+        • <span data-rw="Amafoto y'imitungo idahari cyangwa itarize" data-en="Photos of non-existent or misrepresented properties">Amafoto y'imitungo idahari cyangwa itarize</span><br>
+        • <span data-rw="Ibiciro by'ibinyoma" data-en="Fraudulent or misleading prices">Ibiciro by'ibinyoma</span><br>
+        • <span data-rw="Gutangaza imitungo itamenywa n'inzego z'u Rwanda" data-en="Listing properties not legally cleared for sale or rent">Gutangaza imitungo itamenywa n'inzego z'u Rwanda</span><br>
+        • <span data-rw="Ibikubiyemo ikiganiro cy'urwango cyangwa ivangura" data-en="Content containing hate speech or discrimination">Ibikubiyemo ikiganiro cy'urwango cyangwa ivangura</span>
+      </p>
+
+      <h2 style="color:var(--navy);font-size:1.1rem;margin:0 0 .8rem" data-rw="5. Uburenganzira bw'Ubwenge" data-en="5. Intellectual Property">5. Uburenganzira bw'Ubwenge / Intellectual Property</h2>
+      <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.4rem" data-rw="Ibikorwa byose bya KOMISIYONERI — izina, logo, na code — ni uburenganzira bwa KOMISIYONERI Connectpro Services Ltd. Uburenganzira bwo gukoresha amafoto washyize ku rubuga burakubahirizwa." data-en="All KOMISIYONERI content — brand, logo, and code — is the intellectual property of KOMISIYONERI Connectpro Services Ltd. You retain rights to photos and content you upload.">Ibikorwa byose bya KOMISIYONERI — izina, logo, na code — ni uburenganzira bwa KOMISIYONERI Connectpro Services Ltd. Uburenganzira bwo gukoresha amafoto washyize ku rubuga burakubahirizwa.</p>
+
+      <h2 style="color:var(--navy);font-size:1.1rem;margin:0 0 .8rem" data-rw="6. Uburinzi bw'Inshingano" data-en="6. Limitation of Liability">6. Uburinzi bw'Inshingano / Limitation of Liability</h2>
+      <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.4rem" data-rw="KOMISIYONERI ni aho abantu bahurana — ntitwishingira ku makuru atangwa n'abakoresha. Abasoresha basubira mu rukiko rw'igihugu cya Rwanda iyo hari impaka." data-en="KOMISIYONERI is a marketplace platform — we are not liable for the accuracy of user-submitted listings. Any disputes are subject to the laws of Rwanda.">KOMISIYONERI ni aho abantu bahurana — ntitwishingira ku makuru atangwa n'abakoresha. Abasoresha basubira mu rukiko rw'igihugu cya Rwanda iyo hari impaka.</p>
+
+      <h2 style="color:var(--navy);font-size:1.1rem;margin:0 0 .8rem" data-rw="7. Amategeko Akurikizwa" data-en="7. Governing Law">7. Amategeko Akurikizwa / Governing Law</h2>
+      <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.4rem" data-rw="Amabwiriza yose akurikizwa hakurikijwe amategeko y'u Rwanda." data-en="These Terms are governed by the laws of the Republic of Rwanda.">Amabwiriza yose akurikizwa hakurikijwe amategeko y'u Rwanda.</p>
+
+      <h2 style="color:var(--navy);font-size:1.1rem;margin:0 0 .8rem" data-rw="8. Twandikire" data-en="8. Contact">8. Twandikire / Contact</h2>
+      <p style="color:var(--text2);font-size:.9rem">
+        <strong>KOMISIYONERI Connectpro Services Ltd</strong><br>
+        Kigali, Rwanda<br>
+        <a href="mailto:komisiyonericonnectproservices@gmail.com" style="color:var(--navy)">komisiyonericonnectproservices@gmail.com</a><br>
+        +250 783 177 254
+      </p>
     </div>
   </div>
 </div>
