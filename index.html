@@ -8695,17 +8695,30 @@ function adminAgentDelete(idx) {
 // ═══════════════════════════════════════════════════════════
 
 function renderAdminDeals() {
-  var deals = [];
-  try { deals = JSON.parse(localStorage.getItem('km_deals')||'[]'); } catch(e){}
-  // km_deals here means completed property deals, not leads
-  var propDeals = deals.filter(function(d){ return d.type === 'property_deal'; });
-  // Also check leads that are closed
+  var list = document.getElementById('admin-deals-list');
+  if(!list) return;
+  list.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:.82rem">⏳ Gutegura...</div>';
+
+  // Pull live leads from Firebase first, then render
+  try {
+    firebase.database().ref('leads').once('value').then(function(s) {
+      if(s.exists()) {
+        var fbLeads = [];
+        s.forEach(function(c){ fbLeads.push(c.val()); });
+        if(fbLeads.length > 0) localStorage.setItem('km_leads', JSON.stringify(fbLeads));
+      }
+      _renderAdminDealsList();
+    }).catch(function(){ _renderAdminDealsList(); });
+  } catch(e){ _renderAdminDealsList(); }
+}
+
+function _renderAdminDealsList() {
+  var list = document.getElementById('admin-deals-list');
+  if(!list) return;
+
   var leads = [];
   try { leads = JSON.parse(localStorage.getItem('km_leads')||'[]'); } catch(e){}
   var closedLeads = leads.filter(function(l){ return l.status === 'Closed'; });
-
-  var list = document.getElementById('admin-deals-list');
-  if(!list) return;
 
   list.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.8rem">'
     + '<div style="background:#27A84A;color:#fff;border-radius:8px;padding:.6rem;text-align:center"><div style="font-size:1.2rem;font-weight:700">' + closedLeads.length + '</div><div style="font-size:.68rem">Deals Zarangiye</div></div>'
@@ -8753,6 +8766,7 @@ function markDealSold(idx) {
     leads[idx].status = 'Closed';
     leads[idx].closedAt = new Date().toISOString();
     try { localStorage.setItem('km_leads', JSON.stringify(leads)); } catch(e){}
+    try { if(leads[idx].id) rtdb.ref('leads/'+leads[idx].id).update({ status: 'Closed', closedAt: leads[idx].closedAt }); } catch(e){}
     showToast('Deal yemejwe nk\'igurishwa - Commission ibazwa!');
     renderAdminDeals();
   }
@@ -8764,6 +8778,7 @@ function markDealActive(idx) {
   if(leads[idx]) {
     leads[idx].status = 'Active';
     try { localStorage.setItem('km_leads', JSON.stringify(leads)); } catch(e){}
+    try { if(leads[idx].id) rtdb.ref('leads/'+leads[idx].id).update({ status: 'Active' }); } catch(e){}
     showToast('🔄 Deal yasubijwe Active.');
     renderAdminDeals();
   }
