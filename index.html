@@ -371,8 +371,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 /* Deep royal blue gradient overlay */
 .hero::after{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(160deg,rgba(0,35,100,.82) 0%,rgba(0,55,150,.78) 60%,rgba(0,45,130,.80) 100%);
-  mix-blend-mode:multiply;
+  background:linear-gradient(160deg,rgba(0,28,90,.88) 0%,rgba(0,50,140,.84) 60%,rgba(0,38,115,.86) 100%);
   z-index:1;pointer-events:none;
 }
 .hero-inner{max-width:1240px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 420px;gap:4rem;align-items:start;position:relative;z-index:1}
@@ -1091,7 +1090,8 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   body{font-size:12pt;color:#000}
 }
 /* Chrome loading performance — reduce paint */
-.hero,.det-hero,.an-hdr,.list-hdr,.auth-left{will-change:auto;contain:layout style}
+.det-hero,.an-hdr,.list-hdr,.auth-left{will-change:auto;contain:layout style}
+.hero{isolation:isolate}
 /* Smooth page transition */
 .page{will-change:opacity,transform}
 /* Selection color */
@@ -1394,8 +1394,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .hero::after {
   content: '';
   position: absolute; inset: 0;
-  background: linear-gradient(160deg, rgba(0,35,100,.82) 0%, rgba(0,55,150,.78) 60%, rgba(0,45,130,.80) 100%);
-  mix-blend-mode: multiply;
+  background: linear-gradient(160deg, rgba(0,28,90,.88) 0%, rgba(0,50,140,.84) 60%, rgba(0,38,115,.86) 100%);
   z-index: 1; pointer-events: none;
 }
 /* Grid overlay */
