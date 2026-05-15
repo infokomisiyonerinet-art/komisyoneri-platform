@@ -8612,16 +8612,21 @@ function adminAgentApprove(idx) {
   if(agents[idx]) {
     agents[idx].status = 'Active';
     try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
-    // Promote the matching user's role to 'Agent'
+    try { rtdb.ref('agents/' + agents[idx].id).update({ status: 'Active' }); } catch(e){}
+
+    // Promote the matching user's role to 'Agent' in localStorage + Firebase
     var agentId = agents[idx].id;
     var users = [];
     try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
-    var updated = false;
     users = users.map(function(u) {
-      if (u.agentId === agentId) { u.role = 'Agent'; updated = true; }
+      if (u.agentId === agentId) {
+        u.role = 'Agent';
+        try { rtdb.ref('users/'+btoa(u.email).replace(/[.#$[\]]/g,'_')).update({ role: 'Agent' }); } catch(e){}
+      }
       return u;
     });
-    if (updated) try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
+    try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
+
     showToast('✅ Agent yemejwe! Ubu ashobora guhabwa leads.');
     renderAdminAgents();
     var a = agents[idx];
@@ -8641,12 +8646,17 @@ function adminAgentSuspend(idx) {
   if(agents[idx]) {
     agents[idx].status = 'Suspended';
     try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
-    // Revoke Agent role from matching user
+    try { rtdb.ref('agents/' + agents[idx].id).update({ status: 'Suspended' }); } catch(e){}
+
+    // Revoke Agent role from matching user in localStorage + Firebase
     var agentId = agents[idx].id;
     var users = [];
     try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
     users = users.map(function(u) {
-      if (u.agentId === agentId && u.role === 'Agent') { u.role = 'PendingAgent'; }
+      if (u.agentId === agentId && u.role === 'Agent') {
+        u.role = 'PendingAgent';
+        try { rtdb.ref('users/'+btoa(u.email).replace(/[.#$[\]]/g,'_')).update({ role: 'PendingAgent' }); } catch(e){}
+      }
       return u;
     });
     try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
@@ -8659,8 +8669,23 @@ function adminAgentDelete(idx) {
   if(!confirm('Siba agent uyu burundu?')) return;
   var agents = [];
   try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
+  var deleted = agents[idx];
   agents.splice(idx, 1);
   try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
+  if(deleted) {
+    try { rtdb.ref('agents/' + deleted.id).remove(); } catch(e){}
+    // Revert user role to Buyer
+    var users = [];
+    try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
+    users = users.map(function(u) {
+      if (u.agentId === deleted.id) {
+        u.role = 'Buyer'; delete u.agentId; delete u.zone;
+        try { rtdb.ref('users/'+btoa(u.email).replace(/[.#$[\]]/g,'_')).update({ role: 'Buyer', agentId: null, zone: null }); } catch(e){}
+      }
+      return u;
+    });
+    try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
+  }
   showToast('🗑️ Agent yasibwe.');
   renderAdminAgents();
 }
