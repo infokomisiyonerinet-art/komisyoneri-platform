@@ -6805,11 +6805,12 @@ function submitAgentReg() {
     registeredDate: new Date().toISOString()
   };
 
-  // Save agent
+  // Save agent to localStorage + Firebase
   var agents = [];
   try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
   agents.push(agent);
   try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
+  try { rtdb.ref('agents/' + agent.id).set(agent); } catch(e){}
 
   // Update current user to pending agent — full Agent role granted on admin approval
   if(currentUser) {
@@ -6817,18 +6818,22 @@ function submitAgentReg() {
     currentUser.agentId = agent.id;
     currentUser.zone = agent.zone;
     saveUser(currentUser);
+    // Sync user role to Firebase so admin sees PendingAgent status
+    try {
+      var users = JSON.parse(localStorage.getItem('km_users')||'[]');
+      var uidx = users.findIndex(function(u){ return u.email === currentUser.email; });
+      if(uidx >= 0) { users[uidx].role='PendingAgent'; users[uidx].agentId=agent.id; users[uidx].zone=agent.zone; }
+      localStorage.setItem('km_users', JSON.stringify(users));
+      rtdb.ref('users/'+btoa(currentUser.email).replace(/[.#$[\]]/g,'_')).set(currentUser);
+    } catch(e){}
   }
 
   closeAgentReg();
   showToast('✅ Iyandikishe yagenze neza! KOMISIYONERI izakugenzura mu masaa 24.');
 
-  // Send WhatsApp notification to admin
+  // Notify admin via WhatsApp — called directly in user gesture (no confirm, no setTimeout)
   var msg = 'Agent:'+agent.name+' Tel:'+agent.phone+' Zone:'+agent.zone+' ID:'+agent.nationalId;
-  setTimeout(function(){
-    if(confirm('Ohereza amakuru ya agent mushya kuri Admin wa KOMISIYONERI?')) {
-      window.open('https://wa.me/250783177254?text=' + encodeURIComponent(msg), '_blank');
-    }
-  }, 800);
+  window.open('https://wa.me/250783177254?text=' + encodeURIComponent(msg), '_blank');
 }
 
 // ═══════════════════════════════════════════════════════════
