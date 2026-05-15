@@ -339,7 +339,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .topnav-links{display:flex;gap:.4rem}
 .nl{background:none;border:none;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;color:var(--muted);padding:.4rem .9rem;border-radius:8px;transition:var(--tr)}
 .nl:hover,.nl.active{background:var(--light);color:var(--blue);font-weight:600}
-.topnav-right{display:flex;align-items:center;gap:.6rem;flex-shrink:0}
+.topnav-right{display:flex;align-items:center;gap:.6rem;flex-shrink:0;position:relative}
 .lang-sw{display:flex;background:var(--light);border-radius:100px;padding:3px}
 .lang-btn{background:none;border:none;font-size:.69rem;font-weight:700;letter-spacing:.08em;padding:.26rem .72rem;border-radius:100px;color:var(--muted);transition:var(--tr);font-family:'DM Sans',sans-serif;cursor:pointer}
 .lang-btn.active{background:#fff;color:var(--blue);box-shadow:0 1px 6px rgba(0,0,0,.11)}
@@ -1974,7 +1974,17 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       🔔
       <span id="notif-badge" style="display:none;position:absolute;top:2px;right:2px;background:#e53e3e;color:#fff;border-radius:50%;font-size:.55rem;font-weight:700;width:14px;height:14px;align-items:center;justify-content:center">0</span>
     </button>
-    <!-- Hamburger Menu Button -->
+    <!-- Notification Dropdown Panel -->
+    <div id="notif-panel" style="display:none;position:absolute;top:56px;right:8px;width:300px;max-width:calc(100vw - 16px);background:#fff;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.13);z-index:9999;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.7rem 1rem;border-bottom:1px solid var(--border);background:var(--navy)">
+        <span style="font-weight:700;font-size:.88rem;color:#fff">🔔 Notifications</span>
+        <button onclick="closeNotifPanel()" style="background:none;border:none;color:#fff;font-size:1.1rem;cursor:pointer;line-height:1">×</button>
+      </div>
+      <div id="notif-list" style="max-height:340px;overflow-y:auto"></div>
+      <div style="padding:.5rem .8rem;border-top:1px solid var(--border);text-align:center">
+        <button onclick="closeNotifPanel();requestNotifPermission();" id="notif-enable-btn" style="font-size:.72rem;background:none;border:none;color:var(--blue);cursor:pointer;font-weight:600">⚙️ Enable / Manage Notifications</button>
+      </div>
+    </div>
     <button onclick="toggleHamburger()" id="hamburger-btn" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:.38rem .5rem;cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;width:38px;height:38px" aria-label="Menu">
       <span id="hb1" style="display:block;width:18px;height:2px;background:var(--navy);border-radius:2px;transition:.3s"></span>
       <span id="hb2" style="display:block;width:18px;height:2px;background:var(--navy);border-radius:2px;transition:.3s"></span>
@@ -8854,6 +8864,7 @@ go = function(page) {
     var _kmSeenLeads    = new Set(JSON.parse(localStorage.getItem('km_seen_leads')   ||'[]'));
     var _kmSeenBookings = new Set(JSON.parse(localStorage.getItem('km_seen_bookings')||'[]'));
     var _kmUnread = 0;
+    var _kmNotifList = [];
 
     function _kmBadge(delta) {
       _kmUnread = Math.max(0, _kmUnread + delta);
@@ -8867,21 +8878,74 @@ go = function(page) {
       if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         try { new Notification(title, { body: body, icon: '/icon-192.svg', badge: '/icon-192.svg', tag: tag||'km' }); } catch(e){}
       }
+      _kmNotifList.unshift({ title: title, body: body, time: Date.now() });
+      if (_kmNotifList.length > 20) _kmNotifList.length = 20;
       _kmBadge(1);
     }
 
+    function _kmTimeAgo(ts) {
+      var s = Math.floor((Date.now() - ts) / 1000);
+      if (s < 60) return 'Vuba'; if (s < 3600) return Math.floor(s/60) + ' min';
+      if (s < 86400) return Math.floor(s/3600) + 'h'; return Math.floor(s/86400) + 'd';
+    }
+
+    function openNotifPanel() {
+      var panel = document.getElementById('notif-panel');
+      var list  = document.getElementById('notif-list');
+      if (!panel || !list) return;
+      // Clear badge
+      _kmBadge(-_kmUnread);
+      // Render list
+      if (_kmNotifList.length === 0) {
+        list.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:.83rem">'
+          + '<div style="font-size:1.8rem;margin-bottom:.4rem">🔔</div>'
+          + (curLang==='rw' ? 'Nta notifications urahari.' : 'No notifications yet.') + '</div>';
+      } else {
+        list.innerHTML = _kmNotifList.map(function(n) {
+          return '<div style="padding:.7rem 1rem;border-bottom:1px solid var(--light)">'
+            + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem">'
+            + '<div style="font-weight:700;font-size:.82rem;color:var(--navy)">' + escapeHtml(n.title) + '</div>'
+            + '<span style="font-size:.68rem;color:var(--muted);white-space:nowrap;flex-shrink:0">' + _kmTimeAgo(n.time) + '</span>'
+            + '</div>'
+            + '<div style="font-size:.78rem;color:var(--dark);margin-top:.15rem">' + escapeHtml(n.body) + '</div>'
+            + '</div>';
+        }).join('');
+      }
+      panel.style.display = 'block';
+      // Close on outside click
+      setTimeout(function() {
+        document.addEventListener('click', _notifOutsideClose, { once: true });
+      }, 10);
+    }
+
+    function _notifOutsideClose(e) {
+      var panel = document.getElementById('notif-panel');
+      var bell  = document.getElementById('notif-bell');
+      if (panel && !panel.contains(e.target) && bell && !bell.contains(e.target)) {
+        panel.style.display = 'none';
+      }
+    }
+
+    function closeNotifPanel() {
+      var panel = document.getElementById('notif-panel');
+      if (panel) panel.style.display = 'none';
+    }
+
     function requestNotifPermission() {
+      var panel = document.getElementById('notif-panel');
+      // Toggle panel if already has notifications or permission granted
+      if (_kmNotifList.length > 0 || (typeof Notification !== 'undefined' && Notification.permission === 'granted')) {
+        if (panel && panel.style.display !== 'none') { closeNotifPanel(); return; }
+        openNotifPanel(); return;
+      }
+      // First time — request permission
       if (!currentUser) { showToast(curLang==='rw' ? 'Injira kugira ngo wemeze notifications.' : 'Log in to enable notifications.'); return; }
       if (typeof Notification === 'undefined') { showToast('Iyi browser ntishyigikira notifications.'); return; }
-      if (Notification.permission === 'granted') {
-        _kmBadge(-_kmUnread);
-        showToast(curLang==='rw' ? '✅ Notifications zashyizweho kare.' : '✅ Notifications already enabled.');
-        return;
-      }
       Notification.requestPermission().then(function(perm) {
         if (perm === 'granted') {
           showToast(curLang==='rw' ? '✅ Notifications zemewe!' : '✅ Notifications enabled!');
-          kmNotify('KOMISIYONERI', curLang==='rw' ? 'Uzabona leads, bookings na approvals vuba!' : 'You will be notified for new leads, bookings and approvals!', 'welcome');
+          kmNotify('KOMISIYONERI', curLang==='rw' ? 'Uzabona leads, bookings na approvals vuba!' : 'You will be notified for leads, bookings and approvals!', 'welcome');
+          openNotifPanel();
         } else {
           showToast(curLang==='rw' ? 'Notifications zananiwe. Hindura settings za browser.' : 'Notifications blocked. Update your browser settings.');
         }
