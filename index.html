@@ -1784,6 +1784,71 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .empty-state .es-icon{font-size:2.8rem;margin-bottom:.65rem;line-height:1}
 .empty-state .es-title{font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:.3rem}
 .empty-state .es-sub{font-size:.84rem;color:var(--muted);margin-bottom:1.1rem;max-width:280px;margin-left:auto;margin-right:auto}
+
+/* ════════════════════════════════════
+   MOBILE PERFECTION — Step 8
+════════════════════════════════════ */
+
+/* 1 ── Touch targets: enforce 44×44px minimum on icon buttons */
+#nav-avatar{width:44px!important;height:44px!important;font-size:.8rem!important}
+#notif-bell{width:44px!important;height:44px!important;padding:.5rem!important}
+#hamburger-btn{width:44px!important;height:44px!important;padding:.5rem!important}
+.sm-close{width:44px!important;height:44px!important}
+/* All primary buttons get 44px minimum height */
+.btn{min-height:44px}
+.btn-lg{min-height:48px}
+@media(max-width:768px){
+  .btn-sm{min-height:36px}
+  .p-btn-detail,.p-btn-wa{min-height:44px;padding:.72rem}
+  /* Nav links invisible on mobile but set for safety */
+  .nl{min-height:44px;display:inline-flex;align-items:center}
+  /* Language switcher pills: easier to tap */
+  .lang-btn{min-height:36px;padding:.44rem .8rem}
+}
+
+/* 2 ── Momentum scrolling (iOS) + scroll containment on all scrollable panes */
+.dash-sidebar,.dash-content,.qs-suggestions,
+.sm-box,.s-card{
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
+}
+/* Prevent background-page scroll when a modal/overlay is open */
+.modal-wrap{overscroll-behavior:contain}
+
+/* 3 ── Scrolling smoothness in dashboard panes */
+.dash-sidebar,.dash-content{scroll-behavior:smooth}
+
+/* 4 ── Chat FAB & panel: respect bottom notch/home-indicator */
+@supports(padding:env(safe-area-inset-bottom)){
+  .chat-fab{bottom:calc(2rem + env(safe-area-inset-bottom))}
+  .chat-panel{bottom:calc(6.8rem + env(safe-area-inset-bottom))}
+}
+
+/* 5 ── Keyboard-aware modal heights using dynamic viewport units */
+@supports(height:100dvh){
+  .modal-wrap>.modal,.sm-box{max-height:min(92dvh,720px)}
+}
+@media(max-width:660px){
+  /* dvh = viewport minus keyboard; svh = smallest viewport */
+  .modal-wrap>.modal{max-height:85svh;max-height:85dvh}
+}
+
+/* 6 ── Hamburger dropdown: right safe-area offset for notched phones */
+#hamburger-menu{padding-right:max(.6rem,env(safe-area-inset-right))!important}
+
+/* 7 ── Horizontal scroll snap for property image thumbnails */
+.det-thumbs{scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.det-thumb{scroll-snap-align:start}
+
+/* 8 ── Small Android (≤360px): tighten property card buttons */
+@media(max-width:360px){
+  .p-btn-detail,.p-btn-wa{font-size:.74rem;padding:.65rem .6rem}
+  .btn,.btn-lg{padding:.72rem 1.1rem;font-size:.82rem}
+  .sm-close{width:44px;height:44px}
+}
+
+/* 9 ── Prevent overscroll/pull-to-refresh on app shell */
+html,body{overscroll-behavior-x:none}
 </style>
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
