@@ -1,47 +1,3 @@
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-
-<script>
-  // Firebase Configuration yawe nyayo
-  const firebaseConfig = {
-    apiKey: "AIzaSyAtNnbsXKFgABvP-nTvGwz6pooGnSWSshY",
-    authDomain: "komisiyoneri-78e82.firebaseapp.com",
-    databaseURL: "https://komisiyoneri-78e82-default-rtdb.firebaseio.com",
-    projectId: "komisiyoneri-78e82",
-    storageBucket: "komisiyoneri-78e82.firebasestorage.app",
-    messagingSenderId: "580559336922",
-    appId: "1:580559336922:web:2275a3013b07cf56c0fce3",
-    measurementId: "G-NE0PHMB885"
-  };
-
-  // Initialize Firebase mu buryo bukora muri Browser
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const rtdb = firebase.database();
-const storage = firebase.storage();
-firebase.analytics();
-
-console.log("Firebase yafungutse neza!");
-
-  // ── EmailJS config — replace placeholders in your EmailJS dashboard ──
-  var _ejsKey          = 'YOUR_EMAILJS_PUBLIC_KEY';
-  var _ejsSvc          = 'service_komisiyoneri';
-  var _ejsTmplLead     = 'tmpl_lead';
-  var _ejsTmplApproval = 'tmpl_approval';
-  var _ejsTmplBooking  = 'tmpl_booking';
-
-  function kmSendEmail(templateId, params) {
-    if (!_ejsKey || _ejsKey === 'YOUR_EMAILJS_PUBLIC_KEY') return;
-    if (typeof emailjs === 'undefined') return;
-    emailjs.send(_ejsSvc, templateId, params, _ejsKey)
-      .catch(function(err){ console.warn('[EmailJS]', err); });
-  }
-</script>
 <!DOCTYPE html>
 <html lang="rw" dir="ltr" itemscope itemtype="https://schema.org/WebSite">
 <head>
@@ -182,10 +138,13 @@ console.log("Firebase yafungutse neza!");
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.google-analytics.com">
+<link rel="dns-prefetch" href="https://www.gstatic.com">
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 
 
 <!-- ── GOOGLE FONTS (with display=swap for Chrome performance) ── -->
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap">
 
 <!-- ── GOOGLE ANALYTICS (GA4) — Replace G-XXXXXXXXXX na ID yawe ── -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
@@ -1367,7 +1326,6 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 ════════════════════════════════════════════════ */
 
 /* ── FONTS UPGRADE ── */
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap');
 
 /* ── HERO UPGRADE ── */
 .hero {
@@ -1829,6 +1787,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 </style>
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <link rel="preload" as="image" href="/images/logo.png">
 </head>
 <body>
 
@@ -1960,7 +1919,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 <div id="online-bar" class="online-bar">✅ Internet yagarutse!</div>
 <nav class="topnav" role="navigation" aria-label="Urubuga rw'ingenzi">
   <div class="topnav-logo" onclick="go('home')">
-    <img src="/images/logo.png" width="90" height="90" style="object-fit:contain" alt="KOMISIYONERI Logo">
+    <img src="/images/logo.png" width="90" height="90" decoding="async" style="object-fit:contain" alt="KOMISIYONERI Logo">
     <div class="logo-text"><strong>KOMISIYONERI</strong><span>Connectpro Services</span></div>
   </div>
   <div class="topnav-links">
@@ -2740,7 +2699,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <div class="ft-grid">
         <div>
           <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.65rem">
-            <img src="/images/logo.png" width="52" height="52" loading="lazy" style="object-fit:contain" alt="KOMISIYONERI Logo">
+            <img src="/images/logo.png" width="52" height="52" loading="lazy" decoding="async" style="object-fit:contain" alt="KOMISIYONERI Logo">
             <div><strong style="color:#fff;font-family:'Cormorant Garamond',serif;font-size:1.05rem">KOMISIYONERI</strong><br><span style="font-size:.55rem;color:rgba(255,255,255,.35);letter-spacing:.16em;text-transform:uppercase">Connectpro Services</span></div>
           </div>
           <p class="ft-brand" data-rw="Duhuza abantu n'imitungo itimurika mu Rwanda mu buryo bworoshye kandi bwizewe." data-en="Connecting people with quality properties in Rwanda simply and safely.">Duhuza abantu n'imitungo itimurika mu Rwanda mu buryo bworoshye kandi bwizewe.</p>
@@ -3441,7 +3400,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   <div class="auth-wrap">
     <div class="auth-left">
       <div style="position:relative;z-index:1">
-        <img src="/images/logo.png" width="70" height="70" loading="lazy" style="object-fit:contain;margin-bottom:2rem" alt="KOMISIYONERI Logo">
+        <img src="/images/logo.png" width="70" height="70" loading="lazy" decoding="async" style="object-fit:contain;margin-bottom:2rem" alt="KOMISIYONERI Logo">
         <h1 style="color:#fff;font-size:clamp(2rem,4vw,3rem);margin-bottom:1rem" data-rw="Murakaza neza kuri KOMISIYONERI" data-en="Welcome to KOMISIYONERI">Murakaza neza kuri KOMISIYONERI</h1>
         <p style="color:rgba(255,255,255,.82);font-size:.92rem;line-height:1.8;max-width:400px;margin-bottom:2rem" data-rw="Iyandikishe kuri platform y'imitungo nziza mu Rwanda — itangira ubuntu, ntukeneye karita ya banki." data-en="Register on Rwanda's leading real estate platform — start free, no credit card required.">Iyandikishe kuri platform y'imitungo nziza mu Rwanda — itangira ubuntu, ntukeneye karita ya banki.</p>
         <div style="display:flex;flex-direction:column;gap:.85rem">
@@ -8882,7 +8841,7 @@ go = function(page) {
   </div>
   <iframe id="tour-iframe" style="display:none;width:100%;flex:1;border:0" allowfullscreen allow="xr-spatial-tracking"></iframe>
   <div class="tour-photo-wrap" id="tour-photo-wrap">
-    <img id="tour-photo" src="" alt="Tour photo" loading="lazy">
+    <img id="tour-photo" src="" alt="Tour photo" loading="lazy" decoding="async" style="width:100%;height:auto;aspect-ratio:16/9;object-fit:cover">
     <button class="tour-nav-btn" id="tour-prev" onclick="tourPrev()">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
@@ -9111,4 +9070,49 @@ go = function(page) {
       : attachRealtimeListeners();
   } catch(e){ console.error('Sync error:',e); }
 })();
-</script>/body></html>
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<script>
+  // Firebase Configuration yawe nyayo
+  const firebaseConfig = {
+    apiKey: "AIzaSyAtNnbsXKFgABvP-nTvGwz6pooGnSWSshY",
+    authDomain: "komisiyoneri-78e82.firebaseapp.com",
+    databaseURL: "https://komisiyoneri-78e82-default-rtdb.firebaseio.com",
+    projectId: "komisiyoneri-78e82",
+    storageBucket: "komisiyoneri-78e82.firebasestorage.app",
+    messagingSenderId: "580559336922",
+    appId: "1:580559336922:web:2275a3013b07cf56c0fce3",
+    measurementId: "G-NE0PHMB885"
+  };
+
+  // Initialize Firebase mu buryo bukora muri Browser
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const rtdb = firebase.database();
+const storage = firebase.storage();
+firebase.analytics();
+
+console.log("Firebase yafungutse neza!");
+
+  // ── EmailJS config — replace placeholders in your EmailJS dashboard ──
+  var _ejsKey          = 'YOUR_EMAILJS_PUBLIC_KEY';
+  var _ejsSvc          = 'service_komisiyoneri';
+  var _ejsTmplLead     = 'tmpl_lead';
+  var _ejsTmplApproval = 'tmpl_approval';
+  var _ejsTmplBooking  = 'tmpl_booking';
+
+  function kmSendEmail(templateId, params) {
+    if (!_ejsKey || _ejsKey === 'YOUR_EMAILJS_PUBLIC_KEY') return;
+    if (typeof emailjs === 'undefined') return;
+    emailjs.send(_ejsSvc, templateId, params, _ejsKey)
+      .catch(function(err){ console.warn('[EmailJS]', err); });
+  }
+</script>
+</body></html>
