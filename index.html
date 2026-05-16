@@ -1805,6 +1805,10 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .field-error>textarea{border-color:#dc2626!important;box-shadow:0 0 0 3px rgba(220,38,38,.1)!important}
 .field-err-msg{display:none;font-size:.67rem;color:#dc2626;margin-top:.18rem;font-weight:600;letter-spacing:.02em}
 .field-error .field-err-msg{display:block}
+.pw-strength{height:4px;border-radius:2px;margin-top:4px;transition:width .3s,background .3s;width:0;display:block}
+.pw-strength.weak{width:33%;background:#dc2626}
+.pw-strength.fair{width:66%;background:#f59e0b}
+.pw-strength.strong{width:100%;background:#16a34a}
 
 /* ── UX STEP 5: SKELETON LOADER ── */
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
@@ -3461,7 +3465,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <!-- Login form -->
         <div id="form-login">
           <div style="display:flex;flex-direction:column;gap:.8rem">
-            <div class="field"><label for="login-email" data-rw="Imeyili" data-en="Email">Imeyili</label><input type="email" id="login-email" placeholder="imeyili', 'error'@gmail.com" aria-required="true"></div>
+            <div class="field"><label for="login-email" data-rw="Imeyili" data-en="Email">Imeyili</label><input type="email" id="login-email" placeholder="imeyili@gmail.com" aria-required="true"></div>
             <div class="field"><label for="login-pass" data-rw="Ijambo Banga" data-en="Password">Ijambo Banga</label><input type="password" id="login-pass" placeholder="••••••••" aria-required="true"></div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin:.9rem 0">
@@ -3486,8 +3490,8 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <div id="form-register" style="display:none;flex-direction:column;gap:.8rem">
           <div class="field"><label for="reg-name" data-rw="Amazina Yose" data-en="Full Name">Amazina Yose</label><input type="text" id="reg-name" placeholder="Amazina na Nkunda" aria-required="true"></div>
           <div class="field"><label for="reg-phone" data-rw="Telefoni" data-en="Phone Number">Telefoni</label><input type="tel" id="reg-phone" placeholder="+250 7XX XXX XXX" aria-required="true"></div>
-          <div class="field"><label for="reg-email" data-rw="Imeyili" data-en="Email">Imeyili</label><input type="email" id="reg-email" placeholder="imeyili', 'error'@gmail.com" aria-required="true"></div>
-          <div class="field"><label for="reg-pass" data-rw="Ijambo Banga" data-en="Password">Ijambo Banga</label><input type="password" id="reg-pass" placeholder="Byibura inyuguti 8" aria-required="true"></div>
+          <div class="field"><label for="reg-email" data-rw="Imeyili" data-en="Email">Imeyili</label><input type="email" id="reg-email" placeholder="imeyili@gmail.com" aria-required="true"></div>
+          <div class="field"><label for="reg-pass" data-rw="Ijambo Banga" data-en="Password">Ijambo Banga</label><input type="password" id="reg-pass" placeholder="Byibura inyuguti 8" aria-required="true" oninput="checkPwStrength(this.value)"><div class="pw-strength" id="pw-strength-bar"></div></div>
           <div class="field"><label for="reg-pass2" data-rw="Emeza Ijambo Banga" data-en="Confirm Password">Emeza Ijambo Banga</label><input type="password" id="reg-pass2" placeholder="Subiramo ijambo banga" aria-required="true"></div>
           <div class="field"><label for="reg-location" data-rw="Aho Utuye" data-en="Your Location">Aho Utuye</label><input type="text" id="reg-location" placeholder="urugero: Kigali, Gasabo" aria-required="true"></div>
           <div class="field"><label for="reg-preference" data-rw="Icyo Ushaka" data-en="I want to">Icyo Ushaka</label>
@@ -3943,7 +3947,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <div class="field"><label>Amazina Yuzuye</label><input type="text" id="ag-name" placeholder="Amazina na Nkunda"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
         <div class="field"><label>Telefoni</label><input type="tel" id="ag-phone" placeholder="+250 7XX XXX XXX"></div>
-        <div class="field"><label>Imeyili</label><input type="email" id="ag-email" placeholder="imeyili', 'error'@gmail.com"></div>
+        <div class="field"><label>Imeyili</label><input type="email" id="ag-email" placeholder="imeyili@gmail.com"></div>
       </div>
       <div class="field"><label>Indangamuntu (ID) Numero</label><input type="text" id="ag-id" placeholder="1 XXXX X XXXXXXX X XX"></div>
       <div class="field"><label>Utuye He? (Aderesi)</label><input type="text" id="ag-address" placeholder="urugero: Kigali, Gasabo, Kimironko"></div>
@@ -4159,7 +4163,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     <div style="display:flex;flex-direction:column;gap:.8rem;padding:.5rem 0">
       <div class="field"><label>Amazina Yawe</label><input type="text" id="msg-name" placeholder="Amazina n'Inkomoko"></div>
       <div class="field"><label>Telefoni / WhatsApp</label><input type="tel" id="msg-phone" placeholder="+250 7XX XXX XXX"></div>
-      <div class="field"><label>Imeyili Yawe</label><input type="email" id="msg-email" placeholder="imeyili', 'error'@gmail.com"></div>
+      <div class="field"><label>Imeyili Yawe</label><input type="email" id="msg-email" placeholder="imeyili@gmail.com"></div>
       <div class="field"><label>Ubutumwa Bwawe</label>
         <textarea id="msg-text" rows="4" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;resize:vertical" placeholder="Sobanura icyo ushaka ku mutungo uwo ari wo wose..."></textarea>
       </div>
@@ -5385,90 +5389,148 @@ function handleForgotPassword() {
     });
 }
 
-function handleLogin() {
-  var email = document.getElementById('login-email');
-  var pass = document.getElementById('login-pass');
-  if (!email||!email.value) {
-    showToast(curLang==='rw'?'Shyira imeyili', 'error'!':'Enter email!');
-    if(email){ email.closest('.field').classList.add('field-error'); email.focus(); }
-    return;
-  }
-  if (!pass||!pass.value) {
-    showToast(curLang==='rw'?'Shyira ijambo banga!':'Enter password!', 'error');
-    if(pass){ pass.closest('.field').classList.add('field-error'); pass.focus(); }
-    return;
-  }
-  // clear any previous error highlights
+async function handleLogin() {
   document.querySelectorAll('#page-auth .field-error').forEach(function(f){ f.classList.remove('field-error'); });
-
-  var btn = document.querySelector('#page-auth [onclick="handleLogin()"]');
+  var emailEl = document.getElementById('login-email');
+  var passEl  = document.getElementById('login-pass');
+  var email   = emailEl ? emailEl.value.trim() : '';
+  var pass    = passEl  ? passEl.value          : '';
+  if (!email) {
+    showToast(curLang==='rw'?'Shyira imeyili!':'Enter email!', 'error');
+    if(emailEl){ emailEl.closest('.field').classList.add('field-error'); emailEl.focus(); }
+    return;
+  }
+  if (!pass) {
+    showToast(curLang==='rw'?'Shyira ijambo banga!':'Enter password!', 'error');
+    if(passEl){ passEl.closest('.field').classList.add('field-error'); passEl.focus(); }
+    return;
+  }
+  var btn = document.querySelector('#form-login [onclick="handleLogin()"]');
   var lbl = document.getElementById('login-btn-label');
-  if(btn){ btn.disabled=true; btn.classList.add('btn-loading');
-    if(lbl) lbl.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Tegereza...':'Signing in...'); }
-
-  var users = [];
-  try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
-  var found = null;
-  for(var i=0;i<users.length;i++){ if(users[i].email===email.value){ found=users[i]; break; } }
-  var user = found || { name:email.value.split('@')[0], email:email.value, phone:'', role:'Buyer', date:new Date().toISOString() };
-  saveUser(user);
-  showToast((curLang==='rw'?'Murakaza neza ':'Welcome ')+user.name+'! 🎉');
-  setTimeout(function(){
-    if(btn){ btn.disabled=false; btn.classList.remove('btn-loading');
-      if(lbl) lbl.textContent=(curLang==='rw'?'Injira':'Sign In'); }
+  if(btn){ btn.disabled=true; btn.classList.add('btn-loading'); }
+  if(lbl) lbl.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Tegereza...':'Signing in...');
+  try {
+    if (!firebaseAuth) initFirebase();
+    var result = await firebaseAuth.signInWithEmailAndPassword(email, pass);
+    var fb = result.user;
+    var profile = {};
+    try {
+      var users = JSON.parse(localStorage.getItem('km_users')||'[]');
+      profile = users.find(function(u){ return u.email===email; }) || {};
+    } catch(e){}
+    var user = {
+      uid: fb.uid,
+      name: fb.displayName || profile.name || email.split('@')[0],
+      email: fb.email,
+      role: profile.role || 'Buyer',
+      phone: profile.phone || '',
+      avatar: fb.photoURL || profile.avatar || '',
+      provider: 'email',
+      emailVerified: fb.emailVerified
+    };
+    saveUser(user);
+    showToast((curLang==='rw'?'Murakaza neza, ':'Welcome, ')+user.name+'! 🎉');
     var pa = _pendingAction; _pendingAction = null;
     if (pa === 'agent-reg') { go('home'); openAgentReg(); }
     else { go('home'); }
-  }, 900);
+  } catch(err) {
+    var code = err.code || '';
+    var msg  = curLang==='rw'?'Habaye ikosa, ongera ugerageze.':'Login failed, please try again.';
+    if (code==='auth/user-not-found'||code==='auth/invalid-credential')
+      msg = curLang==='rw'?'Nta konti ifite iyo meyili.':'No account with that email.';
+    else if (code==='auth/wrong-password')
+      msg = curLang==='rw'?'Ijambo banga sibyo.':'Incorrect password.';
+    else if (code==='auth/invalid-email')
+      msg = curLang==='rw'?'Imeyili ntiyanditse neza.':'Invalid email format.';
+    else if (code==='auth/too-many-requests')
+      msg = curLang==='rw'?'Ugerageje inshuro nyinshi. Tegereza akanya.':'Too many attempts. Please wait.';
+    showToast(msg, 'error');
+  } finally {
+    if(btn){ btn.disabled=false; btn.classList.remove('btn-loading'); }
+    if(lbl) lbl.textContent = curLang==='rw'?'Injira':'Sign In';
+  }
 }
 
-function handleRegister() {
-  var g = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
-  var name=g('reg-name'), phone=g('reg-phone'), email=g('reg-email'), pass=g('reg-pass'), pass2=g('reg-pass2');
-
-  // clear previous errors
+async function handleRegister() {
   document.querySelectorAll('#form-register .field-error').forEach(function(f){ f.classList.remove('field-error'); });
-
+  var g = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
+  var name=g('reg-name'), phone=g('reg-phone'), email=g('reg-email');
+  var passEl = document.getElementById('reg-pass');
+  var pass2El = document.getElementById('reg-pass2');
+  var pass  = passEl  ? passEl.value  : '';
+  var pass2 = pass2El ? pass2El.value : '';
+  var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   function fieldErr(id, msg) {
     var el = document.getElementById(id);
     if(el){ el.closest('.field').classList.add('field-error'); el.focus(); }
-    showToast(msg);
+    showToast(msg, 'error');
   }
-  if (!name){ fieldErr('reg-name', curLang==='rw'?'Shyira amazina yawe!':'Enter your name!'); return; }
-  if (!phone){ fieldErr('reg-phone', curLang==='rw'?'Shyira telefoni yawe!':'Enter your phone!'); return; }
-  if (!email){ fieldErr('reg-email', curLang==='rw'?'Shyira imeyili yawe!':'Enter your email!'); return; }
-  if (!pass||pass.length<6){ fieldErr('reg-pass', curLang==='rw'?'Ijambo banga rigomba inyuguti 6+!':'Password needs 6+ chars!'); return; }
-  if (pass!==pass2){ fieldErr('reg-pass2', curLang==='rw'?'Amagambo banga ntahura!':'Passwords do not match!'); return; }
-  var users = [];
-  try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
-  for(var i=0;i<users.length;i++){ if(users[i].email===email){ fieldErr('reg-email', curLang==='rw'?'Imeyili isanzwe ikoreshwa!':'Email already registered!'); return; } }
+  if (!name)                        { fieldErr('reg-name',  curLang==='rw'?'Shyira amazina yawe!':'Enter your name!'); return; }
+  if (!phone)                       { fieldErr('reg-phone', curLang==='rw'?'Shyira telefoni yawe!':'Enter your phone!'); return; }
+  if (!email||!emailRe.test(email)) { fieldErr('reg-email', curLang==='rw'?'Imeyili ntiyanditse neza!':'Invalid email!'); return; }
+  if (pass.length<8)                { fieldErr('reg-pass',  curLang==='rw'?'Ijambo banga rigomba nibura inyuguti 8!':'Password must be at least 8 characters!'); return; }
+  if (pass!==pass2)                 { fieldErr('reg-pass2', curLang==='rw'?'Amagambo banga ntahuye!':'Passwords do not match!'); return; }
 
   var btn = document.querySelector('#form-register [onclick="handleRegister()"]');
   var lbl = document.getElementById('register-btn-label');
-  if(btn){ btn.disabled=true; btn.classList.add('btn-loading');
-    if(lbl) lbl.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Tegereza...':'Creating account...'); }
+  if(btn){ btn.disabled=true; btn.classList.add('btn-loading'); }
+  if(lbl) lbl.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Tegereza...':'Creating account...');
 
-  var roleEl = document.querySelector('.rt.active');
-  var locEl = document.getElementById('reg-location');
-  var prefEl = document.getElementById('reg-preference');
-  var user = { name:name, phone:phone, email:email,
-    role:roleEl?roleEl.textContent.trim():'Buyer',
-    location: locEl?locEl.value.trim():'',
-    preference: prefEl?prefEl.value:'Kugura',
-    date:new Date().toISOString() };
-  users.push(user);
-  try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
-  saveUser(user);
-  showToast((curLang==='rw'?'Murakaza neza ':'Welcome ')+name+'! 🎉');
-  setTimeout(function(){
-    if(btn){ btn.disabled=false; btn.classList.remove('btn-loading');
-      if(lbl) lbl.textContent=(curLang==='rw'?'Iyandikishe Ubuntu':'Register Free'); }
+  try {
+    if (!firebaseAuth) initFirebase();
+    var result = await firebaseAuth.createUserWithEmailAndPassword(email, pass);
+    var fb = result.user;
+    await fb.updateProfile({ displayName: name });
+    try { await fb.sendEmailVerification(); } catch(e){}
+    var locEl  = document.getElementById('reg-location');
+    var prefEl = document.getElementById('reg-preference');
+    var roleEl = document.querySelector('.rt.active');
+    var user = {
+      uid: fb.uid, name: name, phone: phone, email: email,
+      role: roleEl ? roleEl.textContent.trim() : 'Buyer',
+      location: locEl  ? locEl.value.trim() : '',
+      preference: prefEl ? prefEl.value : 'Kugura',
+      provider: 'email', emailVerified: false,
+      date: new Date().toISOString()
+    };
+    var users = [];
+    try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
+    if (!users.find(function(u){ return u.email===email; })) {
+      users.push(user);
+      try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
+    }
+    saveUser(user);
+    showToast(curLang==='rw'?'Konti yakozwe! Reba imeyili yawe kugira ngo uremeze.':'Account created! Check your email to verify.');
     var pa = _pendingAction; _pendingAction = null;
     if (pa === 'agent-reg') { go('home'); openAgentReg(); }
     else { go('home'); }
-  }, 900);
+  } catch(err) {
+    var code = err.code || '';
+    var msg  = curLang==='rw'?'Habaye ikosa, ongera ugerageze.':'Registration failed, please try again.';
+    if (code==='auth/email-already-in-use')
+      msg = curLang==='rw'?'Iyo meyili isanzwe ikoreshwa.':'That email is already registered.';
+    else if (code==='auth/weak-password')
+      msg = curLang==='rw'?'Ijambo banga ni ryoroheje cyane.':'Password is too weak.';
+    showToast(msg, 'error');
+  } finally {
+    if(btn){ btn.disabled=false; btn.classList.remove('btn-loading'); }
+    if(lbl) lbl.textContent = curLang==='rw'?'Iyandikishe Ubuntu':'Register Free';
+  }
 }
 
+function checkPwStrength(pw) {
+  var bar = document.getElementById('pw-strength-bar');
+  if (!bar) return;
+  bar.className = 'pw-strength';
+  if (!pw) return;
+  var score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw) && /[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  if (score===1) bar.classList.add('weak');
+  else if (score===2) bar.classList.add('fair');
+  else if (score>=3) bar.classList.add('strong');
+}
 document.addEventListener('DOMContentLoaded', loadSavedUser);
 document.addEventListener('DOMContentLoaded', applyPlatformFlags);
 setTimeout(loadSavedUser, 200);
@@ -6777,11 +6839,23 @@ function initFirebase() {
       if (!window._authListenerAttached) {
         window._authListenerAttached = true;
         firebaseAuth.onAuthStateChanged(function(fbUser) {
-          if (!fbUser && currentUser && (currentUser.provider === 'google' || currentUser.provider === 'phone')) {
-            // Firebase session expired for social/phone users — clear local session too
-            currentUser = null;
-            try { localStorage.removeItem('km_current'); } catch(e) {}
-            updateNavForUser(null);
+          if (fbUser) {
+            var prov = (fbUser.providerData[0] && fbUser.providerData[0].providerId) || '';
+            if (prov === 'password') {
+              var users = [];
+              try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
+              var saved = users.find(function(u){ return u.email===fbUser.email; });
+              if (saved) {
+                saved.emailVerified = fbUser.emailVerified;
+                try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
+              }
+            }
+          } else {
+            if (currentUser && (currentUser.provider === 'google' || currentUser.provider === 'phone' || currentUser.provider === 'email')) {
+              currentUser = null;
+              try { localStorage.removeItem('km_current'); } catch(e) {}
+              updateNavForUser(null);
+            }
           }
         });
       }
