@@ -146,17 +146,31 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap">
 
-<!-- ── GOOGLE ANALYTICS (GA4) — Replace G-XXXXXXXXXX na ID yawe ── -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<!-- ── GOOGLE ANALYTICS (GA4) ── -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-NE0PHMB885"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-XXXXXXXXXX', {
+  gtag('config', 'G-NE0PHMB885', {
     page_title: 'KOMISIYONERI Platform',
-    page_location: window.location.href
+    page_location: window.location.href,
+    send_page_view: false
   });
 </script>
+
+<!-- PostHog — session replay, funnels, cohort analysis -->
+<script>
+!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","cdn.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+" (stub) (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId setPersonPropertiesForFlags".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init('YOUR_POSTHOG_API_KEY',{api_host:'https://us.i.posthog.com',person_profiles:'identified_only',capture_pageview:false,autocapture:true,session_recording:{maskAllInputs:true}});
+</script>
+
+<!-- Sentry — production error monitoring -->
+<script src="https://browser.sentry-cdn.com/8.28.0/bundle.min.js" crossorigin="anonymous"></script>
+<script>
+if(typeof Sentry!=='undefined'){Sentry.init({dsn:'YOUR_SENTRY_DSN',release:'komisiyoneri@1.0.0',environment:location.hostname.includes('localhost')?'development':'production',tracesSampleRate:0.1,beforeSend:function(ev){return location.hostname==='localhost'?null:ev;}});}
+</script>
+
 <style>
 /* ══════════════════════════════════════
    RESET & TOKENS
@@ -4445,6 +4459,7 @@ document.querySelectorAll('.p-fav').forEach(btn => {
 
 // ── PAYMENT MODAL
 function openPay() {
+  kmTrack('begin_checkout',{});
   if(kmFlag('payments')) injectRealPayForm();
   document.getElementById('pay-modal').classList.add('open');
 }
@@ -4796,6 +4811,30 @@ function chatKeyHandler(e) {
   }
 }
 
+// ── ANALYTICS HELPER
+function kmTrack(name, params) {
+  try {
+    var p = Object.assign({ platform:'web', lang:curLang||'rw' }, params||{});
+    if(typeof gtag    !=='undefined') gtag('event', name, p);
+    if(typeof posthog !=='undefined') posthog.capture(name, p);
+  } catch(e){}
+}
+// ── GLOBAL ERROR HANDLER
+window.onerror = function(msg, src, line, col, err) {
+  try {
+    if(typeof Sentry  !=='undefined') Sentry.captureException(err||new Error(msg));
+    if(typeof gtag    !=='undefined') gtag('event','exception',{description:msg,fatal:false});
+    if(typeof posthog !=='undefined') posthog.capture('js_error',{message:msg,source:src,lineno:line});
+  } catch(e){}
+};
+window.onunhandledrejection = function(evt) {
+  var msg = evt.reason ? (evt.reason.message||String(evt.reason)) : 'Unhandled promise rejection';
+  try {
+    if(typeof Sentry  !=='undefined') Sentry.captureException(evt.reason||new Error(msg));
+    if(typeof gtag    !=='undefined') gtag('event','exception',{description:msg,fatal:false});
+    if(typeof posthog !=='undefined') posthog.capture('promise_error',{message:msg});
+  } catch(e){}
+};
 // ── TOAST
 let toastTimer;
 function showToast(msg, type) {
@@ -4834,6 +4873,12 @@ function saveUser(user) {
   try { localStorage.setItem('km_current', JSON.stringify(user)); } catch(e){}
   currentUser = user;
   updateNavForUser(user);
+  try {
+    if(user && user.uid) {
+      if(typeof posthog !=='undefined') posthog.identify(user.uid,{email:user.email,name:user.name,role:user.role,provider:user.provider});
+      if(typeof Sentry  !=='undefined') Sentry.setUser({id:user.uid,email:user.email,username:user.name});
+    }
+  } catch(e){}
 }
 
 function loadSavedUser() {
@@ -5453,6 +5498,7 @@ async function handleLogin() {
       emailVerified: fb.emailVerified
     };
     saveUser(user);
+    kmTrack('login',{method:user.provider||'email'});
     showToast((curLang==='rw'?'Murakaza neza, ':'Welcome, ')+user.name+'! 🎉');
     var pa = _pendingAction; _pendingAction = null;
     if (pa === 'agent-reg') { go('home'); openAgentReg(); }
@@ -5524,6 +5570,7 @@ async function handleRegister() {
       try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
     }
     saveUser(user);
+    kmTrack('sign_up',{method:'email',role:user.role});
     showToast(curLang==='rw'?'Konti yakozwe! Reba imeyili yawe kugira ngo uremeze.':'Account created! Check your email to verify.');
     var pa = _pendingAction; _pendingAction = null;
     if (pa === 'agent-reg') { go('home'); openAgentReg(); }
@@ -5669,6 +5716,7 @@ function go(name) {
   // GA4 page tracking
   if (typeof gtag !== 'undefined') {
     gtag('event', 'page_view', { page_title: titles[name], page_path: '/' + name });
+    if(typeof posthog !=='undefined') posthog.capture('$pageview',{$current_url:'/'+name,page_title:titles[name]});
   }
 
   // Animate KPIs when entering analytics or dashboard
@@ -5982,6 +6030,7 @@ function applyAndSearch() {
   var approved=getApprovedProps(), filtered=applySearchFilters(approved);
   window._filtersActive=true;
   closeSearch(); go('listings');
+  kmTrack('search',{query:window._qs_query||'',results:filtered.length});
   setTimeout(function(){
     var grids=document.querySelectorAll('#p-grid-main');
     grids.forEach(function(grid){
@@ -6419,6 +6468,7 @@ function submitBooking() {
   if (bk.id) try { rtdb.ref('bookings/' + bk.id).set(bk); } catch(e){}
   if(_bb){_bb.disabled=false;_bb.classList.remove('btn-loading');if(_bl)_bl.textContent='Emeza Gahunda';}
   closeBooking();
+  kmTrack('booking_request',{property_id:String(bk.propId||''),district:bk.district||'',date:bk.date||''});
   showToast('Gahunda yashyizweho! Agent azakuhamagara kuri '+phone.value+'. ✅');
   if (bk.agentEmail) {
     kmSendEmail(_ejsTmplBooking, {
@@ -6944,6 +6994,7 @@ function handleGoogleResponse(response) {
         user = existing;
       }
       saveUser(user);
+      kmTrack('login',{method:'google'});
       showToast('Murakaza neza ' + user.name + '! (Google) 🎉');
       setTimeout(function() { go('home'); }, 800);
     }
@@ -7261,6 +7312,7 @@ function submitAgentReg() {
   if(_arb){_arb.disabled=false;_arb.classList.remove('btn-loading');if(_arl)_arl.textContent='✅ Iyandikishe nka Agent';}
   closeAgentReg();
   showToast('✅ Iyandikishe yagenze neza! KOMISIYONERI izakugenzura mu masaa 24.');
+  kmTrack('agent_registration',{zone:agent.zone||'',experience:agent.experience||''});
 
   // Send WhatsApp notification to admin
   var msg = 'Agent:'+agent.name+' Tel:'+agent.phone+' Zone:'+agent.zone+' ID:'+agent.nationalId;
@@ -7464,6 +7516,7 @@ function submitLead() {
 
   if(_lb){_lb.disabled=false;_lb.classList.remove('btn-loading');if(_ll)_ll.textContent='Ohereza — Agent Azakuhamagara!';}
   closeLead();
+  kmTrack('generate_lead',{zone:lead.zone||'',agent:lead.agentName||'',intent:lead.preference||''});
 
   if(lead.agentName) {
     showToast('✅ Lead yoherejwe! Agent ' + lead.agentName + ' azakuhamagara mu masaa 2.');
@@ -7872,6 +7925,7 @@ function openPropDetail(propId) {
   }
 
   window._currentProp = prop;
+  kmTrack('view_item',{item_id:String(prop.id),item_name:prop.title||'',price:prop.price||'',district:prop.district||'',type:prop.type||''});
 
   // === PRICE ===
   var priceNum = parseInt(prop.price)||0;
