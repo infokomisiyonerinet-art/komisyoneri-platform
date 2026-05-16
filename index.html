@@ -984,6 +984,10 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 ══════════════════════════════════════ */
 .toast{position:fixed;top:76px;right:1.5rem;background:#fff;border-radius:12px;padding:.88rem 1.2rem;box-shadow:0 8px 32px rgba(0,0,0,.14);border-left:4px solid var(--green);display:flex;align-items:center;gap:.7rem;z-index:3000;font-size:.83rem;color:var(--dark);transform:translateX(130%);transition:transform .3s ease;max-width:295px}
 .toast.show{transform:translateX(0)}
+.toast.toast-error{border-left-color:#dc2626}
+.toast.toast-error svg{stroke:#dc2626}
+.toast.toast-warn{border-left-color:#f59e0b}
+.toast.toast-warn svg{stroke:#f59e0b}
 .toast svg{width:17px;height:17px;fill:none;stroke:var(--green);stroke-width:2;flex-shrink:0}
 
 /* ══════════════════════════════════════
@@ -2604,7 +2608,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <div class="f-card fc2">
           <div class="f-icon" style="background:rgba(22,87,204,.1)"><svg viewBox="0 0 24 24" stroke="#1657CC"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
           <h3 data-rw="Virtual Tours 3D/VR" data-en="Virtual Tours 3D/VR">Virtual Tours 3D/VR</h3>
-          <p data-rw="Reba inzu mu 3D cyangwa VR utajya ahandi — ukoresha telefoni cyangwa mudasobwa yawe." data-en="Tour properties in 3D or VR from home — using your smartphone or computer.">Reba inzu mu 3D cyangwa VR utajya ahandi — ukoresha telefoni cyangwa mudasobwa yawe.</p>
+          <p data-rw="Reba inzu mu 3D cyangwa VR utajya ahandi — ukoresha telefoni', 'error' cyangwa mudasobwa yawe." data-en="Tour properties in 3D or VR from home — using your smartphone or computer.">Reba inzu mu 3D cyangwa VR utajya ahandi — ukoresha telefoni', 'error' cyangwa mudasobwa yawe.</p>
           <span class="f-link" onclick="go('detail')" style="cursor:pointer"><span data-rw="Gerageza 3D →" data-en="Try 3D →">Gerageza 3D →</span><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
         </div>
         <div class="f-card fc3">
@@ -3457,7 +3461,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <!-- Login form -->
         <div id="form-login">
           <div style="display:flex;flex-direction:column;gap:.8rem">
-            <div class="field"><label for="login-email" data-rw="Imeyili" data-en="Email">Imeyili</label><input type="email" id="login-email" placeholder="imeyili@gmail.com" aria-required="true"></div>
+            <div class="field"><label for="login-email" data-rw="Imeyili" data-en="Email">Imeyili</label><input type="email" id="login-email" placeholder="imeyili', 'error'@gmail.com" aria-required="true"></div>
             <div class="field"><label for="login-pass" data-rw="Ijambo Banga" data-en="Password">Ijambo Banga</label><input type="password" id="login-pass" placeholder="••••••••" aria-required="true"></div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin:.9rem 0">
@@ -3482,7 +3486,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <div id="form-register" style="display:none;flex-direction:column;gap:.8rem">
           <div class="field"><label for="reg-name" data-rw="Amazina Yose" data-en="Full Name">Amazina Yose</label><input type="text" id="reg-name" placeholder="Amazina na Nkunda" aria-required="true"></div>
           <div class="field"><label for="reg-phone" data-rw="Telefoni" data-en="Phone Number">Telefoni</label><input type="tel" id="reg-phone" placeholder="+250 7XX XXX XXX" aria-required="true"></div>
-          <div class="field"><label for="reg-email" data-rw="Imeyili" data-en="Email">Imeyili</label><input type="email" id="reg-email" placeholder="imeyili@gmail.com" aria-required="true"></div>
+          <div class="field"><label for="reg-email" data-rw="Imeyili" data-en="Email">Imeyili</label><input type="email" id="reg-email" placeholder="imeyili', 'error'@gmail.com" aria-required="true"></div>
           <div class="field"><label for="reg-pass" data-rw="Ijambo Banga" data-en="Password">Ijambo Banga</label><input type="password" id="reg-pass" placeholder="Byibura inyuguti 8" aria-required="true"></div>
           <div class="field"><label for="reg-pass2" data-rw="Emeza Ijambo Banga" data-en="Confirm Password">Emeza Ijambo Banga</label><input type="password" id="reg-pass2" placeholder="Subiramo ijambo banga" aria-required="true"></div>
           <div class="field"><label for="reg-location" data-rw="Aho Utuye" data-en="Your Location">Aho Utuye</label><input type="text" id="reg-location" placeholder="urugero: Kigali, Gasabo" aria-required="true"></div>
@@ -3639,7 +3643,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 
       <h2 style="color:var(--navy);font-size:1.1rem;margin:0 0 .8rem" data-rw="1. Amakuru Tukusanya" data-en="1. Information We Collect">1. Amakuru Tukusanya / Information We Collect</h2>
       <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.4rem" data-rw="Dusanya amakuru akurikira iyo ukoresheje KOMISIYONERI:" data-en="We collect the following information when you use KOMISIYONERI:">Dusanya amakuru akurikira iyo ukoresheje KOMISIYONERI: <br><br>
-        • <strong data-rw="Amakuru y'umwirondoro" data-en="Account information">Amakuru y'umwirondoro</strong> — izina, imeri, nimero ya telefoni iyo uyandikisha.<br>
+        • <strong data-rw="Amakuru y'umwirondoro" data-en="Account information">Amakuru y'umwirondoro</strong> — izina, imeri, nimero ya telefoni', 'error' iyo uyandikisha.<br>
         • <strong data-rw="Amakuru y'isoko" data-en="Search &amp; browsing data">Amakuru y'isoko</strong> — imitungo washakishije, wayifunguriye, cyangwa wayasubiriyeho.<br>
         • <strong data-rw="Amakuru y'ikigo" data-en="Device &amp; technical data">Amakuru y'ikigo</strong> — ubwoko bwa browser, aderesi ya IP, na OS.<br>
         • <strong data-rw="Amakuru utuzanira" data-en="Information you provide">Amakuru utuzanira</strong> — imitungo wishyize kurubuga, ibitekerezo, cyangwa ubutumwa bwohereje.
@@ -3939,7 +3943,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <div class="field"><label>Amazina Yuzuye</label><input type="text" id="ag-name" placeholder="Amazina na Nkunda"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
         <div class="field"><label>Telefoni</label><input type="tel" id="ag-phone" placeholder="+250 7XX XXX XXX"></div>
-        <div class="field"><label>Imeyili</label><input type="email" id="ag-email" placeholder="imeyili@gmail.com"></div>
+        <div class="field"><label>Imeyili</label><input type="email" id="ag-email" placeholder="imeyili', 'error'@gmail.com"></div>
       </div>
       <div class="field"><label>Indangamuntu (ID) Numero</label><input type="text" id="ag-id" placeholder="1 XXXX X XXXXXXX X XX"></div>
       <div class="field"><label>Utuye He? (Aderesi)</label><input type="text" id="ag-address" placeholder="urugero: Kigali, Gasabo, Kimironko"></div>
@@ -4043,8 +4047,8 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       </label>
       <div style="display:flex;gap:.6rem">
         <button class="btn btn-sm" style="flex:1;border:1.5px solid var(--border);justify-content:center" onclick="agentStep(2)">← Subira</button>
-        <button class="btn btn-navy btn-lg" style="flex:2;justify-content:center" onclick="submitAgentReg()">
-          ✅ Iyandikishe nka Agent
+        <button id="agent-reg-btn" class="btn btn-navy btn-lg" style="flex:2;justify-content:center" onclick="submitAgentReg()">
+          <span id="agent-reg-lbl">✅ Iyandikishe nka Agent</span>
         </button>
       </div>
     </div>
@@ -4096,9 +4100,9 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <div class="field"><label>Ibindi Bishaka (Ntibisabwa)</label>
         <textarea id="lead-notes" rows="2" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;resize:vertical" placeholder="urugero: Ibyumba 3, Garage, Hafi y'ishuri..."></textarea>
       </div>
-      <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="submitLead()">
+      <button id="lead-submit-btn" class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="submitLead()">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.13a16 16 0 006.73 6.73l1.35-1.35a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-        Ohereza — Agent Azakuhamagara!
+        <span id="lead-submit-lbl">Ohereza — Agent Azakuhamagara!</span>
       </button>
       <div style="text-align:center;font-size:.75rem;color:var(--muted)">⚡ Agent asubiza mu masaa 2 gusa</div>
     </div>
@@ -4137,9 +4141,9 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <div class="field"><label>Ubutumwa Bwihuse (Ntibisabwa)</label>
         <textarea id="book-note" rows="2" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;resize:vertical" placeholder="Ikibazo cyose cyihariye..."></textarea>
       </div>
-      <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="submitBooking()">
+      <button id="book-submit-btn" class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="submitBooking()">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-        Emeza Gahunda
+        <span id="book-submit-lbl">Emeza Gahunda</span>
       </button>
     </div>
   </div>
@@ -4155,7 +4159,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
     <div style="display:flex;flex-direction:column;gap:.8rem;padding:.5rem 0">
       <div class="field"><label>Amazina Yawe</label><input type="text" id="msg-name" placeholder="Amazina n'Inkomoko"></div>
       <div class="field"><label>Telefoni / WhatsApp</label><input type="tel" id="msg-phone" placeholder="+250 7XX XXX XXX"></div>
-      <div class="field"><label>Imeyili Yawe</label><input type="email" id="msg-email" placeholder="imeyili@gmail.com"></div>
+      <div class="field"><label>Imeyili Yawe</label><input type="email" id="msg-email" placeholder="imeyili', 'error'@gmail.com"></div>
       <div class="field"><label>Ubutumwa Bwawe</label>
         <textarea id="msg-text" rows="4" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;resize:vertical" placeholder="Sobanura icyo ushaka ku mutungo uwo ari wo wose..."></textarea>
       </div>
@@ -4460,7 +4464,7 @@ CORE INSTRUCTIONS:
 - Be helpful, fast, and friendly
 - Answer ALL questions about properties, prices, agents, and services
 - Subiza ibibazo BYOSE bijyanye n'imitungo, ibiciro, serivisi, no guhuza na agents
-- Niba udafite igisubizo, tanga amakuru ya KOMISIYONERI (telefoni, email)
+- Niba udafite igisubizo, tanga amakuru ya KOMISIYONERI (telefoni', 'error', email)
 
 == AMAKURU Y'IKIGO ==
 - Izina: KOMISIYONERI Connectpro Services Ltd
@@ -4539,7 +4543,7 @@ IYANDIKISHWA UBUNTU:
 == INZIRA YO GUSUBIZA ==
 - Reply ONLY in the user's language (English if they write English, Kinyarwanda if Kinyarwanda)
 - Keep replies short (2-4 lines max)
-- Buri gihe shyira amakuru ya nyayo ari mu system (ibiciro, telefoni, imeyili)
+- Buri gihe shyira amakuru ya nyayo ari mu system (ibiciro, telefoni', 'error', imeyili', 'error')
 - Niba utazi ikintu, bwira ko uzahuza na agent: +250 783 177 254
 - Subiza neza, nk'umukomisiyoneri w'inzobere wawe
 - Ntukavuge "AI" cyangwa "Claude" — uri "KOMISIYONERI Support"`;
@@ -4766,10 +4770,13 @@ function chatKeyHandler(e) {
 
 // ── TOAST
 let toastTimer;
-function showToast(msg) {
+function showToast(msg, type) {
   const t = document.getElementById('toast');
   const tm = document.getElementById('toast-msg');
   tm.textContent = msg;
+  t.classList.remove('toast-error','toast-warn');
+  if(type==='error') t.classList.add('toast-error');
+  else if(type==='warn') t.classList.add('toast-warn');
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 5000);
@@ -4896,8 +4903,11 @@ function renderDashboardBookings(bookings) {
   var el = document.getElementById('dash-bookings-rows');
   if (!el) return;
   if (!bookings || bookings.length === 0) {
-    el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.88rem">'
-      + (curLang==='rw' ? 'Nta nzira ziteganijwe.' : 'No upcoming visits yet.') + '</div>';
+    el.innerHTML = '<div class="empty-state" style="padding:1.8rem 1rem">'
+      + '<div class="es-icon">📅</div>'
+      + '<div class="es-title">' + (curLang==='rw'?'Nta nzira ziteganijwe':'No upcoming visits') + '</div>'
+      + '<div class="es-sub">' + (curLang==='rw'?'Abakiriya bazakugira gahunda hano.':'Client bookings will appear here.') + '</div>'
+      + '</div>';
     return;
   }
   el.innerHTML = bookings.slice(0,8).map(function(b) {
@@ -4922,8 +4932,11 @@ function renderDashboardListings(props) {
   var el = document.getElementById('dash-listings-rows');
   if (!el) return;
   if (!props || props.length === 0) {
-    el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.88rem">'
-      + (curLang==='rw' ? 'Nta mitungo yanditswe. Fungura bikorwa!' : 'No listings yet. Add your first property!')
+    el.innerHTML = '<div class="empty-state" style="padding:1.8rem 1rem">'
+      + '<div class="es-icon">🏠</div>'
+      + '<div class="es-title">' + (curLang==='rw'?'Nta mitungo yanditswe':'No listings yet') + '</div>'
+      + '<div class="es-sub">' + (curLang==='rw'?'Imitungo washyiraho izagaragara hano.':'Your submitted properties appear here.') + '</div>'
+      + '<button class="btn btn-navy btn-sm" onclick="openAddProperty()">' + (curLang==='rw'?'Ongeramo Imitungo':'Add Property') + '</button>'
       + '</div>';
     return;
   }
@@ -5059,7 +5072,7 @@ var _editPropId = null;
 function openEditProperty(prop) {
   // Only Pending properties can be edited
   if (prop.status !== 'Pending') {
-    showToast(curLang==='rw' ? 'Imitungo yemejwe ntishobora guhindurwa.' : 'Approved properties cannot be edited.');
+    showToast(curLang==='rw' ? 'Imitungo yemejwe ntishobora guhindurwa.' : 'Approved properties cannot be edited.', 'warn');
     return;
   }
   _editPropId = prop.id;
@@ -5109,7 +5122,7 @@ function openEditProperty(prop) {
 
 function openAddProperty() {
   if (!currentUser) {
-    showToast(curLang==='rw'?'Injira mbere yo kongeramo imitungo!':'Please login first!');
+    showToast(curLang==='rw'?'Injira mbere yo kongeramo imitungo!':'Please login first!', 'warn');
     go('auth'); return;
   }
   var isAdminUser = currentUser.email === 'komisiyonericonnectproservices@gmail.com';
@@ -5125,7 +5138,7 @@ function openAddProperty() {
     }
     return;
   }
-  if(!window._listingsOpen) { showToast('⛔ New listings are currently paused.'); return; }
+  if(!window._listingsOpen) { showToast('⛔ New listings are currently paused.', 'warn'); return; }
   var m = document.getElementById('add-prop-modal');
   if(m) m.style.display='flex';
   var c = document.getElementById('prop-contact');
@@ -5147,7 +5160,7 @@ function submitProperty() {
 
   // Check login
   if(!currentUser) {
-    showToast(curLang==='rw' ? 'Injira mbere yo gushyiraho imitungo!' : 'Please login first!');
+    showToast(curLang==='rw' ? 'Injira mbere yo gushyiraho imitungo!' : 'Please login first!', 'warn');
     closeAddProperty();
     go('auth');
     return;
@@ -5157,7 +5170,7 @@ function submitProperty() {
   if (!isAdmin && currentUser.role !== 'Agent') {
     showToast(curLang==='rw'
       ? '🔒 Agents bemewe gusa ni bo bashobora ohereza imitungo.'
-      : '🔒 Only approved agents can submit listings.');
+      : '🔒 Only approved agents can submit listings.', 'warn');
     return;
   }
 
@@ -5170,7 +5183,7 @@ function submitProperty() {
     for (var i=0; i<props.length; i++) { if (String(props[i].id) === String(editId)) { idx=i; break; } }
     if (idx === -1) { showToast('Imitungo ntiboneka.'); closeAddProperty(); return; }
     if (props[idx].status !== 'Pending') {
-      showToast(curLang==='rw' ? 'Imitungo yemejwe ntishobora guhindurwa.' : 'Only pending listings can be edited.');
+      showToast(curLang==='rw' ? 'Imitungo yemejwe ntishobora guhindurwa.' : 'Only pending listings can be edited.', 'warn');
       closeAddProperty(); return;
     }
     // Merge new field values into the existing property, keeping system fields unchanged
@@ -5204,7 +5217,7 @@ function submitProperty() {
     return;
   }
 
-  if(!g('prop-price')) { showToast(curLang==='rw'?'Shyira igiciro!':'Enter price!'); return; }
+  if(!g('prop-price')) { showToast(curLang==='rw'?'Shyira igiciro!':'Enter price!', 'error'); return; }
   if(!g('prop-type')) { showToast('Hitamo ubwoko!'); return; }
   if(!g('prop-district')) { showToast('Hitamo akarere!'); return; }
 
@@ -5251,7 +5264,7 @@ function submitProperty() {
     var hasFile = file1El && file1El.files && file1El.files[0];
 
     if(!hasFile) {
-      showToast(curLang==='rw' ? 'Shyiramo nibura ifoto imwe!' : 'Upload at least one photo!');
+      showToast(curLang==='rw' ? 'Shyiramo nibura ifoto imwe!' : 'Upload at least one photo!', 'error');
       return;
     }
 
@@ -5376,12 +5389,12 @@ function handleLogin() {
   var email = document.getElementById('login-email');
   var pass = document.getElementById('login-pass');
   if (!email||!email.value) {
-    showToast(curLang==='rw'?'Shyira imeyili!':'Enter email!');
+    showToast(curLang==='rw'?'Shyira imeyili', 'error'!':'Enter email!');
     if(email){ email.closest('.field').classList.add('field-error'); email.focus(); }
     return;
   }
   if (!pass||!pass.value) {
-    showToast(curLang==='rw'?'Shyira ijambo banga!':'Enter password!');
+    showToast(curLang==='rw'?'Shyira ijambo banga!':'Enter password!', 'error');
     if(pass){ pass.closest('.field').classList.add('field-error'); pass.focus(); }
     return;
   }
@@ -5522,10 +5535,10 @@ function animateKPIs() {
 function go(name) {
   if (name === 'dashboard') {
     if (!currentUser) {
-      showToast(curLang==='rw' ? 'Injira mbere!' : 'Please log in first!');
+      showToast(curLang==='rw' ? 'Injira mbere!' : 'Please log in first!', 'warn');
       name = 'auth';
     } else if (currentUser.role === 'PendingAgent') {
-      showToast(curLang==='rw' ? '⏳ Iyandikishe ryawe irimo gusuzumwa! KOMISIYONERI izakugezaho mu masaa 24.' : '⏳ Your application is under review! We will contact you within 24 hours.');
+      showToast(curLang==='rw' ? '⏳ Iyandikishe ryawe irimo gusuzumwa! KOMISIYONERI izakugezaho mu masaa 24.' : '⏳ Your application is under review! We will contact you within 24 hours.', 'warn');
       return;
     } else if (currentUser.role !== 'Agent' && currentUser.role !== 'Admin') {
       showToast(curLang==='rw' ? 'Dashboard irabana n\'Agents gusa!' : 'Dashboard is for Agents only!');
@@ -6073,7 +6086,7 @@ function openAdmin() {
     currentUser.role === 'Admin'
   );
   if (!isAdmin) {
-    showToast(curLang==='rw' ? 'Ntabwo wemerewe! Admin gusa.' : 'Access denied. Admin only.');
+    showToast(curLang==='rw' ? 'Ntabwo wemerewe! Admin gusa.' : 'Access denied. Admin only.', 'error');
     return;
   }
   var m = document.getElementById('admin-modal');
@@ -6296,9 +6309,11 @@ function submitBooking() {
   var name = document.getElementById('book-name');
   var phone = document.getElementById('book-phone');
   var date = document.getElementById('book-date');
-  if(!name||!name.value){showToast('Shyira amazina yawe!');return;}
-  if(!phone||!phone.value){showToast('Shyira telefoni yawe!');return;}
-  if(!date||!date.value){showToast('Hitamo itariki!');return;}
+  if(!name||!name.value){showToast('Shyira amazina yawe!', 'error');return;}
+  if(!phone||!phone.value){showToast('Shyira telefoni yawe!', 'error');return;}
+  if(!date||!date.value){showToast('Hitamo itariki!', 'error');return;}
+  var _bb=document.getElementById('book-submit-btn'),_bl=document.getElementById('book-submit-lbl');
+  if(_bb){_bb.disabled=true;_bb.classList.add('btn-loading');if(_bl)_bl.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Tegereza...':'Sending...');}
   var time = document.getElementById('book-time');
   var cur = window._currentProp || {};
   var bookings = [];
@@ -6316,6 +6331,7 @@ function submitBooking() {
   bookings.push(bk);
   try{localStorage.setItem('km_bookings',JSON.stringify(bookings));}catch(e){}
   if (bk.id) try { rtdb.ref('bookings/' + bk.id).set(bk); } catch(e){}
+  if(_bb){_bb.disabled=false;_bb.classList.remove('btn-loading');if(_bl)_bl.textContent='Emeza Gahunda';}
   closeBooking();
   showToast('Gahunda yashyizweho! Agent azakuhamagara kuri '+phone.value+'. ✅');
   if (bk.agentEmail) {
@@ -6353,7 +6369,7 @@ function submitMessage() {
   var name = document.getElementById('msg-name');
   var phone = document.getElementById('msg-phone');
   var text = document.getElementById('msg-text');
-  if(!name||!name.value){showToast('Shyira amazina yawe!');return;}
+  if(!name||!name.value){showToast('Shyira amazina yawe!', 'error');return;}
   if(!text||!text.value){showToast('Andika ubutumwa bwawe!');return;}
   var msgs = [];
   try{msgs=JSON.parse(localStorage.getItem('km_messages')||'[]');}catch(e){}
@@ -6398,8 +6414,8 @@ function selectDepMethod(el) {
 function submitDeposit() {
   var name = document.getElementById('dep-name');
   var phone = document.getElementById('dep-phone');
-  if(!name||!name.value){showToast('Shyira amazina yawe!');return;}
-  if(!phone||!phone.value){showToast('Shyira telefoni!');return;}
+  if(!name||!name.value){showToast('Shyira amazina yawe!', 'error');return;}
+  if(!phone||!phone.value){showToast('Shyira telefoni', 'error'!', 'error');return;}
   closeDepositPay();
   showToast('Deposit yoherejwe! Tuzakwemeza mu masaha 24. ✅');
 }
@@ -6631,7 +6647,7 @@ function setRating(r) {
 function submitReview() {
   var name = document.getElementById('rev-name');
   var text = document.getElementById('rev-text');
-  if(!name||!name.value){showToast('Shyira amazina yawe!');return;}
+  if(!name||!name.value){showToast('Shyira amazina yawe!', 'error');return;}
   if(currentRating === 0){showToast('Hitamo inyenyeri (rating)!');return;}
   if(!text||!text.value){showToast('Andika ibitekerezo byawe!');return;}
   var cur = window._currentProp || {};
@@ -6891,7 +6907,7 @@ function sendOTP() {
   var country = document.getElementById('phone-country').value;
   var number = document.getElementById('phone-number').value.replace(/\s/g, '');
   if (!number || number.length < 8) {
-    showToast('Injiza numero ya telefoni nzima!');
+    showToast('Injiza numero ya telefoni', 'error' nzima!');
     return;
   }
   var fullPhone = country + number;
@@ -7072,7 +7088,7 @@ go = function(page) {
 var agentCurrentStep = 1;
 
 function openAgentReg() {
-  if(!window._agentRegOpen) { showToast('⛔ Agent registration is currently closed.'); return; }
+  if(!window._agentRegOpen) { showToast('⛔ Agent registration is currently closed.', 'warn'); return; }
   var m = document.getElementById('agent-reg-modal');
   if(m) m.style.display = 'flex';
   agentStep(1);
@@ -7095,13 +7111,15 @@ function agentStep(step) {
 
 function submitAgentReg() {
   var g = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
-  if(!g('ag-name')){showToast('Shyira amazina yawe!');return;}
-  if(!g('ag-phone')){showToast('Shyira telefoni yawe!');return;}
-  if(!g('ag-id')){showToast('Shyira numero y\'indangamuntu!');return;}
-  if(!g('ag-zone')){showToast('Hitamo akarere kawe!');return;}
+  if(!g('ag-name')){showToast('Shyira amazina yawe!', 'error');return;}
+  if(!g('ag-phone')){showToast('Shyira telefoni yawe!', 'error');return;}
+  if(!g('ag-id')){showToast("Shyira numero y'indangamuntu!", 'error');return;}
+  if(!g('ag-zone')){showToast('Hitamo akarere kawe!', 'error');return;}
   var agEmail = g('ag-email');
   if(agEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(agEmail)){showToast('Imeyili ntabwo ari nziza!');return;}
-  if(!document.getElementById('ag-agree').checked){showToast('Emeza amasezerano mbere!');return;}
+  if(!document.getElementById('ag-agree').checked){showToast('Emeza amasezerano mbere!', 'error');return;}
+  var _arb=document.getElementById('agent-reg-btn'),_arl=document.getElementById('agent-reg-lbl');
+  if(_arb){_arb.disabled=true;_arb.classList.add('btn-loading');if(_arl)_arl.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Tegereza...':'Sending...');}
 
   var langs = [];
   if(document.getElementById('lang-rw').checked) langs.push('Kinyarwanda');
@@ -7142,6 +7160,7 @@ function submitAgentReg() {
     saveUser(currentUser);
   }
 
+  if(_arb){_arb.disabled=false;_arb.classList.remove('btn-loading');if(_arl)_arl.textContent='✅ Iyandikishe nka Agent';}
   closeAgentReg();
   showToast('✅ Iyandikishe yagenze neza! KOMISIYONERI izakugenzura mu masaa 24.');
 
@@ -7298,8 +7317,10 @@ function closeLead() {
 
 function submitLead() {
   var g = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
-  if(!g('lead-name')){showToast('Shyira amazina yawe!');return;}
-  if(!g('lead-phone')){showToast('Shyira telefoni yawe!');return;}
+  if(!g('lead-name')){showToast('Shyira amazina yawe!', 'error');return;}
+  if(!g('lead-phone')){showToast('Shyira telefoni yawe!', 'error');return;}
+  var _lb=document.getElementById('lead-submit-btn'),_ll=document.getElementById('lead-submit-lbl');
+  if(_lb){_lb.disabled=true;_lb.classList.add('btn-loading');if(_ll)_ll.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Tegereza...':'Sending...');}
 
   var zone = g('lead-zone');
   var lead = {
@@ -7343,6 +7364,7 @@ function submitLead() {
   leads.push(lead);
   try { localStorage.setItem('km_leads', JSON.stringify(leads)); } catch(e){}
 
+  if(_lb){_lb.disabled=false;_lb.classList.remove('btn-loading');if(_ll)_ll.textContent='Ohereza — Agent Azakuhamagara!';}
   closeLead();
 
   if(lead.agentName) {
@@ -7386,7 +7408,7 @@ function openAdminLeads() {
     currentUser.role === 'Admin'
   );
   if (!isAdmin) {
-    showToast(curLang==='rw' ? 'Ntabwo wemerewe! Admin gusa.' : 'Access denied. Admin only.');
+    showToast(curLang==='rw' ? 'Ntabwo wemerewe! Admin gusa.' : 'Access denied. Admin only.', 'error');
     return;
   }
 
