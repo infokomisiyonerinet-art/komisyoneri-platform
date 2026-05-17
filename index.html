@@ -6451,8 +6451,8 @@ go = function(page) {
   }
 };
 
-// Also load on page init
-setTimeout(loadApprovedProperties, 300);
+// Also load on page init — after demos are already in localStorage
+setTimeout(loadApprovedProperties, 400);
 
 
 // === BOOKING SYSTEM ===
@@ -7835,11 +7835,11 @@ function updateBottomNav(page) {
   }
 }
 
-// Initialize demos on load
+// Initialize demos immediately — must run before loadApprovedProperties
 document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(loadDemoListings, 500);
+  loadDemoListings();
 });
-setTimeout(loadDemoListings, 600);
+if (document.readyState !== 'loading') loadDemoListings();
 
 
 // === ADMIN ADD PROPERTY DIRECT (from admin panel) ===
@@ -9050,6 +9050,51 @@ go = function(page) {
   <div class="tour-room-bar" id="tour-room-bar"></div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<script>
+  // Firebase Configuration yawe nyayo
+  const firebaseConfig = {
+    apiKey: "AIzaSyAtNnbsXKFgABvP-nTvGwz6pooGnSWSshY",
+    authDomain: "komisiyoneri-78e82.firebaseapp.com",
+    databaseURL: "https://komisiyoneri-78e82-default-rtdb.firebaseio.com",
+    projectId: "komisiyoneri-78e82",
+    storageBucket: "komisiyoneri-78e82.firebasestorage.app",
+    messagingSenderId: "580559336922",
+    appId: "1:580559336922:web:2275a3013b07cf56c0fce3",
+    measurementId: "G-NE0PHMB885"
+  };
+
+  // Initialize Firebase mu buryo bukora muri Browser
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const rtdb = firebase.database();
+const storage = firebase.storage();
+firebase.analytics();
+
+console.log("Firebase yafungutse neza!");
+
+  // ── EmailJS config — replace placeholders in your EmailJS dashboard ──
+  var _ejsKey          = 'YOUR_EMAILJS_PUBLIC_KEY';
+  var _ejsSvc          = 'service_komisiyoneri';
+  var _ejsTmplLead     = 'tmpl_lead';
+  var _ejsTmplApproval = 'tmpl_approval';
+  var _ejsTmplBooking  = 'tmpl_booking';
+
+  function kmSendEmail(templateId, params) {
+    if (!_ejsKey || _ejsKey === 'YOUR_EMAILJS_PUBLIC_KEY') return;
+    if (typeof emailjs === 'undefined') return;
+    emailjs.send(_ejsSvc, templateId, params, _ejsKey)
+      .catch(function(err){ console.warn('[EmailJS]', err); });
+  }
+</script>
+
 <script>
 (function(){
   try {
@@ -9151,10 +9196,17 @@ go = function(page) {
     function attachRealtimeListeners() {
       // Properties — keep homepage fresh + refresh admin listings tab if open
       rtdb.ref('properties').on('value', function(s) {
-        if (!s.exists()) return;
+        if (!s.exists() || !s.hasChildren()) {
+          // Firebase empty — keep demo data, just re-render
+          if (typeof loadApprovedProperties === 'function') loadApprovedProperties();
+          return;
+        }
         var items = [];
         s.forEach(function(c){ items.push(c.val()); });
-        if (!items.length) return;
+        if (!items.length) {
+          if (typeof loadApprovedProperties === 'function') loadApprovedProperties();
+          return;
+        }
         _set('km_properties', JSON.stringify(items));
         if (typeof loadApprovedProperties === 'function') loadApprovedProperties();
         var adminModal = document.getElementById('admin-modal');
@@ -9322,49 +9374,5 @@ go = function(page) {
       : attachRealtimeListeners();
   } catch(e){ console.error('Sync error:',e); }
 })();
-</script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-
-<script>
-  // Firebase Configuration yawe nyayo
-  const firebaseConfig = {
-    apiKey: "AIzaSyAtNnbsXKFgABvP-nTvGwz6pooGnSWSshY",
-    authDomain: "komisiyoneri-78e82.firebaseapp.com",
-    databaseURL: "https://komisiyoneri-78e82-default-rtdb.firebaseio.com",
-    projectId: "komisiyoneri-78e82",
-    storageBucket: "komisiyoneri-78e82.firebasestorage.app",
-    messagingSenderId: "580559336922",
-    appId: "1:580559336922:web:2275a3013b07cf56c0fce3",
-    measurementId: "G-NE0PHMB885"
-  };
-
-  // Initialize Firebase mu buryo bukora muri Browser
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const rtdb = firebase.database();
-const storage = firebase.storage();
-firebase.analytics();
-
-console.log("Firebase yafungutse neza!");
-
-  // ── EmailJS config — replace placeholders in your EmailJS dashboard ──
-  var _ejsKey          = 'YOUR_EMAILJS_PUBLIC_KEY';
-  var _ejsSvc          = 'service_komisiyoneri';
-  var _ejsTmplLead     = 'tmpl_lead';
-  var _ejsTmplApproval = 'tmpl_approval';
-  var _ejsTmplBooking  = 'tmpl_booking';
-
-  function kmSendEmail(templateId, params) {
-    if (!_ejsKey || _ejsKey === 'YOUR_EMAILJS_PUBLIC_KEY') return;
-    if (typeof emailjs === 'undefined') return;
-    emailjs.send(_ejsSvc, templateId, params, _ejsKey)
-      .catch(function(err){ console.warn('[EmailJS]', err); });
-  }
 </script>
 </body></html>
