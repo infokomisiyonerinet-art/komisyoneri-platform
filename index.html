@@ -3604,7 +3604,7 @@ html,body{overscroll-behavior-x:none}
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
           + Ongeramo Imitungo
         </button>
-        <button onclick="loadDemoProperties();closeAdmin();showToast('Demo zashyizweho! ✅')" class="btn btn-sm" style="justify-content:center;font-size:.78rem;border:1.5px solid var(--gold);color:var(--navy)">
+        <button onclick="loadDemoListings();closeAdmin();showToast('Demo zashyizweho! ✅')" class="btn btn-sm" style="justify-content:center;font-size:.78rem;border:1.5px solid var(--gold);color:var(--navy)">
           ✦ Shyiraho Demos
         </button>
       </div>
@@ -6939,11 +6939,12 @@ var firebaseAuth = null;
 var confirmationResult = null;
 var recaptchaVerifier = null;
 
-// Initialize Firebase
+// Initialize Firebase auth — call this before any auth operation
 function initFirebase() {
   try {
     if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
       firebaseAuth = firebase.auth();
+      if (!firebaseAuth) throw new Error('firebase.auth() returned null');
       if (!window._authListenerAttached) {
         window._authListenerAttached = true;
         firebaseAuth.onAuthStateChanged(function(fbUser) {
@@ -9072,11 +9073,15 @@ go = function(page) {
   };
 
   // Initialize Firebase mu buryo bukora muri Browser
-firebase.initializeApp(firebaseConfig);
+try {
+  firebase.initializeApp(firebaseConfig);
+} catch(e) {
+  if (!/already initialized/.test(e.message)) console.error('Firebase init failed:', e);
+}
 const db = firebase.firestore();
 const rtdb = firebase.database();
 const storage = firebase.storage();
-firebase.analytics();
+try { firebase.analytics(); } catch(e) {}
 
 console.log("Firebase yafungutse neza!");
 
@@ -9098,7 +9103,6 @@ console.log("Firebase yafungutse neza!");
 <script>
 (function(){
   try {
-    var rtdb = firebase.database();
     var _set = localStorage.setItem.bind(localStorage);
 
     // ── Desktop / Push Notification helpers ──
