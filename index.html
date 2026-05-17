@@ -6451,8 +6451,8 @@ go = function(page) {
   }
 };
 
-// Also load on page init
-setTimeout(loadApprovedProperties, 300);
+// Also load on page init — after demos are already in localStorage
+setTimeout(loadApprovedProperties, 400);
 
 
 // === BOOKING SYSTEM ===
@@ -7835,11 +7835,11 @@ function updateBottomNav(page) {
   }
 }
 
-// Initialize demos on load
+// Initialize demos immediately — must run before loadApprovedProperties
 document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(loadDemoListings, 500);
+  loadDemoListings();
 });
-setTimeout(loadDemoListings, 600);
+if (document.readyState !== 'loading') loadDemoListings();
 
 
 // === ADMIN ADD PROPERTY DIRECT (from admin panel) ===
@@ -9196,10 +9196,17 @@ console.log("Firebase yafungutse neza!");
     function attachRealtimeListeners() {
       // Properties — keep homepage fresh + refresh admin listings tab if open
       rtdb.ref('properties').on('value', function(s) {
-        if (!s.exists()) return;
+        if (!s.exists() || !s.hasChildren()) {
+          // Firebase empty — keep demo data, just re-render
+          if (typeof loadApprovedProperties === 'function') loadApprovedProperties();
+          return;
+        }
         var items = [];
         s.forEach(function(c){ items.push(c.val()); });
-        if (!items.length) return;
+        if (!items.length) {
+          if (typeof loadApprovedProperties === 'function') loadApprovedProperties();
+          return;
+        }
         _set('km_properties', JSON.stringify(items));
         if (typeof loadApprovedProperties === 'function') loadApprovedProperties();
         var adminModal = document.getElementById('admin-modal');
