@@ -1,942 +1,1460 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="rw">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>KOMISIYONERI ConnectPro — Rwanda's #1 Real Estate Platform</title>
-<meta name="description" content="Find verified properties for sale and rent across Rwanda. Kigali apartments, houses, land & commercial — trusted by thousands. Connect instantly via WhatsApp."/>
-<meta name="keywords" content="Rwanda real estate, Kigali houses for sale, apartments for rent Kigali, property Rwanda, KOMISIYONERI"/>
-<meta property="og:title" content="KOMISIYONERI ConnectPro — Rwanda's #1 Real Estate Platform"/>
-<meta property="og:description" content="Find verified properties for sale and rent across Rwanda. Connect instantly via WhatsApp."/>
-<meta property="og:image" content="https://images.unsplash.com/photo-1580237541049-2d715a09486e?w=1200"/>
-<meta property="og:type" content="website"/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-<style>
-:root {
-  --blue-900: #0a1628;
-  --blue-800: #0d2040;
-  --blue-700: #0e3460;
-  --blue-600: #1251a3;
-  --blue-500: #1a6dd8;
-  --blue-400: #3b8ef0;
-  --blue-100: #ddeeff;
-  --blue-50: #f0f7ff;
-  --gold: #f5a623;
-  --gold-light: #ffc84a;
-  --green: #00c853;
-  --red: #e53935;
-  --white: #ffffff;
-  --gray-50: #f8fafc;
-  --gray-100: #f1f5f9;
-  --gray-200: #e2e8f0;
-  --gray-400: #94a3b8;
-  --gray-600: #475569;
-  --gray-800: #1e293b;
-  --shadow-sm: 0 2px 8px rgba(10,22,40,0.08);
-  --shadow-md: 0 8px 32px rgba(10,22,40,0.12);
-  --shadow-lg: 0 20px 60px rgba(10,22,40,0.18);
-  --radius: 16px;
-  --radius-sm: 10px;
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; font-size: 16px; }
-body { font-family: 'DM Sans', sans-serif; color: var(--gray-800); background: var(--white); overflow-x: hidden; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KOMISIYONERI ConnectPro – Imitungo Rwanda</title>
+  <meta name="description" content="Shaka inzu, imitungo no gukodesha Rwanda. KOMISIYONERI ConnectPro – Platform ya kijyambere yo gucuruza imitungo." />
+  <meta property="og:title" content="KOMISIYONERI ConnectPro" />
+  <meta property="og:description" content="Rwanda's #1 Real Estate Platform" />
+  <meta property="og:type" content="website" />
 
-/* ─── NAV ─── */
-.nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  padding: 0 24px;
-  display: flex; align-items: center; justify-content: space-between;
-  height: 68px;
-  background: rgba(10,22,40,0.92);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  transition: background 0.3s;
-}
-.nav.scrolled { background: var(--blue-900); }
-.nav-logo {
-  display: flex; align-items: center; gap: 10px; text-decoration: none;
-}
-.nav-logo-icon {
-  width: 38px; height: 38px; border-radius: 10px;
-  background: linear-gradient(135deg, var(--blue-500), var(--blue-400));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
-}
-.nav-logo-text { display: flex; flex-direction: column; }
-.nav-logo-main { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--white); letter-spacing: 0.5px; line-height: 1.1; }
-.nav-logo-sub { font-size: 10px; color: var(--blue-400); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 500; }
-.nav-links { display: flex; align-items: center; gap: 6px; }
-.nav-links a { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 14px; border-radius: 8px; transition: all 0.2s; }
-.nav-links a:hover { color: var(--white); background: rgba(255,255,255,0.08); }
-.nav-cta { background: var(--blue-500); color: var(--white) !important; border-radius: 10px !important; padding: 9px 20px !important; font-weight: 600 !important; }
-.nav-cta:hover { background: var(--blue-400) !important; transform: translateY(-1px); }
-.hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 8px; }
-.hamburger span { width: 22px; height: 2px; background: var(--white); border-radius: 2px; transition: all 0.3s; display: block; }
-.mobile-menu { display: none; position: fixed; top: 68px; left: 0; right: 0; background: var(--blue-900); padding: 16px 24px 24px; z-index: 99; border-bottom: 1px solid rgba(255,255,255,0.08); flex-direction: column; gap: 4px; }
-.mobile-menu.open { display: flex; }
-.mobile-menu a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 15px; font-weight: 500; padding: 12px 16px; border-radius: 10px; transition: all 0.2s; }
-.mobile-menu a:hover { background: rgba(255,255,255,0.06); color: var(--white); }
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-/* ─── HERO ─── */
-.hero {
-  min-height: 100vh;
-  background: linear-gradient(165deg, var(--blue-900) 0%, var(--blue-800) 40%, #0a2555 100%);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 100px 24px 60px;
-  position: relative; overflow: hidden;
-}
-.hero-bg-pattern {
-  position: absolute; inset: 0; pointer-events: none; opacity: 0.04;
-  background-image: radial-gradient(circle at 20% 50%, var(--blue-400) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, var(--blue-500) 0%, transparent 40%);
-}
-.hero-badge {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(26,109,216,0.15); border: 1px solid rgba(59,142,240,0.3);
-  color: var(--blue-400); font-size: 13px; font-weight: 600;
-  padding: 7px 16px; border-radius: 50px; margin-bottom: 28px;
-  letter-spacing: 0.5px;
-  animation: fadeUp 0.6s ease both;
-}
-.hero-badge span { width: 6px; height: 6px; border-radius: 50%; background: var(--blue-400); animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
-.hero h1 {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(36px, 6vw, 72px);
-  font-weight: 900; color: var(--white); text-align: center;
-  line-height: 1.1; max-width: 780px;
-  animation: fadeUp 0.6s 0.1s ease both;
-}
-.hero h1 .accent { color: var(--blue-400); }
-.hero-sub {
-  font-size: clamp(15px, 2vw, 18px); color: rgba(255,255,255,0.65);
-  text-align: center; max-width: 540px; margin-top: 18px; line-height: 1.7;
-  animation: fadeUp 0.6s 0.2s ease both;
-  font-weight: 300;
-}
-.hero-stats {
-  display: flex; gap: 32px; margin-top: 40px;
-  animation: fadeUp 0.6s 0.3s ease both;
-  flex-wrap: wrap; justify-content: center;
-}
-.hero-stat { text-align: center; }
-.hero-stat-num { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--white); }
-.hero-stat-label { font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
-.hero-search-box {
-  width: 100%; max-width: 780px; margin-top: 44px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 20px; padding: 20px;
-  backdrop-filter: blur(12px);
-  animation: fadeUp 0.6s 0.4s ease both;
-}
-.search-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
-.search-tab {
-  padding: 8px 20px; border-radius: 10px; border: none;
-  font-size: 14px; font-weight: 600; cursor: pointer;
-  transition: all 0.2s; font-family: 'DM Sans', sans-serif;
-}
-.search-tab.active { background: var(--blue-500); color: var(--white); }
-.search-tab:not(.active) { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
-.search-tab:not(.active):hover { background: rgba(255,255,255,0.12); color: var(--white); }
-.search-row { display: flex; gap: 12px; flex-wrap: wrap; }
-.search-field {
-  flex: 1; min-width: 160px;
-  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 12px; padding: 13px 16px;
-  color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 14px;
-  outline: none; transition: border-color 0.2s;
-  appearance: none;
-}
-.search-field::placeholder { color: rgba(255,255,255,0.4); }
-.search-field:focus { border-color: var(--blue-400); background: rgba(255,255,255,0.1); }
-.search-field option { background: var(--blue-900); color: var(--white); }
-.search-btn {
-  background: var(--blue-500); color: var(--white);
-  border: none; border-radius: 12px; padding: 13px 28px;
-  font-size: 15px; font-weight: 600; cursor: pointer;
-  font-family: 'DM Sans', sans-serif; transition: all 0.2s;
-  white-space: nowrap; display: flex; align-items: center; gap: 8px;
-}
-.search-btn:hover { background: var(--blue-400); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(26,109,216,0.4); }
-@keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-/* ─── SECTIONS ─── */
-section { padding: 80px 24px; }
-.container { max-width: 1200px; margin: 0 auto; }
-.section-label { font-size: 12px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--blue-500); margin-bottom: 12px; }
-.section-title { font-family: 'Playfair Display', serif; font-size: clamp(28px, 4vw, 42px); font-weight: 700; color: var(--blue-900); line-height: 1.15; }
-.section-sub { font-size: 16px; color: var(--gray-600); margin-top: 12px; max-width: 520px; line-height: 1.7; font-weight: 300; }
+    // =============================================
+    // 🔥 FIREBASE CONFIG — SHYIRAMO YAWE HANO
+    // =============================================
+    const firebaseConfig = {
+      apiKey: "SHYIRAMO_API_KEY_YAWE",
+      authDomain: "SHYIRAMO_AUTH_DOMAIN_YAWE",
+      databaseURL: "https://SHYIRAMO_PROJECT_ID-default-rtdb.firebaseio.com",
+      projectId: "SHYIRAMO_PROJECT_ID",
+      storageBucket: "SHYIRAMO_PROJECT_ID.appspot.com",
+      messagingSenderId: "SHYIRAMO_SENDER_ID",
+      appId: "SHYIRAMO_APP_ID"
+    };
+    // =============================================
 
-/* ─── PROPERTY CARDS ─── */
-.listings-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 36px; flex-wrap: wrap; gap: 16px; }
-.filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 32px; }
-.filter-chip {
-  padding: 9px 18px; border-radius: 50px; font-size: 13px; font-weight: 600;
-  cursor: pointer; border: 2px solid var(--gray-200); background: var(--white);
-  color: var(--gray-600); transition: all 0.2s; font-family: 'DM Sans', sans-serif;
-}
-.filter-chip.active, .filter-chip:hover { border-color: var(--blue-500); color: var(--blue-500); background: var(--blue-50); }
-.sort-select {
-  padding: 9px 16px; border-radius: 10px; border: 2px solid var(--gray-200);
-  font-size: 13px; font-weight: 600; color: var(--gray-600);
-  font-family: 'DM Sans', sans-serif; outline: none; cursor: pointer;
-  background: var(--white);
-}
-.sort-select:focus { border-color: var(--blue-500); }
-.property-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-.property-card {
-  background: var(--white); border-radius: var(--radius);
-  box-shadow: var(--shadow-sm); overflow: hidden;
-  transition: all 0.3s ease; cursor: pointer;
-  border: 1px solid var(--gray-100);
-  display: flex; flex-direction: column;
-}
-.property-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: var(--blue-100); }
-.card-img-wrap { position: relative; overflow: hidden; aspect-ratio: 16/10; }
-.card-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; display: block; }
-.property-card:hover .card-img-wrap img { transform: scale(1.05); }
-.card-badges { position: absolute; top: 14px; left: 14px; display: flex; gap: 6px; }
-.badge {
-  padding: 5px 12px; border-radius: 8px; font-size: 11px; font-weight: 700;
-  letter-spacing: 0.5px; text-transform: uppercase;
-}
-.badge-sale { background: var(--blue-500); color: var(--white); }
-.badge-rent { background: var(--gold); color: var(--blue-900); }
-.badge-verified { background: rgba(0,200,83,0.9); color: var(--white); display: flex; align-items: center; gap: 4px; }
-.badge-hot { background: rgba(229,57,53,0.9); color: var(--white); }
-.card-fav {
-  position: absolute; top: 14px; right: 14px;
-  width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.9);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 16px; transition: all 0.2s;
-  border: none;
-}
-.card-fav:hover { background: var(--white); transform: scale(1.1); }
-.card-fav.liked { color: #e53935; }
-.card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
-.card-price { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--blue-900); }
-.card-price span { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 400; color: var(--gray-400); }
-.card-title { font-size: 15px; font-weight: 600; color: var(--gray-800); margin-top: 6px; line-height: 1.4; }
-.card-location { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--gray-400); margin-top: 5px; }
-.card-features { display: flex; gap: 16px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--gray-100); }
-.card-feat { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--gray-600); font-weight: 500; }
-.card-actions { display: flex; gap: 8px; margin-top: 16px; }
-.btn-whatsapp {
-  flex: 1; background: #25D366; color: var(--white);
-  border: none; border-radius: 10px; padding: 12px 16px;
-  font-size: 14px; font-weight: 600; cursor: pointer;
-  font-family: 'DM Sans', sans-serif; transition: all 0.2s;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  text-decoration: none;
-}
-.btn-whatsapp:hover { background: #1ebe5d; transform: translateY(-1px); }
-.btn-details {
-  background: var(--blue-50); color: var(--blue-600);
-  border: none; border-radius: 10px; padding: 12px 16px;
-  font-size: 14px; font-weight: 600; cursor: pointer;
-  font-family: 'DM Sans', sans-serif; transition: all 0.2s;
-  white-space: nowrap;
-}
-.btn-details:hover { background: var(--blue-100); }
+    window.__db = db;
+    window.__fbRef = ref;
+    window.__fbPush = push;
+    window.__fbOnValue = onValue;
+    window.__fbRemove = remove;
+    window.__fbSet = set;
 
-/* ─── TRUST SECTION ─── */
-.trust-section { background: var(--blue-900); }
-.trust-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-top: 48px; }
-.trust-card {
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: var(--radius); padding: 28px 24px; text-align: center;
-  transition: all 0.3s;
-}
-.trust-card:hover { background: rgba(255,255,255,0.08); transform: translateY(-4px); }
-.trust-icon { font-size: 36px; margin-bottom: 16px; }
-.trust-card h3 { font-size: 16px; font-weight: 700; color: var(--white); margin-bottom: 8px; }
-.trust-card p { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.7; font-weight: 300; }
-.trust-section .section-title { color: var(--white); }
-.trust-section .section-label { color: var(--blue-400); }
-.trust-section .section-sub { color: rgba(255,255,255,0.55); }
+    window.dispatchEvent(new Event("firebase-ready"));
+  </script>
 
-/* ─── HOW IT WORKS ─── */
-.how-section { background: var(--gray-50); }
-.steps-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; margin-top: 52px; position: relative; }
-.step {
-  display: flex; flex-direction: column; align-items: center; text-align: center;
-}
-.step-num {
-  width: 60px; height: 60px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--blue-500), var(--blue-400));
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--white);
-  box-shadow: 0 8px 24px rgba(26,109,216,0.3); margin-bottom: 20px;
-}
-.step h3 { font-size: 16px; font-weight: 700; color: var(--blue-900); margin-bottom: 8px; }
-.step p { font-size: 14px; color: var(--gray-600); line-height: 1.7; font-weight: 300; }
+  <style>
+    :root {
+      --blue: #1a56db;
+      --blue-dark: #1343b0;
+      --blue-light: #e8f0fe;
+      --blue-mid: #3b82f6;
+      --white: #ffffff;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-400: #94a3b8;
+      --gray-600: #475569;
+      --gray-800: #1e293b;
+      --green: #16a34a;
+      --green-light: #dcfce7;
+      --orange: #ea580c;
+      --orange-light: #fff7ed;
+      --red: #dc2626;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+      --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,.13);
+      --radius: 14px;
+      --radius-sm: 8px;
+      --font: 'Plus Jakarta Sans', sans-serif;
+    }
 
-/* ─── TESTIMONIALS ─── */
-.reviews-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 44px; }
-.review-card {
-  background: var(--white); border-radius: var(--radius);
-  padding: 24px; border: 1px solid var(--gray-200);
-  box-shadow: var(--shadow-sm); transition: all 0.3s;
-}
-.review-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
-.review-stars { color: var(--gold); font-size: 16px; letter-spacing: 2px; margin-bottom: 12px; }
-.review-text { font-size: 14px; color: var(--gray-600); line-height: 1.7; font-style: italic; font-weight: 300; margin-bottom: 16px; }
-.review-author { display: flex; align-items: center; gap: 12px; }
-.review-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: var(--blue-100); display: flex; align-items: center; justify-content: center; font-size: 18px; }
-.review-name { font-size: 14px; font-weight: 700; color: var(--blue-900); }
-.review-role { font-size: 12px; color: var(--gray-400); margin-top: 1px; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ─── CTA SECTION ─── */
-.cta-section {
-  background: linear-gradient(135deg, var(--blue-700), var(--blue-500));
-  text-align: center; padding: 80px 24px;
-}
-.cta-section h2 { font-family: 'Playfair Display', serif; font-size: clamp(28px, 4vw, 46px); font-weight: 700; color: var(--white); margin-bottom: 16px; }
-.cta-section p { font-size: 17px; color: rgba(255,255,255,0.75); margin-bottom: 36px; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.7; font-weight: 300; }
-.cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-.btn-primary {
-  background: var(--white); color: var(--blue-700);
-  border: none; border-radius: 12px; padding: 16px 32px;
-  font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif;
-  transition: all 0.2s; text-decoration: none; display: inline-block;
-}
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.2); }
-.btn-outline {
-  background: transparent; color: var(--white);
-  border: 2px solid rgba(255,255,255,0.5); border-radius: 12px; padding: 14px 32px;
-  font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif;
-  transition: all 0.2s; text-decoration: none; display: inline-block;
-}
-.btn-outline:hover { border-color: var(--white); background: rgba(255,255,255,0.1); }
+    body {
+      font-family: var(--font);
+      background: var(--gray-50);
+      color: var(--gray-800);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-/* ─── FOOTER ─── */
-footer { background: var(--blue-900); padding: 60px 24px 24px; }
-.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; max-width: 1200px; margin: 0 auto; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-.footer-brand p { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.8; margin-top: 16px; max-width: 280px; font-weight: 300; }
-.footer-col h4 { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.8); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
-.footer-col a { display: block; font-size: 14px; color: rgba(255,255,255,0.45); text-decoration: none; margin-bottom: 10px; transition: color 0.2s; font-weight: 300; }
-.footer-col a:hover { color: rgba(255,255,255,0.9); }
-.footer-bottom { max-width: 1200px; margin: 24px auto 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 16px; }
-.footer-copy { font-size: 13px; color: rgba(255,255,255,0.35); font-weight: 300; }
-.footer-socials { display: flex; gap: 10px; }
-.social-btn {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px; cursor: pointer; transition: all 0.2s; text-decoration: none;
-  color: rgba(255,255,255,0.6);
-}
-.social-btn:hover { background: var(--blue-500); color: var(--white); border-color: var(--blue-500); }
+    /* ===== NAV ===== */
+    nav {
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-200);
+      padding: 0 20px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+    .logo-text span:first-child {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--blue);
+      letter-spacing: -.3px;
+    }
+    .logo-text span:last-child {
+      font-size: 10px;
+      color: var(--gray-400);
+      font-weight: 500;
+    }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .lang-switcher {
+      display: flex;
+      background: var(--gray-100);
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid var(--gray-200);
+    }
+    .lang-btn {
+      border: none;
+      background: none;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--gray-400);
+      font-family: var(--font);
+      border-radius: 20px;
+      transition: all .2s;
+    }
+    .lang-btn.active {
+      background: var(--blue);
+      color: white;
+    }
+    .btn-add-nav {
+      background: var(--blue);
+      color: white;
+      border: none;
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: background .2s;
+    }
+    .btn-add-nav:hover { background: var(--blue-dark); }
 
-/* ─── MODAL ─── */
-.modal-overlay {
-  display: none; position: fixed; inset: 0; z-index: 200;
-  background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
-  align-items: center; justify-content: center; padding: 24px;
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  background: var(--white); border-radius: 20px; max-width: 640px; width: 100%;
-  max-height: 90vh; overflow-y: auto; position: relative;
-  animation: modalIn 0.3s ease;
-}
-@keyframes modalIn { from{opacity:0;transform:scale(0.94)} to{opacity:1;transform:scale(1)} }
-.modal-close {
-  position: absolute; top: 16px; right: 16px; z-index: 10;
-  width: 36px; height: 36px; border-radius: 50%; background: var(--gray-100);
-  border: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center;
-}
-.modal-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 20px 20px 0 0; }
-.modal-body { padding: 24px; }
-.modal-price { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--blue-900); }
-.modal-title { font-size: 18px; font-weight: 600; color: var(--gray-800); margin-top: 8px; }
-.modal-location { font-size: 14px; color: var(--gray-400); margin-top: 6px; display: flex; align-items: center; gap: 5px; }
-.modal-details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px; }
-.modal-detail { background: var(--gray-50); border-radius: 12px; padding: 14px; text-align: center; }
-.modal-detail-label { font-size: 11px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-.modal-detail-val { font-size: 16px; font-weight: 700; color: var(--blue-900); }
-.modal-desc { font-size: 14px; color: var(--gray-600); line-height: 1.8; margin-top: 20px; font-weight: 300; }
-.modal-actions { display: flex; gap: 10px; margin-top: 24px; }
-.modal-actions .btn-whatsapp, .modal-actions .btn-details { flex: 1; }
+    /* ===== HERO ===== */
+    .hero {
+      background: linear-gradient(135deg, #0f2d6e 0%, var(--blue) 60%, var(--blue-mid) 100%);
+      padding: 56px 20px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,.15);
+      color: white;
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+    .hero h1 {
+      font-size: clamp(24px, 5vw, 42px);
+      font-weight: 800;
+      color: white;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .hero h1 span { color: #93c5fd; }
+    .hero p {
+      color: rgba(255,255,255,.8);
+      font-size: 15px;
+      margin-bottom: 28px;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
 
-/* ─── FLOATING WA ─── */
-.float-wa {
-  position: fixed; bottom: 24px; right: 24px; z-index: 99;
-  width: 58px; height: 58px; border-radius: 50%;
-  background: #25D366; color: var(--white); font-size: 26px;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8px 24px rgba(37,211,102,0.4); cursor: pointer;
-  text-decoration: none; transition: all 0.2s; border: none;
-  animation: floatBounce 3s ease infinite;
-}
-.float-wa:hover { transform: scale(1.1); box-shadow: 0 12px 32px rgba(37,211,102,0.5); }
-@keyframes floatBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+    /* ===== SEARCH BAR ===== */
+    .search-box {
+      background: white;
+      border-radius: var(--radius);
+      padding: 16px;
+      max-width: 680px;
+      margin: 0 auto;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      z-index: 2;
+    }
+    .search-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .search-tab {
+      padding: 7px 18px;
+      border-radius: 20px;
+      border: 2px solid var(--gray-200);
+      background: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--gray-600);
+      font-family: var(--font);
+      transition: all .2s;
+    }
+    .search-tab.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: white;
+    }
+    .search-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+    @media(max-width:500px) {
+      .search-fields { grid-template-columns: 1fr; }
+    }
+    .search-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gray-600);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .search-field input,
+    .search-field select {
+      width: 100%;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: var(--font);
+      color: var(--gray-800);
+      background: var(--gray-50);
+      outline: none;
+      transition: border-color .2s;
+    }
+    .search-field input:focus,
+    .search-field select:focus { border-color: var(--blue); background: white; }
+    .btn-search {
+      background: var(--blue);
+      color: white;
+      border: none;
+      padding: 11px 22px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background .2s;
+    }
+    .btn-search:hover { background: var(--blue-dark); }
 
-/* ─── TOAST ─── */
-.toast {
-  position: fixed; bottom: 96px; right: 24px; z-index: 999;
-  background: var(--blue-900); color: var(--white);
-  padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 500;
-  box-shadow: var(--shadow-lg); transform: translateX(120%); transition: transform 0.4s ease;
-  display: flex; align-items: center; gap: 10px; max-width: 280px;
-}
-.toast.show { transform: translateX(0); }
+    /* ===== STATS BAR ===== */
+    .stats-bar {
+      background: white;
+      border-bottom: 1px solid var(--gray-200);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .stat-item {
+      text-align: center;
+    }
+    .stat-item strong {
+      display: block;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--blue);
+    }
+    .stat-item span {
+      font-size: 11px;
+      color: var(--gray-400);
+      font-weight: 600;
+    }
 
-/* ─── NO RESULTS ─── */
-.no-results { text-align: center; padding: 60px 24px; color: var(--gray-400); }
-.no-results h3 { font-size: 20px; font-weight: 600; color: var(--gray-600); margin-top: 12px; }
-.no-results p { margin-top: 8px; font-size: 14px; }
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px 16px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--gray-800);
+    }
+    .section-count {
+      font-size: 13px;
+      color: var(--gray-400);
+      font-weight: 500;
+    }
 
-/* ─── RESPONSIVE ─── */
-@media(max-width: 768px) {
-  .nav-links { display: none; }
-  .hamburger { display: flex; }
-  .search-row { flex-direction: column; }
-  .property-grid { grid-template-columns: 1fr; }
-  .footer-grid { grid-template-columns: 1fr 1fr; }
-  .modal-details { grid-template-columns: repeat(2,1fr); }
-}
-@media(max-width: 480px) {
-  section { padding: 60px 16px; }
-  .footer-grid { grid-template-columns: 1fr; }
-  .hero-stats { gap: 20px; }
-  .hero-stat-num { font-size: 22px; }
-}
-</style>
+    /* ===== FILTERS ===== */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .filter-chip {
+      padding: 7px 14px;
+      border-radius: 20px;
+      border: 1.5px solid var(--gray-200);
+      background: white;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--gray-600);
+      font-family: var(--font);
+      transition: all .2s;
+    }
+    .filter-chip.active {
+      background: var(--blue-light);
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+    .filter-chip:hover { border-color: var(--blue); }
+
+    /* ===== PROPERTY GRID ===== */
+    .properties-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    /* ===== PROPERTY CARD ===== */
+    .property-card {
+      background: white;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--gray-200);
+      transition: transform .2s, box-shadow .2s;
+      cursor: pointer;
+    }
+    .property-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+    }
+    .card-image {
+      position: relative;
+      height: 200px;
+      overflow: hidden;
+      background: var(--gray-100);
+    }
+    .card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .3s;
+    }
+    .property-card:hover .card-image img { transform: scale(1.04); }
+    .card-image .no-img {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray-400);
+      font-size: 13px;
+      gap: 8px;
+    }
+    .card-image .no-img span { font-size: 36px; }
+    .badge-type {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .badge-sale { background: var(--blue); color: white; }
+    .badge-rent { background: var(--green); color: white; }
+    .badge-verified {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(255,255,255,.95);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .btn-fav {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      background: rgba(255,255,255,.9);
+      border: none;
+      border-radius: 8px;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background .2s;
+    }
+    .btn-fav:hover { background: white; }
+    .card-body {
+      padding: 16px;
+    }
+    .card-price {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--blue);
+      margin-bottom: 4px;
+    }
+    .card-price small {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--gray-400);
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gray-800);
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-location {
+      font-size: 13px;
+      color: var(--gray-400);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+    .card-specs {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-top: 1px solid var(--gray-100);
+      border-bottom: 1px solid var(--gray-100);
+      margin-bottom: 12px;
+    }
+    .spec-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--gray-600);
+      font-weight: 600;
+    }
+    .spec-item span { font-size: 15px; }
+    .card-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-whatsapp {
+      flex: 1;
+      background: #25d366;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .btn-whatsapp:hover { background: #1fba57; }
+    .btn-call {
+      background: var(--blue-light);
+      color: var(--blue);
+      border: none;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .btn-call:hover { background: #dbeafe; }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--gray-400);
+    }
+    .empty-state .icon { font-size: 56px; margin-bottom: 16px; display: block; }
+    .empty-state h3 { font-size: 18px; font-weight: 700; color: var(--gray-600); margin-bottom: 8px; }
+    .empty-state p { font-size: 14px; margin-bottom: 20px; }
+
+    /* ===== FAB (Add Property) ===== */
+    .fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--blue);
+      color: white;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: none;
+      box-shadow: 0 4px 20px rgba(26,86,219,.4);
+      font-size: 26px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 90;
+      transition: transform .2s, background .2s;
+    }
+    .fab:hover { background: var(--blue-dark); transform: scale(1.07); }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      z-index: 200;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 28px 22px 36px;
+      animation: slideUp .3s ease;
+    }
+    @media(min-width:600px) {
+      .modal-overlay { align-items: center; }
+      .modal { border-radius: 20px; max-height: 85vh; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+    .modal-title { font-size: 18px; font-weight: 800; color: var(--gray-800); }
+    .btn-close {
+      background: var(--gray-100);
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gray-600);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius-sm);
+      padding: 11px 14px;
+      font-size: 14px;
+      font-family: var(--font);
+      color: var(--gray-800);
+      outline: none;
+      transition: border-color .2s;
+      background: var(--gray-50);
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { border-color: var(--blue); background: white; }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* ImgBB Upload */
+    .upload-area {
+      border: 2px dashed var(--gray-200);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative;
+    }
+    .upload-area:hover { border-color: var(--blue); background: var(--blue-light); }
+    .upload-area input[type=file] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .upload-area .upload-icon { font-size: 32px; margin-bottom: 8px; display: block; }
+    .upload-area p { font-size: 13px; color: var(--gray-400); margin: 0; }
+    .upload-area strong { color: var(--blue); }
+    .preview-img {
+      width: 100%;
+      max-height: 180px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      margin-top: 10px;
+      display: none;
+    }
+    .upload-status {
+      font-size: 12px;
+      margin-top: 6px;
+      font-weight: 600;
+    }
+    .upload-status.loading { color: var(--blue); }
+    .upload-status.success { color: var(--green); }
+    .upload-status.error { color: var(--red); }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--blue);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background .2s;
+      margin-top: 8px;
+    }
+    .btn-submit:hover { background: var(--blue-dark); }
+    .btn-submit:disabled { background: var(--gray-400); cursor: not-allowed; }
+
+    /* Admin delete */
+    .btn-delete-card {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--red);
+      font-size: 16px;
+      padding: 4px;
+      border-radius: 6px;
+      transition: background .15s;
+    }
+    .btn-delete-card:hover { background: #fee2e2; }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--gray-800);
+      color: white;
+      padding: 12px 22px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 300;
+      opacity: 0;
+      transition: all .3s;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.green { background: var(--green); }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: var(--gray-800);
+      color: rgba(255,255,255,.7);
+      text-align: center;
+      padding: 28px 20px;
+      font-size: 13px;
+      margin-top: 40px;
+    }
+    footer strong { color: white; font-weight: 800; }
+    footer a { color: #93c5fd; text-decoration: none; }
+
+    /* ===== LOADING SPINNER ===== */
+    .spinner-wrap {
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--gray-200);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== DETAIL MODAL ===== */
+    .detail-modal .modal {
+      max-width: 640px;
+    }
+    .detail-img {
+      width: 100%;
+      height: 240px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+    }
+    .detail-price {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--blue);
+      margin-bottom: 4px;
+    }
+    .detail-desc {
+      font-size: 14px;
+      color: var(--gray-600);
+      line-height: 1.6;
+      margin: 12px 0;
+    }
+    .detail-specs {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .detail-spec {
+      background: var(--gray-100);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gray-600);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
 </head>
+
 <body>
+  <!-- NAV -->
+  <nav>
+    <a class="logo" href="#">
+      <div class="logo-icon">K</div>
+      <div class="logo-text">
+        <span>KOMISIYONERI</span>
+        <span>ConnectPro Services</span>
+      </div>
+    </a>
+    <div class="nav-right">
+      <div class="lang-switcher">
+        <button class="lang-btn active" onclick="setLang('rw')">RW</button>
+        <button class="lang-btn" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" onclick="setLang('fr')">FR</button>
+      </div>
+      <button class="btn-add-nav" onclick="openModal()">
+        <span>+</span> <span data-t="add_property">Ongera Inzu</span>
+      </button>
+    </div>
+  </nav>
 
-<!-- NAV -->
-<nav class="nav" id="mainNav">
-  <a class="nav-logo" href="#">
-    <div class="nav-logo-icon">🏠</div>
-    <div class="nav-logo-text">
-      <span class="nav-logo-main">KOMISIYONERI</span>
-      <span class="nav-logo-sub">ConnectPro</span>
-    </div>
-  </a>
-  <div class="nav-links">
-    <a href="#listings">Properties</a>
-    <a href="#how">How it Works</a>
-    <a href="#reviews">Reviews</a>
-    <a href="#" class="nav-cta">List Property</a>
-  </div>
-  <div class="hamburger" onclick="toggleMenu()">
-    <span></span><span></span><span></span>
-  </div>
-</nav>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">🏆 <span data-t="hero_badge">Platform #1 y'Imitungo mu Rwanda</span></div>
+    <h1 data-t="hero_title">Shaka <span>Inzu Nziza</span><br>mu Rwanda Byoroshye</h1>
+    <p data-t="hero_sub">Imitungo igezweho, ifitemo amafoto, ihererekanya abantu n'inzu muri make.</p>
 
-<!-- MOBILE MENU -->
-<div class="mobile-menu" id="mobileMenu">
-  <a href="#listings" onclick="toggleMenu()">🏘️ Properties</a>
-  <a href="#how" onclick="toggleMenu()">📋 How it Works</a>
-  <a href="#reviews" onclick="toggleMenu()">⭐ Reviews</a>
-  <a href="#" onclick="toggleMenu()">➕ List Your Property</a>
-</div>
+    <!-- SEARCH BOX -->
+    <div class="search-box">
+      <div class="search-tabs">
+        <button class="search-tab active" onclick="setTab('all',this)" data-t="tab_all">Byose</button>
+        <button class="search-tab" onclick="setTab('sale',this)" data-t="tab_sale">Kugurisha</button>
+        <button class="search-tab" onclick="setTab('rent',this)" data-t="tab_rent">Gukodersha</button>
+      </div>
+      <div class="search-fields">
+        <div class="search-field">
+          <label data-t="lbl_location">Akarere</label>
+          <input type="text" id="s-location" placeholder="Kigali, Musanze..." />
+        </div>
+        <div class="search-field">
+          <label data-t="lbl_price">Igiciro (Max)</label>
+          <input type="number" id="s-price" placeholder="50,000,000 RWF" />
+        </div>
+        <button class="btn-search" onclick="doSearch()">
+          🔍 <span data-t="btn_search">Shakisha</span>
+        </button>
+      </div>
+    </div>
+  </section>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-bg-pattern"></div>
-  <div class="hero-badge"><span></span>Rwanda's Most Trusted Property Platform</div>
-  <h1>Find Your Perfect Property<br/>in <span class="accent">Rwanda</span></h1>
-  <p class="hero-sub">Verified listings across Kigali and beyond. Buy, sell, or rent with confidence. Connect instantly via WhatsApp.</p>
-  <div class="hero-stats">
-    <div class="hero-stat"><div class="hero-stat-num">1,200+</div><div class="hero-stat-label">Properties</div></div>
-    <div class="hero-stat"><div class="hero-stat-num">850+</div><div class="hero-stat-label">Happy Clients</div></div>
-    <div class="hero-stat"><div class="hero-stat-num">98%</div><div class="hero-stat-label">Verified</div></div>
-    <div class="hero-stat"><div class="hero-stat-num">24/7</div><div class="hero-stat-label">Support</div></div>
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat-item"><strong id="stat-total">0</strong><span data-t="stat_listings">Imitungo</span></div>
+    <div class="stat-item"><strong id="stat-sale">0</strong><span data-t="stat_sale">Kugurisha</span></div>
+    <div class="stat-item"><strong id="stat-rent">0</strong><span data-t="stat_rent">Gukodersha</span></div>
+    <div class="stat-item"><strong>24/7</strong><span data-t="stat_support">Ubufasha</span></div>
   </div>
-  <div class="hero-search-box">
-    <div class="search-tabs">
-      <button class="search-tab active" onclick="setSearchTab(this,'all')">All</button>
-      <button class="search-tab" onclick="setSearchTab(this,'sale')">For Sale</button>
-      <button class="search-tab" onclick="setSearchTab(this,'rent')">For Rent</button>
-    </div>
-    <div class="search-row">
-      <select class="search-field" id="searchLocation">
-        <option value="">📍 All Locations</option>
-        <option>Kigali – Nyarugenge</option>
-        <option>Kigali – Gasabo</option>
-        <option>Kigali – Kicukiro</option>
-        <option>Musanze</option>
-        <option>Huye</option>
-        <option>Rubavu</option>
-      </select>
-      <select class="search-field" id="searchType">
-        <option value="">🏠 Property Type</option>
-        <option>Apartment</option>
-        <option>House / Villa</option>
-        <option>Land / Plot</option>
-        <option>Commercial</option>
-      </select>
-      <select class="search-field" id="searchBudget">
-        <option value="">💰 Max Budget</option>
-        <option>Under 30M RWF</option>
-        <option>30M – 80M RWF</option>
-        <option>80M – 200M RWF</option>
-        <option>200M+ RWF</option>
-      </select>
-      <button class="search-btn" onclick="applySearch()">🔍 Search</button>
-    </div>
-  </div>
-</section>
 
-<!-- LISTINGS -->
-<section id="listings">
-  <div class="container">
-    <div class="listings-header">
-      <div>
-        <div class="section-label">Featured Properties</div>
-        <h2 class="section-title">Discover Premium Listings</h2>
-      </div>
-      <select class="sort-select" onchange="sortProperties(this.value)">
-        <option value="default">Sort: Featured</option>
-        <option value="price-asc">Price: Low to High</option>
-        <option value="price-desc">Price: High to Low</option>
-        <option value="newest">Newest First</option>
-      </select>
+  <!-- MAIN -->
+  <main class="main-content">
+    <div class="section-header">
+      <h2 class="section-title" data-t="listings_title">Imitungo Itangwa</h2>
+      <span class="section-count" id="results-count"></span>
     </div>
-    <div class="filter-row">
-      <button class="filter-chip active" onclick="filterProps(this,'all')">All</button>
-      <button class="filter-chip" onclick="filterProps(this,'sale')">For Sale</button>
-      <button class="filter-chip" onclick="filterProps(this,'rent')">For Rent</button>
-      <button class="filter-chip" onclick="filterProps(this,'apartment')">Apartments</button>
-      <button class="filter-chip" onclick="filterProps(this,'house')">Houses</button>
-      <button class="filter-chip" onclick="filterProps(this,'land')">Land</button>
-      <button class="filter-chip" onclick="filterProps(this,'commercial')">Commercial</button>
-    </div>
-    <div class="property-grid" id="propertyGrid"></div>
-    <div class="no-results" id="noResults" style="display:none">
-      <div style="font-size:48px">🔍</div>
-      <h3>No properties found</h3>
-      <p>Try adjusting your filters or search terms.</p>
-    </div>
-  </div>
-</section>
 
-<!-- TRUST -->
-<section class="trust-section" id="trust">
-  <div class="container">
-    <div class="section-label">Why Choose Us</div>
-    <h2 class="section-title">Rwanda's Most Trusted Platform</h2>
-    <p class="section-sub">We verify every property and agent so you can search, contact, and transact with total confidence.</p>
-    <div class="trust-grid">
-      <div class="trust-card">
-        <div class="trust-icon">✅</div>
-        <h3>100% Verified Listings</h3>
-        <p>Every property is physically verified and legally reviewed before going live.</p>
-      </div>
-      <div class="trust-card">
-        <div class="trust-icon">💬</div>
-        <h3>Instant WhatsApp Connect</h3>
-        <p>One tap to message the agent directly — no sign-up required, no waiting.</p>
-      </div>
-      <div class="trust-card">
-        <div class="trust-icon">🛡️</div>
-        <h3>Fraud Protection</h3>
-        <p>All agents are KYC-verified. We actively monitor and remove suspicious listings.</p>
-      </div>
-      <div class="trust-card">
-        <div class="trust-icon">📸</div>
-        <h3>Real Photos & Visits</h3>
-        <p>Professional photos and in-person visits available for all premium listings.</p>
-      </div>
-      <div class="trust-card">
-        <div class="trust-icon">🏆</div>
-        <h3>Top Rated Agents</h3>
-        <p>Browse agents by ratings and reviews from real buyers and renters.</p>
-      </div>
-      <div class="trust-card">
-        <div class="trust-icon">🚀</div>
-        <h3>Fast & Free to Search</h3>
-        <p>Completely free to browse. No hidden fees for buyers and renters.</p>
-      </div>
+    <!-- FILTER CHIPS -->
+    <div class="filter-bar">
+      <button class="filter-chip active" onclick="filterType('all',this)" data-t="filter_all">🏠 Byose</button>
+      <button class="filter-chip" onclick="filterType('sale',this)" data-t="filter_sale">💰 Kugurisha</button>
+      <button class="filter-chip" onclick="filterType('rent',this)" data-t="filter_rent">🔑 Gukodersha</button>
+      <button class="filter-chip" onclick="filterType('apartment',this)" data-t="filter_apt">🏢 Amafarasi</button>
+      <button class="filter-chip" onclick="filterType('land',this)" data-t="filter_land">🌍 Ubutaka</button>
     </div>
-  </div>
-</section>
 
-<!-- HOW IT WORKS -->
-<section class="how-section" id="how">
-  <div class="container" style="text-align:center">
-    <div class="section-label">Simple Process</div>
-    <h2 class="section-title">How KOMISIYONERI Works</h2>
-    <p class="section-sub" style="margin:0 auto">From search to keys in hand — in as few as 3 simple steps.</p>
-    <div class="steps-row">
-      <div class="step">
-        <div class="step-num">1</div>
-        <h3>Search & Filter</h3>
-        <p>Use our smart search to browse verified properties by location, type, and budget.</p>
+    <!-- GRID -->
+    <div id="properties-grid" class="properties-grid">
+      <div class="spinner-wrap"><div class="spinner"></div></div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <strong>KOMISIYONERI ConnectPro Services</strong><br>
+    <span data-t="footer_copy">© 2025 – Platform y'Imitungo #1 mu Rwanda</span><br>
+    <small>📞 +250 788 000 000 &nbsp;|&nbsp; ✉ info@komisiyoneri.rw</small>
+  </footer>
+
+  <!-- FAB -->
+  <button class="fab" onclick="openModal()" title="Ongera Inzu">＋</button>
+
+  <!-- ADD PROPERTY MODAL -->
+  <div class="modal-overlay" id="add-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" data-t="modal_title">Ongera Inzu Nshya</span>
+        <button class="btn-close" onclick="closeModal()">✕</button>
       </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <h3>Contact via WhatsApp</h3>
-        <p>Tap the WhatsApp button on any listing to connect directly with the verified agent — instantly.</p>
+
+      <div class="form-group">
+        <label data-t="lbl_title">Izina ry'Inzu</label>
+        <input type="text" id="f-title" placeholder="Villa nziza i Kigali..." />
       </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <h3>Visit & Close</h3>
-        <p>Schedule a visit, agree on terms, and complete your transaction with full legal support.</p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label data-t="lbl_price">Igiciro (RWF)</label>
+          <input type="number" id="f-price" placeholder="25000000" />
+        </div>
+        <div class="form-group">
+          <label data-t="lbl_type">Ubwoko</label>
+          <select id="f-type">
+            <option value="sale" data-t="opt_sale">Kugurisha</option>
+            <option value="rent" data-t="opt_rent">Gukodersha</option>
+          </select>
+        </div>
       </div>
-      <div class="step">
-        <div class="step-num">4</div>
-        <h3>Move In or Invest</h3>
-        <p>Get your keys, receive your title deed, or start earning rental income.</p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label data-t="lbl_location">Akarere</label>
+          <input type="text" id="f-location" placeholder="Kigali – Gisozi" />
+        </div>
+        <div class="form-group">
+          <label data-t="lbl_category">Kategori</label>
+          <select id="f-category">
+            <option value="house">Inzu</option>
+            <option value="apartment">Amafarasi</option>
+            <option value="land">Ubutaka</option>
+            <option value="commercial">Ubucuruzi</option>
+          </select>
+        </div>
       </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>🛏 <span data-t="lbl_beds">Ibyumba</span></label>
+          <input type="number" id="f-beds" placeholder="3" min="0" />
+        </div>
+        <div class="form-group">
+          <label>🚿 <span data-t="lbl_baths">Salles de bain</span></label>
+          <input type="number" id="f-baths" placeholder="2" min="0" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label data-t="lbl_phone">Telefone (WhatsApp)</label>
+        <input type="tel" id="f-phone" placeholder="+250 788 123 456" />
+      </div>
+
+      <div class="form-group">
+        <label data-t="lbl_desc">Ibisobanuro</label>
+        <textarea id="f-desc" placeholder="Sobanura inzu yawe..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label data-t="lbl_photo">Ifoto ya Inzu</label>
+        <div class="upload-area" id="upload-area">
+          <input type="file" id="f-photo" accept="image/*" onchange="handleUpload(this)" />
+          <span class="upload-icon">📷</span>
+          <p><strong data-t="upload_click">Kanda aha</strong> <span data-t="upload_sub">cyangwa kurura ifoto</span></p>
+        </div>
+        <img class="preview-img" id="preview-img" alt="preview" />
+        <div class="upload-status" id="upload-status"></div>
+      </div>
+
+      <button class="btn-submit" id="btn-submit" onclick="submitProperty()">
+        ✅ <span data-t="btn_submit">Ohereza Inzu</span>
+      </button>
     </div>
   </div>
-</section>
 
-<!-- REVIEWS -->
-<section id="reviews">
-  <div class="container">
-    <div class="section-label">Client Stories</div>
-    <h2 class="section-title">Trusted by Thousands Across Rwanda</h2>
-    <div class="reviews-grid">
-      <div class="review-card">
-        <div class="review-stars">★★★★★</div>
-        <p class="review-text">"Found a beautiful 3-bedroom in Kicukiro within 2 days. The WhatsApp contact feature saved so much time — the agent responded in minutes!"</p>
-        <div class="review-author">
-          <div class="review-avatar">👩🏾</div>
-          <div>
-            <div class="review-name">Amina Uwase</div>
-            <div class="review-role">Buyer · Kigali</div>
+  <!-- DETAIL MODAL -->
+  <div class="modal-overlay detail-modal" id="detail-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="d-title"></span>
+        <button class="btn-close" onclick="closeDetail()">✕</button>
+      </div>
+      <img class="detail-img" id="d-img" alt="" />
+      <div class="detail-price" id="d-price"></div>
+      <div class="card-location" id="d-location"></div>
+      <div class="detail-specs" id="d-specs"></div>
+      <div class="detail-desc" id="d-desc"></div>
+      <div class="card-actions" style="margin-top:16px" id="d-actions"></div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // =========================================
+    // 🌐 TRANSLATIONS
+    // =========================================
+    const T = {
+      rw: {
+        hero_badge: "Platform #1 y'Imitungo mu Rwanda",
+        hero_title: "Shaka <span>Inzu Nziza</span><br>mu Rwanda Byoroshye",
+        hero_sub: "Imitungo igezweho, ifitemo amafoto, ihererekanya abantu n'inzu muri make.",
+        tab_all: "Byose", tab_sale: "Kugurisha", tab_rent: "Gukodersha",
+        lbl_location: "Akarere", lbl_price: "Igiciro (Max)", btn_search: "Shakisha",
+        stat_listings: "Imitungo", stat_sale: "Kugurisha", stat_rent: "Gukodersha", stat_support: "Ubufasha",
+        listings_title: "Imitungo Itangwa",
+        filter_all: "🏠 Byose", filter_sale: "💰 Kugurisha", filter_rent: "🔑 Gukodersha",
+        filter_apt: "🏢 Amafarasi", filter_land: "🌍 Ubutaka",
+        modal_title: "Ongera Inzu Nshya",
+        lbl_title: "Izina ry'Inzu", lbl_type: "Ubwoko", lbl_category: "Kategori",
+        lbl_beds: "Ibyumba", lbl_baths: "Banyirarubanda",
+        lbl_phone: "Telefone (WhatsApp)", lbl_desc: "Ibisobanuro", lbl_photo: "Ifoto ya Inzu",
+        upload_click: "Kanda aha", upload_sub: "cyangwa kururura ifoto",
+        btn_submit: "Ohereza Inzu", add_property: "Ongera Inzu",
+        footer_copy: "© 2025 – Platform y'Imitungo #1 mu Rwanda",
+        wa_msg: "Muraho! Nshaka amakuru ya: ",
+        opt_sale: "Kugurisha", opt_rent: "Gukodersha",
+        verified: "✓ Kwemejwe",
+      },
+      en: {
+        hero_badge: "Rwanda's #1 Real Estate Platform",
+        hero_title: "Find Your <span>Dream Property</span><br>in Rwanda Easily",
+        hero_sub: "Modern listings with photos. Connecting buyers, renters and sellers instantly.",
+        tab_all: "All", tab_sale: "For Sale", tab_rent: "For Rent",
+        lbl_location: "Location", lbl_price: "Max Price", btn_search: "Search",
+        stat_listings: "Listings", stat_sale: "For Sale", stat_rent: "For Rent", stat_support: "Support",
+        listings_title: "Available Properties",
+        filter_all: "🏠 All", filter_sale: "💰 For Sale", filter_rent: "🔑 For Rent",
+        filter_apt: "🏢 Apartment", filter_land: "🌍 Land",
+        modal_title: "Add New Property",
+        lbl_title: "Property Title", lbl_type: "Type", lbl_category: "Category",
+        lbl_beds: "Bedrooms", lbl_baths: "Bathrooms",
+        lbl_phone: "Phone (WhatsApp)", lbl_desc: "Description", lbl_photo: "Property Photo",
+        upload_click: "Click here", upload_sub: "or drag & drop photo",
+        btn_submit: "Submit Property", add_property: "Add Property",
+        footer_copy: "© 2025 – Rwanda's #1 Real Estate Platform",
+        wa_msg: "Hello! I'm interested in: ",
+        opt_sale: "For Sale", opt_rent: "For Rent",
+        verified: "✓ Verified",
+      },
+      fr: {
+        hero_badge: "Plateforme Immobilière #1 au Rwanda",
+        hero_title: "Trouvez <span>Votre Bien</span><br>au Rwanda Facilement",
+        hero_sub: "Annonces modernes avec photos. Connexion instantanée acheteurs, locataires et vendeurs.",
+        tab_all: "Tous", tab_sale: "À Vendre", tab_rent: "À Louer",
+        lbl_location: "Localisation", lbl_price: "Prix Max", btn_search: "Chercher",
+        stat_listings: "Annonces", stat_sale: "À Vendre", stat_rent: "À Louer", stat_support: "Support",
+        listings_title: "Propriétés Disponibles",
+        filter_all: "🏠 Tous", filter_sale: "💰 À Vendre", filter_rent: "🔑 À Louer",
+        filter_apt: "🏢 Appartement", filter_land: "🌍 Terrain",
+        modal_title: "Ajouter une Propriété",
+        lbl_title: "Titre", lbl_type: "Type", lbl_category: "Catégorie",
+        lbl_beds: "Chambres", lbl_baths: "Salles de bain",
+        lbl_phone: "Téléphone (WhatsApp)", lbl_desc: "Description", lbl_photo: "Photo",
+        upload_click: "Cliquez ici", upload_sub: "ou glisser une photo",
+        btn_submit: "Soumettre", add_property: "Ajouter",
+        footer_copy: "© 2025 – Plateforme #1 de l'Immobilier au Rwanda",
+        wa_msg: "Bonjour! Je suis intéressé par: ",
+        opt_sale: "À Vendre", opt_rent: "À Louer",
+        verified: "✓ Vérifié",
+      }
+    };
+
+    let currentLang = 'rw';
+    let allProperties = [];
+    let currentFilter = 'all';
+    let currentSearchType = 'all';
+    let uploadedImageUrl = '';
+
+    // =========================================
+    // 🌍 LANGUAGE SWITCHER
+    // =========================================
+    function setLang(lang) {
+      currentLang = lang;
+      document.querySelectorAll('.lang-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent.toLowerCase() === lang);
+      });
+      document.querySelectorAll('[data-t]').forEach(el => {
+        const key = el.getAttribute('data-t');
+        if (T[lang][key] !== undefined) {
+          if (el.tagName === 'INPUT' && el.type !== 'submit') {
+            // skip inputs
+          } else {
+            el.innerHTML = T[lang][key];
+          }
+        }
+      });
+      renderProperties(allProperties);
+    }
+
+    // =========================================
+    // 🔥 FIREBASE LISTEN
+    // =========================================
+    window.addEventListener('firebase-ready', () => {
+      const db = window.__db;
+      const ref = window.__fbRef;
+      const onValue = window.__fbOnValue;
+
+      onValue(ref(db, 'properties'), (snapshot) => {
+        const data = snapshot.val();
+        allProperties = [];
+        if (data) {
+          Object.entries(data).forEach(([key, val]) => {
+            allProperties.push({ ...val, _id: key });
+          });
+          // newest first
+          allProperties.reverse();
+        }
+        updateStats();
+        renderProperties(allProperties);
+      });
+    });
+
+    // =========================================
+    // 📊 STATS
+    // =========================================
+    function updateStats() {
+      document.getElementById('stat-total').textContent = allProperties.length;
+      document.getElementById('stat-sale').textContent = allProperties.filter(p => p.type === 'sale').length;
+      document.getElementById('stat-rent').textContent = allProperties.filter(p => p.type === 'rent').length;
+    }
+
+    // =========================================
+    // 🏠 RENDER PROPERTIES
+    // =========================================
+    function renderProperties(props) {
+      const grid = document.getElementById('properties-grid');
+      const count = document.getElementById('results-count');
+
+      if (!props || props.length === 0) {
+        count.textContent = '';
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column:1/-1">
+            <span class="icon">🏠</span>
+            <h3>Nta mitungo ihari</h3>
+            <p>Banza wongere inzu yambere!</p>
+            <button class="btn-submit" style="max-width:220px;margin:0 auto" onclick="openModal()">+ Ongera Inzu</button>
+          </div>`;
+        return;
+      }
+
+      count.textContent = `${props.length} ${currentLang === 'en' ? 'listings' : currentLang === 'fr' ? 'annonces' : 'imitungo'}`;
+
+      grid.innerHTML = props.map(p => buildCard(p)).join('');
+    }
+
+    function buildCard(p) {
+      const typeLabel = p.type === 'sale'
+        ? (currentLang === 'en' ? 'For Sale' : currentLang === 'fr' ? 'À Vendre' : 'Kugurisha')
+        : (currentLang === 'en' ? 'For Rent' : currentLang === 'fr' ? 'À Louer' : 'Gukodersha');
+
+      const phone = (p.phone || '').replace(/\s/g,'');
+      const waNum = phone.startsWith('+') ? phone.replace('+','') : '250' + phone.replace(/^0/,'');
+      const waMsg = encodeURIComponent((T[currentLang].wa_msg || 'Muraho! ') + (p.title || ''));
+
+      const imgHtml = p.imageUrl
+        ? `<img src="${p.imageUrl}" alt="${p.title}" loading="lazy" />`
+        : `<div class="no-img"><span>🏠</span><p>Nta foto</p></div>`;
+
+      const bedsHtml = p.beds ? `<div class="spec-item"><span>🛏</span>${p.beds}</div>` : '';
+      const bathsHtml = p.baths ? `<div class="spec-item"><span>🚿</span>${p.baths}</div>` : '';
+
+      return `
+        <div class="property-card" onclick="openDetail('${p._id}')">
+          <div class="card-image">
+            ${imgHtml}
+            <span class="badge-type badge-${p.type}">${typeLabel}</span>
+            <span class="badge-verified">${T[currentLang].verified || '✓ Kwemejwe'}</span>
+            <button class="btn-fav" onclick="event.stopPropagation();toggleFav('${p._id}',this)" title="Bika">❤️</button>
           </div>
-        </div>
-      </div>
-      <div class="review-card">
-        <div class="review-stars">★★★★★</div>
-        <p class="review-text">"As a landlord I listed my 5 apartments and had tenants within a week. The verification process gave buyers total confidence."</p>
-        <div class="review-author">
-          <div class="review-avatar">👨🏾</div>
-          <div>
-            <div class="review-name">Jean-Paul Nkurunziza</div>
-            <div class="review-role">Property Owner · Gasabo</div>
+          <div class="card-body">
+            <div class="card-price">${formatPrice(p.price)} <small>RWF</small></div>
+            <div class="card-title">${p.title || 'Inzu'}</div>
+            <div class="card-location">📍 ${p.location || '—'}</div>
+            ${(bedsHtml || bathsHtml) ? `<div class="card-specs">${bedsHtml}${bathsHtml}<div class="spec-item"><span>✅</span>Kwemejwe</div></div>` : ''}
+            <div class="card-actions" onclick="event.stopPropagation()">
+              <a class="btn-whatsapp" href="https://wa.me/${waNum}?text=${waMsg}" target="_blank" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.857L.057 23.885a.5.5 0 0 0 .609.611l6.101-1.598A11.944 11.944 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.886 0-3.653-.507-5.178-1.391l-.369-.22-3.826 1.002 1.021-3.73-.241-.383A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                WhatsApp
+              </a>
+              <a class="btn-call" href="tel:${p.phone || ''}" onclick="event.stopPropagation()">
+                📞
+              </a>
+              <button class="btn-delete-card" onclick="event.stopPropagation();deleteProperty('${p._id}')" title="Siba">🗑</button>
+            </div>
           </div>
-        </div>
-      </div>
-      <div class="review-card">
-        <div class="review-stars">★★★★★</div>
-        <p class="review-text">"Moving from Musanze to Kigali was stressful, but KOMISIYONERI made finding an apartment incredibly easy. Highly recommend!"</p>
-        <div class="review-author">
-          <div class="review-avatar">👩🏾</div>
-          <div>
-            <div class="review-name">Claire Ineza</div>
-            <div class="review-role">Renter · Nyarugenge</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+        </div>`;
+    }
 
-<!-- CTA -->
-<div class="cta-section">
-  <h2>Have a Property to List?</h2>
-  <p>Reach thousands of verified buyers and renters across Rwanda. Listing is fast, easy, and free to get started.</p>
-  <div class="cta-btns">
-    <a href="#" class="btn-primary">📋 List Your Property Free</a>
-    <a href="https://wa.me/250788000000?text=Hello, I want to list my property on KOMISIYONERI ConnectPro" class="btn-outline" target="_blank">💬 Chat on WhatsApp</a>
-  </div>
-</div>
+    // =========================================
+    // 🔍 SEARCH & FILTER
+    // =========================================
+    function setTab(type, el) {
+      currentSearchType = type;
+      document.querySelectorAll('.search-tab').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+    }
 
-<!-- FOOTER -->
-<footer>
-  <div class="footer-grid">
-    <div class="footer-brand">
-      <a class="nav-logo" href="#" style="text-decoration:none">
-        <div class="nav-logo-icon">🏠</div>
-        <div class="nav-logo-text">
-          <span class="nav-logo-main">KOMISIYONERI</span>
-          <span class="nav-logo-sub">ConnectPro</span>
-        </div>
-      </a>
-      <p>Rwanda's most trusted real estate platform. Connecting buyers, sellers, and renters with verified properties since 2023.</p>
-    </div>
-    <div class="footer-col">
-      <h4>Properties</h4>
-      <a href="#">Apartments for Sale</a>
-      <a href="#">Houses for Rent</a>
-      <a href="#">Land & Plots</a>
-      <a href="#">Commercial Space</a>
-    </div>
-    <div class="footer-col">
-      <h4>Company</h4>
-      <a href="#">About Us</a>
-      <a href="#">How it Works</a>
-      <a href="#">List a Property</a>
-      <a href="#">Contact</a>
-    </div>
-    <div class="footer-col">
-      <h4>Legal</h4>
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Use</a>
-      <a href="#">Agent Policy</a>
-      <a href="#">Cookie Settings</a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p class="footer-copy">© 2025 KOMISIYONERI ConnectPro Services. All rights reserved.</p>
-    <div class="footer-socials">
-      <a class="social-btn" href="#" title="Facebook">f</a>
-      <a class="social-btn" href="#" title="Twitter">𝕏</a>
-      <a class="social-btn" href="#" title="Instagram">📷</a>
-      <a class="social-btn" href="https://wa.me/250788000000" target="_blank" title="WhatsApp">💬</a>
-    </div>
-  </div>
-</footer>
+    function doSearch() {
+      const loc = document.getElementById('s-location').value.toLowerCase().trim();
+      const maxPrice = parseFloat(document.getElementById('s-price').value) || Infinity;
 
-<!-- FLOATING WHATSAPP -->
-<a class="float-wa" href="https://wa.me/250788000000?text=Hello KOMISIYONERI! I need help finding a property." target="_blank" title="Chat on WhatsApp">💬</a>
+      let filtered = allProperties.filter(p => {
+        const matchLoc = !loc || (p.location || '').toLowerCase().includes(loc);
+        const matchPrice = parseFloat(p.price || 0) <= maxPrice;
+        const matchType = currentSearchType === 'all' || p.type === currentSearchType;
+        return matchLoc && matchPrice && matchType;
+      });
+      renderProperties(filtered);
+    }
 
-<!-- TOAST -->
-<div class="toast" id="toast">❤️ Added to favourites!</div>
+    function filterType(type, el) {
+      currentFilter = type;
+      document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
 
-<!-- MODAL -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-  <div class="modal" id="modal">
-    <button class="modal-close" onclick="closeModalDirect()">✕</button>
-    <img class="modal-img" id="modalImg" src="" alt="Property"/>
-    <div class="modal-body">
-      <div id="modalBadges"></div>
-      <div class="modal-price" id="modalPrice"></div>
-      <div class="modal-title" id="modalTitle"></div>
-      <div class="modal-location" id="modalLocation"></div>
-      <div class="modal-details" id="modalDetails"></div>
-      <p class="modal-desc" id="modalDesc"></p>
-      <div class="modal-actions" id="modalActions"></div>
-    </div>
-  </div>
-</div>
+      let filtered = allProperties;
+      if (type === 'sale') filtered = allProperties.filter(p => p.type === 'sale');
+      else if (type === 'rent') filtered = allProperties.filter(p => p.type === 'rent');
+      else if (type === 'apartment') filtered = allProperties.filter(p => p.category === 'apartment');
+      else if (type === 'land') filtered = allProperties.filter(p => p.category === 'land');
+      renderProperties(filtered);
+    }
 
-<script>
-const PROPERTIES = [
-  {
-    id:1, type:'apartment', listing:'rent', price:'450,000 RWF/mo', priceNum:450000,
-    title:'Modern 2-Bedroom Apartment', location:'Gasabo, Kigali',
-    img:'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80',
-    beds:2, baths:1, area:85, verified:true, hot:false,
-    desc:'Bright, modern 2-bedroom apartment on the 4th floor in Gasabo. Includes 24/7 security, parking, and stunning city views. Close to supermarkets and main roads.',
-    agent:'250788111222', agentName:'Agent Eric'
-  },
-  {
-    id:2, type:'house', listing:'sale', price:'95,000,000 RWF', priceNum:95000000,
-    title:'Executive 4-Bedroom Villa', location:'Kicukiro, Kigali',
-    img:'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&q=80',
-    beds:4, baths:3, area:280, verified:true, hot:true,
-    desc:'Stunning villa in a gated community in Kicukiro. Marble finishes, large garden, double garage, and premium appliances included. Ready to move in.',
-    agent:'250788333444', agentName:'Agent Marie'
-  },
-  {
-    id:3, type:'land', listing:'sale', price:'18,000,000 RWF', priceNum:18000000,
-    title:'Prime Residential Plot – 700m²', location:'Nyarugenge, Kigali',
-    img:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80',
-    beds:null, baths:null, area:700, verified:true, hot:false,
-    desc:'Flat, fully fenced 700m² plot in a rapidly developing area of Nyarugenge. Utilities connected. Title deed ready. Ideal for residential construction or investment.',
-    agent:'250788555666', agentName:'Agent Samuel'
-  },
-  {
-    id:4, type:'apartment', listing:'rent', price:'250,000 RWF/mo', priceNum:250000,
-    title:'Studio Apartment – City Center', location:'Nyarugenge, Kigali',
-    img:'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80',
-    beds:1, baths:1, area:42, verified:true, hot:false,
-    desc:'Compact, modern studio in the heart of Kigali. Furnished option available. High-speed WiFi included. Walking distance to offices, restaurants, and public transport.',
-    agent:'250788777888', agentName:'Agent Diane'
-  },
-  {
-    id:5, type:'house', listing:'rent', price:'800,000 RWF/mo', priceNum:800000,
-    title:'Luxury 5-Bedroom Family Home', location:'Gisozi, Gasabo',
-    img:'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80',
-    beds:5, baths:4, area:380, verified:true, hot:true,
-    desc:'Spacious luxury home perfect for families or diplomatic housing. Private compound, large garden, solar backup, and a dedicated housekeeper quarter.',
-    agent:'250788999000', agentName:'Agent Patrick'
-  },
-  {
-    id:6, type:'commercial', listing:'rent', price:'1,200,000 RWF/mo', priceNum:1200000,
-    title:'Prime Office Space – 200m²', location:'CBD, Kigali',
-    img:'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80',
-    beds:null, baths:2, area:200, verified:true, hot:false,
-    desc:'High-visibility office space on the 3rd floor of a Class-A building in the CBD. Open plan with partitioning option. Generator backup, reception area, and parking.',
-    agent:'250788100200', agentName:'Agent Alice'
-  },
-  {
-    id:7, type:'apartment', listing:'sale', price:'45,000,000 RWF', priceNum:45000000,
-    title:'3-Bedroom Condo – New Build', location:'Kibagabaga, Gasabo',
-    img:'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80',
-    beds:3, baths:2, area:135, verified:true, hot:true,
-    desc:'Brand new condo in a premium development. Floor-to-ceiling windows, modern kitchen, covered parking. Available immediately. Title deed issued.',
-    agent:'250788200300', agentName:'Agent Jules'
-  },
-  {
-    id:8, type:'land', listing:'sale', price:'8,500,000 RWF', priceNum:8500000,
-    title:'Agricultural Land – 2 Hectares', location:'Musanze',
-    img:'https://images.unsplash.com/photo-1500916434205-0c77489c6cf7?w=800&q=80',
-    beds:null, baths:null, area:20000, verified:false, hot:false,
-    desc:'Fertile land suitable for farming, eco-tourism, or investment. Located near Volcanoes National Park. Water sources on site. Peaceful and accessible.',
-    agent:'250788400500', agentName:'Agent Thierry'
-  },
-];
+    // =========================================
+    // 📸 IMGBB UPLOAD
+    // =========================================
+    const IMGBB_KEY = 'SHYIRAMO_IMGBB_API_KEY_YAWE'; // 👈 Shyiramo ImgBB key yawe
 
-let currentFilter = 'all';
-let currentSearchTab = 'all';
-let liked = new Set();
+    async function handleUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
 
-function renderProperties(props) {
-  const grid = document.getElementById('propertyGrid');
-  const noRes = document.getElementById('noResults');
-  if (!props.length) { grid.innerHTML=''; noRes.style.display='block'; return; }
-  noRes.style.display='none';
-  grid.innerHTML = props.map(p => `
-    <div class="property-card" onclick="openModal(${p.id})">
-      <div class="card-img-wrap">
-        <img src="${p.img}" alt="${p.title}" loading="lazy"/>
-        <div class="card-badges">
-          <span class="badge ${p.listing==='sale'?'badge-sale':'badge-rent'}">${p.listing==='sale'?'For Sale':'For Rent'}</span>
-          ${p.verified?'<span class="badge badge-verified">✓ Verified</span>':''}
-          ${p.hot?'<span class="badge badge-hot">🔥 Hot</span>':''}
-        </div>
-        <button class="card-fav ${liked.has(p.id)?'liked':''}" onclick="toggleFav(event,${p.id})">${liked.has(p.id)?'❤️':'🤍'}</button>
-      </div>
-      <div class="card-body">
-        <div class="card-price">${p.price}</div>
-        <div class="card-title">${p.title}</div>
-        <div class="card-location">📍 ${p.location}</div>
-        <div class="card-features">
-          ${p.beds!==null?`<span class="card-feat">🛏️ ${p.beds} Bed</span>`:''}
-          ${p.baths!==null?`<span class="card-feat">🚿 ${p.baths} Bath</span>`:''}
-          <span class="card-feat">📐 ${p.area}m²</span>
-        </div>
-        <div class="card-actions">
-          <a class="btn-whatsapp" href="https://wa.me/${p.agent}?text=Hi ${p.agentName}, I saw your listing on KOMISIYONERI: ${p.title} (${p.location}) — I'm interested!" target="_blank" onclick="event.stopPropagation()">
-            💬 WhatsApp
-          </a>
-          <button class="btn-details" onclick="event.stopPropagation();openModal(${p.id})">Details</button>
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
+      const status = document.getElementById('upload-status');
+      const preview = document.getElementById('preview-img');
+      uploadedImageUrl = '';
 
-function filterProps(el, filter) {
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  currentFilter = filter;
-  applyFilters();
-}
+      status.textContent = '⏳ Kohereza ifoto...';
+      status.className = 'upload-status loading';
+      document.getElementById('btn-submit').disabled = true;
 
-function applyFilters() {
-  let props = [...PROPERTIES];
-  if (currentFilter !== 'all') {
-    if (currentFilter === 'sale') props = props.filter(p => p.listing === 'sale');
-    else if (currentFilter === 'rent') props = props.filter(p => p.listing === 'rent');
-    else props = props.filter(p => p.type === currentFilter);
-  }
-  if (currentSearchTab !== 'all') {
-    props = props.filter(p => p.listing === currentSearchTab);
-  }
-  renderProperties(props);
-}
+      // Show local preview immediately
+      const localUrl = URL.createObjectURL(file);
+      preview.src = localUrl;
+      preview.style.display = 'block';
 
-function applySearch() {
-  const loc = document.getElementById('searchLocation').value.toLowerCase();
-  const type = document.getElementById('searchType').value.toLowerCase();
-  const budget = document.getElementById('searchBudget').value;
-  let props = [...PROPERTIES];
-  if (loc) props = props.filter(p => p.location.toLowerCase().includes(loc.split('–')[1]?.trim()||loc));
-  if (type) {
-    const typeMap = {'apartment':'apartment','house / villa':'house','land / plot':'land','commercial':'commercial'};
-    props = props.filter(p => p.type === typeMap[type]);
-  }
-  if (budget) {
-    const ranges = {'Under 30M RWF':[0,30e6],'30M – 80M RWF':[30e6,80e6],'80M – 200M RWF':[80e6,200e6],'200M+ RWF':[200e6,Infinity]};
-    const [min,max] = ranges[budget]||[0,Infinity];
-    props = props.filter(p => p.priceNum >= min && p.priceNum <= max);
-  }
-  if (currentSearchTab !== 'all') props = props.filter(p => p.listing === currentSearchTab);
-  document.getElementById('listings').scrollIntoView({behavior:'smooth'});
-  renderProperties(props);
-}
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
 
-function setSearchTab(el, tab) {
-  document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  currentSearchTab = tab;
-}
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
 
-function sortProperties(val) {
-  let props = [...PROPERTIES];
-  if (currentFilter !== 'all') {
-    if (['sale','rent'].includes(currentFilter)) props = props.filter(p=>p.listing===currentFilter);
-    else props = props.filter(p=>p.type===currentFilter);
-  }
-  if (val==='price-asc') props.sort((a,b)=>a.priceNum-b.priceNum);
-  if (val==='price-desc') props.sort((a,b)=>b.priceNum-a.priceNum);
-  if (val==='newest') props.sort((a,b)=>b.id-a.id);
-  renderProperties(props);
-}
+        if (data.success) {
+          uploadedImageUrl = data.data.url;
+          preview.src = uploadedImageUrl;
+          status.textContent = '✅ Ifoto yashyizweho neza!';
+          status.className = 'upload-status success';
+        } else {
+          throw new Error('Upload yarananiranye');
+        }
+      } catch (err) {
+        status.textContent = '❌ Ntago byakunze. Gerageza nanone.';
+        status.className = 'upload-status error';
+      } finally {
+        document.getElementById('btn-submit').disabled = false;
+      }
+    }
 
-function toggleFav(e, id) {
-  e.stopPropagation();
-  if (liked.has(id)) { liked.delete(id); } else { liked.add(id); showToast('❤️ Added to favourites!'); }
-  applyFilters();
-}
+    // =========================================
+    // ➕ SUBMIT PROPERTY
+    // =========================================
+    async function submitProperty() {
+      const title = document.getElementById('f-title').value.trim();
+      const price = document.getElementById('f-price').value.trim();
+      const type = document.getElementById('f-type').value;
+      const location = document.getElementById('f-location').value.trim();
+      const phone = document.getElementById('f-phone').value.trim();
+      const desc = document.getElementById('f-desc').value.trim();
+      const beds = document.getElementById('f-beds').value;
+      const baths = document.getElementById('f-baths').value;
+      const category = document.getElementById('f-category').value;
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2800);
-}
+      if (!title || !price || !location || !phone) {
+        showToast('❗ Uzuza ibisabwa byose', false);
+        return;
+      }
 
-function openModal(id) {
-  const p = PROPERTIES.find(x=>x.id===id);
-  if (!p) return;
-  document.getElementById('modalImg').src = p.img;
-  document.getElementById('modalImg').alt = p.title;
-  document.getElementById('modalPrice').textContent = p.price;
-  document.getElementById('modalTitle').textContent = p.title;
-  document.getElementById('modalLocation').innerHTML = `📍 ${p.location}`;
-  document.getElementById('modalBadges').innerHTML = `
-    <div style="display:flex;gap:8px;margin-bottom:12px">
-      <span class="badge ${p.listing==='sale'?'badge-sale':'badge-rent'}">${p.listing==='sale'?'For Sale':'For Rent'}</span>
-      ${p.verified?'<span class="badge badge-verified">✓ Verified</span>':''}
-    </div>`;
-  document.getElementById('modalDetails').innerHTML = `
-    ${p.beds!==null?`<div class="modal-detail"><div class="modal-detail-label">Bedrooms</div><div class="modal-detail-val">🛏️ ${p.beds}</div></div>`:''}
-    ${p.baths!==null?`<div class="modal-detail"><div class="modal-detail-label">Bathrooms</div><div class="modal-detail-val">🚿 ${p.baths}</div></div>`:''}
-    <div class="modal-detail"><div class="modal-detail-label">Area</div><div class="modal-detail-val">📐 ${p.area}m²</div></div>
-  `;
-  document.getElementById('modalDesc').textContent = p.desc;
-  document.getElementById('modalActions').innerHTML = `
-    <a class="btn-whatsapp" href="https://wa.me/${p.agent}?text=Hi ${p.agentName}, I'm interested in: ${p.title} (${p.location}) — can we discuss?" target="_blank">💬 Contact on WhatsApp</a>
-    <button class="btn-details" onclick="toggleFav(event,${p.id})">${liked.has(id)?'❤️':'🤍'} Save</button>
-  `;
-  document.getElementById('modalOverlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
+      const btn = document.getElementById('btn-submit');
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Kohereza...';
 
-function closeModal(e) {
-  if (e.target === document.getElementById('modalOverlay')) closeModalDirect();
-}
-function closeModalDirect() {
-  document.getElementById('modalOverlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-document.addEventListener('keydown', e => { if(e.key==='Escape') closeModalDirect(); });
+      try {
+        const db = window.__db;
+        const ref = window.__fbRef;
+        const push = window.__fbPush;
 
-function toggleMenu() {
-  document.getElementById('mobileMenu').classList.toggle('open');
-}
+        const newProp = {
+          title, price, type, location, phone, desc,
+          beds: beds || null,
+          baths: baths || null,
+          category: category || 'house',
+          imageUrl: uploadedImageUrl || '',
+          createdAt: Date.now()
+        };
 
-window.addEventListener('scroll', () => {
-  document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 40);
-});
+        await push(ref(db, 'properties'), newProp);
+        showToast('✅ Inzu yashyizweho neza!', true);
+        closeModal();
+        resetForm();
+      } catch (err) {
+        showToast('❌ Habaye ikosa. Gerageza nanone.', false);
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `✅ <span data-t="btn_submit">${T[currentLang].btn_submit}</span>`;
+      }
+    }
 
-// Init
-renderProperties(PROPERTIES);
-</script>
+    // =========================================
+    // 🗑 DELETE
+    // =========================================
+    async function deleteProperty(id) {
+      if (!confirm('Urashaka gusiba iyi nzu?')) return;
+      try {
+        const db = window.__db;
+        const ref = window.__fbRef;
+        const remove = window.__fbRemove;
+        await remove(ref(db, 'properties/' + id));
+        showToast('🗑 Inzu yasibwe.', false);
+      } catch (e) {
+        showToast('❌ Ntago byakunze.', false);
+      }
+    }
+
+    // =========================================
+    // ❤️ FAVORITE (Local session only)
+    // =========================================
+    const favs = new Set();
+    function toggleFav(id, btn) {
+      if (favs.has(id)) { favs.delete(id); btn.style.opacity = '1'; }
+      else { favs.add(id); btn.style.opacity = '.5'; showToast('❤️ Bibitswe!', true); }
+    }
+
+    // =========================================
+    // 🔍 DETAIL MODAL
+    // =========================================
+    function openDetail(id) {
+      const p = allProperties.find(x => x._id === id);
+      if (!p) return;
+
+      document.getElementById('d-title').textContent = p.title || 'Inzu';
+      document.getElementById('d-price').textContent = formatPrice(p.price) + ' RWF';
+      document.getElementById('d-location').innerHTML = '📍 ' + (p.location || '—');
+      document.getElementById('d-desc').textContent = p.desc || '';
+
+      const img = document.getElementById('d-img');
+      if (p.imageUrl) { img.src = p.imageUrl; img.style.display = 'block'; }
+      else img.style.display = 'none';
+
+      let specs = '';
+      if (p.beds) specs += `<div class="detail-spec">🛏 ${p.beds} ${currentLang === 'en' ? 'Beds' : 'Ibyumba'}</div>`;
+      if (p.baths) specs += `<div class="detail-spec">🚿 ${p.baths} ${currentLang === 'en' ? 'Baths' : 'Banyirarubanda'}</div>`;
+      if (p.category) specs += `<div class="detail-spec">🏠 ${p.category}</div>`;
+      document.getElementById('d-specs').innerHTML = specs;
+
+      const phone = (p.phone || '').replace(/\s/g,'');
+      const waNum = phone.startsWith('+') ? phone.replace('+','') : '250' + phone.replace(/^0/,'');
+      const waMsg = encodeURIComponent((T[currentLang].wa_msg || '') + (p.title || ''));
+      document.getElementById('d-actions').innerHTML = `
+        <a class="btn-whatsapp" href="https://wa.me/${waNum}?text=${waMsg}" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.857L.057 23.885a.5.5 0 0 0 .609.611l6.101-1.598A11.944 11.944 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.886 0-3.653-.507-5.178-1.391l-.369-.22-3.826 1.002 1.021-3.73-.241-.383A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+          WhatsApp
+        </a>
+        <a class="btn-call" href="tel:${p.phone || ''}">📞 Call</a>
+      `;
+
+      document.getElementById('detail-modal').classList.add('open');
+    }
+    function closeDetail() {
+      document.getElementById('detail-modal').classList.remove('open');
+    }
+
+    // =========================================
+    // 🔧 HELPERS
+    // =========================================
+    function formatPrice(n) {
+      if (!n) return '—';
+      return Number(n).toLocaleString('fr-RW');
+    }
+
+    function openModal() {
+      document.getElementById('add-modal').classList.add('open');
+    }
+    function closeModal() {
+      document.getElementById('add-modal').classList.remove('open');
+    }
+    function resetForm() {
+      ['f-title','f-price','f-location','f-phone','f-desc','f-beds','f-baths'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      uploadedImageUrl = '';
+      document.getElementById('preview-img').style.display = 'none';
+      document.getElementById('upload-status').textContent = '';
+    }
+
+    function showToast(msg, success = true) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (success ? ' green' : '');
+      setTimeout(() => { t.className = 'toast'; }, 3000);
+    }
+
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', e => {
+        if (e.target === overlay) {
+          overlay.classList.remove('open');
+        }
+      });
+    });
+
+    // Keyboard ESC
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+      }
+    });
+  </script>
 </body>
 </html>
