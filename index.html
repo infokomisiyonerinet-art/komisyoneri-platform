@@ -23,11 +23,12 @@
 <meta name="geo.placename" content="Kigali, Rwanda">
 <meta name="geo.position" content="-1.9441;30.0619">
 <meta name="ICBM" content="-1.9441, 30.0619">
-<link rel="canonical" href="https://www.komisiyoneri.com/">
+<link rel="canonical" href="https://komisyoneri-platform-nu.vercel.app/">
 <link rel="sitemap" type="application/xml" href="/sitemap.xml">
-<link rel="alternate" hreflang="rw" href="https://www.komisiyoneri.com/?lang=rw">
-<link rel="alternate" hreflang="en" href="https://www.komisiyoneri.com/?lang=en">
-<link rel="alternate" hreflang="x-default" href="https://www.komisiyoneri.com/">
+<link rel="alternate" hreflang="rw" href="https://komisyoneri-platform-nu.vercel.app/?lang=rw">
+<link rel="alternate" hreflang="en" href="https://komisyoneri-platform-nu.vercel.app/?lang=en">
+<link rel="alternate" hreflang="x-default" href="https://komisyoneri-platform-nu.vercel.app/">
+<!-- TODO: Update to www.komisiyoneri.com once domain is live -->
 
 <!-- ── OPEN GRAPH (Facebook, WhatsApp, LinkedIn) ── -->
 <meta property="og:type" content="website">
@@ -1880,6 +1881,185 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 
 /* 9 ── Prevent overscroll/pull-to-refresh on app shell */
 html,body{overscroll-behavior-x:none}
+
+/* ═══════════════════════════════════════════════════════════
+   KOMISIYONERI — MOBILE UI/UX IMPROVEMENTS
+   Scope: header spacing · white-space · FAB positions · 320–414px
+   Rule: CSS-only, zero changes to business logic or structure
+═══════════════════════════════════════════════════════════ */
+
+/* ── 1. HEADER: tighten right-side gap, prevent logo cramping ── */
+@media(max-width:660px){
+  /* Reduce gap between logo and right controls */
+  .topnav{gap:0}
+  .topnav-right{gap:.35rem}
+
+  /* Logo image: slightly smaller on mobile to free horizontal space */
+  .topnav-logo img{height:34px!important;width:auto!important}
+
+  /* Logo text: clip gracefully — "Connectpro Services" shrinks but never wraps into nav */
+  .logo-text strong{font-size:1rem}
+  .logo-text span{font-size:.54rem;letter-spacing:.1em;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:112px;display:block}
+
+  /* Lang switcher: tighten pill padding */
+  .lang-sw{padding:2px}
+  .lang-btn{padding:.24rem .58rem;font-size:.65rem}
+
+  /* Notif bell + hamburger: tighten slightly */
+  #notif-bell{width:36px!important;height:36px!important;padding:.32rem .42rem!important}
+  #hamburger-btn{width:36px!important;height:36px!important;padding:.32rem .42rem!important}
+}
+
+/* ── 1b. 320px–360px: tightest header ── */
+@media(max-width:360px){
+  .topnav{padding:0 2.5%;
+    padding-left:max(2.5%,env(safe-area-inset-left));
+    padding-right:max(2.5%,env(safe-area-inset-right))}
+  .topnav-logo{gap:5px}
+  .topnav-logo img{height:30px!important}
+  .logo-text strong{font-size:.92rem}
+  .logo-text span{font-size:.5rem;max-width:94px}
+  .topnav-right{gap:.28rem}
+  .lang-btn{padding:.22rem .48rem;font-size:.62rem}
+  #notif-bell{width:34px!important;height:34px!important}
+  #hamburger-btn{width:34px!important;height:34px!important}
+}
+
+/* ── 2. REDUCE EXCESSIVE WHITE SPACE (hero top padding on mobile) ── */
+@media(max-width:660px){
+  /* Hero: cut top padding from 3rem → 1.6rem; bottom from 2.5rem → 1.6rem */
+  .hero{padding:1.6rem 4% 1.6rem}
+
+  /* Hero pill: tighten bottom margin */
+  .hero-pill{margin-bottom:.85rem!important}
+
+  /* Hero h1: tighten bottom margin */
+  .hero h1{margin-bottom:.85rem}
+
+  /* Hero sub paragraph: tighten bottom margin */
+  .hero-sub{margin-bottom:1.4rem!important;font-size:.88rem!important}
+
+  /* Hero trust bar: tighten vertical gap */
+  .hero-trust{margin:1rem 0 1.4rem!important;gap:.7rem!important}
+
+  /* Stats row: tighten */
+  .hero-stats{margin-top:1.6rem!important;padding-top:1.4rem!important;gap:1.2rem!important}
+}
+
+@media(max-width:480px){
+  .hero{padding:1.4rem 4% 1.4rem}
+  .hero-pill{margin-bottom:.7rem!important}
+}
+
+@media(max-width:360px){
+  .hero{padding:1.2rem 3.5% 1.2rem}
+}
+
+/* ── 3. FLOATING ACTION BUTTONS — separate WhatsApp & Chat ── */
+/*
+   Layout (bottom of screen, right side):
+   ┌──────────────┐  ← top
+   │  wa-fab 56px │  bottom: 8.4rem (safe)
+   │              │
+   │  [16px gap]  │
+   │              │
+   │  chat-fab    │  bottom: 2rem (unchanged)
+   │  58px        │
+   └──────────────┘  ← safe-area-inset-bottom
+*/
+
+/* Chat FAB stays at bottom:2rem — already correct */
+/* Raise WhatsApp FAB to create guaranteed 16px clearance above chat FAB */
+/* chat-fab top edge = 2rem + 58px ≈ 90px from bottom                    */
+/* wa-fab should sit at: 90px + 16px gap = 106px → ~6.6rem               */
+/* Add env() for notched phones                                           */
+.wa-fab{
+  bottom:calc(6.6rem + env(safe-area-inset-bottom));
+}
+
+/* Honour the safe-area rule for chat-fab too */
+@supports(padding:env(safe-area-inset-bottom)){
+  .chat-fab{bottom:calc(2rem + env(safe-area-inset-bottom))}
+  .wa-fab  {bottom:calc(6.6rem + env(safe-area-inset-bottom))}
+}
+
+/* On small screens keep them within viewport horizontally */
+@media(max-width:360px){
+  .chat-fab{right:1rem}
+  .wa-fab  {right:1rem;bottom:calc(6.4rem + env(safe-area-inset-bottom))}
+  .chat-panel{right:.75rem;width:calc(100vw - 1.5rem)}
+}
+
+/* ── 4. RESPONSIVENESS AUDIT — 320px / 360px / 375px / 390px / 414px ── */
+
+/* Containers: ensure no horizontal overflow on any width */
+@media(max-width:414px){
+  /* Hero inner: single column, no overflow */
+  .hero-inner{grid-template-columns:1fr!important;gap:1.2rem!important}
+
+  /* Hero search bar pill: prevent overflow */
+  .hero-search-bar{max-width:100%!important}
+
+  /* Hero CTA buttons: stack on very narrow */
+  .hero-btns{gap:.6rem}
+  .hero-btns .btn-gold,.hero-btns .btn-ghost{
+    padding:.85rem 1.4rem!important;
+    font-size:.88rem!important;
+  }
+
+  /* Hero chip row: allow wrap, slightly smaller */
+  .hero-chips{gap:.32rem}
+  .hero-chip{font-size:.72rem;padding:.32rem .78rem}
+
+  /* Trust bar: compact on narrow */
+  .trust-txt{font-size:.74rem}
+  .trust-badge{font-size:.72rem}
+  .trust-av{width:28px;height:28px;font-size:.58rem}
+}
+
+@media(max-width:375px){
+  /* Property card footer buttons: prevent overlap */
+  .p-card-footer{flex-direction:column;gap:.4rem}
+  .p-btn-detail,.p-btn-wa{width:100%;justify-content:center}
+
+  /* Section headings: prevent text overflow */
+  .h2{font-size:clamp(1.55rem,5.5vw,2.6rem)!important}
+
+  /* Feature grid: single column */
+  .f-grid{grid-template-columns:1fr!important}
+
+  /* Steps: 2-col on 375px */
+  .steps{grid-template-columns:1fr 1fr!important;gap:1.2rem!important}
+  .steps::before{display:none}
+}
+
+@media(max-width:360px){
+  /* Roles grid: single column */
+  .roles{grid-template-columns:1fr!important}
+
+  /* Auth wrap: single column */
+  .auth-wrap{grid-template-columns:1fr!important}
+  .auth-left{display:none}
+
+  /* Modal: ensure it fits in viewport */
+  .modal{padding:1.4rem 1.1rem!important;border-radius:16px!important}
+  .modal-title{font-size:1.2rem!important}
+}
+
+@media(max-width:320px){
+  /* Absolute minimum: wrap text is readable */
+  .topnav-logo img{height:26px!important}
+  .logo-text strong{font-size:.84rem}
+  .logo-text span{display:none}/* hide subtitle only at 320px extreme */
+  body{font-size:14px}
+  .wrap{padding-left:3%;padding-right:3%}
+  .btn{font-size:.78rem!important;padding:.6rem .85rem!important}
+  .hero-btns .btn-gold,.hero-btns .btn-ghost{
+    font-size:.82rem!important;
+    padding:.75rem 1rem!important;
+  }
+}
 </style>
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -9054,26 +9234,36 @@ go = function(page) {
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <script>
-  // Firebase Configuration yawe nyayo
-  const firebaseConfig = {
-    apiKey: "AIzaSyAtNnbsXKFgABvP-nTvGwz6pooGnSWSshY",
-    authDomain: "komisiyoneri-78e82.firebaseapp.com",
-    databaseURL: "https://komisiyoneri-78e82-default-rtdb.firebaseio.com",
-    projectId: "komisiyoneri-78e82",
-    storageBucket: "komisiyoneri-78e82.firebasestorage.app",
-    messagingSenderId: "580559336922",
-    appId: "1:580559336922:web:2275a3013b07cf56c0fce3",
-    measurementId: "G-NE0PHMB885"
+  // ═══════════════════════════════════════════════════════
+  //  KOMISIYONERI — Firebase Production Config
+  //  Project: komisyoneri-platform-prod
+  //  Updated: June 2026
+  // ═══════════════════════════════════════════════════════
+  var firebaseConfig = {
+    apiKey:            "AIzaSyCw9NYlw0XLC26Di-nFCNOuL7D6RX8k820",
+    authDomain:        "komisyoneri-platform-prod.firebaseapp.com",
+    databaseURL:       "https://komisyoneri-platform-prod-default-rtdb.firebaseio.com",
+    projectId:         "komisyoneri-platform-prod",
+    storageBucket:     "komisyoneri-platform-prod.firebasestorage.app",
+    messagingSenderId: "766901928352",
+    appId:             "1:766901928352:web:9df910b36a462e1fb524c5",
+    measurementId:     "G-ERRNCE85E2"
   };
 
-  // Initialize Firebase mu buryo bukora muri Browser
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const rtdb = firebase.database();
-const storage = firebase.storage();
-firebase.analytics();
+  // Initialize Firebase (compat SDK — browser-ready, no bundler needed)
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
 
-console.log("Firebase yafungutse neza!");
+  // Global database handles — used throughout the app
+  var db      = firebase.firestore();   // Firestore — main database
+  var rtdb    = firebase.database();    // Realtime DB — notifications + presence
+  var storage = firebase.storage();     // Storage — images + documents
+
+  // Analytics (optional — graceful fail if blocked by ad-blocker)
+  try { firebase.analytics(); } catch(e) {}
+
+  console.log('[KOMISIYONERI] Firebase yahuye na project:', firebase.app().options.projectId);
 
   // ── EmailJS config — replace placeholders in your EmailJS dashboard ──
   var _ejsKey          = 'YOUR_EMAILJS_PUBLIC_KEY';
