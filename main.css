@@ -1885,3 +1885,63 @@ html,body{overscroll-behavior-x:none}
     padding:.75rem 1rem!important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   PHASE 2 — CRM LEAD MANAGEMENT
+   Module: Lead Management & 13-Stage CRM Pipeline
+════════════════════════════════════════════════════════ */
+
+/* CRM Page Layout */
+.crm-wrap{max-width:1100px;margin:0 auto;padding:1.2rem 1rem 4rem}
+.crm-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.4rem;gap:1rem;flex-wrap:wrap}
+.crm-title{font-size:1.4rem;font-weight:800;color:var(--navy);letter-spacing:-.02em}
+
+/* CRM Stats Bar */
+.crm-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin-bottom:1.2rem}
+.crm-stat{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:.8rem;text-align:center}
+.crm-stat-v{font-size:1.4rem;font-weight:800;color:var(--navy)}
+.crm-stat-l{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:.15rem}
+
+/* CRM Filters */
+.crm-filters{display:flex;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap}
+.crm-filters select,.crm-filters input{padding:.55rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;background:#fff;color:var(--dark);flex:1;min-width:120px}
+
+/* CRM Lead Cards */
+.crm-list{display:flex;flex-direction:column;gap:.55rem}
+.crm-card{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:.9rem 1.1rem;cursor:pointer;transition:var(--tr);position:relative;border-left:3px solid var(--border)}
+.crm-card:hover{border-color:var(--navy);box-shadow:0 4px 16px rgba(13,59,140,.1);transform:translateY(-1px)}
+.crm-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.35rem;gap:.5rem}
+.crm-card-name{font-weight:700;font-size:.92rem;color:var(--navy);flex:1}
+.crm-stage-badge{border-radius:20px;padding:.15rem .55rem;font-size:.6rem;font-weight:700;color:#fff;flex-shrink:0;white-space:nowrap;line-height:1.6}
+.crm-card-meta{font-size:.74rem;color:var(--muted);line-height:1.8}
+.crm-card-meta span{margin-right:.7rem}
+.crm-overdue{border-left-color:#DC2626!important}
+.crm-due-today{border-left-color:#F59E0B!important}
+
+/* Lead Detail Modal */
+.lead-detail-wrap{max-height:88vh;overflow-y:auto;padding-bottom:.5rem}
+.lead-stage-track{display:flex;overflow-x:auto;gap:.3rem;padding:.6rem 0 .8rem;margin-bottom:.8rem;scrollbar-width:thin}
+.lst-step{flex-shrink:0;padding:.28rem .65rem;border-radius:20px;font-size:.6rem;font-weight:700;background:var(--light);color:var(--muted);border:1.5px solid transparent;cursor:default;white-space:nowrap;transition:var(--tr)}
+.lst-step.active{color:#fff;border-color:transparent}
+.lst-step.done{opacity:.55}
+
+/* Contact Log */
+.contact-log{display:flex;flex-direction:column;gap:.4rem;max-height:180px;overflow-y:auto;margin-bottom:.8rem}
+.clog-entry{background:var(--light);border-radius:8px;padding:.55rem .7rem;font-size:.78rem}
+.clog-type{font-weight:700;color:var(--navy);text-transform:uppercase;font-size:.62rem;letter-spacing:.05em}
+.clog-note{color:var(--dark);margin-top:.1rem;line-height:1.5}
+.clog-date{color:var(--muted);font-size:.62rem;margin-top:.1rem}
+
+/* CRM empty state */
+.crm-empty{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.crm-empty-icon{font-size:2.5rem;margin-bottom:.6rem}
+.crm-empty-title{font-weight:700;color:var(--navy);font-size:.95rem;margin-bottom:.3rem}
+
+/* Mobile — CRM */
+@media(max-width:480px){
+  .crm-stats{grid-template-columns:repeat(2,1fr)}
+  .crm-stat-v{font-size:1.1rem}
+  .crm-title{font-size:1.1rem}
+  .crm-wrap{padding:.8rem .7rem 3rem}
+  .crm-card{padding:.75rem .85rem}
+}

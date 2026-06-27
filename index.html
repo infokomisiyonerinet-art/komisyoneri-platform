@@ -3587,6 +3587,7 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="go('listings')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span data-rw="Shakisha" data-en="Search">Shakisha</span></div>
       <div class="dn" onclick="go('analytics')"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Analytics</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Abakiliya" data-en="Clients">Abakiliya</span><span class="ds-badge">5</span></div>
+      <div class="dn" onclick="go('crm')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><span data-rw="CRM — Leads" data-en="CRM — Leads">CRM — Leads</span><span class="ds-badge" id="crm-sidebar-count">0</span></div>
       <div class="ds-section" data-rw="IMARI" data-en="FINANCE">IMARI</div>
       <div class="dn"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span data-rw="Komisiyoni" data-en="Commissions">Komisiyoni</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-rw="Kwishyura" data-en="Payments">Kwishyura</span></div>
@@ -4006,6 +4007,63 @@ html,body{overscroll-behavior-x:none}
   </div>
 </div>
 
+<!-- ═══════════════════════════════════
+     PAGE: CRM — LEAD MANAGEMENT (Phase 2)
+════════════════════════════════════ -->
+<div class="page" id="page-crm">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">📊 CRM</div>
+      <h1 class="h1" data-rw="Gucunga Abakiliya — CRM" data-en="Lead Management — CRM">Lead Management — CRM</h1>
+      <p style="color:rgba(255,255,255,.82);font-size:.85rem" data-rw="Shyiraho no gukurikirana abakiliya bose mu nzira 13 z'igurishwa" data-en="Track and move all client leads through the 13-stage sales pipeline">Track all leads through the 13-stage pipeline</p>
+    </div>
+  </div>
+  <div class="crm-wrap">
+    <div class="crm-header">
+      <div>
+        <p style="color:var(--muted);font-size:.82rem;margin-top:.2rem" data-rw="Kanda ku lead kugirango ubone ibirenzeho n'ukongeraho amakuru" data-en="Click any lead card to view details and update progress">Click any lead to view details and update progress</p>
+      </div>
+      <button class="btn btn-navy btn-sm" onclick="openLead()">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-rw="Ikibazo Gishya" data-en="New Lead">New Lead</span>
+      </button>
+    </div>
+    <!-- Stats -->
+    <div class="crm-stats">
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="crm-stat-total">0</div>
+        <div class="crm-stat-l" data-rw="Leads Zose" data-en="Total Leads">Total</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="crm-stat-new" style="color:#3B82F6">0</div>
+        <div class="crm-stat-l" data-rw="Bishya" data-en="New">New</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="crm-stat-active" style="color:#F59E0B">0</div>
+        <div class="crm-stat-l" data-rw="Bikorwa" data-en="Active">Active</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="crm-stat-won" style="color:#16A34A">0</div>
+        <div class="crm-stat-l" data-rw="Byarangiye" data-en="Won">Won</div>
+      </div>
+    </div>
+    <!-- Filters -->
+    <div class="crm-filters">
+      <select id="crm-filter-stage" onchange="filterCrmLeads()">
+        <option value="">-- Ingamba Zose / All Stages --</option>
+      </select>
+      <input type="text" id="crm-search" placeholder="Shakisha client... / Search..." oninput="filterCrmLeads()">
+    </div>
+    <!-- Lead List -->
+    <div class="crm-list" id="crm-lead-list">
+      <div class="crm-empty">
+        <div class="crm-empty-icon">📋</div>
+        <div class="crm-empty-title" data-rw="Gutegura leads..." data-en="Loading leads...">Loading leads...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- === MY PROPERTIES MODAL === -->
 <div class="modal-wrap" id="my-props-modal" style="display:none">
   <div class="modal" style="max-width:500px;max-height:90vh;overflow-y:auto">
@@ -4357,6 +4415,85 @@ html,body{overscroll-behavior-x:none}
       </button>
       <div style="text-align:center;font-size:.75rem;color:var(--muted)">⚡ Agent asubiza mu masaa 2 gusa</div>
     </div>
+  </div>
+</div>
+
+<!-- === LEAD DETAIL MODAL (Phase 2 — CRM) === -->
+<div class="modal-wrap" id="lead-detail-modal" style="display:none">
+  <div class="modal" style="max-width:520px;width:95%;max-height:92vh;overflow-y:auto">
+    <button class="modal-x" onclick="closeLeadDetail()" style="position:sticky;top:0;z-index:10;float:right;background:#fff;border:none;cursor:pointer;font-size:1.1rem;padding:.3rem .5rem;color:var(--muted)">✕</button>
+    <div style="padding:.2rem 0 .6rem">
+      <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:.3rem" data-rw="IKIBAZO CY'UMUKILIYA" data-en="CLIENT LEAD">CLIENT LEAD</div>
+      <h2 id="ld-client-name" style="font-size:1.2rem;font-weight:800;color:var(--navy);margin-bottom:.2rem">—</h2>
+      <div id="ld-phone" style="font-size:.85rem;color:var(--muted)">—</div>
+    </div>
+
+    <!-- Stage Tracker (scrollable pill bar) -->
+    <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;margin-bottom:.3rem" data-rw="INGAMBA YA CRM" data-en="CRM STAGE">CRM STAGE</div>
+    <div class="lead-stage-track" id="ld-stage-track"></div>
+
+    <!-- Meta Grid -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem">
+      <div style="background:var(--light);border-radius:8px;padding:.6rem .7rem">
+        <div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem" data-rw="Intego" data-en="Intent">Intent</div>
+        <div id="ld-intent" style="font-size:.84rem;font-weight:600;color:var(--navy)">—</div>
+      </div>
+      <div style="background:var(--light);border-radius:8px;padding:.6rem .7rem">
+        <div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem" data-rw="Akarere" data-en="Zone">Zone</div>
+        <div id="ld-zone" style="font-size:.84rem;font-weight:600;color:var(--navy)">—</div>
+      </div>
+      <div style="background:var(--light);border-radius:8px;padding:.6rem .7rem">
+        <div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem" data-rw="Ingengo" data-en="Budget">Budget</div>
+        <div id="ld-budget" style="font-size:.84rem;font-weight:600;color:var(--navy)">—</div>
+      </div>
+      <div style="background:var(--light);border-radius:8px;padding:.6rem .7rem">
+        <div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem" data-rw="Inkomoko" data-en="Source">Source</div>
+        <div id="ld-source" style="font-size:.84rem;font-weight:600;color:var(--navy)">—</div>
+      </div>
+    </div>
+
+    <!-- Contact Log -->
+    <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;margin-bottom:.4rem" data-rw="IKIRANGIRIZO CYO GUTUMANAHANA" data-en="CONTACT LOG">CONTACT LOG</div>
+    <div class="contact-log" id="ld-contact-log">
+      <div style="text-align:center;color:var(--muted);font-size:.78rem;padding:.6rem" data-rw="Nta makuru y'itumanahana arahari" data-en="No contact history yet">No contact history yet</div>
+    </div>
+
+    <!-- Add Contact Log -->
+    <div style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.9rem">
+      <div style="font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:.5rem" data-rw="Ongeraho Itumanahana" data-en="Log Contact">Log Contact</div>
+      <select id="ld-log-type" style="width:100%;padding:.48rem .7rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.82rem;margin-bottom:.4rem">
+        <option value="call" data-rw="Telefoni" data-en="Phone Call">Phone Call</option>
+        <option value="whatsapp">WhatsApp</option>
+        <option value="visit" data-rw="Gusura" data-en="Site Visit">Site Visit</option>
+        <option value="email" data-rw="Imeyili" data-en="Email">Email</option>
+        <option value="note" data-rw="Inyandiko" data-en="Note">Note</option>
+      </select>
+      <textarea id="ld-log-note" rows="2" placeholder="Andika ibyavuzwe... / What was discussed..." style="width:100%;padding:.48rem .7rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.82rem;resize:vertical;box-sizing:border-box;display:block"></textarea>
+      <button class="btn btn-navy" style="margin-top:.45rem;width:100%;justify-content:center;font-size:.82rem;padding:.5rem" onclick="addContactLog()">
+        <span data-rw="Bika Itumanahana" data-en="Save Contact Log">Save Contact Log</span>
+      </button>
+    </div>
+
+    <!-- Follow-up -->
+    <div style="display:flex;gap:.5rem;align-items:flex-end;margin-bottom:1rem">
+      <div style="flex:1">
+        <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;display:block;margin-bottom:.3rem" data-rw="IGIHE CYO GUSUBIRA" data-en="NEXT FOLLOW-UP">NEXT FOLLOW-UP</label>
+        <input type="datetime-local" id="ld-followup-date" style="width:100%;padding:.48rem .7rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.82rem;box-sizing:border-box">
+      </div>
+      <button class="btn btn-outline" style="flex-shrink:0;padding:.48rem 1rem;font-size:.82rem" onclick="saveLeadFollowUp()" data-rw="Bika" data-en="Set">Set</button>
+    </div>
+
+    <!-- Advance Stage + Close -->
+    <div style="display:flex;gap:.6rem">
+      <button class="btn btn-navy" id="ld-advance-btn" style="flex:1;justify-content:center;font-size:.85rem" onclick="advanceLeadStage()">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        <span id="ld-advance-lbl" data-rw="Jya Imbere" data-en="Advance Stage">Advance Stage</span>
+      </button>
+      <button class="btn btn-outline" style="flex-shrink:0;font-size:.85rem" onclick="closeLeadDetail()" data-rw="Funga" data-en="Close">Close</button>
+    </div>
+
+    <input type="hidden" id="ld-lead-id">
+    <input type="hidden" id="ld-current-stage">
   </div>
 </div>
 
@@ -7722,11 +7859,50 @@ function submitLead() {
     try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
   }
 
-  // Save lead
+  // Save lead — localStorage backup
   var leads = [];
   try { leads = JSON.parse(localStorage.getItem('km_leads')||'[]'); } catch(e){}
   leads.push(lead);
   try { localStorage.setItem('km_leads', JSON.stringify(leads)); } catch(e){}
+
+  // Firestore — write to leads collection (all 7 standard fields + CRM stage)
+  try {
+    if (typeof db !== 'undefined' && typeof firebase !== 'undefined') {
+      var _uid = currentUser ? currentUser.uid : '';
+      db.collection('leads').add({
+        id:            '',
+        clientId:      _uid,
+        clientName:    lead.clientName,
+        clientPhone:   lead.clientPhone,
+        agentId:       lead.assignedAgent || '',
+        agentName:     lead.agentName || '',
+        propertyId:    lead.propertyId || '',
+        action:        lead.action,
+        zone:          lead.zone,
+        district:      lead.zone,
+        budgetMin:     lead.budgetMin,
+        budgetMax:     lead.budgetMax,
+        notes:         lead.notes,
+        source:        'website',
+        pipelineStage: 'new',
+        priority:      'normal',
+        contactLog:    [],
+        nextFollowUp:  null,
+        status:        'new',
+        isActive:      true,
+        createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy:     _uid || 'anonymous',
+        updatedBy:     _uid || 'anonymous'
+      }).then(function(ref) {
+        ref.update({ id: ref.id });
+        if (typeof logAudit === 'function') {
+          logAudit('lead.created', 'leads', ref.id, null, { clientName: lead.clientName, zone: lead.zone, pipelineStage: 'new' });
+        }
+        if (typeof updateCrmSidebarBadge === 'function') updateCrmSidebarBadge();
+      }).catch(function(fsErr) { console.warn('[Lead] Firestore save failed:', fsErr); });
+    }
+  } catch(fsE) { console.warn('[Lead] Firestore error:', fsE); }
 
   if(_lb){_lb.disabled=false;_lb.classList.remove('btn-loading');if(_ll)_ll.textContent='Ohereza — Agent Azakuhamagara!';}
   closeLead();
@@ -9165,12 +9341,15 @@ function markDealActive(idx) {
   }
 }
 
-// Load agents page when navigating to it
+// Load agents + CRM when navigating to those pages
 var _goOrigAgents = go;
 go = function(page) {
   _goOrigAgents(page);
   if(page === 'agents') {
     setTimeout(loadAgentsPage, 100);
+  }
+  if(page === 'crm') {
+    setTimeout(loadCRM, 150);
   }
 };
 
@@ -9559,5 +9738,565 @@ go = function(page) {
       : attachRealtimeListeners();
   } catch(e){ console.error('Sync error:',e); }
 })();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHASE 2 — CRM LEAD MANAGEMENT
+     13-Stage Pipeline | logAudit | Lead Detail | Follow-up
+════════════════════════════════════════════════════════ -->
+<script>
+
+// ── CRM Pipeline Stages (13 canonical stages) ────────
+var CRM_STAGES = [
+  { id:1,  key:'new',               labelRW:'Nshya',              labelEN:'New Lead',          color:'#64748B' },
+  { id:2,  key:'contacted',         labelRW:'Yahamagariwe',       labelEN:'Contacted',         color:'#3B82F6' },
+  { id:3,  key:'qualified',         labelRW:'Yemejwe',            labelEN:'Qualified',         color:'#8B5CF6' },
+  { id:4,  key:'viewing_scheduled', labelRW:'Kuzabona Yateganijwe', labelEN:'Viewing Scheduled', color:'#F59E0B' },
+  { id:5,  key:'viewing_completed', labelRW:'Yabonye Inzu',       labelEN:'Viewing Completed', color:'#10B981' },
+  { id:6,  key:'offer_submitted',   labelRW:'Offer Yoherejwe',    labelEN:'Offer Submitted',   color:'#F97316' },
+  { id:7,  key:'negotiation',       labelRW:'Kuganira Igiciro',   labelEN:'Negotiation',       color:'#EF4444' },
+  { id:8,  key:'due_diligence',     labelRW:'Kugenzura',          labelEN:'Due Diligence',     color:'#06B6D4' },
+  { id:9,  key:'financing',         labelRW:'Inguzanyo',          labelEN:'Financing',         color:'#0D3B8C' },
+  { id:10, key:'contract',          labelRW:'Amasezerano',        labelEN:'Contract Stage',    color:'#1249B3' },
+  { id:11, key:'closing',           labelRW:'Gufunga',            labelEN:'Closing',           color:'#7C3AED' },
+  { id:12, key:'closed_won',        labelRW:'Byarangiye',         labelEN:'Closed Won',        color:'#16A34A' },
+  { id:13, key:'closed_lost',       labelRW:'Byanze',             labelEN:'Closed Lost',       color:'#DC2626' }
+];
+
+// ── Audit Trail — immutable log to Firestore auditlogs ─
+function logAudit(action, collection, docId, oldValue, newValue) {
+  try {
+    if (typeof db === 'undefined') return;
+    var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+    var role = typeof currentUser !== 'undefined' && currentUser ? (currentUser.role || 'unknown') : 'system';
+    db.collection('auditlogs').add({
+      id:          '',
+      action:      action,
+      collection:  collection,
+      docId:       docId || '',
+      oldValue:    oldValue || null,
+      newValue:    newValue || null,
+      performedBy: uid,
+      performedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      userRole:    role,
+      ipAddress:   '',
+      isActive:    true,
+      status:      'logged',
+      createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy:   uid,
+      updatedBy:   uid
+    });
+  } catch(e) { console.warn('[logAudit] failed:', e); }
+}
+
+// ── CRM Helpers ───────────────────────────────────────
+function getCrmStage(key) {
+  for (var i = 0; i < CRM_STAGES.length; i++) {
+    if (CRM_STAGES[i].key === key) return CRM_STAGES[i];
+  }
+  return CRM_STAGES[0];
+}
+
+function getNextStageKey(currentKey) {
+  for (var i = 0; i < CRM_STAGES.length - 1; i++) {
+    if (CRM_STAGES[i].key === currentKey) {
+      if (i >= 11) return null; // already at closed_won or closed_lost
+      return CRM_STAGES[i + 1].key;
+    }
+  }
+  return null;
+}
+
+// ── CRM State ─────────────────────────────────────────
+var _crmLeads  = [];
+var _crmFilter = '';
+var _crmSearch = '';
+
+// ── Load CRM page ─────────────────────────────────────
+function loadCRM() {
+  var list = document.getElementById('crm-lead-list');
+  if (!list) return;
+
+  list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⏳</div><div class="crm-empty-title">'
+    + (curLang === 'rw' ? 'Gutegura leads...' : 'Loading leads...') + '</div></div>';
+
+  // Populate stage filter on first load
+  var stageFilter = document.getElementById('crm-filter-stage');
+  if (stageFilter && stageFilter.options.length <= 1) {
+    for (var si = 0; si < CRM_STAGES.length; si++) {
+      var opt = document.createElement('option');
+      opt.value = CRM_STAGES[si].key;
+      opt.textContent = curLang === 'rw' ? CRM_STAGES[si].labelRW : CRM_STAGES[si].labelEN;
+      stageFilter.appendChild(opt);
+    }
+  }
+
+  if (typeof db === 'undefined') {
+    _loadCrmFallback();
+    return;
+  }
+
+  var isAdminOrStaff = typeof currentUser !== 'undefined' && currentUser &&
+    (currentUser.role === 'admin' || currentUser.role === 'staff' ||
+     currentUser.role === 'ceo'   || currentUser.role === 'Admin' ||
+     currentUser.role === 'super_admin');
+
+  var query;
+  if (isAdminOrStaff) {
+    query = db.collection('leads')
+      .where('isActive', '==', true)
+      .orderBy('createdAt', 'desc')
+      .limit(200);
+  } else if (typeof currentUser !== 'undefined' && currentUser) {
+    query = db.collection('leads')
+      .where('isActive', '==', true)
+      .where('agentId', '==', currentUser.uid)
+      .orderBy('createdAt', 'desc')
+      .limit(200);
+  } else {
+    _loadCrmFallback();
+    return;
+  }
+
+  query.get().then(function(snap) {
+    _crmLeads = [];
+    snap.forEach(function(doc) {
+      var d = doc.data();
+      d._docId = doc.id;
+      _crmLeads.push(d);
+    });
+    renderCrmLeads();
+    updateCrmStats();
+    updateCrmSidebarBadge();
+  }).catch(function(err) {
+    console.warn('[CRM] Firestore query failed, using fallback:', err);
+    _loadCrmFallback();
+  });
+}
+
+function _loadCrmFallback() {
+  var stored = [];
+  try { stored = JSON.parse(localStorage.getItem('km_leads') || '[]'); } catch(e){}
+  _crmLeads = stored.map(function(l) {
+    if (!l.pipelineStage) l.pipelineStage = (l.status && l.status !== 'New' && l.status !== 'Active' && l.status !== 'Closed') ? l.status : 'new';
+    if (!l._docId) l._docId = l.id || '';
+    return l;
+  });
+  renderCrmLeads();
+  updateCrmStats();
+  updateCrmSidebarBadge();
+}
+
+function renderCrmLeads() {
+  var list = document.getElementById('crm-lead-list');
+  if (!list) return;
+
+  var now = Date.now();
+  var filtered = _crmLeads.filter(function(l) {
+    var matchStage = !_crmFilter || l.pipelineStage === _crmFilter;
+    var name  = (l.clientName || l.name || '').toLowerCase();
+    var phone = (l.clientPhone || l.phone || '').toLowerCase();
+    var matchSearch = !_crmSearch ||
+      name.indexOf(_crmSearch.toLowerCase()) > -1 ||
+      phone.indexOf(_crmSearch.toLowerCase()) > -1;
+    return matchStage && matchSearch;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="crm-empty">'
+      + '<div class="crm-empty-icon">🔍</div>'
+      + '<div class="crm-empty-title">' + (curLang === 'rw' ? 'Nta leads zibonetse' : 'No leads found') + '</div>'
+      + '<div style="font-size:.78rem;color:var(--muted);margin-top:.3rem">'
+      + (curLang === 'rw' ? 'Hindura filters cyangwa wongere lead nshya' : 'Adjust filters or add a new lead') + '</div>'
+      + '</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(function(lead) {
+    var stage     = getCrmStage(lead.pipelineStage || 'new');
+    var labelStage = curLang === 'rw' ? stage.labelRW : stage.labelEN;
+    var name      = lead.clientName || lead.name || 'Ntazwi';
+    var phone     = lead.clientPhone || lead.phone || '';
+    var zone      = lead.zone || lead.district || '—';
+    var intent    = lead.action || lead.type || '—';
+    var budMin    = lead.budgetMin ? parseInt(lead.budgetMin).toLocaleString() + ' RWF' : '';
+    var budMax    = lead.budgetMax ? parseInt(lead.budgetMax).toLocaleString() + ' RWF' : '';
+    var budget    = (budMin || budMax) ? (budMin || '?') + ' – ' + (budMax || '?') : '';
+    var agName    = lead.agentName || '';
+    var leadId    = lead._docId || lead.id || '';
+
+    // Follow-up overdue check
+    var cardClass = 'crm-card';
+    if (lead.nextFollowUp) {
+      var fuMs = 0;
+      if (lead.nextFollowUp && typeof lead.nextFollowUp.toDate === 'function') {
+        fuMs = lead.nextFollowUp.toDate().getTime();
+      } else if (lead.nextFollowUp) {
+        fuMs = new Date(lead.nextFollowUp).getTime();
+      }
+      if (fuMs > 0 && fuMs < now) cardClass += ' crm-overdue';
+      else if (fuMs > 0 && fuMs - now < 86400000) cardClass += ' crm-due-today';
+    }
+
+    var fuLabel = '';
+    if (lead.nextFollowUp) {
+      var fuD = typeof lead.nextFollowUp.toDate === 'function'
+        ? lead.nextFollowUp.toDate()
+        : new Date(lead.nextFollowUp);
+      fuLabel = '<span title="Next follow-up">🔔 ' + fuD.toLocaleDateString() + '</span>';
+    }
+
+    return '<div class="' + cardClass + '" style="border-left-color:' + stage.color + '" onclick="openLeadDetail(\'' + leadId + '\')">'
+      + '<div class="crm-card-header">'
+      +   '<div class="crm-card-name">' + name + '</div>'
+      +   '<span class="crm-stage-badge" style="background:' + stage.color + '">' + labelStage + '</span>'
+      + '</div>'
+      + '<div class="crm-card-meta">'
+      +   (phone ? '<span>📞 ' + phone + '</span>' : '')
+      +   '<span>📍 ' + zone + '</span>'
+      +   '<span>🏠 ' + intent + '</span>'
+      +   (budget ? '<span>💰 ' + budget + '</span>' : '')
+      +   (agName ? '<span>👔 ' + agName + '</span>' : '')
+      +   fuLabel
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function updateCrmStats() {
+  var total  = _crmLeads.length;
+  var newCt  = _crmLeads.filter(function(l){ return !l.pipelineStage || l.pipelineStage === 'new'; }).length;
+  var activeKeys = ['contacted','qualified','viewing_scheduled','viewing_completed',
+                    'offer_submitted','negotiation','due_diligence','financing','contract','closing'];
+  var active = _crmLeads.filter(function(l){ return activeKeys.indexOf(l.pipelineStage) > -1; }).length;
+  var won    = _crmLeads.filter(function(l){ return l.pipelineStage === 'closed_won'; }).length;
+
+  var e = document.getElementById.bind(document);
+  if(e('crm-stat-total')) e('crm-stat-total').textContent = total;
+  if(e('crm-stat-new'))   e('crm-stat-new').textContent   = newCt;
+  if(e('crm-stat-active'))e('crm-stat-active').textContent = active;
+  if(e('crm-stat-won'))   e('crm-stat-won').textContent   = won;
+  if(e('dash-kpi-leads')) e('dash-kpi-leads').textContent = total;
+}
+
+function updateCrmSidebarBadge() {
+  var badge = document.getElementById('crm-sidebar-count');
+  if (!badge) return;
+  var newCt = _crmLeads.filter(function(l){ return !l.pipelineStage || l.pipelineStage === 'new'; }).length;
+  badge.textContent = newCt;
+}
+
+function filterCrmLeads() {
+  var sf = document.getElementById('crm-filter-stage');
+  var si = document.getElementById('crm-search');
+  _crmFilter = sf ? sf.value : '';
+  _crmSearch = si ? si.value : '';
+  renderCrmLeads();
+}
+
+// ── Lead Detail Modal ─────────────────────────────────
+var _ldCurrentLead = null;
+
+function openLeadDetail(leadId) {
+  var lead = null;
+  for (var i = 0; i < _crmLeads.length; i++) {
+    if ((_crmLeads[i]._docId || _crmLeads[i].id) === leadId) { lead = _crmLeads[i]; break; }
+  }
+  if (lead) {
+    _openLeadDetailWithData(lead);
+    return;
+  }
+  // Fetch from Firestore if not in cache
+  if (typeof db !== 'undefined' && leadId) {
+    db.collection('leads').doc(leadId).get().then(function(doc) {
+      if (doc.exists) {
+        var d = doc.data();
+        d._docId = doc.id;
+        _openLeadDetailWithData(d);
+      } else {
+        showToast(curLang === 'rw' ? 'Lead ntiyabonetse' : 'Lead not found', 'error');
+      }
+    }).catch(function(e) {
+      showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error loading lead', 'error');
+    });
+  }
+}
+
+function _openLeadDetailWithData(lead) {
+  _ldCurrentLead = lead;
+  var e = document.getElementById.bind(document);
+
+  var name   = lead.clientName || lead.name || 'Ntazwi';
+  var phone  = lead.clientPhone || lead.phone || '—';
+  if(e('ld-client-name')) e('ld-client-name').textContent = name;
+  if(e('ld-phone')) e('ld-phone').innerHTML = '📞 <a href="tel:' + phone + '" style="color:var(--blue);text-decoration:none">' + phone + '</a>';
+
+  // Stage tracker pills
+  var track = e('ld-stage-track');
+  if (track) {
+    var curKey = lead.pipelineStage || 'new';
+    var curIdx = 0;
+    for (var ci = 0; ci < CRM_STAGES.length; ci++) {
+      if (CRM_STAGES[ci].key === curKey) { curIdx = ci; break; }
+    }
+    var html = '';
+    for (var pi = 0; pi < 12; pi++) {
+      var s = CRM_STAGES[pi];
+      var cls = 'lst-step';
+      if (pi < curIdx) cls += ' done';
+      if (pi === curIdx) cls += ' active';
+      var style = pi === curIdx ? 'background:' + s.color + ';color:#fff' : '';
+      html += '<span class="' + cls + '" style="' + style + '">'
+        + (pi + 1) + '. ' + (curLang === 'rw' ? s.labelRW : s.labelEN) + '</span>';
+    }
+    track.innerHTML = html;
+  }
+
+  // Meta
+  var intent = lead.action || lead.type || '—';
+  var zone   = lead.zone || lead.district || '—';
+  var budMin = lead.budgetMin ? parseInt(lead.budgetMin).toLocaleString() + ' RWF' : '—';
+  var budMax = lead.budgetMax ? parseInt(lead.budgetMax).toLocaleString() + ' RWF' : '—';
+  var src    = lead.source || 'Platform';
+  if(e('ld-intent')) e('ld-intent').textContent = intent;
+  if(e('ld-zone'))   e('ld-zone').textContent   = zone;
+  if(e('ld-budget')) e('ld-budget').textContent = budMin + ' – ' + budMax;
+  if(e('ld-source')) e('ld-source').textContent = src;
+
+  // Contact log
+  var logEl = e('ld-contact-log');
+  if (logEl) {
+    var logs = lead.contactLog || [];
+    if (logs.length === 0) {
+      logEl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.78rem;padding:.5rem">'
+        + (curLang === 'rw' ? 'Nta makuru y&#39;itumanahana arahari' : 'No contact history yet') + '</div>';
+    } else {
+      var logHtml = '';
+      for (var li = logs.length - 1; li >= 0; li--) {
+        var entry = logs[li];
+        var d = entry.loggedAt
+          ? (typeof entry.loggedAt.toDate === 'function' ? entry.loggedAt.toDate() : new Date(entry.loggedAt))
+          : new Date();
+        logHtml += '<div class="clog-entry">'
+          + '<div class="clog-type">' + (entry.type || 'note').toUpperCase() + '</div>'
+          + '<div class="clog-note">' + (entry.note || '—') + '</div>'
+          + '<div class="clog-date">' + d.toLocaleString() + (entry.agentName ? ' — ' + entry.agentName : '') + '</div>'
+          + '</div>';
+      }
+      logEl.innerHTML = logHtml;
+    }
+  }
+
+  // Follow-up date
+  if (e('ld-followup-date')) {
+    if (lead.nextFollowUp) {
+      var fuDate = typeof lead.nextFollowUp.toDate === 'function'
+        ? lead.nextFollowUp.toDate()
+        : new Date(lead.nextFollowUp);
+      e('ld-followup-date').value = fuDate.toISOString().slice(0, 16);
+    } else {
+      e('ld-followup-date').value = '';
+    }
+  }
+
+  // Advance button
+  var curStage = lead.pipelineStage || 'new';
+  var nextKey  = getNextStageKey(curStage);
+  if (e('ld-advance-btn')) {
+    if (!nextKey || curStage === 'closed_won' || curStage === 'closed_lost') {
+      e('ld-advance-btn').style.display = 'none';
+    } else {
+      e('ld-advance-btn').style.display = '';
+      var nextS = getCrmStage(nextKey);
+      var nextLabel = curLang === 'rw' ? nextS.labelRW : nextS.labelEN;
+      if(e('ld-advance-lbl')) e('ld-advance-lbl').textContent =
+        (curLang === 'rw' ? 'Jya muri: ' : 'Move to: ') + nextLabel;
+    }
+  }
+
+  if(e('ld-lead-id'))       e('ld-lead-id').value       = lead._docId || lead.id || '';
+  if(e('ld-current-stage')) e('ld-current-stage').value  = curStage;
+
+  var modal = document.getElementById('lead-detail-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeLeadDetail() {
+  var modal = document.getElementById('lead-detail-modal');
+  if (modal) modal.style.display = 'none';
+  _ldCurrentLead = null;
+}
+
+function advanceLeadStage() {
+  var leadIdEl = document.getElementById('ld-lead-id');
+  var stageEl  = document.getElementById('ld-current-stage');
+  var leadId   = leadIdEl ? leadIdEl.value : '';
+  var curKey   = stageEl  ? stageEl.value  : 'new';
+  var nextKey  = getNextStageKey(curKey);
+  if (!nextKey) {
+    showToast(curLang === 'rw' ? 'Lead yageze ku ntambwe ya nyuma!' : 'Lead is already at final stage!', 'info');
+    return;
+  }
+  updateLeadStage(leadId, nextKey);
+}
+
+function updateLeadStage(leadId, newStageKey) {
+  if (!leadId) { showToast(curLang === 'rw' ? 'Lead ntiyabonetse' : 'Lead not found', 'error'); return; }
+
+  var oldStage  = _ldCurrentLead ? (_ldCurrentLead.pipelineStage || 'new') : 'new';
+  var newStageObj = getCrmStage(newStageKey);
+  var label     = curLang === 'rw' ? newStageObj.labelRW : newStageObj.labelEN;
+
+  if (typeof db !== 'undefined') {
+    db.collection('leads').doc(leadId).update({
+      pipelineStage: newStageKey,
+      status:        newStageKey,
+      updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy:     typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system'
+    }).then(function() {
+      showToast((curLang === 'rw' ? 'Ingamba yahinduwe: ' : 'Stage updated: ') + label, 'success');
+      logAudit('lead.stage.changed', 'leads', leadId,
+        { pipelineStage: oldStage },
+        { pipelineStage: newStageKey }
+      );
+      // Update local caches
+      if (_ldCurrentLead) _ldCurrentLead.pipelineStage = newStageKey;
+      for (var i = 0; i < _crmLeads.length; i++) {
+        if ((_crmLeads[i]._docId || _crmLeads[i].id) === leadId) {
+          _crmLeads[i].pipelineStage = newStageKey;
+          break;
+        }
+      }
+      closeLeadDetail();
+      renderCrmLeads();
+      updateCrmStats();
+      updateCrmSidebarBadge();
+    }).catch(function(err) {
+      showToast(curLang === 'rw' ? 'Habaye ikosa — ongera ugerageze' : 'Error updating stage', 'error');
+      console.error('[CRM] Stage update error:', err);
+    });
+  } else {
+    // Fallback: localStorage only
+    for (var fi = 0; fi < _crmLeads.length; fi++) {
+      if ((_crmLeads[fi]._docId || _crmLeads[fi].id) === leadId) {
+        _crmLeads[fi].pipelineStage = newStageKey;
+        break;
+      }
+    }
+    if (_ldCurrentLead) _ldCurrentLead.pipelineStage = newStageKey;
+    showToast((curLang === 'rw' ? 'Ingamba yahinduwe: ' : 'Stage updated: ') + label, 'success');
+    closeLeadDetail();
+    renderCrmLeads();
+    updateCrmStats();
+  }
+}
+
+function addContactLog() {
+  var leadIdEl = document.getElementById('ld-lead-id');
+  var typeEl   = document.getElementById('ld-log-type');
+  var noteEl   = document.getElementById('ld-log-note');
+  var leadId   = leadIdEl ? leadIdEl.value : '';
+  var logType  = typeEl ? typeEl.value : 'note';
+  var logNote  = noteEl ? noteEl.value.trim() : '';
+
+  if (!leadId) return;
+  if (!logNote) { showToast(curLang === 'rw' ? 'Andika inyandiko!' : 'Enter a note!', 'error'); return; }
+
+  var agentName = '';
+  if (typeof currentUser !== 'undefined' && currentUser) {
+    agentName = currentUser.displayName || currentUser.name || currentUser.email || '';
+  }
+  var entry = {
+    type:      logType,
+    note:      logNote,
+    agentId:   typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : '',
+    agentName: agentName,
+    loggedAt:  new Date().toISOString()
+  };
+
+  if (typeof db !== 'undefined') {
+    db.collection('leads').doc(leadId).update({
+      contactLog: firebase.firestore.FieldValue.arrayUnion(entry),
+      updatedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy:  typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system'
+    }).then(function() {
+      showToast(curLang === 'rw' ? 'Itumanahana ryabitswe!' : 'Contact logged!', 'success');
+      if (noteEl) noteEl.value = '';
+      if (_ldCurrentLead) {
+        if (!_ldCurrentLead.contactLog) _ldCurrentLead.contactLog = [];
+        _ldCurrentLead.contactLog.push(entry);
+        _openLeadDetailWithData(_ldCurrentLead);
+      }
+      logAudit('lead.contact.logged', 'leads', leadId, null, { type: logType, note: logNote });
+    }).catch(function(err) {
+      showToast(curLang === 'rw' ? 'Habaye ikosa — ongera ugerageze' : 'Error saving contact log', 'error');
+      console.error('[CRM] Contact log error:', err);
+    });
+  } else {
+    // Fallback
+    if (_ldCurrentLead) {
+      if (!_ldCurrentLead.contactLog) _ldCurrentLead.contactLog = [];
+      _ldCurrentLead.contactLog.push(entry);
+      showToast(curLang === 'rw' ? 'Itumanahana ryabitswe!' : 'Contact logged!', 'success');
+      if (noteEl) noteEl.value = '';
+      _openLeadDetailWithData(_ldCurrentLead);
+    }
+  }
+}
+
+function saveLeadFollowUp() {
+  var leadIdEl = document.getElementById('ld-lead-id');
+  var dateEl   = document.getElementById('ld-followup-date');
+  var leadId   = leadIdEl ? leadIdEl.value : '';
+  if (!leadId || !dateEl || !dateEl.value) {
+    showToast(curLang === 'rw' ? 'Hitamo itariki!' : 'Select a date!', 'error');
+    return;
+  }
+  var fuDate = new Date(dateEl.value);
+  if (isNaN(fuDate.getTime())) {
+    showToast(curLang === 'rw' ? 'Itariki si nziza' : 'Invalid date', 'error');
+    return;
+  }
+  if (typeof db !== 'undefined') {
+    db.collection('leads').doc(leadId).update({
+      nextFollowUp: firebase.firestore.Timestamp.fromDate(fuDate),
+      updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy:    typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system'
+    }).then(function() {
+      showToast(curLang === 'rw' ? 'Igihe cyo gusubira cyabitswe!' : 'Follow-up date saved!', 'success');
+      if (_ldCurrentLead) _ldCurrentLead.nextFollowUp = fuDate;
+      for (var i = 0; i < _crmLeads.length; i++) {
+        if ((_crmLeads[i]._docId || _crmLeads[i].id) === leadId) {
+          _crmLeads[i].nextFollowUp = fuDate;
+          break;
+        }
+      }
+      renderCrmLeads();
+    }).catch(function(err) {
+      showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error saving follow-up', 'error');
+      console.error('[CRM] Follow-up save error:', err);
+    });
+  }
+}
+
+// Auto-update CRM sidebar badge when dashboard loads
+(function() {
+  var _origDashLoad = window.onload;
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      if (typeof db !== 'undefined' && typeof currentUser !== 'undefined' && currentUser) {
+        db.collection('leads').where('isActive','==',true).where('pipelineStage','==','new')
+          .get().then(function(snap) {
+            var badge = document.getElementById('crm-sidebar-count');
+            if (badge) badge.textContent = snap.size;
+            var dashKpi = document.getElementById('dash-kpi-leads');
+            if (dashKpi) dashKpi.textContent = snap.size;
+          }).catch(function(){});
+      }
+    }, 2500);
+  });
+})();
+
 </script>
 </body></html>
