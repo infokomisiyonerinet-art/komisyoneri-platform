@@ -3610,6 +3610,7 @@ html,body{overscroll-behavior-x:none}
       <div class="ds-section" data-rw="UBUYOBOZI" data-en="EXECUTIVE">UBUYOBOZI</div>
       <div class="dn" onclick="go('exec')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h2v5H7zm4-3h2v8h-2zm4 2h2v6h-2z"/></svg><span data-rw="Ikigega cy'Ubuyobozi" data-en="Executive Dashboard">Executive Dashboard</span><span class="ds-badge" id="exec-sidebar-badge"></span></div>
       <div class="dn" onclick="go('bi')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg><span data-rw="Ubushakashatsi bw'Amakuru" data-en="Business Intelligence">Business Intelligence</span><span class="ds-badge" id="bi-sidebar-badge"></span></div>
+      <div class="dn" onclick="go('branches')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-rw="Amashami y'Igihugu" data-en="Branch Network">Branch Network</span><span class="ds-badge" id="branch-sidebar-badge"></span></div>
       <div class="ds-section" data-rw="KONTI" data-en="ACCOUNT">KONTI</div>
       <div class="dn"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Profil" data-en="Profile">Profil</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-rw="Igenamiterere" data-en="Settings">Igenamiterere</span></div>
@@ -5027,6 +5028,141 @@ html,body{overscroll-behavior-x:none}
       <div class="exec-panel-hdr" data-rw="Intego z'Ukwezi Gutaha" data-en="Next Month Targets vs Actuals">Next Month Targets vs Actuals</div>
       <div id="bi-targets"></div>
     </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: BRANCH NETWORK ═══ -->
+<div class="page" id="page-branches">
+  <div class="page-hdr">
+    <h2 data-rw="Amashami y'Igihugu" data-en="Branch Network">Branch Network</h2>
+    <button class="btn btn-primary" id="branch-new-btn" onclick="openBranchCreate()" style="display:none;align-items:center;gap:.4rem">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <span data-rw="Ongeraho Ishami" data-en="Add Branch">Add Branch</span>
+    </button>
+  </div>
+
+  <!-- KPI strip -->
+  <div class="br-kpi-strip">
+    <div class="br-kpi"><span class="br-kpi-val" id="br-kpi-branches">—</span><span class="br-kpi-lbl" data-rw="Amashami" data-en="Branches">Branches</span></div>
+    <div class="br-kpi"><span class="br-kpi-val" id="br-kpi-agents">—</span><span class="br-kpi-lbl" data-rw="Abacuruzi Bose" data-en="Total Agents">Total Agents</span></div>
+    <div class="br-kpi"><span class="br-kpi-val" id="br-kpi-staff">—</span><span class="br-kpi-lbl" data-rw="Abakozi Bose" data-en="Total Staff">Total Staff</span></div>
+    <div class="br-kpi"><span class="br-kpi-val" id="br-kpi-props">—</span><span class="br-kpi-lbl" data-rw="Imitungo Yose" data-en="Total Listings">Total Listings</span></div>
+    <div class="br-kpi"><span class="br-kpi-val" id="br-kpi-districts">—</span><span class="br-kpi-lbl" data-rw="Akarere Afite" data-en="Districts Covered">Districts Covered</span></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="off-tabs-nav">
+    <button class="off-tab active" id="brtab-btn-branches"    onclick="switchBranchTab('branches')"    data-rw="Amashami" data-en="Branches">Branches</button>
+    <button class="off-tab" id="brtab-btn-staff"        onclick="switchBranchTab('staff')"        data-rw="Abakozi" data-en="Staff Assignment">Staff Assignment</button>
+    <button class="off-tab" id="brtab-btn-performance"  onclick="switchBranchTab('performance')"  data-rw="Ibikorwa" data-en="Performance">Performance</button>
+    <button class="off-tab" id="brtab-btn-coverage"     onclick="switchBranchTab('coverage')"     data-rw="Akarere" data-en="Coverage">Coverage</button>
+  </div>
+
+  <!-- BRANCHES PANE -->
+  <div class="off-pane" id="brtab-branches">
+    <div class="off-pane-hdr">
+      <input type="text" id="br-search" placeholder="Search branch..." oninput="filterBranches()" class="off-search">
+      <select id="br-status-filter" onchange="filterBranches()" class="off-filter">
+        <option value="" data-en="All Status" data-rw="Imiterere Yose">All Status</option>
+        <option value="active" data-en="Active" data-rw="Ifite akazi">Active</option>
+        <option value="inactive" data-en="Inactive" data-rw="Nta akazi">Inactive</option>
+        <option value="planned" data-en="Planned" data-rw="Teganyijwe">Planned</option>
+      </select>
+    </div>
+    <div id="br-branches-grid" class="br-grid"></div>
+  </div>
+
+  <!-- STAFF ASSIGNMENT PANE -->
+  <div class="off-pane" id="brtab-staff" style="display:none">
+    <div class="off-pane-hdr">
+      <select id="br-staff-branch-filter" onchange="loadBranchStaff()" class="off-filter">
+        <option value="" data-en="All Branches" data-rw="Amashami Yose">All Branches</option>
+      </select>
+      <select id="br-staff-role-filter" onchange="loadBranchStaff()" class="off-filter">
+        <option value="" data-en="All Roles" data-rw="Imirimo Yose">All Roles</option>
+        <option value="agent">Agent</option>
+        <option value="staff">Staff</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div id="br-staff-list"></div>
+  </div>
+
+  <!-- PERFORMANCE PANE -->
+  <div class="off-pane" id="brtab-performance" style="display:none">
+    <div id="br-perf-content"></div>
+  </div>
+
+  <!-- COVERAGE PANE -->
+  <div class="off-pane" id="brtab-coverage" style="display:none">
+    <div class="exec-panel">
+      <div class="exec-panel-hdr" data-rw="Ibihe by'Akarere — Branches" data-en="District Coverage Map">District Coverage Map</div>
+      <div id="br-coverage-map"></div>
+    </div>
+    <div class="exec-panel" style="margin-top:14px">
+      <div class="exec-panel-hdr" data-rw="Imitungo ku Karere" data-en="Properties per District">Properties per District</div>
+      <div id="br-props-by-district"></div>
+    </div>
+  </div>
+</div>
+
+<!-- === BRANCH CREATE MODAL === -->
+<div class="modal-wrap" id="branch-create-modal" style="display:none">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="branch-modal-title" data-rw="Ongera Ishami" data-en="Add Branch">Add Branch</div>
+      <button class="modal-x" onclick="closeBranchCreate()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.9rem;padding:.3rem 0">
+      <input type="hidden" id="branch-edit-id">
+      <div class="field"><label data-rw="Izina ry'Ishami (EN)" data-en="Branch Name (EN)">Branch Name (EN)</label><input type="text" id="branch-name" placeholder="e.g. Kigali HQ"></div>
+      <div class="field"><label data-rw="Izina ry'Ishami (RW)" data-en="Branch Name (RW)">Branch Name (RW)</label><input type="text" id="branch-name-rw" placeholder="e.g. Kigali HQ"></div>
+      <div class="field"><label data-rw="Kode" data-en="Branch Code">Branch Code</label><input type="text" id="branch-code" placeholder="e.g. KGL-HQ" style="text-transform:uppercase"></div>
+      <div class="field"><label data-rw="Akarere" data-en="District">District</label>
+        <select id="branch-district" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem">
+          <option value="">Select district...</option>
+          <option value="Gasabo">Gasabo</option><option value="Kicukiro">Kicukiro</option><option value="Nyarugenge">Nyarugenge</option>
+          <option value="Bugesera">Bugesera</option><option value="Rulindo">Rulindo</option><option value="Rwamagana">Rwamagana</option>
+          <option value="Musanze">Musanze</option><option value="Rubavu">Rubavu</option><option value="Nyamasheke">Nyamasheke</option>
+          <option value="Huye">Huye</option><option value="Muhanga">Muhanga</option><option value="Kamonyi">Kamonyi</option>
+          <option value="Ngoma">Ngoma</option><option value="Kirehe">Kirehe</option><option value="Kayonza">Kayonza</option>
+          <option value="Nyagatare">Nyagatare</option><option value="Gisagara">Gisagara</option><option value="Nyamagabe">Nyamagabe</option>
+          <option value="Nyaruguru">Nyaruguru</option><option value="Ruhango">Ruhango</option><option value="Karongi">Karongi</option>
+          <option value="Rutsiro">Rutsiro</option><option value="Ngororero">Ngororero</option><option value="Nyabihu">Nyabihu</option>
+          <option value="Gakenke">Gakenke</option><option value="Gicumbi">Gicumbi</option><option value="Burera">Burera</option>
+          <option value="Gatsibo">Gatsibo</option><option value="Nyagatare">Nyagatare</option><option value="Rusizi">Rusizi</option>
+        </select>
+      </div>
+      <div class="field"><label data-rw="Aderesi" data-en="Address">Address</label><input type="text" id="branch-address" placeholder="Street, Sector, District"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+        <div class="field"><label data-rw="Telefoni" data-en="Phone">Phone</label><input type="tel" id="branch-phone" placeholder="+250 7xx xxx xxx"></div>
+        <div class="field"><label data-rw="Imeyili" data-en="Email">Email</label><input type="email" id="branch-email" placeholder="branch@komisiyoneri.com"></div>
+      </div>
+      <div class="field"><label data-rw="Umukuru w'Ishami" data-en="Branch Manager (UID)">Branch Manager (UID / Email)</label><input type="text" id="branch-manager" placeholder="User UID or email"></div>
+      <div class="field"><label data-rw="Imiterere" data-en="Status">Status</label>
+        <select id="branch-status" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem">
+          <option value="active">Active</option>
+          <option value="planned">Planned</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div class="field"><label data-rw="Akarere Afite (nyinshi, gahunda n'ikivi)" data-en="Districts Covered (comma-separated)">Districts Covered</label><input type="text" id="branch-districts" placeholder="Gasabo, Kicukiro, Nyarugenge"></div>
+    </div>
+    <div style="display:flex;gap:.7rem;margin-top:.8rem">
+      <button class="btn btn-primary" onclick="saveBranch()" style="flex:1;justify-content:center" data-rw="Bika" data-en="Save">Save</button>
+      <button class="btn btn-outline" onclick="closeBranchCreate()" data-rw="Hagarika" data-en="Cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- === BRANCH DETAIL MODAL === -->
+<div class="modal-wrap" id="branch-detail-modal" style="display:none">
+  <div class="modal" style="max-width:560px;max-height:90vh;overflow-y:auto">
+    <div class="modal-hdr">
+      <div class="modal-title" id="branch-detail-title">Branch Details</div>
+      <button class="modal-x" onclick="closeBranchDetail()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="branch-detail-body"></div>
   </div>
 </div>
 
@@ -11993,6 +12129,9 @@ go = function(page) {
   if(page === 'bi') {
     setTimeout(loadBIDash, 150);
   }
+  if(page === 'branches') {
+    setTimeout(loadBranchNetwork, 150);
+  }
 };
 
 </script>
@@ -12379,6 +12518,465 @@ go = function(page) {
       ? document.addEventListener('DOMContentLoaded', attachRealtimeListeners)
       : attachRealtimeListeners();
   } catch(e){ console.error('Sync error:',e); }
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHASE 15 — NATIONAL EXPANSION (MULTI-BRANCH)
+     Branch Network | Staff Assignment | Performance | Coverage
+════════════════════════════════════════════════════════ -->
+<script>
+/* ── Phase 15 globals ── */
+var _branches = [];
+var _branchFilter = { q: '', status: '' };
+var _brTabActive = 'branches';
+var BR_STATUS_COLOR = { active:'#16A34A', inactive:'#64748B', planned:'#D97706' };
+var BR_RWANDA_DISTRICTS = ['Gasabo','Kicukiro','Nyarugenge','Bugesera','Rulindo','Rwamagana','Musanze','Rubavu','Nyamasheke','Huye','Muhanga','Kamonyi','Ngoma','Kirehe','Kayonza','Nyagatare','Gisagara','Nyamagabe','Nyaruguru','Ruhango','Karongi','Rutsiro','Ngororero','Nyabihu','Gakenke','Gicumbi','Burera','Gatsibo','Rusizi'];
+
+function switchBranchTab(tab) {
+  _brTabActive = tab;
+  ['branches','staff','performance','coverage'].forEach(function(t) {
+    var btn  = g('brtab-btn-' + t);
+    var pane = g('brtab-' + t);
+    if (btn)  btn.classList.toggle('active', t === tab);
+    if (pane) pane.style.display = t === tab ? '' : 'none';
+  });
+  if (tab === 'branches')   renderBranchCards();
+  if (tab === 'staff')      loadBranchStaff();
+  if (tab === 'performance') loadBranchPerformance();
+  if (tab === 'coverage')   loadBranchCoverage();
+  switchLang(currentLang);
+}
+
+function loadBranchNetwork() {
+  var cu = currentUser;
+  if (!cu) { showToast('Injira kuri konti yawe', 'error'); return; }
+  var isAdm = ['super_admin','admin','ceo'].indexOf(cu.role) > -1;
+  var btn = g('branch-new-btn');
+  if (btn) btn.style.display = isAdm ? 'inline-flex' : 'none';
+
+  loadBranchKPIs();
+  fetchBranches(function() {
+    switchBranchTab(_brTabActive);
+  });
+}
+
+function loadBranchKPIs() {
+  db.collection('branches').where('isActive','==',true).get().then(function(snap) {
+    var el = g('br-kpi-branches'); if (el) el.textContent = snap.size;
+    var districts = new Set();
+    snap.forEach(function(d) {
+      var covArr = d.data().districtsCovered || [];
+      covArr.forEach(function(dist) { districts.add(dist); });
+      if (d.data().district) districts.add(d.data().district);
+    });
+    var el2 = g('br-kpi-districts'); if (el2) el2.textContent = districts.size;
+  }).catch(function(){});
+
+  db.collection('users').where('role','==','agent').where('isActive','==',true).get().then(function(snap) {
+    var el = g('br-kpi-agents'); if (el) el.textContent = snap.size;
+  }).catch(function(){});
+
+  db.collection('users').where('role','==','staff').where('isActive','==',true).get().then(function(snap) {
+    var el = g('br-kpi-staff'); if (el) el.textContent = snap.size;
+  }).catch(function(){});
+
+  db.collection('properties').where('isActive','==',true).where('status','==','approved').get().then(function(snap) {
+    var el = g('br-kpi-props'); if (el) el.textContent = snap.size;
+  }).catch(function(){});
+}
+
+function fetchBranches(cb) {
+  db.collection('branches').where('isActive','==',true).orderBy('createdAt','desc').get().then(function(snap) {
+    _branches = [];
+    snap.forEach(function(d) {
+      var data = d.data();
+      data.id = d.id;
+      _branches.push(data);
+    });
+    if (cb) cb();
+  }).catch(function(err) {
+    console.warn('[Branches] fetch error:', err);
+    _branches = [];
+    if (cb) cb();
+  });
+}
+
+/* ── BRANCHES TAB ── */
+function renderBranchCards() {
+  var el = g('br-branches-grid'); if (!el) return;
+  if (_branches.length === 0) {
+    el.innerHTML = '<div class="exec-empty" style="padding:2rem" data-rw="Nta mashami yabonetse. Ongeraho ishami rya mbere." data-en="No branches yet. Add your first branch to get started.">No branches yet. Add your first branch to get started.</div>';
+    switchLang(currentLang);
+    return;
+  }
+  var q = (_branchFilter.q || '').toLowerCase();
+  var st = _branchFilter.status;
+  var filtered = _branches.filter(function(b) {
+    var matchQ = !q || (b.name||'').toLowerCase().includes(q) || (b.district||'').toLowerCase().includes(q) || (b.code||'').toLowerCase().includes(q);
+    var matchSt = !st || b.status === st;
+    return matchQ && matchSt;
+  });
+  if (filtered.length === 0) {
+    el.innerHTML = '<div class="exec-empty" style="padding:2rem" data-rw="Nta mashami ahuye na filteri" data-en="No branches match your filter">No branches match your filter</div>';
+    switchLang(currentLang);
+    return;
+  }
+  el.innerHTML = filtered.map(function(b) {
+    var color = BR_STATUS_COLOR[b.status] || '#64748B';
+    var covDistricts = (b.districtsCovered || [b.district]).filter(Boolean);
+    return '<div class="br-card" onclick="openBranchDetail(\'' + b.id + '\')">' +
+      '<div class="br-card-top">' +
+        '<div><div class="br-card-name">' + (b.name || 'Unnamed') + '</div>' +
+        '<div class="br-card-code">' + (b.code || '') + '</div></div>' +
+        '<span class="br-status-chip" style="background:' + color + '20;color:' + color + '">' + (b.status || 'active') + '</span>' +
+      '</div>' +
+      '<div class="br-card-district"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' + (b.district || '—') + '</div>' +
+      (b.address ? '<div class="br-card-addr">' + b.address + '</div>' : '') +
+      '<div class="br-card-foot">' +
+        '<div class="br-card-stat" id="br-stat-agents-' + b.id + '"><span>—</span> agents</div>' +
+        '<div class="br-card-stat" id="br-stat-props-' + b.id + '"><span>—</span> listings</div>' +
+        '<div class="br-card-dist-chips">' + covDistricts.slice(0,3).map(function(d) { return '<span class="br-dist-chip">' + d + '</span>'; }).join('') + (covDistricts.length > 3 ? '<span class="br-dist-chip">+' + (covDistricts.length-3) + '</span>' : '') + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  /* Async load per-branch counts */
+  filtered.forEach(function(b) {
+    db.collection('users').where('branchId','==',b.id).where('role','==','agent').where('isActive','==',true).get().then(function(s) {
+      var el2 = g('br-stat-agents-' + b.id); if (el2) el2.innerHTML = '<span>' + s.size + '</span> agents';
+    }).catch(function(){});
+    db.collection('properties').where('branchId','==',b.id).where('isActive','==',true).get().then(function(s) {
+      var el2 = g('br-stat-props-' + b.id); if (el2) el2.innerHTML = '<span>' + s.size + '</span> listings';
+    }).catch(function(){});
+  });
+  switchLang(currentLang);
+}
+
+function filterBranches() {
+  _branchFilter.q = (g('br-search')||{}).value || '';
+  _branchFilter.status = (g('br-status-filter')||{}).value || '';
+  renderBranchCards();
+}
+
+/* ── BRANCH CREATE / EDIT ── */
+function openBranchCreate(branchId) {
+  var m = g('branch-create-modal'); if (!m) return;
+  var title = g('branch-modal-title');
+  if (branchId) {
+    var b = _branches.find(function(x){ return x.id === branchId; });
+    if (!b) return;
+    if (title) { title.setAttribute('data-en','Edit Branch'); title.textContent = 'Edit Branch'; }
+    g('branch-edit-id').value = branchId;
+    g('branch-name').value        = b.name || '';
+    g('branch-name-rw').value     = b.nameRW || b.name || '';
+    g('branch-code').value        = b.code || '';
+    g('branch-district').value    = b.district || '';
+    g('branch-address').value     = b.address || '';
+    g('branch-phone').value       = b.phone || '';
+    g('branch-email').value       = b.email || '';
+    g('branch-manager').value     = b.managerId || '';
+    g('branch-status').value      = b.status || 'active';
+    g('branch-districts').value   = (b.districtsCovered || []).join(', ');
+  } else {
+    if (title) { title.setAttribute('data-en','Add Branch'); title.textContent = 'Add Branch'; }
+    g('branch-edit-id').value = '';
+    ['branch-name','branch-name-rw','branch-code','branch-address','branch-phone','branch-email','branch-manager','branch-districts'].forEach(function(id){ var el = g(id); if (el) el.value = ''; });
+    g('branch-district').value = '';
+    g('branch-status').value = 'active';
+  }
+  openModal('branch-create-modal');
+  switchLang(currentLang);
+}
+
+function closeBranchCreate() { closeModal('branch-create-modal'); }
+
+function saveBranch() {
+  var cu = currentUser;
+  if (!cu) return;
+  var name = (g('branch-name').value||'').trim();
+  var district = (g('branch-district').value||'').trim();
+  if (!name) { showToast(currentLang==='rw' ? 'Injiza izina ry\'ishami' : 'Branch name is required', 'error'); return; }
+  if (!district) { showToast(currentLang==='rw' ? 'Hitamo akarere' : 'District is required', 'error'); return; }
+
+  var covRaw = (g('branch-districts').value||'').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+  if (covRaw.length === 0) covRaw = [district];
+
+  var editId = g('branch-edit-id').value;
+  var payload = {
+    name:             name,
+    nameRW:           (g('branch-name-rw').value||'').trim() || name,
+    code:             (g('branch-code').value||'').trim().toUpperCase(),
+    district:         district,
+    address:          (g('branch-address').value||'').trim(),
+    phone:            (g('branch-phone').value||'').trim(),
+    email:            (g('branch-email').value||'').trim(),
+    managerId:        (g('branch-manager').value||'').trim(),
+    status:           g('branch-status').value || 'active',
+    districtsCovered: covRaw,
+    updatedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy:  cu.uid,
+    isActive:   true
+  };
+
+  var ref;
+  if (editId) {
+    payload.id = editId;
+    ref = db.collection('branches').doc(editId).update(payload);
+  } else {
+    payload.id        = '';
+    payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+    payload.createdBy = cu.uid;
+    payload.status    = payload.status || 'active';
+    var docRef = db.collection('branches').doc();
+    payload.id = docRef.id;
+    ref = docRef.set(payload);
+  }
+
+  ref.then(function() {
+    showToast(currentLang==='rw' ? 'Ishami ryabitswe!' : 'Branch saved!', 'success');
+    logAudit(editId ? 'branch_updated' : 'branch_created', 'branches', payload.id, null, payload);
+    closeBranchCreate();
+    fetchBranches(renderBranchCards);
+    loadBranchKPIs();
+    updateBranchSidebarBadge();
+  }).catch(function(err) {
+    showToast(currentLang==='rw' ? 'Habaye ikosa' : 'Error saving branch', 'error');
+    console.error('[Branch] save error:', err);
+  });
+}
+
+/* ── BRANCH DETAIL ── */
+function openBranchDetail(branchId) {
+  var b = _branches.find(function(x){ return x.id === branchId; });
+  if (!b) return;
+  var title = g('branch-detail-title');
+  if (title) title.textContent = b.name || 'Branch';
+  var body = g('branch-detail-body');
+  if (!body) return;
+  var cu = currentUser;
+  var isAdm = cu && ['super_admin','admin','ceo'].indexOf(cu.role) > -1;
+  var color = BR_STATUS_COLOR[b.status] || '#64748B';
+  var covDistricts = (b.districtsCovered || [b.district]).filter(Boolean);
+  body.innerHTML =
+    '<div class="br-detail-head">' +
+      '<div class="br-detail-info">' +
+        '<div class="br-detail-code">' + (b.code || 'N/A') + '</div>' +
+        '<span class="br-status-chip" style="background:' + color + '20;color:' + color + '">' + (b.status||'active') + '</span>' +
+      '</div>' +
+      (isAdm ? '<button class="btn btn-outline btn-sm" onclick="closeBranchDetail();openBranchCreate(\'' + b.id + '\')" data-rw="Hindura" data-en="Edit">Edit</button>' : '') +
+    '</div>' +
+    '<div class="br-detail-grid">' +
+      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Akarere" data-en="District">District</span><span class="br-detail-val">' + (b.district||'—') + '</span></div>' +
+      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Aderesi" data-en="Address">Address</span><span class="br-detail-val">' + (b.address||'—') + '</span></div>' +
+      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Telefoni" data-en="Phone">Phone</span><span class="br-detail-val">' + (b.phone ? '<a href="tel:' + b.phone + '" style="color:var(--navy)">' + b.phone + '</a>' : '—') + '</span></div>' +
+      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Imeyili" data-en="Email">Email</span><span class="br-detail-val">' + (b.email ? '<a href="mailto:' + b.email + '" style="color:var(--navy)">' + b.email + '</a>' : '—') + '</span></div>' +
+    '</div>' +
+    '<div class="br-detail-section" data-rw="Akarere Afite" data-en="Districts Covered">Districts Covered</div>' +
+    '<div class="br-detail-chips">' + covDistricts.map(function(d){ return '<span class="br-dist-chip br-dist-chip-lg">' + d + '</span>'; }).join('') + '</div>' +
+    '<div class="br-detail-section" data-rw="Imibare" data-en="Live Stats">Live Stats</div>' +
+    '<div class="br-detail-stats" id="br-detail-stats-' + b.id + '"><div class="exec-loading">Loading...</div></div>';
+
+  openModal('branch-detail-modal');
+  switchLang(currentLang);
+
+  /* Load live stats */
+  var statsEl = g('br-detail-stats-' + b.id);
+  var p = 4; var st = { agents:0, staff:0, props:0, deals:0 };
+  function done() { p--; if (p > 0) return;
+    if (statsEl) statsEl.innerHTML =
+      '<div class="br-live-stats"><div class="br-live-kpi"><span class="br-live-val">'+st.agents+'</span><span class="br-live-lbl">Agents</span></div><div class="br-live-kpi"><span class="br-live-val">'+st.staff+'</span><span class="br-live-lbl">Staff</span></div><div class="br-live-kpi"><span class="br-live-val">'+st.props+'</span><span class="br-live-lbl">Listings</span></div><div class="br-live-kpi"><span class="br-live-val">'+st.deals+'</span><span class="br-live-lbl">Deals</span></div></div>';
+  }
+  db.collection('users').where('branchId','==',b.id).where('role','==','agent').where('isActive','==',true).get().then(function(s){st.agents=s.size;done();}).catch(done);
+  db.collection('users').where('branchId','==',b.id).where('role','==','staff').where('isActive','==',true).get().then(function(s){st.staff=s.size;done();}).catch(done);
+  db.collection('properties').where('branchId','==',b.id).where('isActive','==',true).get().then(function(s){st.props=s.size;done();}).catch(done);
+  db.collection('deals').where('branchId','==',b.id).where('isActive','==',true).get().then(function(s){st.deals=s.size;done();}).catch(done);
+}
+
+function closeBranchDetail() { closeModal('branch-detail-modal'); }
+
+/* ── STAFF ASSIGNMENT TAB ── */
+function loadBranchStaff() {
+  var el = g('br-staff-list'); if (!el) return;
+  el.innerHTML = '<div class="exec-loading">Loading staff...</div>';
+
+  /* Populate branch dropdown if empty */
+  var sel = g('br-staff-branch-filter');
+  if (sel && sel.options.length <= 1) {
+    _branches.forEach(function(b) {
+      var opt = document.createElement('option');
+      opt.value = b.id; opt.text = b.name;
+      sel.appendChild(opt);
+    });
+  }
+
+  var branchId = (g('br-staff-branch-filter')||{}).value || '';
+  var role     = (g('br-staff-role-filter')||{}).value || '';
+
+  var query = db.collection('users').where('isActive','==',true);
+  if (role) query = query.where('role','==',role);
+  if (branchId) query = query.where('branchId','==',branchId);
+
+  query.limit(100).get().then(function(snap) {
+    if (snap.empty) { el.innerHTML = '<div class="exec-empty">No staff found for this filter</div>'; return; }
+    var html = '<table class="exec-perf-table"><thead><tr><th data-rw="Izina" data-en="Name">Name</th><th data-rw="Imirimo" data-en="Role">Role</th><th data-rw="Ishami" data-en="Branch">Branch</th><th data-rw="Imeyili" data-en="Email">Email</th><th></th></tr></thead><tbody>';
+    var branchMap = {};
+    _branches.forEach(function(b){ branchMap[b.id] = b.name; });
+    snap.forEach(function(d) {
+      var data = d.data();
+      var brName = data.branchId ? (branchMap[data.branchId] || data.branchId) : '<span style="color:var(--muted)">Unassigned</span>';
+      var cu = currentUser;
+      var isAdm = cu && ['super_admin','admin'].indexOf(cu.role) > -1;
+      html += '<tr><td><strong>' + (data.displayName||data.email||d.id) + '</strong></td><td><span class="hr-role-chip">' + (data.role||'—') + '</span></td><td>' + brName + '</td><td style="font-size:.75rem;color:var(--muted)">' + (data.email||'—') + '</td><td>' + (isAdm ? '<button class="btn btn-outline btn-sm" onclick="openAssignBranch(\'' + d.id + '\',\'' + (data.branchId||'') + '\')" data-rw="Gera" data-en="Assign">Assign</button>' : '') + '</td></tr>';
+    });
+    html += '</tbody></table>';
+    el.innerHTML = html;
+    switchLang(currentLang);
+  }).catch(function() {
+    el.innerHTML = '<div class="exec-empty">Unable to load staff</div>';
+  });
+}
+
+function openAssignBranch(userId, currentBranchId) {
+  if (_branches.length === 0) { showToast(currentLang==='rw' ? 'Nta mashami arabonetse' : 'No branches available', 'error'); return; }
+  var opts = '<option value="">-- Unassign --</option>' + _branches.map(function(b){ return '<option value="' + b.id + '"' + (b.id===currentBranchId?' selected':'') + '>' + b.name + '</option>'; }).join('');
+  var select = document.createElement('select');
+  select.innerHTML = opts;
+  select.style.cssText = 'width:100%;padding:.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;margin-bottom:.7rem';
+  var div = document.createElement('div');
+  div.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:14px;padding:1.2rem;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:9999;min-width:280px';
+  div.innerHTML = '<div style="font-weight:700;color:var(--navy);margin-bottom:.8rem" data-en="Assign to Branch" data-rw="Gera ku Ishami">Assign to Branch</div>';
+  div.appendChild(select);
+  var btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:.6rem;margin-top:.4rem';
+  var btnOk = document.createElement('button');
+  btnOk.className = 'btn btn-primary';
+  btnOk.style.flex = '1';
+  btnOk.textContent = 'Save';
+  btnOk.onclick = function() {
+    var newBranch = select.value;
+    var payload = { branchId: newBranch, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid };
+    db.collection('users').doc(userId).update(payload).then(function() {
+      showToast(currentLang==='rw' ? 'Umukozi yagenwe' : 'Staff assigned', 'success');
+      logAudit('staff_branch_assigned', 'users', userId, { branchId: currentBranchId }, { branchId: newBranch });
+      document.body.removeChild(div);
+      if (document.body.contains(overlay)) document.body.removeChild(overlay);
+      loadBranchStaff();
+    }).catch(function(){ showToast('Error assigning', 'error'); });
+  };
+  var btnCancel = document.createElement('button');
+  btnCancel.className = 'btn btn-outline';
+  btnCancel.textContent = 'Cancel';
+  btnCancel.onclick = function() { document.body.removeChild(div); if (document.body.contains(overlay)) document.body.removeChild(overlay); };
+  btnRow.appendChild(btnOk); btnRow.appendChild(btnCancel);
+  div.appendChild(btnRow);
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9998';
+  overlay.onclick = function() { if (document.body.contains(div)) document.body.removeChild(div); document.body.removeChild(overlay); };
+  document.body.appendChild(overlay);
+  document.body.appendChild(div);
+}
+
+/* ── PERFORMANCE TAB ── */
+function loadBranchPerformance() {
+  var el = g('br-perf-content'); if (!el) return;
+  if (_branches.length === 0) {
+    el.innerHTML = '<div class="exec-empty" style="padding:2rem" data-rw="Nta mashami abonetse" data-en="No branches to compare">No branches to compare</div>';
+    switchLang(currentLang);
+    return;
+  }
+  el.innerHTML = '<div class="exec-loading">Loading performance data...</div>';
+  var results = _branches.map(function(b) { return { id:b.id, name:b.name, district:b.district, status:b.status, agents:0, deals:0, props:0, revenue:0 }; });
+  var pending = results.length * 4;
+  if (pending === 0) { renderBranchPerf(results, el); return; }
+  function done() { pending--; if (pending === 0) renderBranchPerf(results, el); }
+  results.forEach(function(r) {
+    db.collection('users').where('branchId','==',r.id).where('role','==','agent').where('isActive','==',true).get().then(function(s){r.agents=s.size;done();}).catch(done);
+    db.collection('deals').where('branchId','==',r.id).where('isActive','==',true).get().then(function(s){r.deals=s.size;done();}).catch(done);
+    db.collection('properties').where('branchId','==',r.id).where('isActive','==',true).get().then(function(s){r.props=s.size;done();}).catch(done);
+    db.collection('invoices').where('branchId','==',r.id).where('status','==','paid').where('isActive','==',true).get().then(function(s){var t=0;s.forEach(function(d){t+=(d.data().totalAmount||0);});r.revenue=t;done();}).catch(done);
+  });
+}
+
+function renderBranchPerf(results, el) {
+  results.sort(function(a,b){ return b.revenue - a.revenue; });
+  var maxRev = Math.max.apply(null, results.map(function(r){return r.revenue;}).concat([1]));
+  var html = '<div class="exec-panel" style="margin-bottom:14px"><div class="exec-panel-hdr" data-rw="Igereranya ry\'Amashami" data-en="Branch Comparison">Branch Comparison</div><div class="exec-scroll"><table class="exec-perf-table"><thead><tr><th>#</th><th data-rw="Ishami" data-en="Branch">Branch</th><th>Agents</th><th>Listings</th><th>Deals</th><th data-rw="Amashingiro" data-en="Revenue">Revenue</th></tr></thead><tbody>';
+  results.forEach(function(r, i) {
+    var color = BR_STATUS_COLOR[r.status] || '#64748B';
+    html += '<tr><td>' + (i+1) + '</td><td><strong>' + r.name + '</strong><br><span style="font-size:.7rem;color:var(--muted)">' + (r.district||'') + '</span></td><td>' + r.agents + '</td><td>' + r.props + '</td><td>' + r.deals + '</td><td style="font-weight:700;color:var(--navy)">' + fmtRWF(r.revenue) + '</td></tr>';
+  });
+  html += '</tbody></table></div></div>';
+  html += '<div class="exec-panel"><div class="exec-panel-hdr" data-rw="Amashingiro ku Ishami" data-en="Revenue by Branch">Revenue by Branch</div>';
+  html += results.map(function(r) {
+    var pct = Math.round(r.revenue/maxRev*100);
+    return '<div class="bi-hbar-row"><div class="bi-hbar-lbl">' + r.name + '</div><div class="bi-hbar-wrap"><div class="bi-hbar-fill bi-hbar-navy" style="width:' + pct + '%"></div></div><div class="bi-hbar-val">' + fmtRWF(r.revenue) + '</div></div>';
+  }).join('');
+  html += '</div>';
+  el.innerHTML = html;
+  switchLang(currentLang);
+}
+
+/* ── COVERAGE TAB ── */
+function loadBranchCoverage() {
+  var mapEl = g('br-coverage-map');
+  var propsEl = g('br-props-by-district');
+  if (!mapEl) return;
+
+  /* Build district → branches map */
+  var distBranches = {};
+  _branches.forEach(function(b) {
+    var covDistricts = (b.districtsCovered || [b.district]).filter(Boolean);
+    covDistricts.forEach(function(d) {
+      if (!distBranches[d]) distBranches[d] = [];
+      distBranches[d].push(b.name);
+    });
+  });
+
+  var coveredDistricts = Object.keys(distBranches);
+  var uncoveredDistricts = BR_RWANDA_DISTRICTS.filter(function(d){ return !distBranches[d]; });
+
+  mapEl.innerHTML =
+    '<div class="br-coverage-summary"><span class="br-cov-stat"><strong style="color:var(--success)">' + coveredDistricts.length + '</strong> covered</span><span class="br-cov-stat"><strong style="color:var(--muted)">' + uncoveredDistricts.length + '</strong> uncovered</span><span class="br-cov-stat"><strong style="color:var(--navy)">' + BR_RWANDA_DISTRICTS.length + '</strong> total districts</span></div>' +
+    '<div class="br-district-grid">' +
+    BR_RWANDA_DISTRICTS.map(function(d) {
+      var covered = !!distBranches[d];
+      var branches = covered ? distBranches[d].join(', ') : '';
+      return '<div class="br-district-cell' + (covered ? ' br-district-covered' : ' br-district-uncovered') + '" title="' + (branches || 'No branch') + '"><span class="br-district-name">' + d + '</span>' + (covered ? '<span class="br-district-indicator">&#10003;</span>' : '') + '</div>';
+    }).join('') +
+    '</div>';
+
+  /* Properties per district */
+  if (propsEl) {
+    propsEl.innerHTML = '<div class="exec-loading">Loading...</div>';
+    db.collection('properties').where('isActive','==',true).where('status','==','approved').limit(300).get().then(function(snap) {
+      var counts = {};
+      snap.forEach(function(d) { var dist = d.data().district||'Other'; counts[dist]=(counts[dist]||0)+1; });
+      var sorted = Object.entries(counts).sort(function(a,b){return b[1]-a[1];}).slice(0,12);
+      var max = sorted[0] ? sorted[0][1] : 1;
+      propsEl.innerHTML = sorted.map(function(row) {
+        var pct = Math.round(row[1]/max*100);
+        var covered = !!distBranches[row[0]];
+        return '<div class="bi-hbar-row"><div class="bi-hbar-lbl">' + row[0] + '</div><div class="bi-hbar-wrap"><div class="bi-hbar-fill ' + (covered ? 'bi-hbar-navy' : 'bi-hbar-gold') + '" style="width:' + pct + '%"></div></div><div class="bi-hbar-val">' + row[1] + (covered ? ' <span style="color:var(--success);font-size:.7rem">&#10003;</span>' : '') + '</div></div>';
+      }).join('');
+    }).catch(function(){ propsEl.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
+  }
+  switchLang(currentLang);
+}
+
+function updateBranchSidebarBadge() {
+  db.collection('branches').where('isActive','==',true).get().then(function(s) {
+    var el = g('branch-sidebar-badge'); if (el) el.textContent = s.size > 0 ? s.size : '';
+  }).catch(function(){});
+}
+
+/* ── SIDEBAR BADGE ── */
+(function() {
+  var _brTimer = setInterval(function() {
+    if (typeof db === 'undefined' || !currentUser) return;
+    clearInterval(_brTimer);
+    updateBranchSidebarBadge();
+  }, 9500);
 })();
 </script>
 

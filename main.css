@@ -3241,3 +3241,68 @@ html,body{overscroll-behavior-x:none}
   .bi-pipeline-summary { grid-template-columns: 1fr; }
   .bi-hbar-lbl { width: 65px; font-size: .68rem; }
 }
+
+/* ============================================================
+   PHASE 15 — NATIONAL EXPANSION (MULTI-BRANCH)
+   ============================================================ */
+
+/* KPI Strip */
+.br-kpi-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
+.br-kpi { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.07); text-align: center; border-bottom: 3px solid var(--navy); }
+.br-kpi-val { display: block; font-size: 1.3rem; font-weight: 700; color: var(--dark); }
+.br-kpi-lbl { display: block; font-size: .62rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-top: 4px; }
+
+/* Branch Cards Grid */
+.br-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.br-card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.07); cursor: pointer; transition: var(--tr); border: 1.5px solid transparent; }
+.br-card:hover { border-color: var(--navy); transform: translateY(-2px); }
+.br-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.br-card-name { font-size: .92rem; font-weight: 700; color: var(--dark); }
+.br-card-code { font-size: .68rem; color: var(--muted); margin-top: 2px; font-family: monospace; }
+.br-status-chip { font-size: .65rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; text-transform: capitalize; }
+.br-card-district { display: flex; align-items: center; gap: 4px; font-size: .78rem; color: var(--muted); margin-bottom: 4px; }
+.br-card-addr { font-size: .75rem; color: var(--muted); margin-bottom: 10px; }
+.br-card-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; border-top: 1px solid #F1F5F9; padding-top: 10px; }
+.br-card-stat { font-size: .73rem; color: var(--muted); margin-right: 6px; }
+.br-card-stat span { font-weight: 700; color: var(--navy); }
+.br-card-dist-chips { display: flex; flex-wrap: wrap; gap: 3px; margin-left: auto; }
+.br-dist-chip { font-size: .58rem; background: var(--light); color: var(--muted); padding: 2px 6px; border-radius: 10px; }
+.br-dist-chip-lg { font-size: .68rem; padding: 3px 9px; }
+
+/* Branch Detail Modal */
+.br-detail-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.br-detail-info { display: flex; align-items: center; gap: 10px; }
+.br-detail-code { font-family: monospace; font-size: .8rem; background: var(--light); padding: 3px 9px; border-radius: 6px; color: var(--navy); font-weight: 700; }
+.br-detail-grid { display: flex; flex-direction: column; gap: 0; margin-bottom: 14px; }
+.br-detail-row { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #F8FAFC; }
+.br-detail-lbl { font-size: .73rem; color: var(--muted); min-width: 80px; flex-shrink: 0; }
+.br-detail-val { font-size: .82rem; color: var(--dark); font-weight: 500; }
+.br-detail-section { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--navy); margin: 12px 0 8px; }
+.br-detail-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 4px; }
+.br-live-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.br-live-kpi { background: var(--light); border-radius: 8px; padding: 10px; text-align: center; }
+.br-live-val { display: block; font-size: 1.1rem; font-weight: 700; color: var(--navy); }
+.br-live-lbl { display: block; font-size: .65rem; color: var(--muted); margin-top: 2px; }
+
+/* Coverage Map */
+.br-coverage-summary { display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+.br-cov-stat { font-size: .8rem; color: var(--muted); }
+.br-district-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+.br-district-cell { border-radius: 6px; padding: 6px 8px; display: flex; justify-content: space-between; align-items: center; transition: var(--tr); }
+.br-district-covered { background: #DCFCE7; border: 1px solid #86EFAC; }
+.br-district-uncovered { background: #F8FAFC; border: 1px solid #E2E8F0; }
+.br-district-name { font-size: .68rem; font-weight: 500; color: var(--dark); }
+.br-district-indicator { color: #16A34A; font-size: .75rem; font-weight: 700; }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .br-kpi-strip { grid-template-columns: repeat(3, 1fr); }
+  .br-grid { grid-template-columns: 1fr 1fr; }
+  .br-district-grid { grid-template-columns: repeat(3, 1fr); }
+  .br-live-stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .br-kpi-strip { grid-template-columns: repeat(2, 1fr); }
+  .br-grid { grid-template-columns: 1fr; }
+  .br-district-grid { grid-template-columns: repeat(2, 1fr); }
+}
