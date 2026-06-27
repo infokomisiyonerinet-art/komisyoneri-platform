@@ -3597,6 +3597,7 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="go('verification')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg><span data-rw="Kugenzura" data-en="Verification">Verification</span><span class="ds-badge" id="verif-sidebar-count">0</span></div>
       <div class="dn" onclick="go('documents')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span data-rw="Dosiye / Vault" data-en="Document Vault">Document Vault</span><span class="ds-badge" id="docs-sidebar-count">0</span></div>
       <div class="dn" onclick="go('partners')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Abahuza" data-en="Partners">Partners</span><span class="ds-badge" id="partners-sidebar-count">0</span></div>
+      <div class="dn" onclick="go('financing')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg><span data-rw="Inguzanyo" data-en="Financing">Financing</span><span class="ds-badge" id="fin-sidebar-count">0</span></div>
       <div class="ds-section" data-rw="IMARI" data-en="FINANCE">IMARI</div>
       <div class="dn" onclick="go('commissions')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span data-rw="Komisiyoni" data-en="Commissions">Komisiyoni</span><span class="ds-badge" id="comm-sidebar-count">0</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-rw="Kwishyura" data-en="Payments">Kwishyura</span></div>
@@ -4409,6 +4410,80 @@ html,body{overscroll-behavior-x:none}
         <div class="crm-empty-title" data-rw="Gutegura abahuza..." data-en="Loading partners...">Loading partners...</div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- === PAGE: FINANCING HUB === -->
+<div class="page" id="page-financing">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">🏦 Financing</div>
+      <h1 class="h1" data-rw="Ikigega cy'Inguzanyo" data-en="Financing Hub">Financing Hub</h1>
+      <p style="color:rgba(255,255,255,.82);font-size:.85rem" data-rw="Gusaba inguzanyo, gukurikirana, no guhuza na banki" data-en="Apply for mortgages, track applications, and get matched with banks">Apply for mortgages, track applications, and get matched with banks</p>
+    </div>
+  </div>
+  <div class="crm-wrap">
+    <div class="crm-header">
+      <div>
+        <p style="color:var(--muted);font-size:.82rem" data-rw="Kanda ku nsonga kugirango ubone ibirenzeho" data-en="Click any application to view details">Click any application to view details</p>
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="openMortgageCalc()">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/></svg>
+          <span data-rw="Bara Inguzanyo" data-en="Calculator">Calculator</span>
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openLoanApply()">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span data-rw="Saba Inguzanyo" data-en="Apply for Loan">Apply for Loan</span>
+        </button>
+      </div>
+    </div>
+    <!-- Stats -->
+    <div class="crm-stats">
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="fin-stat-total">0</div>
+        <div class="crm-stat-l" data-rw="Ibikunze Byose" data-en="Total">Total</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="fin-stat-pending" style="color:#F59E0B">0</div>
+        <div class="crm-stat-l" data-rw="Bitegereje" data-en="Pending">Pending</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="fin-stat-approved" style="color:#16A34A">0</div>
+        <div class="crm-stat-l" data-rw="Byemewe" data-en="Approved">Approved</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="fin-stat-disbursed" style="color:var(--gold)">0</div>
+        <div class="crm-stat-l" data-rw="Byatanzwe" data-en="Disbursed">Disbursed</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="fin-stat-value" style="color:var(--navy);font-size:.8rem">0</div>
+        <div class="crm-stat-l" data-rw="Ingano (RWF M)" data-en="Total (RWF M)">Total (M)</div>
+      </div>
+    </div>
+    <!-- Filters -->
+    <div class="crm-filters">
+      <select id="fin-filter-status" onchange="filterFinancing()">
+        <option value="">-- Imiterere Yose / All Status --</option>
+        <option value="submitted">Submitted</option>
+        <option value="under_review">Under Review</option>
+        <option value="docs_requested">Docs Requested</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+        <option value="disbursed">Disbursed</option>
+      </select>
+      <select id="fin-filter-type" onchange="filterFinancing()">
+        <option value="">-- Ubwoko Bwose / All Types --</option>
+        <option value="mortgage">Mortgage</option>
+        <option value="construction">Construction Loan</option>
+        <option value="refinance">Refinancing</option>
+        <option value="equity">Home Equity</option>
+        <option value="commercial">Commercial</option>
+      </select>
+      <input type="text" id="fin-search" placeholder="Shakisha umusaba... / Search applicant..." oninput="filterFinancing()" style="flex:1;min-width:160px">
+    </div>
+    <!-- List -->
+    <div id="fin-list" style="margin-top:.5rem"></div>
   </div>
 </div>
 
@@ -5604,6 +5679,292 @@ html,body{overscroll-behavior-x:none}
         </button>
         <button class="btn btn-outline" onclick="document.getElementById('rate-partner-modal').style.display='none'" style="padding:.5rem .8rem">✕</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- === MORTGAGE CALCULATOR MODAL === -->
+<div class="modal-wrap" id="mortgage-calc-modal" style="display:none">
+  <div class="modal" style="max-width:540px;width:95%">
+    <div class="modal-hdr" style="background:var(--navy);color:#fff;border-radius:12px 12px 0 0;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-weight:700;font-size:1rem;color:#fff">🏦 <span data-rw="Ibarurishamibare ry'Inguzanyo" data-en="Mortgage Calculator">Mortgage Calculator</span></div>
+      <button onclick="closeMortgageCalc()" style="background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;line-height:1">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="calc-grid">
+        <div class="form-group">
+          <label data-rw="Agaciro k'Imitungo (RWF)" data-en="Property Value (RWF)">Property Value (RWF)</label>
+          <input type="number" id="calc-prop-val" placeholder="50,000,000" oninput="onCalcPropVal()" min="0" step="1000000" style="width:100%">
+        </div>
+        <div class="form-group">
+          <label>Down Payment: <span id="calc-dp-pct-lbl">20%</span> = <span id="calc-dp-rwf-lbl" style="color:var(--navy)">10,000,000 RWF</span></label>
+          <input type="range" id="calc-dp-range" min="10" max="50" value="20" step="5" oninput="onCalcDpSlide(this.value)" style="width:100%;accent-color:var(--navy)">
+          <div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted)"><span>10%</span><span>50%</span></div>
+        </div>
+        <div class="form-group">
+          <label data-rw="Ingano y'Inguzanyo (RWF)" data-en="Loan Amount (RWF)">Loan Amount (RWF)</label>
+          <input type="number" id="calc-loan-amt" placeholder="40,000,000" oninput="runCalc()" min="0" step="500000" style="width:100%">
+        </div>
+        <div class="form-group">
+          <label data-rw="Inyungu ya Buri Mwaka (%)" data-en="Annual Interest Rate (%)">Annual Interest Rate (%)</label>
+          <input type="number" id="calc-rate" value="16" step="0.5" min="5" max="35" oninput="runCalc()" style="width:100%">
+          <div style="font-size:.68rem;color:var(--muted);margin-top:.2rem" data-rw="Rwanda: 14-20% buri mwaka" data-en="Rwanda typical: 14-20% per year">Rwanda typical: 14–20% per year</div>
+        </div>
+        <div class="form-group">
+          <label data-rw="Igihe cy'Inguzanyo (Imyaka)" data-en="Loan Term (Years)">Loan Term (Years)</label>
+          <select id="calc-term" onchange="runCalc()" style="width:100%">
+            <option value="5">5 years</option>
+            <option value="10">10 years</option>
+            <option value="15" selected>15 years</option>
+            <option value="20">20 years</option>
+            <option value="25">25 years</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-rw="Banki Washaka" data-en="Preferred Bank">Preferred Bank</label>
+          <select id="calc-bank" onchange="onCalcBankSelect()" style="width:100%">
+            <option value="">-- Hitamo Banki / Select Bank --</option>
+            <option value="bk">Bank of Kigali (BK) — 14–17%</option>
+            <option value="equity">Equity Bank Rwanda — 15–18%</option>
+            <option value="im">I&amp;M Bank Rwanda — 14.5–17%</option>
+            <option value="cogebanque">Cogebanque — 16–19%</option>
+            <option value="ncba">NCBA Bank Rwanda — 15–18%</option>
+            <option value="ab">Access Bank Rwanda — 17–20%</option>
+            <option value="urwego">Urwego Bank — 18–22%</option>
+          </select>
+        </div>
+      </div>
+      <!-- Results panel -->
+      <div id="calc-results" style="display:none;background:var(--light);border-radius:10px;padding:1.1rem;margin-top:.75rem">
+        <div class="calc-result-primary">
+          <div class="calc-monthly-lbl" data-rw="Kwishyura kwa Buri Kwezi" data-en="Monthly Payment">Monthly Payment</div>
+          <div class="calc-monthly-val" id="calc-monthly">0 RWF</div>
+        </div>
+        <div class="calc-result-grid">
+          <div class="calc-result-item"><span data-rw="Inguzanyo" data-en="Principal">Principal</span><strong id="calc-principal-display">—</strong></div>
+          <div class="calc-result-item"><span data-rw="Inyungu Yose" data-en="Total Interest">Total Interest</span><strong id="calc-total-interest" style="color:var(--warning)">—</strong></div>
+          <div class="calc-result-item"><span data-rw="Ibyishyurwa Byose" data-en="Total Payments">Total Payments</span><strong id="calc-total-payment">—</strong></div>
+          <div class="calc-result-item"><span data-rw="Umubare w'Amezi" data-en="No. of Payments">No. of Payments</span><strong id="calc-num-payments">—</strong></div>
+        </div>
+        <div style="margin-top:.75rem">
+          <div style="font-size:.72rem;color:var(--muted);margin-bottom:.3rem" data-rw="Principal vs Inyungu" data-en="Principal vs Interest">Principal vs Interest</div>
+          <div class="calc-amort-bar">
+            <div id="calc-bar-p" class="calc-amort-principal" style="width:0%"></div>
+            <div id="calc-bar-i" class="calc-amort-interest" style="width:0%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);margin-top:.2rem">
+            <span>&#9646; Principal (<span id="calc-p-pct">0%</span>)</span>
+            <span>&#9646; Interest (<span id="calc-i-pct">0%</span>)</span>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-top:.9rem" onclick="applyFromCalc()" data-rw="Gukoresha Aba Miterere — Saba Inguzanyo" data-en="Apply with These Terms">Apply with These Terms</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === LOAN APPLICATION MODAL === -->
+<div class="modal-wrap" id="loan-apply-modal" style="display:none">
+  <div class="modal" style="max-width:560px;width:95%;max-height:92vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title">📋 <span data-rw="Gusaba Inguzanyo" data-en="Loan Application">Loan Application</span></div>
+      <button onclick="closeLoanApply()" class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-section-title" data-rw="1. Amakuru y'Inguzanyo" data-en="1. Loan Details">1. Loan Details</div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label data-rw="Ubwoko bw'Inguzanyo *" data-en="Loan Type *">Loan Type *</label>
+          <select id="la-loan-type" required style="width:100%">
+            <option value="">-- Select Type --</option>
+            <option value="mortgage" data-rw="Inguzanyo yo Kugura Inzu" data-en="Home Purchase Mortgage">Home Purchase Mortgage</option>
+            <option value="construction" data-rw="Inguzanyo yo Kubaka" data-en="Construction Loan">Construction Loan</option>
+            <option value="refinance" data-rw="Guhindura Inguzanyo" data-en="Refinancing">Refinancing</option>
+            <option value="equity" data-rw="Home Equity Loan" data-en="Home Equity Loan">Home Equity Loan</option>
+            <option value="commercial" data-rw="Inguzanyo y'Ubucuruzi" data-en="Commercial Property">Commercial Property</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-rw="Banki Washaka *" data-en="Preferred Bank *">Preferred Bank *</label>
+          <select id="la-bank" required style="width:100%">
+            <option value="">-- Select Bank --</option>
+            <option value="bk">Bank of Kigali (BK)</option>
+            <option value="equity">Equity Bank Rwanda</option>
+            <option value="im">I&amp;M Bank Rwanda</option>
+            <option value="cogebanque">Cogebanque</option>
+            <option value="ncba">NCBA Bank Rwanda</option>
+            <option value="ab">Access Bank Rwanda</option>
+            <option value="urwego">Urwego Bank</option>
+            <option value="any">Any — Best Rate</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label data-rw="Agaciro k'Imitungo (RWF) *" data-en="Property Value (RWF) *">Property Value (RWF) *</label>
+          <input type="number" id="la-prop-val" placeholder="e.g. 50000000" min="0" step="1000000" oninput="updateLaLtv()" style="width:100%">
+        </div>
+        <div class="form-group">
+          <label data-rw="Ingano y'Inguzanyo (RWF) *" data-en="Loan Amount (RWF) *">Loan Amount (RWF) *</label>
+          <input type="number" id="la-loan-amt" placeholder="e.g. 40000000" min="0" step="500000" oninput="updateLaLtv()" style="width:100%">
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label data-rw="Igihe (Imyaka) *" data-en="Term (Years) *">Term (Years) *</label>
+          <select id="la-term" style="width:100%">
+            <option value="5">5 years</option>
+            <option value="10">10 years</option>
+            <option value="15" selected>15 years</option>
+            <option value="20">20 years</option>
+            <option value="25">25 years</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-rw="Down Payment (RWF)" data-en="Down Payment (RWF)">Down Payment (RWF)</label>
+          <input type="text" id="la-down-payment" placeholder="Auto-calculated" readonly style="background:var(--light);width:100%">
+        </div>
+      </div>
+      <div id="la-ltv-bar" style="display:none;background:var(--light);border-radius:8px;padding:.6rem .85rem;margin-bottom:.75rem;font-size:.8rem">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.3rem">
+          <span data-rw="Loan-to-Value (LTV)" data-en="Loan-to-Value (LTV)">Loan-to-Value</span>
+          <strong id="la-ltv-pct">0%</strong>
+        </div>
+        <div class="calc-amort-bar" style="height:8px;border-radius:4px">
+          <div id="la-ltv-fill" style="height:100%;border-radius:4px;background:var(--navy);transition:width .3s"></div>
+        </div>
+        <div id="la-ltv-msg" style="margin-top:.3rem;font-size:.72rem;color:var(--muted)"></div>
+      </div>
+
+      <div class="form-section-title" data-rw="2. Amakuru y'Imitungo" data-en="2. Property Information">2. Property Information</div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label data-rw="Akarere" data-en="District">District</label>
+          <select id="la-district" style="width:100%">
+            <option value="">-- Select District --</option>
+            <option>Gasabo</option><option>Kicukiro</option><option>Nyarugenge</option>
+            <option>Musanze</option><option>Rubavu</option><option>Huye</option>
+            <option>Rwamagana</option><option>Bugesera</option><option>Kayonza</option>
+            <option>Kirehe</option><option>Nyagatare</option><option>Ngoma</option>
+            <option>Muhanga</option><option>Karongi</option><option>Nyamasheke</option>
+            <option>Rusizi</option><option>Nyamagabe</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-rw="Indangabutaka (UPI) — optional" data-en="Land UPI (optional)">Land UPI (optional)</label>
+          <input type="text" id="la-upi" placeholder="e.g. 1/02/01/01/0123" style="width:100%">
+        </div>
+      </div>
+
+      <div class="form-section-title" data-rw="3. Amakuru y'Usaba" data-en="3. Applicant Information">3. Applicant Information</div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label data-rw="Amazina Yose *" data-en="Full Name *">Full Name *</label>
+          <input type="text" id="la-fullname" placeholder="Full name as on ID" style="width:100%">
+        </div>
+        <div class="form-group">
+          <label data-rw="Indangamuntu (NID)" data-en="National ID">National ID</label>
+          <input type="text" id="la-nid" placeholder="16-digit NID" style="width:100%">
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label data-rw="Telefoni *" data-en="Phone *">Phone *</label>
+          <input type="tel" id="la-phone" placeholder="+250 7XX XXX XXX" style="width:100%">
+        </div>
+        <div class="form-group">
+          <label data-rw="Imeli" data-en="Email">Email</label>
+          <input type="email" id="la-email" placeholder="applicant@email.com" style="width:100%">
+        </div>
+      </div>
+
+      <div class="form-section-title" data-rw="4. Amakuru y'Akazi" data-en="4. Employment Details">4. Employment Details</div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label data-rw="Ubwoko bw'Akazi *" data-en="Employment Type *">Employment Type *</label>
+          <select id="la-emp-type" style="width:100%">
+            <option value="">-- Select --</option>
+            <option value="employed" data-rw="Akazi ka Leta/Inzego" data-en="Employed (Govt/Private)">Employed (Govt/Private)</option>
+            <option value="self_employed" data-rw="Ubucuruzi bwawe" data-en="Self-Employed">Self-Employed</option>
+            <option value="business_owner" data-rw="Nyir'Ubucuruzi" data-en="Business Owner">Business Owner</option>
+            <option value="contractor" data-rw="Ugengwa na Kontra" data-en="Contractor">Contractor</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-rw="Aho Akazi Gakorerwa" data-en="Employer / Business">Employer / Business</label>
+          <input type="text" id="la-employer" placeholder="Company or business name" style="width:100%">
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label data-rw="Umushahara wa Buri Kwezi (RWF) *" data-en="Monthly Income (RWF) *">Monthly Income (RWF) *</label>
+          <input type="number" id="la-monthly-income" placeholder="e.g. 1500000" min="0" step="50000" oninput="updateLaDsr()" style="width:100%">
+        </div>
+        <div class="form-group">
+          <label data-rw="Igihe Akazi Kamaze (Amezi)" data-en="Employment Duration (months)">Employment Duration (months)</label>
+          <input type="number" id="la-emp-duration" placeholder="e.g. 36" min="0" style="width:100%">
+        </div>
+      </div>
+      <div id="la-dsr-bar" style="display:none;background:var(--light);border-radius:8px;padding:.6rem .85rem;margin-bottom:.75rem;font-size:.8rem">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.3rem">
+          <span data-rw="Umubare w'Inguzanyo ku Mushahara (DSR)" data-en="Debt-Service Ratio (DSR)">Debt-Service Ratio (DSR)</span>
+          <strong id="la-dsr-pct">0%</strong>
+        </div>
+        <div class="calc-amort-bar" style="height:8px;border-radius:4px">
+          <div id="la-dsr-fill" style="height:100%;border-radius:4px;transition:width .3s;background:var(--success)"></div>
+        </div>
+        <div id="la-dsr-msg" style="margin-top:.3rem;font-size:.72rem;color:var(--muted)"></div>
+      </div>
+
+      <div class="form-group">
+        <label data-rw="Ibindi Bisobanuro (Ntabwo Ngombwa)" data-en="Additional Notes (Optional)">Additional Notes (Optional)</label>
+        <textarea id="la-notes" rows="2" placeholder="Any special circumstances for the bank..." style="width:100%;resize:vertical"></textarea>
+      </div>
+
+      <div style="background:rgba(13,59,140,.06);border-left:3px solid var(--navy);border-radius:0 8px 8px 0;padding:.7rem .85rem;font-size:.75rem;color:var(--dark);margin-bottom:.85rem">
+        <strong data-rw="Icyitonderwa:" data-en="Disclaimer:">Disclaimer:</strong>
+        <span data-rw="Iki ni ubusabe bw'uhagarariye gusa. KOMISIYONERI izakuroherereza banki. Kwemezwa kw'inguzanyo bikurikira amategeko ya banki." data-en="This is a referral request only. KOMISIYONERI will forward it to your chosen bank. Final approval is subject to the bank's own assessment and criteria."> This is a referral request only. KOMISIYONERI will forward it to your chosen bank. Final approval is subject to the bank's own criteria.</span>
+      </div>
+
+      <div style="display:flex;gap:.5rem;justify-content:flex-end">
+        <button class="btn btn-outline" onclick="closeLoanApply()" data-rw="Gusubira Inyuma" data-en="Cancel">Cancel</button>
+        <button class="btn btn-primary" onclick="submitLoanApply()" data-rw="Ohereza Ubusabe" data-en="Submit Application">Submit Application</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === LOAN DETAIL MODAL === -->
+<div class="modal-wrap" id="loan-detail-modal" style="display:none">
+  <div class="modal" style="max-width:560px;width:95%;max-height:92vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title">📋 <span data-rw="Ibirenzeho by'Inguzanyo" data-en="Loan Application Detail">Loan Application Detail</span></div>
+      <button onclick="closeLoanDetail()" class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ld-app-id">
+      <div class="fin-stepper" id="ld-stepper"></div>
+      <div class="fin-summary-card">
+        <div class="fin-summary-row"><span data-rw="Usaba" data-en="Applicant">Applicant</span><strong id="ld-fullname">—</strong></div>
+        <div class="fin-summary-row"><span data-rw="Ubwoko" data-en="Loan Type">Loan Type</span><strong id="ld-loan-type">—</strong></div>
+        <div class="fin-summary-row"><span data-rw="Inguzanyo" data-en="Loan Amount">Loan Amount</span><strong id="ld-loan-amount" style="color:var(--navy)">—</strong></div>
+        <div class="fin-summary-row"><span data-rw="Agaciro k'Imitungo" data-en="Property Value">Property Value</span><strong id="ld-prop-value">—</strong></div>
+        <div class="fin-summary-row"><span>LTV</span><strong id="ld-ltv">—</strong></div>
+        <div class="fin-summary-row"><span data-rw="Igihe" data-en="Term">Term</span><strong id="ld-term">—</strong></div>
+        <div class="fin-summary-row"><span data-rw="Kwishyura kwa Buri Kwezi (Est.)" data-en="Est. Monthly Payment">Est. Monthly</span><strong id="ld-monthly-payment" style="color:var(--success)">—</strong></div>
+        <div class="fin-summary-row"><span data-rw="Banki Washakaga" data-en="Preferred Bank">Preferred Bank</span><strong id="ld-bank">—</strong></div>
+        <div class="fin-summary-row"><span data-rw="Akarere" data-en="District">District</span><strong id="ld-district">—</strong></div>
+        <div class="fin-summary-row"><span data-rw="Umwuga" data-en="Employment">Employment</span><strong id="ld-employment">—</strong></div>
+        <div class="fin-summary-row"><span data-rw="Umushahara" data-en="Monthly Income">Monthly Income</span><strong id="ld-income">—</strong></div>
+        <div class="fin-summary-row"><span>DSR</span><strong id="ld-dsr">—</strong></div>
+        <div class="fin-summary-row"><span data-rw="Telefoni" data-en="Phone">Phone</span><strong id="ld-phone">—</strong></div>
+        <div class="fin-summary-row" id="ld-notes-row" style="display:none"><span data-rw="Ibisobanuro" data-en="Notes">Notes</span><span id="ld-notes" style="font-style:italic;max-width:60%;text-align:right;font-size:.8rem">—</span></div>
+      </div>
+      <div class="fin-commission-bar" id="ld-commission-bar" style="display:none">
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:.15rem" data-rw="Komisiyoni ya Referral (0.75%)" data-en="Referral Commission (0.75%)">Referral Commission (0.75%)</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--gold)" id="ld-commission-val">—</div>
+      </div>
+      <div id="ld-actions" style="display:flex;gap:.5rem;flex-wrap:wrap;padding-top:.85rem;border-top:1px solid var(--border);margin-top:.75rem"></div>
     </div>
   </div>
 </div>
@@ -10514,6 +10875,9 @@ go = function(page) {
   if(page === 'partners') {
     setTimeout(loadPartners, 150);
   }
+  if(page === 'financing') {
+    setTimeout(loadFinancing, 150);
+  }
 };
 
 </script>
@@ -10901,6 +11265,517 @@ go = function(page) {
       : attachRealtimeListeners();
   } catch(e){ console.error('Sync error:',e); }
 })();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHASE 8 — FINANCING HUB
+     Mortgage Calculator | Loan Applications | Bank Matching
+════════════════════════════════════════════════════════ -->
+<script>
+/* ── Phase 8 globals ── */
+var _financing = [];
+var _finFilter = { status: '', type: '', q: '' };
+var _finCurrentId = null;
+var _finCalcPrefill = null;
+
+var RWANDA_BANKS = {
+  bk:         'Bank of Kigali (BK)',
+  equity:     'Equity Bank Rwanda',
+  im:         'I&M Bank Rwanda',
+  cogebanque: 'Cogebanque',
+  ncba:       'NCBA Bank Rwanda',
+  ab:         'Access Bank Rwanda',
+  urwego:     'Urwego Bank',
+  any:        'Any — Best Rate'
+};
+
+var LOAN_TYPES_FIN = {
+  mortgage:     'Home Purchase Mortgage',
+  construction: 'Construction Loan',
+  refinance:    'Refinancing',
+  equity:       'Home Equity Loan',
+  commercial:   'Commercial Property Loan'
+};
+
+var BANK_RATES = {
+  bk: 15.5, equity: 16.5, im: 15.75, cogebanque: 17.5,
+  ncba: 16.5, ab: 18.5, urwego: 20
+};
+
+/* ── Math helpers ── */
+function calcPMT(principal, annualRatePct, years) {
+  var r = annualRatePct / 100 / 12;
+  var n = years * 12;
+  if (!r || !n) return principal / (n || 1);
+  return principal * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+}
+
+function fmtRwf(n) {
+  return Math.round(n).toLocaleString('en-US') + ' RWF';
+}
+
+function fmtM(n) {
+  if (n >= 1000000000) return (n / 1000000000).toFixed(1) + 'B';
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(0) + 'K';
+  return n.toString();
+}
+
+function finStatusColor(s) {
+  var c = { submitted: '#6366F1', under_review: '#F59E0B', docs_requested: '#EA580C', approved: '#16A34A', rejected: '#DC2626', disbursed: '#0D3B8C' };
+  return c[s] || 'var(--muted)';
+}
+
+function finStatusLabel(s) {
+  var l = { submitted: 'Submitted', under_review: 'Under Review', docs_requested: 'Docs Requested', approved: 'Approved', rejected: 'Rejected', disbursed: 'Disbursed' };
+  return l[s] || s;
+}
+
+/* ── Load ── */
+function loadFinancing() {
+  var el = g('fin-list');
+  if (typeof db === 'undefined') {
+    if (el) el.innerHTML = '<p style="text-align:center;color:var(--muted);padding:2rem">Offline — cannot load applications</p>';
+    return;
+  }
+  db.collection('services').where('serviceType','==','financing').where('isActive','==',true)
+    .orderBy('createdAt','desc').limit(100)
+    .get().then(function(snap) {
+      _financing = [];
+      snap.forEach(function(d) { _financing.push(Object.assign({ id: d.id }, d.data())); });
+      renderFinancingList();
+      updateFinancingStats();
+    }).catch(function(e) { console.error('loadFinancing', e); });
+}
+
+function renderFinancingList() {
+  var f = _finFilter;
+  var list = _financing.filter(function(a) {
+    if (f.status && a.status !== f.status) return false;
+    if (f.type && a.loanType !== f.type) return false;
+    if (f.q) {
+      var q = f.q.toLowerCase();
+      var hay = ((a.applicantName||'') + ' ' + (a.district||'') + ' ' + (a.bankPreference||'')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  var el = g('fin-list');
+  if (!list.length) {
+    el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">🏦</div>'
+      + '<div class="crm-empty-title" data-rw="Nta nsonga zibonetse" data-en="No applications found">No applications found</div>'
+      + '<div class="crm-empty-sub" data-rw="Koresha buto yo gusaba inguzanyo gutangira" data-en="Use Apply for Loan button to get started">Use Apply for Loan to get started</div></div>';
+    if (typeof switchLang === 'function') switchLang(curLang);
+    return;
+  }
+
+  el.innerHTML = list.map(function(a) {
+    var ltype   = LOAN_TYPES_FIN[a.loanType] || a.loanType || 'Loan';
+    var bank    = RWANDA_BANKS[a.bankPreference] || a.bankPreference || 'N/A';
+    var color   = finStatusColor(a.status);
+    var lbl     = finStatusLabel(a.status);
+    var monthly = (a.loanAmount && a.interestRate && a.loanTermYears)
+      ? fmtRwf(calcPMT(a.loanAmount, a.interestRate, a.loanTermYears))
+      : '—';
+    return '<div class="fin-card" onclick="openLoanDetail(\'' + a.id + '\')">'
+      + '<div class="fin-card-head">'
+      + '<div><div class="fin-card-name">' + (a.applicantName||'Unknown Applicant') + '</div>'
+      + '<div class="fin-loan-type-chip">' + ltype + '</div></div>'
+      + '<span class="fin-status-badge" style="background:' + color + '20;color:' + color + '">' + lbl + '</span>'
+      + '</div>'
+      + '<div class="fin-card-body">'
+      + '<div class="fin-card-row"><span>Loan Amount</span><strong>' + fmtRwf(a.loanAmount||0) + '</strong></div>'
+      + '<div class="fin-card-row"><span>Est. Monthly</span><strong>' + monthly + '</strong></div>'
+      + '<div class="fin-card-row"><span>Bank</span><strong>' + bank + '</strong></div>'
+      + '<div class="fin-card-row"><span>Term</span><strong>' + (a.loanTermYears||'—') + ' yrs</strong></div>'
+      + '</div></div>';
+  }).join('');
+}
+
+function updateFinancingStats() {
+  var total     = _financing.length;
+  var pending   = _financing.filter(function(a) { return ['submitted','under_review','docs_requested'].includes(a.status); }).length;
+  var approved  = _financing.filter(function(a) { return a.status === 'approved'; }).length;
+  var disbursed = _financing.filter(function(a) { return a.status === 'disbursed'; }).length;
+  var totalVal  = _financing.reduce(function(s,a) { return s + (a.loanAmount||0); }, 0);
+
+  if(g('fin-stat-total'))     g('fin-stat-total').textContent     = total;
+  if(g('fin-stat-pending'))   g('fin-stat-pending').textContent   = pending;
+  if(g('fin-stat-approved'))  g('fin-stat-approved').textContent  = approved;
+  if(g('fin-stat-disbursed')) g('fin-stat-disbursed').textContent = disbursed;
+  if(g('fin-stat-value'))     g('fin-stat-value').textContent     = fmtM(totalVal);
+
+  var badge = g('fin-sidebar-count');
+  if (badge) badge.textContent = total > 0 ? total : '';
+}
+
+function filterFinancing() {
+  _finFilter.status = (g('fin-filter-status')||{}).value || '';
+  _finFilter.type   = (g('fin-filter-type')  ||{}).value || '';
+  _finFilter.q      = ((g('fin-search')       ||{}).value||'').trim();
+  renderFinancingList();
+}
+
+/* ── Mortgage Calculator ── */
+function openMortgageCalc() {
+  _finCalcPrefill = null;
+  var r = g('calc-results');
+  if (r) r.style.display = 'none';
+  openModal('mortgage-calc-modal');
+}
+function closeMortgageCalc() { closeModal('mortgage-calc-modal'); }
+
+function onCalcPropVal() {
+  var pv    = parseFloat((g('calc-prop-val')||{}).value) || 0;
+  var dpPct = parseFloat((g('calc-dp-range')||{}).value) || 20;
+  var dp    = pv * dpPct / 100;
+  var loan  = pv - dp;
+  if (g('calc-dp-rwf-lbl')) g('calc-dp-rwf-lbl').textContent = pv > 0 ? fmtRwf(dp) : dpPct + '%';
+  if (g('calc-loan-amt') && pv > 0) g('calc-loan-amt').value = Math.round(loan);
+  runCalc();
+}
+
+function onCalcDpSlide(val) {
+  if (g('calc-dp-pct-lbl')) g('calc-dp-pct-lbl').textContent = val + '%';
+  var pv = parseFloat((g('calc-prop-val')||{}).value) || 0;
+  var dp = pv * parseFloat(val) / 100;
+  if (g('calc-dp-rwf-lbl')) g('calc-dp-rwf-lbl').textContent = pv > 0 ? fmtRwf(dp) : val + '%';
+  if (g('calc-loan-amt') && pv > 0) g('calc-loan-amt').value = Math.round(pv - dp);
+  runCalc();
+}
+
+function onCalcBankSelect() {
+  var bv = (g('calc-bank')||{}).value;
+  if (bv && BANK_RATES[bv]) {
+    var rEl = g('calc-rate');
+    if (rEl) rEl.value = BANK_RATES[bv];
+  }
+  runCalc();
+}
+
+function runCalc() {
+  var principal = parseFloat((g('calc-loan-amt')||{}).value) || 0;
+  var rate      = parseFloat((g('calc-rate')    ||{}).value) || 16;
+  var years     = parseInt((g('calc-term')      ||{}).value) || 15;
+  var res = g('calc-results');
+  if (!principal || principal <= 0) { if (res) res.style.display = 'none'; return; }
+  if (!res) return;
+  res.style.display = 'block';
+
+  var monthly   = calcPMT(principal, rate, years);
+  var totalPaid = monthly * years * 12;
+  var totalInt  = totalPaid - principal;
+  var pPct      = Math.round(principal / totalPaid * 100);
+  var iPct      = 100 - pPct;
+
+  if(g('calc-monthly'))            g('calc-monthly').textContent            = fmtRwf(monthly);
+  if(g('calc-principal-display'))  g('calc-principal-display').textContent  = fmtRwf(principal);
+  if(g('calc-total-interest'))     g('calc-total-interest').textContent     = fmtRwf(totalInt);
+  if(g('calc-total-payment'))      g('calc-total-payment').textContent      = fmtRwf(totalPaid);
+  if(g('calc-num-payments'))       g('calc-num-payments').textContent       = (years * 12) + ' months';
+  if(g('calc-p-pct'))              g('calc-p-pct').textContent              = pPct + '%';
+  if(g('calc-i-pct'))              g('calc-i-pct').textContent              = iPct + '%';
+  if(g('calc-bar-p'))              g('calc-bar-p').style.width              = pPct + '%';
+  if(g('calc-bar-i'))              g('calc-bar-i').style.width              = iPct + '%';
+
+  _finCalcPrefill = { principal: principal, rate: rate, years: years };
+  if (typeof switchLang === 'function') switchLang(curLang);
+}
+
+function applyFromCalc() {
+  closeMortgageCalc();
+  openLoanApply(_finCalcPrefill);
+}
+
+/* ── Loan Application ── */
+function openLoanApply(prefill) {
+  var inputs = ['la-loan-type','la-bank','la-prop-val','la-loan-amt','la-upi',
+    'la-fullname','la-nid','la-phone','la-email','la-employer','la-monthly-income',
+    'la-emp-duration','la-notes','la-down-payment'];
+  inputs.forEach(function(id) { var el = g(id); if (el) el.value = ''; });
+  if(g('la-term')) g('la-term').value = '15';
+  if(g('la-emp-type')) g('la-emp-type').value = '';
+  if(g('la-district')) g('la-district').value = '';
+  var ltv = g('la-ltv-bar'); if (ltv) ltv.style.display = 'none';
+  var dsr = g('la-dsr-bar'); if (dsr) dsr.style.display = 'none';
+
+  if (prefill && prefill.principal) {
+    if(g('la-loan-amt')) g('la-loan-amt').value = Math.round(prefill.principal);
+    if (prefill.years) {
+      var tEl = g('la-term');
+      if (tEl) {
+        for (var i = 0; i < tEl.options.length; i++) {
+          if (parseInt(tEl.options[i].value) === prefill.years) { tEl.selectedIndex = i; break; }
+        }
+      }
+    }
+    if (g('la-prop-val') && prefill.principal) {
+      g('la-prop-val').value = Math.round(prefill.principal / 0.8);
+    }
+    updateLaLtv();
+  }
+
+  var cu = currentUser;
+  if (cu) {
+    if (g('la-fullname') && !g('la-fullname').value) g('la-fullname').value = cu.displayName || '';
+    if (g('la-email')    && !g('la-email').value)    g('la-email').value    = cu.email       || '';
+    if (g('la-phone')    && !g('la-phone').value)    g('la-phone').value    = cu.phone       || '';
+  }
+  openModal('loan-apply-modal');
+}
+function closeLoanApply() { closeModal('loan-apply-modal'); }
+
+function updateLaLtv() {
+  var pv  = parseFloat((g('la-prop-val') ||{}).value) || 0;
+  var la  = parseFloat((g('la-loan-amt')||{}).value) || 0;
+  var dp  = g('la-down-payment');
+  if (dp && pv > 0 && la > 0) dp.value = Math.max(0, Math.round(pv - la)).toLocaleString() + ' RWF';
+
+  var bar = g('la-ltv-bar');
+  if (!bar || pv <= 0 || la <= 0) return;
+  bar.style.display = 'block';
+  var ltv = Math.round(la / pv * 100);
+  if(g('la-ltv-pct')) g('la-ltv-pct').textContent = ltv + '%';
+  var fill = g('la-ltv-fill');
+  if (fill) {
+    fill.style.width = Math.min(ltv, 100) + '%';
+    fill.style.background = ltv > 85 ? 'var(--error)' : ltv > 75 ? 'var(--warning)' : 'var(--success)';
+  }
+  var msg = g('la-ltv-msg');
+  if (msg) {
+    if (ltv > 90) msg.textContent = 'LTV ' + ltv + '% — most banks require more down payment';
+    else if (ltv > 80) msg.textContent = 'LTV ' + ltv + '% — acceptable, some banks may require PMI';
+    else msg.textContent = 'LTV ' + ltv + '% — good ratio for most Rwanda banks';
+  }
+  updateLaDsr();
+}
+
+function updateLaDsr() {
+  var la     = parseFloat((g('la-loan-amt')       ||{}).value) || 0;
+  var income = parseFloat((g('la-monthly-income') ||{}).value) || 0;
+  var term   = parseInt((g('la-term')             ||{}).value) || 15;
+  var bar = g('la-dsr-bar');
+  if (!bar || la <= 0 || income <= 0) return;
+  bar.style.display = 'block';
+  var est = calcPMT(la, 16, term);
+  var dsr = Math.round(est / income * 100);
+  if(g('la-dsr-pct')) g('la-dsr-pct').textContent = dsr + '%';
+  var fill = g('la-dsr-fill');
+  if (fill) {
+    fill.style.width = Math.min(dsr, 100) + '%';
+    fill.style.background = dsr > 50 ? 'var(--error)' : dsr > 40 ? 'var(--warning)' : 'var(--success)';
+  }
+  var msg = g('la-dsr-msg');
+  if (msg) {
+    if (dsr > 50) msg.textContent = 'DSR ' + dsr + '% — high. Banks prefer below 40%';
+    else if (dsr > 40) msg.textContent = 'DSR ' + dsr + '% — borderline. Consider a co-applicant';
+    else msg.textContent = 'DSR ' + dsr + '% — healthy debt-to-income ratio';
+  }
+}
+
+function submitLoanApply() {
+  if (typeof db === 'undefined') { showToast('Offline — cannot submit', 'error'); return; }
+  var cu = currentUser;
+  if (!cu) { showToast('Login required', 'error'); return; }
+
+  var loanType    = (g('la-loan-type')       ||{}).value || '';
+  var bankPref    = (g('la-bank')            ||{}).value || '';
+  var propVal     = parseFloat((g('la-prop-val')         ||{}).value) || 0;
+  var loanAmt     = parseFloat((g('la-loan-amt')         ||{}).value) || 0;
+  var term        = parseInt((g('la-term')               ||{}).value) || 15;
+  var district    = (g('la-district')        ||{}).value || '';
+  var upi         = (g('la-upi')             ||{}).value || '';
+  var fullname    = (g('la-fullname')        ||{}).value || '';
+  var nid         = (g('la-nid')             ||{}).value || '';
+  var phone       = (g('la-phone')           ||{}).value || '';
+  var email       = (g('la-email')           ||{}).value || '';
+  var empType     = (g('la-emp-type')        ||{}).value || '';
+  var employer    = (g('la-employer')        ||{}).value || '';
+  var monthlyInc  = parseFloat((g('la-monthly-income')   ||{}).value) || 0;
+  var empDuration = parseInt((g('la-emp-duration')       ||{}).value) || 0;
+  var notes       = (g('la-notes')           ||{}).value || '';
+
+  if (!loanType || !bankPref || !loanAmt || !fullname || !phone || !empType || !monthlyInc) {
+    showToast('Fill all required fields (*)', 'error');
+    return;
+  }
+  if (propVal > 0 && loanAmt > propVal * 0.95) {
+    showToast('Loan amount exceeds 95% of property value', 'error');
+    return;
+  }
+
+  var interestRate = BANK_RATES[bankPref] || 16;
+  var monthly      = Math.round(calcPMT(loanAmt, interestRate, term));
+  var commRate     = 0.0075;
+  var commAmt      = Math.round(loanAmt * commRate);
+  var ltv          = propVal > 0 ? Math.round(loanAmt / propVal * 100) : 0;
+  var dsr          = monthlyInc > 0 ? Math.round(monthly / monthlyInc * 100) : 0;
+
+  var ref = db.collection('services').doc();
+  var doc = {
+    id: ref.id, serviceType: 'financing', loanType: loanType,
+    bankPreference: bankPref, propertyValue: propVal, loanAmount: loanAmt,
+    loanTermYears: term, interestRate: interestRate, monthlyPayment: monthly,
+    downPayment: Math.max(0, propVal - loanAmt), ltv: ltv, district: district,
+    landUpi: upi, applicantName: fullname, applicantNid: nid,
+    applicantPhone: phone, applicantEmail: email, employmentType: empType,
+    employer: employer, monthlyIncome: monthlyInc,
+    employmentDurationMonths: empDuration, dsr: dsr, notes: notes,
+    commissionRate: commRate, commissionAmount: commAmt,
+    requestedBy: cu.uid, assignedTo: '', assignedBank: '',
+    scheduledAt: null, quotedPrice: 0, agreedPrice: 0, reportUrl: '',
+    status: 'submitted', isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: cu.uid, updatedBy: cu.uid
+  };
+
+  ref.set(doc).then(function() {
+    logAudit('loan_submitted', 'services', ref.id, null, { loanType: loanType, amount: loanAmt });
+    showToast('Application submitted successfully!', 'success');
+    closeLoanApply();
+    loadFinancing();
+  }).catch(function(e) { showToast('Error: ' + e.message, 'error'); });
+}
+
+/* ── Loan Detail ── */
+function openLoanDetail(id) {
+  var app = _financing.find(function(a) { return a.id === id; });
+  if (!app) return;
+  _finCurrentId = id;
+  if (g('ld-app-id')) g('ld-app-id').value = id;
+
+  var stepperEl = g('ld-stepper');
+  if (stepperEl) {
+    var steps = ['submitted','under_review','docs_requested','approved','disbursed'];
+    var curIdx = app.status === 'rejected' ? -2 : steps.indexOf(app.status);
+    stepperEl.innerHTML = steps.map(function(s, i) {
+      var done   = i < curIdx;
+      var active = i === curIdx;
+      var lbls   = { submitted: 'Submitted', under_review: 'In Review', docs_requested: 'Docs Req.', approved: 'Approved', disbursed: 'Disbursed' };
+      return '<div class="fin-step' + (done ? ' done' : active ? ' active' : '') + '">'
+        + '<div class="fin-step-dot">' + (done ? '&#10003;' : (i + 1)) + '</div>'
+        + '<div class="fin-step-lbl">' + lbls[s] + '</div>'
+        + (i < steps.length - 1 ? '<div class="fin-step-line"></div>' : '')
+        + '</div>';
+    }).join('');
+    if (app.status === 'rejected') {
+      stepperEl.innerHTML += '<div class="fin-step active" style="margin-left:.5rem">'
+        + '<div class="fin-step-dot" style="background:var(--error);border-color:var(--error)">&#10007;</div>'
+        + '<div class="fin-step-lbl" style="color:var(--error)">Rejected</div></div>';
+    }
+  }
+
+  var monthly = (app.loanAmount && app.interestRate && app.loanTermYears)
+    ? fmtRwf(calcPMT(app.loanAmount, app.interestRate, app.loanTermYears))
+    : '—';
+
+  if(g('ld-fullname'))       g('ld-fullname').textContent        = app.applicantName || '—';
+  if(g('ld-loan-type'))      g('ld-loan-type').textContent       = LOAN_TYPES_FIN[app.loanType] || app.loanType || '—';
+  if(g('ld-loan-amount'))    g('ld-loan-amount').textContent     = fmtRwf(app.loanAmount||0);
+  if(g('ld-prop-value'))     g('ld-prop-value').textContent      = app.propertyValue ? fmtRwf(app.propertyValue) : '—';
+  if(g('ld-ltv'))            g('ld-ltv').textContent             = app.ltv ? app.ltv + '%' : '—';
+  if(g('ld-term'))           g('ld-term').textContent            = (app.loanTermYears||'—') + ' years';
+  if(g('ld-monthly-payment'))g('ld-monthly-payment').textContent = monthly;
+  if(g('ld-bank'))           g('ld-bank').textContent            = RWANDA_BANKS[app.bankPreference] || app.bankPreference || '—';
+  if(g('ld-district'))       g('ld-district').textContent        = app.district || '—';
+  if(g('ld-employment'))     g('ld-employment').textContent      = (app.employmentType||'—').replace('_',' ');
+  if(g('ld-income'))         g('ld-income').textContent          = app.monthlyIncome ? fmtRwf(app.monthlyIncome) : '—';
+  if(g('ld-dsr'))            g('ld-dsr').textContent             = app.dsr ? app.dsr + '%' : '—';
+  if(g('ld-phone'))          g('ld-phone').textContent           = app.applicantPhone || '—';
+
+  var nr = g('ld-notes-row');
+  if (nr) nr.style.display = app.notes ? '' : 'none';
+  if(g('ld-notes')) g('ld-notes').textContent = app.notes || '';
+
+  var cb = g('ld-commission-bar');
+  if (cb) {
+    cb.style.display = app.commissionAmount ? 'block' : 'none';
+    if(g('ld-commission-val')) g('ld-commission-val').textContent = app.commissionAmount ? fmtRwf(app.commissionAmount) : '—';
+  }
+
+  buildLdActions(app);
+  openModal('loan-detail-modal');
+  if (typeof switchLang === 'function') switchLang(curLang);
+}
+
+function buildLdActions(app) {
+  var el = g('ld-actions');
+  if (!el) return;
+  var cu = currentUser;
+  var isAdm = cu && ['admin','super_admin','staff','ceo'].includes(cu.role);
+  var html = '';
+
+  if (app.status === 'submitted') {
+    if (isAdm) {
+      html += '<button class="btn btn-primary btn-sm" onclick="updateLoanStatus(\'under_review\')" data-en="Begin Review">Begin Review</button>';
+      html += '<button class="btn btn-outline btn-sm" onclick="updateLoanStatus(\'docs_requested\')" data-en="Request Docs">Request Docs</button>';
+    }
+  } else if (app.status === 'under_review') {
+    if (isAdm) {
+      html += '<button class="btn btn-primary btn-sm" onclick="updateLoanStatus(\'approved\')" data-en="Approve">Approve</button>';
+      html += '<button class="btn btn-outline btn-sm" onclick="updateLoanStatus(\'docs_requested\')" data-en="Request Docs">Request Docs</button>';
+      html += '<button class="btn btn-sm" style="background:var(--error);color:#fff" onclick="updateLoanStatus(\'rejected\')" data-en="Reject">Reject</button>';
+    }
+  } else if (app.status === 'docs_requested') {
+    if (isAdm) {
+      html += '<button class="btn btn-primary btn-sm" onclick="updateLoanStatus(\'under_review\')" data-en="Resume Review">Resume Review</button>';
+      html += '<button class="btn btn-sm" style="background:var(--error);color:#fff" onclick="updateLoanStatus(\'rejected\')" data-en="Reject">Reject</button>';
+    }
+  } else if (app.status === 'approved') {
+    if (isAdm) {
+      html += '<button class="btn btn-primary btn-sm" onclick="updateLoanStatus(\'disbursed\')" data-en="Mark Disbursed">Mark Disbursed</button>';
+    }
+  }
+  html += '<button class="btn btn-outline btn-sm" onclick="closeLoanDetail()" data-en="Close">Close</button>';
+  el.innerHTML = html;
+  if (typeof switchLang === 'function') switchLang(curLang);
+}
+
+function closeLoanDetail() { closeModal('loan-detail-modal'); }
+
+function updateLoanStatus(newStatus) {
+  if (typeof db === 'undefined') { showToast('Offline', 'error'); return; }
+  var cu = currentUser;
+  if (!cu) { showToast('Login required', 'error'); return; }
+  var id = _finCurrentId;
+  if (!id) return;
+  var app = _financing.find(function(a) { return a.id === id; });
+  var oldStatus = app ? app.status : '';
+
+  var upd = {
+    status:    newStatus,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: cu.uid
+  };
+  if (newStatus === 'approved') {
+    upd.approvedBy = cu.uid;
+    upd.approvedAt = firebase.firestore.FieldValue.serverTimestamp();
+  }
+  if (newStatus === 'disbursed') {
+    upd.disbursedAt = firebase.firestore.FieldValue.serverTimestamp();
+  }
+
+  db.collection('services').doc(id).update(upd).then(function() {
+    logAudit('loan_status_changed', 'services', id, { status: oldStatus }, { status: newStatus });
+    showToast('Status updated: ' + finStatusLabel(newStatus), 'success');
+    closeLoanDetail();
+    loadFinancing();
+  }).catch(function(e) { showToast('Error: ' + e.message, 'error'); });
+}
+
+/* ── Sidebar badge ── */
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    if (typeof db === 'undefined') return;
+    db.collection('services').where('serviceType','==','financing').where('isActive','==',true)
+      .get().then(function(snap) {
+        var badge = g('fin-sidebar-count');
+        if (badge) badge.textContent = snap.size > 0 ? snap.size : '';
+      }).catch(function(){});
+  }, 6000);
+});
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
