@@ -3609,6 +3609,7 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="go('hr')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Ubucuruzi bw'Abakozi" data-en="HR Management">HR Management</span><span class="ds-badge" id="hr-sidebar-count"></span></div>
       <div class="ds-section" data-rw="UBUYOBOZI" data-en="EXECUTIVE">UBUYOBOZI</div>
       <div class="dn" onclick="go('exec')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h2v5H7zm4-3h2v8h-2zm4 2h2v6h-2z"/></svg><span data-rw="Ikigega cy'Ubuyobozi" data-en="Executive Dashboard">Executive Dashboard</span><span class="ds-badge" id="exec-sidebar-badge"></span></div>
+      <div class="dn" onclick="go('bi')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg><span data-rw="Ubushakashatsi bw'Amakuru" data-en="Business Intelligence">Business Intelligence</span><span class="ds-badge" id="bi-sidebar-badge"></span></div>
       <div class="ds-section" data-rw="KONTI" data-en="ACCOUNT">KONTI</div>
       <div class="dn"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Profil" data-en="Profile">Profil</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-rw="Igenamiterere" data-en="Settings">Igenamiterere</span></div>
@@ -4920,6 +4921,111 @@ html,body{overscroll-behavior-x:none}
         <div class="exec-panel-hdr" data-rw="Ibikorwa (Tasks)" data-en="Task Completion Rate">Task Completion Rate</div>
         <div id="exec-task-rate"><div class="exec-empty">Loading...</div></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: BUSINESS INTELLIGENCE ═══ -->
+<div class="page" id="page-bi">
+  <div class="page-hdr">
+    <h2 data-rw="Ubushakashatsi bw'Amakuru" data-en="Business Intelligence">Business Intelligence</h2>
+    <select id="bi-year-filter" onchange="loadBIDash()" class="off-filter" style="min-width:90px"></select>
+  </div>
+
+  <!-- Summary strip -->
+  <div class="bi-summary-strip" id="bi-summary-strip">
+    <div class="bi-sum-card"><span class="bi-sum-val" id="bi-sum-props">—</span><span class="bi-sum-lbl" data-rw="Imitungo Yose" data-en="Total Listings">Total Listings</span></div>
+    <div class="bi-sum-card"><span class="bi-sum-val" id="bi-sum-avgprice">—</span><span class="bi-sum-lbl" data-rw="Igiciro Hagati" data-en="Avg Price">Avg Price</span></div>
+    <div class="bi-sum-card"><span class="bi-sum-val" id="bi-sum-velocity">—</span><span class="bi-sum-lbl" data-rw="Iminsi Kuri Market" data-en="Avg Days on Market">Avg Days on Market</span></div>
+    <div class="bi-sum-card"><span class="bi-sum-val" id="bi-sum-leadsrc">—</span><span class="bi-sum-lbl" data-rw="Inzira Nziza" data-en="Top Lead Source">Top Lead Source</span></div>
+    <div class="bi-sum-card"><span class="bi-sum-val" id="bi-sum-winrate">—</span><span class="bi-sum-lbl" data-rw="Ikigereranyo Itsinda" data-en="Team Win Rate">Team Win Rate</span></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="off-tabs-nav">
+    <button class="off-tab active" id="bitab-btn-market"   onclick="switchBITab('market')"   data-rw="Isoko" data-en="Market">Market</button>
+    <button class="off-tab" id="bitab-btn-leads"    onclick="switchBITab('leads')"    data-rw="Inzira z'Abakiliya" data-en="Lead Sources">Lead Sources</button>
+    <button class="off-tab" id="bitab-btn-agents"   onclick="switchBITab('agents')"   data-rw="Abacuruzi" data-en="Agents">Agents</button>
+    <button class="off-tab" id="bitab-btn-forecast" onclick="switchBITab('forecast')" data-rw="Gahunda" data-en="Forecast">Forecast</button>
+  </div>
+
+  <!-- MARKET TAB -->
+  <div class="off-pane" id="bitab-market">
+    <div class="bi-two-col">
+      <div class="exec-panel">
+        <div class="exec-panel-hdr" data-rw="Imitungo ku Karere" data-en="Listings by District">Listings by District</div>
+        <div id="bi-district-chart"></div>
+      </div>
+      <div class="exec-panel">
+        <div class="exec-panel-hdr" data-rw="Ubwoko bw'Imitungo" data-en="Property Type Mix">Property Type Mix</div>
+        <div id="bi-type-chart"></div>
+      </div>
+    </div>
+    <div class="exec-panel" style="margin-top:14px">
+      <div class="exec-panel-hdr" data-rw="Igiciro Hagati ku Karere" data-en="Average Price by District">Average Price by District</div>
+      <div id="bi-price-district"></div>
+    </div>
+    <div class="exec-panel" style="margin-top:14px">
+      <div class="exec-panel-hdr" data-rw="Imitungo Mishya kuri Buri Kwezi" data-en="New Listings per Month">New Listings per Month</div>
+      <div class="ac-bars" id="bi-listings-bars" style="height:120px"></div>
+    </div>
+  </div>
+
+  <!-- LEAD SOURCES TAB -->
+  <div class="off-pane" id="bitab-leads" style="display:none">
+    <div class="bi-two-col">
+      <div class="exec-panel">
+        <div class="exec-panel-hdr" data-rw="Inzira z'Abakiliya" data-en="Lead Source Breakdown">Lead Source Breakdown</div>
+        <div id="bi-lead-source"></div>
+      </div>
+      <div class="exec-panel">
+        <div class="exec-panel-hdr" data-rw="Isuzuma ry'Isoko" data-en="Lead Stage Distribution">Lead Stage Distribution</div>
+        <div id="bi-lead-stages"></div>
+      </div>
+    </div>
+    <div class="exec-panel" style="margin-top:14px">
+      <div class="exec-panel-hdr" data-rw="Imitarere y'Abakiliya (Ingengo)" data-en="Client Budget Ranges">Client Budget Ranges</div>
+      <div id="bi-budget-dist"></div>
+    </div>
+    <div class="exec-panel" style="margin-top:14px">
+      <div class="exec-panel-hdr" data-rw="Leads Nshya kuri Buri Kwezi" data-en="New Leads per Month">New Leads per Month</div>
+      <div class="ac-bars" id="bi-leads-bars" style="height:120px"></div>
+    </div>
+  </div>
+
+  <!-- AGENTS TAB -->
+  <div class="off-pane" id="bitab-agents" style="display:none">
+    <div class="exec-panel">
+      <div class="exec-panel-hdr" data-rw="Igereranya ry'Abacuruzi" data-en="Agent Benchmark Comparison">Agent Benchmark Comparison</div>
+      <div id="bi-agent-bench"></div>
+    </div>
+    <div class="bi-two-col" style="margin-top:14px">
+      <div class="exec-panel">
+        <div class="exec-panel-hdr" data-rw="Umuvuduko wo Gufunga Deal" data-en="Avg Deal Velocity (Days)">Avg Deal Velocity (Days)</div>
+        <div id="bi-deal-velocity"></div>
+      </div>
+      <div class="exec-panel">
+        <div class="exec-panel-hdr" data-rw="Ubwoko bw'Imitungo Yatanzwe" data-en="Deals by Property Type">Deals by Property Type</div>
+        <div id="bi-deals-by-type"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORECAST TAB -->
+  <div class="off-pane" id="bitab-forecast" style="display:none">
+    <div class="bi-two-col">
+      <div class="exec-panel">
+        <div class="exec-panel-hdr" data-rw="Ingingo y'Amashingiro (Amezi 3)" data-en="Revenue Forecast (3 Months)">Revenue Forecast (3 Months)</div>
+        <div id="bi-rev-forecast"></div>
+      </div>
+      <div class="exec-panel">
+        <div class="exec-panel-hdr" data-rw="Igiciro cy'Pipeline" data-en="Pipeline Value">Pipeline Value</div>
+        <div id="bi-pipeline-value"></div>
+      </div>
+    </div>
+    <div class="exec-panel" style="margin-top:14px">
+      <div class="exec-panel-hdr" data-rw="Intego z'Ukwezi Gutaha" data-en="Next Month Targets vs Actuals">Next Month Targets vs Actuals</div>
+      <div id="bi-targets"></div>
     </div>
   </div>
 </div>
@@ -11884,6 +11990,9 @@ go = function(page) {
   if(page === 'exec') {
     setTimeout(loadExecDash, 150);
   }
+  if(page === 'bi') {
+    setTimeout(loadBIDash, 150);
+  }
 };
 
 </script>
@@ -12270,6 +12379,474 @@ go = function(page) {
       ? document.addEventListener('DOMContentLoaded', attachRealtimeListeners)
       : attachRealtimeListeners();
   } catch(e){ console.error('Sync error:',e); }
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHASE 14 — BUSINESS INTELLIGENCE
+     Market | Lead Sources | Agent Benchmarks | Forecast
+════════════════════════════════════════════════════════ -->
+<script>
+/* ── Phase 14 globals ── */
+var _biTabActive = 'market';
+var BI_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var BI_DISTRICTS = ['Gasabo','Kicukiro','Nyarugenge','Bugesera','Rulindo','Rwamagana','Musanze'];
+var BI_PROP_TYPES = { house:'House', apartment:'Apartment', land:'Land', commercial:'Commercial', villa:'Villa', office:'Office' };
+var BI_SOURCES = { website:'Website', referral:'Referral', social:'Social Media', walkin:'Walk-in', agent:'Agent Outreach', portal:'Portal', other:'Other' };
+var BI_BUDGETS = [
+  { label:'< 20M', min:0,         max:20000000 },
+  { label:'20–50M', min:20000000,  max:50000000 },
+  { label:'50–100M', min:50000000, max:100000000 },
+  { label:'100–200M', min:100000000, max:200000000 },
+  { label:'> 200M', min:200000000, max:Infinity }
+];
+
+/* ── tab switch ── */
+function switchBITab(tab) {
+  _biTabActive = tab;
+  ['market','leads','agents','forecast'].forEach(function(t) {
+    var btn  = g('bitab-btn-' + t);
+    var pane = g('bitab-' + t);
+    if (btn)  btn.classList.toggle('active', t === tab);
+    if (pane) pane.style.display = t === tab ? '' : 'none';
+  });
+  if (tab === 'market')   loadBIMarket();
+  if (tab === 'leads')    loadBILeads();
+  if (tab === 'agents')   loadBIAgents();
+  if (tab === 'forecast') loadBIForecast();
+  switchLang(currentLang);
+}
+
+/* ── entry point ── */
+function loadBIDash() {
+  var cu = currentUser;
+  if (!cu) { showToast('Injira kuri konti yawe', 'error'); return; }
+  var allowed = ['super_admin','admin','ceo','staff'];
+  if (allowed.indexOf(cu.role) === -1) {
+    var pg = g('page-bi');
+    if (pg) pg.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--muted)"><div style="font-size:2rem;margin-bottom:.5rem">&#128274;</div><div data-rw="Ntaburenganzira" data-en="Access restricted">Access restricted</div></div>';
+    return;
+  }
+  var yr = g('bi-year-filter');
+  if (yr && yr.options.length === 0) {
+    var now = new Date().getFullYear();
+    for (var y = now; y >= now - 3; y--) {
+      var opt = document.createElement('option'); opt.value = y; opt.text = y; yr.appendChild(opt);
+    }
+  }
+  loadBISummary();
+  switchBITab(_biTabActive);
+}
+
+/* ── summary strip ── */
+function loadBISummary() {
+  /* total listings */
+  db.collection('properties').where('isActive','==',true).get().then(function(snap) {
+    var el = g('bi-sum-props'); if (el) el.textContent = snap.size;
+    var total = 0, cnt = 0;
+    snap.forEach(function(d) { var p = d.data().price; if (p) { total += parseFloat(p)||0; cnt++; } });
+    var av = g('bi-sum-avgprice');
+    if (av) av.textContent = cnt > 0 ? fmtRWF(Math.round(total/cnt)) : '—';
+  }).catch(function(){});
+
+  /* avg days on market: diff between createdAt and deal closedAt */
+  db.collection('deals').where('isActive','==',true).where('pipelineStage','==','closed_won').limit(50).get().then(function(snap) {
+    var days = 0, cnt = 0;
+    snap.forEach(function(d) {
+      var data = d.data();
+      if (data.createdAt && data.closedAt) {
+        var c = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+        var cl = data.closedAt.toDate ? data.closedAt.toDate() : new Date(data.closedAt);
+        var diff = Math.round((cl - c) / 86400000);
+        if (diff > 0) { days += diff; cnt++; }
+      }
+    });
+    var el = g('bi-sum-velocity');
+    if (el) el.textContent = cnt > 0 ? Math.round(days/cnt) + 'd' : '—';
+  }).catch(function(){});
+
+  /* top lead source */
+  db.collection('leads').where('isActive','==',true).limit(200).get().then(function(snap) {
+    var src = {};
+    snap.forEach(function(d) { var s = d.data().source || 'other'; src[s] = (src[s]||0)+1; });
+    var top = Object.keys(src).sort(function(a,b){ return src[b]-src[a]; })[0];
+    var el = g('bi-sum-leadsrc');
+    if (el) el.textContent = top ? (BI_SOURCES[top]||top) : '—';
+  }).catch(function(){});
+
+  /* team win rate */
+  var pending = 2; var won = 0; var total = 0;
+  function calcWin() { pending--; if (pending > 0) return; var el = g('bi-sum-winrate'); if (el) el.textContent = total > 0 ? Math.round(won/total*100)+'%' : '—'; }
+  db.collection('deals').where('isActive','==',true).where('pipelineStage','==','closed_won').get().then(function(s){ won = s.size; calcWin(); }).catch(calcWin);
+  db.collection('leads').where('isActive','==',true).get().then(function(s){ total = s.size; calcWin(); }).catch(calcWin);
+}
+
+/* ────────────────────────────────────────────
+   MARKET TAB
+──────────────────────────────────────────── */
+function loadBIMarket() {
+  biDistrictChart();
+  biTypeChart();
+  biPriceByDistrict();
+  biListingsPerMonth();
+}
+
+function biDistrictChart() {
+  var el = g('bi-district-chart'); if (!el) return;
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('properties').where('isActive','==',true).limit(300).get().then(function(snap) {
+    var counts = {};
+    snap.forEach(function(d) {
+      var dist = d.data().district || 'Other';
+      counts[dist] = (counts[dist]||0)+1;
+    });
+    var sorted = Object.entries(counts).sort(function(a,b){ return b[1]-a[1]; }).slice(0,8);
+    var max = sorted[0] ? sorted[0][1] : 1;
+    el.innerHTML = sorted.map(function(row) {
+      var pct = Math.round(row[1]/max*100);
+      return '<div class="bi-hbar-row"><div class="bi-hbar-lbl">' + row[0] + '</div><div class="bi-hbar-wrap"><div class="bi-hbar-fill bi-hbar-navy" style="width:'+pct+'%"></div></div><div class="bi-hbar-val">'+row[1]+'</div></div>';
+    }).join('') || '<div class="exec-empty">No data</div>';
+  }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
+}
+
+function biTypeChart() {
+  var el = g('bi-type-chart'); if (!el) return;
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('properties').where('isActive','==',true).limit(300).get().then(function(snap) {
+    var counts = {};
+    snap.forEach(function(d) { var t = d.data().type || 'other'; counts[t] = (counts[t]||0)+1; });
+    var total = snap.size || 1;
+    var colors = ['#0D3B8C','#1249B3','#C9A84C','#16A34A','#D97706','#9333EA'];
+    var sorted = Object.entries(counts).sort(function(a,b){ return b[1]-a[1]; });
+    el.innerHTML = '<div class="bi-donut-wrap">' + sorted.map(function(row, i) {
+      var pct = Math.round(row[1]/total*100);
+      var color = colors[i % colors.length];
+      return '<div class="bi-donut-row"><span class="bi-donut-dot" style="background:'+color+'"></span><span class="bi-donut-lbl">'+(BI_PROP_TYPES[row[0]]||row[0])+'</span><span class="bi-donut-pct">'+pct+'%</span><span class="bi-donut-cnt">('+row[1]+')</span></div>';
+    }).join('') + '</div>' || '<div class="exec-empty">No data</div>';
+  }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
+}
+
+function biPriceByDistrict() {
+  var el = g('bi-price-district'); if (!el) return;
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('properties').where('isActive','==',true).where('status','==','approved').limit(300).get().then(function(snap) {
+    var dist = {};
+    snap.forEach(function(d) {
+      var data = d.data();
+      var k = data.district || 'Other';
+      var p = parseFloat(data.price)||0;
+      if (!dist[k]) dist[k] = { sum:0, cnt:0 };
+      dist[k].sum += p; dist[k].cnt++;
+    });
+    var rows = Object.entries(dist).map(function(e){ return { name:e[0], avg:Math.round(e[1].sum/e[1].cnt), cnt:e[1].cnt }; }).sort(function(a,b){ return b.avg-a.avg; });
+    var max = rows[0] ? rows[0].avg : 1;
+    el.innerHTML = '<div style="overflow-x:auto"><table class="bi-price-table"><thead><tr><th>District</th><th>Avg Price</th><th>Listings</th><th style="min-width:120px">Bar</th></tr></thead><tbody>' +
+      rows.map(function(r) {
+        var pct = Math.round(r.avg/max*100);
+        return '<tr><td>'+r.name+'</td><td style="font-weight:700;color:var(--navy)">'+fmtRWF(r.avg)+'</td><td>'+r.cnt+'</td><td><div class="bi-hbar-wrap" style="height:10px;min-width:80px"><div class="bi-hbar-fill bi-hbar-gold" style="width:'+pct+'%;height:10px"></div></div></td></tr>';
+      }).join('') + '</tbody></table></div>' || '<div class="exec-empty">No data</div>';
+  }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
+}
+
+function biListingsPerMonth() {
+  var el = g('bi-listings-bars'); if (!el) return;
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  var yr = g('bi-year-filter');
+  var year = yr ? parseInt(yr.value) : new Date().getFullYear();
+  var counts = new Array(12).fill(0);
+  var yStart = firebase.firestore.Timestamp.fromDate(new Date(year,0,1));
+  var yEnd   = firebase.firestore.Timestamp.fromDate(new Date(year+1,0,1));
+  db.collection('properties').where('isActive','==',true).where('createdAt','>=',yStart).where('createdAt','<',yEnd).get().then(function(snap) {
+    snap.forEach(function(d) {
+      var ts = d.data().createdAt; var dt = ts ? (ts.toDate ? ts.toDate() : new Date(ts)) : new Date();
+      counts[dt.getMonth()]++;
+    });
+    var max = Math.max.apply(null, counts.concat([1]));
+    el.innerHTML = BI_MONTHS.map(function(lbl,i) {
+      var h = Math.round(counts[i]/max*110);
+      return '<div class="ac-bar-col"><div class="ac-bar-pair"><div class="ac-bar" style="height:'+h+'px;background:var(--navy);width:80%"></div></div><div class="ac-bar-lbl">'+lbl+'</div></div>';
+    }).join('');
+  }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
+}
+
+/* ────────────────────────────────────────────
+   LEAD SOURCES TAB
+──────────────────────────────────────────── */
+function loadBILeads() {
+  biLeadSource();
+  biLeadStages();
+  biBudgetDist();
+  biLeadsPerMonth();
+}
+
+function biLeadSource() {
+  var el = g('bi-lead-source'); if (!el) return;
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('leads').where('isActive','==',true).limit(300).get().then(function(snap) {
+    var src = {};
+    snap.forEach(function(d) { var s = d.data().source || 'other'; src[s] = (src[s]||0)+1; });
+    var total = snap.size || 1;
+    var colors = ['#0D3B8C','#1249B3','#C9A84C','#16A34A','#D97706','#9333EA','#64748B'];
+    var sorted = Object.entries(src).sort(function(a,b){ return b[1]-a[1]; });
+    el.innerHTML = sorted.map(function(row,i) {
+      var pct = Math.round(row[1]/total*100);
+      var color = colors[i%colors.length];
+      return '<div class="bi-src-row"><div class="bi-src-info"><span class="bi-src-dot" style="background:'+color+'"></span><span class="bi-src-lbl">'+(BI_SOURCES[row[0]]||row[0])+'</span><span class="bi-src-cnt">'+row[1]+' ('+pct+'%)</span></div><div class="bi-src-bar"><div style="width:'+pct+'%;height:100%;background:'+color+';border-radius:3px;transition:var(--tr)"></div></div></div>';
+    }).join('') || '<div class="exec-empty">No lead data</div>';
+  }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
+}
+
+function biLeadStages() {
+  var el = g('bi-lead-stages'); if (!el) return;
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('leads').where('isActive','==',true).limit(300).get().then(function(snap) {
+    var stages = {};
+    snap.forEach(function(d) { var s = d.data().pipelineStage || 'new'; stages[s] = (stages[s]||0)+1; });
+    var total = snap.size || 1;
+    var sorted = Object.entries(stages).sort(function(a,b){ return b[1]-a[1]; }).slice(0,8);
+    var max = sorted[0] ? sorted[0][1] : 1;
+    el.innerHTML = sorted.map(function(row) {
+      var pct = Math.round(row[1]/max*100);
+      var barPct = Math.round(row[1]/total*100);
+      return '<div class="bi-hbar-row"><div class="bi-hbar-lbl">'+(row[0].replace(/_/g,' '))+'</div><div class="bi-hbar-wrap"><div class="bi-hbar-fill bi-hbar-blue" style="width:'+pct+'%"></div></div><div class="bi-hbar-val">'+row[1]+' ('+barPct+'%)</div></div>';
+    }).join('') || '<div class="exec-empty">No data</div>';
+  }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
+}
+
+function biBudgetDist() {
+  var el = g('bi-budget-dist'); if (!el) return;
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('leads').where('isActive','==',true).limit(300).get().then(function(snap) {
+    var buckets = BI_BUDGETS.map(function(b){ return { label:b.label, min:b.min, max:b.max, cnt:0 }; });
+    snap.forEach(function(d) {
+      var budget = parseFloat(d.data().budget)||0;
+      buckets.forEach(function(b) { if (budget >= b.min && budget < b.max) b.cnt++; });
+    });
+    var max = Math.max.apply(null, buckets.map(function(b){ return b.cnt; }).concat([1]));
+    el.innerHTML = '<div class="bi-budget-grid">' + buckets.map(function(b) {
+      var pct = Math.round(b.cnt/max*100);
+      return '<div class="bi-budget-col"><div class="bi-budget-bar-wrap"><div class="bi-budget-bar" style="height:'+pct+'%"></div></div><div class="bi-budget-lbl">'+b.label+'</div><div class="bi-budget-cnt">'+b.cnt+'</div></div>';
+    }).join('') + '</div>';
+  }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
+}
+
+function biLeadsPerMonth() {
+  var el = g('bi-leads-bars'); if (!el) return;
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  var yr = g('bi-year-filter');
+  var year = yr ? parseInt(yr.value) : new Date().getFullYear();
+  var counts = new Array(12).fill(0);
+  var yStart = firebase.firestore.Timestamp.fromDate(new Date(year,0,1));
+  var yEnd   = firebase.firestore.Timestamp.fromDate(new Date(year+1,0,1));
+  db.collection('leads').where('isActive','==',true).where('createdAt','>=',yStart).where('createdAt','<',yEnd).get().then(function(snap) {
+    snap.forEach(function(d) {
+      var ts = d.data().createdAt; var dt = ts ? (ts.toDate ? ts.toDate() : new Date(ts)) : new Date();
+      counts[dt.getMonth()]++;
+    });
+    var max = Math.max.apply(null, counts.concat([1]));
+    el.innerHTML = BI_MONTHS.map(function(lbl,i) {
+      var h = Math.round(counts[i]/max*110);
+      return '<div class="ac-bar-col"><div class="ac-bar-pair"><div class="ac-bar" style="height:'+h+'px;background:#1249B3;width:80%"></div></div><div class="ac-bar-lbl">'+lbl+'</div></div>';
+    }).join('');
+  }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
+}
+
+/* ────────────────────────────────────────────
+   AGENTS TAB
+──────────────────────────────────────────── */
+function loadBIAgents() {
+  biBenchmarkTable();
+  biDealVelocity();
+  biDealsByType();
+}
+
+function biBenchmarkTable() {
+  var el = g('bi-agent-bench'); if (!el) return;
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('users').where('role','==','agent').where('isActive','==',true).get().then(function(snap) {
+    if (snap.empty) { el.innerHTML = '<div class="exec-empty">No agents</div>'; return; }
+    var agents = [];
+    snap.forEach(function(d) { agents.push({ id:d.id, name:d.data().displayName||d.data().email||d.id, leads:0, deals:0, won:0, commission:0, viewings:0 }); });
+    var pending = agents.length * 4;
+    if (pending === 0) { renderBenchTable(agents, el); return; }
+    function done() { pending--; if (pending === 0) renderBenchTable(agents, el); }
+    agents.forEach(function(a) {
+      db.collection('leads').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s){ a.leads=s.size; done(); }).catch(done);
+      db.collection('deals').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s){ a.deals=s.size; s.forEach(function(d){ if(d.data().pipelineStage==='closed_won') a.won++; }); done(); }).catch(done);
+      db.collection('commissions').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s){ s.forEach(function(d){ a.commission+=(d.data().agentShare||0); }); done(); }).catch(done);
+      db.collection('viewings').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s){ a.viewings=s.size; done(); }).catch(done);
+    });
+  }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
+}
+
+function renderBenchTable(agents, el) {
+  agents.sort(function(a,b){ return b.commission-a.commission; });
+  var html = '<div class="exec-scroll"><table class="exec-perf-table"><thead><tr><th>#</th><th data-rw="Izina" data-en="Agent">Agent</th><th>Leads</th><th>Viewings</th><th>Deals</th><th>Won</th><th>Win%</th><th data-rw="Komisiyoni" data-en="Commission">Commission</th></tr></thead><tbody>';
+  agents.forEach(function(a,i) {
+    var winPct = a.leads > 0 ? Math.round(a.won/a.leads*100) : 0;
+    var rank = i === 0 ? '&#127941;' : (i+1);
+    html += '<tr><td>'+rank+'</td><td>'+a.name+'</td><td>'+a.leads+'</td><td>'+a.viewings+'</td><td>'+a.deals+'</td><td>'+a.won+'</td><td><span class="bi-pct-badge" style="color:'+(winPct>=20?'var(--success)':'var(--muted)')+'">'+winPct+'%</span></td><td style="font-weight:700;color:var(--navy)">'+fmtRWF(a.commission)+'</td></tr>';
+  });
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+  switchLang(currentLang);
+}
+
+function biDealVelocity() {
+  var el = g('bi-deal-velocity'); if (!el) return;
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('deals').where('isActive','==',true).where('pipelineStage','==','closed_won').limit(100).get().then(function(snap) {
+    if (snap.empty) { el.innerHTML = '<div class="exec-empty">No closed deals yet</div>'; return; }
+    var byAgent = {};
+    snap.forEach(function(d) {
+      var data = d.data();
+      var aid = data.agentId || 'unknown';
+      if (!byAgent[aid]) byAgent[aid] = { days:0, cnt:0, name:aid };
+      if (data.createdAt && data.closedAt) {
+        var c  = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+        var cl = data.closedAt.toDate   ? data.closedAt.toDate()   : new Date(data.closedAt);
+        byAgent[aid].days += Math.max(0, Math.round((cl-c)/86400000));
+        byAgent[aid].cnt++;
+      }
+    });
+    var rows = Object.values(byAgent).filter(function(a){ return a.cnt > 0; }).map(function(a){ return { name:a.name, avg:Math.round(a.days/a.cnt), cnt:a.cnt }; }).sort(function(a,b){ return a.avg-b.avg; });
+    /* fetch names */
+    var nameP = rows.map(function(r) {
+      return db.collection('users').doc(r.name).get().then(function(u){ if(u.exists) r.name = u.data().displayName||u.data().email||r.name; }).catch(function(){});
+    });
+    Promise.all(nameP).then(function() {
+      var max = rows[0] ? rows[0].avg : 1;
+      el.innerHTML = rows.map(function(r) {
+        var pct = Math.round(r.avg / Math.max.apply(null,rows.map(function(x){return x.avg;}).concat([1])) * 100);
+        return '<div class="bi-hbar-row"><div class="bi-hbar-lbl">'+r.name+'</div><div class="bi-hbar-wrap"><div class="bi-hbar-fill bi-hbar-gold" style="width:'+pct+'%"></div></div><div class="bi-hbar-val">'+r.avg+'d</div></div>';
+      }).join('') || '<div class="exec-empty">No velocity data</div>';
+    });
+  }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
+}
+
+function biDealsByType() {
+  var el = g('bi-deals-by-type'); if (!el) return;
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('deals').where('isActive','==',true).get().then(function(snap) {
+    var types = {};
+    snap.forEach(function(d) {
+      var t = d.data().dealType || 'sale';
+      types[t] = (types[t]||0)+1;
+    });
+    var total = snap.size || 1;
+    var colors = ['#0D3B8C','#C9A84C','#16A34A','#D97706'];
+    var sorted = Object.entries(types).sort(function(a,b){ return b[1]-a[1]; });
+    el.innerHTML = sorted.map(function(row,i) {
+      var pct = Math.round(row[1]/total*100);
+      return '<div class="bi-donut-row"><span class="bi-donut-dot" style="background:'+colors[i%colors.length]+'"></span><span class="bi-donut-lbl">'+row[0]+'</span><span class="bi-donut-pct">'+pct+'%</span><span class="bi-donut-cnt">('+row[1]+')</span></div>';
+    }).join('') || '<div class="exec-empty">No deal data</div>';
+  }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
+}
+
+/* ────────────────────────────────────────────
+   FORECAST TAB
+──────────────────────────────────────────── */
+function loadBIForecast() {
+  biRevForecast();
+  biPipelineValue();
+  biTargets();
+}
+
+function biRevForecast() {
+  var el = g('bi-rev-forecast'); if (!el) return;
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  /* Use last 3 months of paid invoices to project next 3 months */
+  var now = new Date();
+  var threeMonthsAgo = new Date(now.getFullYear(), now.getMonth()-3, 1);
+  var ts = firebase.firestore.Timestamp.fromDate(threeMonthsAgo);
+  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('createdAt','>=',ts).get().then(function(snap) {
+    var monthly = {};
+    snap.forEach(function(d) {
+      var data = d.data();
+      var dt = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt)) : new Date();
+      var key = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+      monthly[key] = (monthly[key]||0) + (data.totalAmount||0);
+    });
+    var vals = Object.values(monthly);
+    var avg = vals.length > 0 ? vals.reduce(function(s,v){return s+v;},0)/vals.length : 0;
+    var growth = 0.05; /* assumed 5% monthly growth */
+    var f1 = Math.round(avg * (1+growth));
+    var f2 = Math.round(f1 * (1+growth));
+    var f3 = Math.round(f2 * (1+growth));
+    var mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var labels = [mn[(now.getMonth()+1)%12], mn[(now.getMonth()+2)%12], mn[(now.getMonth()+3)%12]];
+    el.innerHTML = '<div style="margin-bottom:10px;font-size:.75rem;color:var(--muted)">Based on last 3 months avg + 5% growth model</div>' +
+      [f1,f2,f3].map(function(v,i) {
+        return '<div class="bi-forecast-row"><span class="bi-forecast-month">'+labels[i]+'</span><div class="bi-forecast-bar-wrap"><div class="bi-forecast-bar" style="width:'+Math.round(v/f3*100)+'%"></div></div><span class="bi-forecast-val">'+fmtRWF(v)+'</span></div>';
+      }).join('');
+  }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
+}
+
+function biPipelineValue() {
+  var el = g('bi-pipeline-value'); if (!el) return;
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('deals').where('isActive','==',true).get().then(function(snap) {
+    var pipeline = {}, pipelineTotal = 0, closedVal = 0;
+    snap.forEach(function(d) {
+      var data = d.data();
+      var stage = data.pipelineStage || 'new';
+      var val = data.agreedPrice || 0;
+      if (!pipeline[stage]) pipeline[stage] = 0;
+      pipeline[stage] += val;
+      if (stage !== 'closed_won' && stage !== 'closed_lost') pipelineTotal += val;
+      if (stage === 'closed_won') closedVal += val;
+    });
+    /* weighted forecast: multiply by stage probability */
+    var stageProbability = { new:0.05, contacted:0.10, qualified:0.20, viewing_scheduled:0.30, viewing_completed:0.40, offer_submitted:0.55, negotiation:0.65, due_diligence:0.75, financing:0.80, contract:0.90, closing:0.95, closed_won:1.0, closed_lost:0 };
+    var weighted = 0;
+    Object.keys(pipeline).forEach(function(s) { weighted += pipeline[s] * (stageProbability[s]||0.1); });
+    el.innerHTML = '<div class="bi-pipeline-summary"><div class="bi-pipe-kpi"><span class="bi-pipe-val">'+fmtRWF(pipelineTotal)+'</span><span class="bi-pipe-lbl">Total Pipeline</span></div><div class="bi-pipe-kpi"><span class="bi-pipe-val" style="color:var(--success)">'+fmtRWF(Math.round(weighted))+'</span><span class="bi-pipe-lbl">Weighted Forecast</span></div><div class="bi-pipe-kpi"><span class="bi-pipe-val" style="color:var(--gold)">'+fmtRWF(closedVal)+'</span><span class="bi-pipe-lbl">Closed Won (Total)</span></div></div>';
+  }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
+}
+
+function biTargets() {
+  var el = g('bi-targets'); if (!el) return;
+  /* Show last-month actuals vs this-month to-date */
+  var now = new Date();
+  var thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  var lastMonthStart = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  var tsThis = firebase.firestore.Timestamp.fromDate(thisMonthStart);
+  var tsLast = firebase.firestore.Timestamp.fromDate(lastMonthStart);
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  var data = { thisRev:0, lastRev:0, thisLeads:0, lastLeads:0, thisDeals:0, lastDeals:0 };
+  var p = 6;
+  function finish() { p--; if (p > 0) return;
+    var metrics = [
+      { label:'Revenue', last:data.lastRev, curr:data.thisRev, fmt:fmtRWF },
+      { label:'New Leads', last:data.lastLeads, curr:data.thisLeads, fmt:function(v){return v;} },
+      { label:'Deals', last:data.lastDeals, curr:data.thisDeals, fmt:function(v){return v;} }
+    ];
+    el.innerHTML = '<table class="bi-targets-table"><thead><tr><th>Metric</th><th>Last Month</th><th>This Month (MTD)</th><th>Change</th></tr></thead><tbody>' +
+      metrics.map(function(m) {
+        var delta = m.last > 0 ? Math.round((m.curr-m.last)/m.last*100) : 0;
+        var color = delta >= 0 ? 'var(--success)' : 'var(--error)';
+        var arrow = delta >= 0 ? '&#8593;' : '&#8595;';
+        return '<tr><td>'+m.label+'</td><td>'+m.fmt(m.last)+'</td><td style="font-weight:700">'+m.fmt(m.curr)+'</td><td style="color:'+color+';font-weight:700">'+arrow+' '+Math.abs(delta)+'%</td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('createdAt','>=',tsThis).get().then(function(s){ s.forEach(function(d){data.thisRev+=(d.data().totalAmount||0);}); finish(); }).catch(finish);
+  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('createdAt','>=',tsLast).where('createdAt','<',tsThis).get().then(function(s){ s.forEach(function(d){data.lastRev+=(d.data().totalAmount||0);}); finish(); }).catch(finish);
+  db.collection('leads').where('isActive','==',true).where('createdAt','>=',tsThis).get().then(function(s){ data.thisLeads=s.size; finish(); }).catch(finish);
+  db.collection('leads').where('isActive','==',true).where('createdAt','>=',tsLast).where('createdAt','<',tsThis).get().then(function(s){ data.lastLeads=s.size; finish(); }).catch(finish);
+  db.collection('deals').where('isActive','==',true).where('createdAt','>=',tsThis).get().then(function(s){ data.thisDeals=s.size; finish(); }).catch(finish);
+  db.collection('deals').where('isActive','==',true).where('createdAt','>=',tsLast).where('createdAt','<',tsThis).get().then(function(s){ data.lastDeals=s.size; finish(); }).catch(finish);
+}
+
+/* ── SIDEBAR BADGE ── */
+(function() {
+  var _biTimer = setInterval(function() {
+    if (typeof db === 'undefined' || !currentUser) return;
+    clearInterval(_biTimer);
+    /* badge = total active properties + leads (gives a sense of live data) */
+    db.collection('properties').where('isActive','==',true).where('status','==','approved').get().then(function(s) {
+      var el = g('bi-sidebar-badge'); if (el && s.size > 0) el.textContent = s.size;
+    }).catch(function(){});
+  }, 9000);
 })();
 </script>
 

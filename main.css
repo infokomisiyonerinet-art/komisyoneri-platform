@@ -3153,3 +3153,91 @@ html,body{overscroll-behavior-x:none}
   .exec-health-grid { grid-template-columns: repeat(2, 1fr); }
   .exec-funnel-lbl { width: 70px; font-size: .65rem; }
 }
+
+/* ============================================================
+   PHASE 14 — BUSINESS INTELLIGENCE
+   ============================================================ */
+
+/* Summary Strip */
+.bi-summary-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
+.bi-sum-card { background: #fff; border-radius: 10px; padding: 14px 14px 12px; box-shadow: 0 2px 8px rgba(0,0,0,.07); text-align: center; border-bottom: 3px solid var(--navy); }
+.bi-sum-val { display: block; font-size: 1.1rem; font-weight: 700; color: var(--dark); }
+.bi-sum-lbl { display: block; font-size: .62rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-top: 4px; }
+
+/* Two-col layout */
+.bi-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* Horizontal bar rows */
+.bi-hbar-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
+.bi-hbar-lbl { font-size: .75rem; color: var(--muted); width: 90px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bi-hbar-wrap { flex: 1; background: #F1F5F9; border-radius: 4px; height: 14px; overflow: hidden; }
+.bi-hbar-fill { height: 100%; border-radius: 4px; transition: width .4s ease; min-width: 4px; }
+.bi-hbar-navy { background: var(--navy); }
+.bi-hbar-blue { background: #1249B3; }
+.bi-hbar-gold { background: var(--gold); }
+.bi-hbar-val { font-size: .73rem; font-weight: 700; color: var(--dark); width: 56px; text-align: right; flex-shrink: 0; }
+
+/* Donut-style legend */
+.bi-donut-wrap { display: flex; flex-direction: column; gap: 8px; padding: 4px 0; }
+.bi-donut-row { display: flex; align-items: center; gap: 8px; font-size: .8rem; }
+.bi-donut-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.bi-donut-lbl { flex: 1; color: var(--dark); }
+.bi-donut-pct { font-weight: 700; color: var(--dark); }
+.bi-donut-cnt { font-size: .7rem; color: var(--muted); }
+
+/* Price by District table */
+.bi-price-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.bi-price-table th { padding: 7px 10px; background: var(--light); color: var(--muted); text-align: left; font-size: .68rem; text-transform: uppercase; }
+.bi-price-table td { padding: 7px 10px; border-bottom: 1px solid #F1F5F9; }
+.bi-price-table tr:hover td { background: var(--light); }
+
+/* Lead source bars */
+.bi-src-row { margin-bottom: 10px; }
+.bi-src-info { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; }
+.bi-src-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.bi-src-lbl { font-size: .8rem; color: var(--dark); flex: 1; }
+.bi-src-cnt { font-size: .75rem; font-weight: 600; color: var(--muted); }
+.bi-src-bar { height: 8px; background: #F1F5F9; border-radius: 4px; overflow: hidden; }
+
+/* Budget distribution bars */
+.bi-budget-grid { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding-bottom: 22px; position: relative; }
+.bi-budget-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.bi-budget-bar-wrap { width: 100%; flex: 1; display: flex; align-items: flex-end; }
+.bi-budget-bar { width: 100%; background: var(--navy); border-radius: 4px 4px 0 0; min-height: 4px; transition: height .4s ease; }
+.bi-budget-lbl { font-size: .6rem; color: var(--muted); text-align: center; white-space: nowrap; }
+.bi-budget-cnt { font-size: .68rem; font-weight: 700; color: var(--dark); }
+
+/* Win rate badge */
+.bi-pct-badge { font-weight: 700; font-size: .8rem; }
+
+/* Forecast */
+.bi-forecast-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #F8FAFC; }
+.bi-forecast-row:last-child { border-bottom: none; }
+.bi-forecast-month { font-size: .8rem; font-weight: 700; color: var(--navy); width: 36px; flex-shrink: 0; }
+.bi-forecast-bar-wrap { flex: 1; background: #F1F5F9; border-radius: 4px; height: 16px; overflow: hidden; }
+.bi-forecast-bar { height: 100%; background: linear-gradient(90deg, var(--navy), #1249B3); border-radius: 4px; transition: width .5s ease; min-width: 4px; }
+.bi-forecast-val { font-size: .8rem; font-weight: 700; color: var(--dark); width: 90px; text-align: right; flex-shrink: 0; }
+
+/* Pipeline summary */
+.bi-pipeline-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.bi-pipe-kpi { background: var(--light); border-radius: 8px; padding: 14px; text-align: center; }
+.bi-pipe-val { display: block; font-size: 1rem; font-weight: 700; color: var(--dark); }
+.bi-pipe-lbl { display: block; font-size: .65rem; color: var(--muted); margin-top: 4px; }
+
+/* Targets table */
+.bi-targets-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.bi-targets-table th { padding: 8px 12px; background: var(--light); color: var(--muted); text-align: left; font-size: .68rem; text-transform: uppercase; }
+.bi-targets-table td { padding: 10px 12px; border-bottom: 1px solid #F1F5F9; }
+.bi-targets-table tr:hover td { background: var(--light); }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .bi-summary-strip { grid-template-columns: repeat(3, 1fr); }
+  .bi-two-col { grid-template-columns: 1fr; }
+  .bi-pipeline-summary { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .bi-summary-strip { grid-template-columns: repeat(2, 1fr); }
+  .bi-pipeline-summary { grid-template-columns: 1fr; }
+  .bi-hbar-lbl { width: 65px; font-size: .68rem; }
+}
