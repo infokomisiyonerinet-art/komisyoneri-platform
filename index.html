@@ -3601,6 +3601,7 @@ html,body{overscroll-behavior-x:none}
       <div class="ds-section" data-rw="IMARI" data-en="FINANCE">IMARI</div>
       <div class="dn" onclick="go('commissions')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span data-rw="Komisiyoni" data-en="Commissions">Komisiyoni</span><span class="ds-badge" id="comm-sidebar-count">0</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-rw="Kwishyura" data-en="Payments">Kwishyura</span></div>
+      <div class="dn" onclick="go('accounting')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg><span data-rw="Ibarura ry'Imari" data-en="Accounting">Accounting</span><span class="ds-badge" id="ac-sidebar-count"></span></div>
       <div class="ds-section" data-rw="WATEJA" data-en="MY PORTAL">WATEJA</div>
       <div class="dn" onclick="go('customer')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Portal Yanjye" data-en="My Portal">My Portal</span><span class="ds-badge" id="cust-sidebar-badge"></span></div>
       <div class="ds-section" data-rw="OFISI" data-en="OFFICE">OFISI</div>
@@ -4741,6 +4742,84 @@ html,body{overscroll-behavior-x:none}
       </div>
     </div>
     <div id="hr-performance-list"></div>
+  </div>
+</div>
+
+<!-- === PAGE: ACCOUNTING & FINANCE === -->
+<div class="page" id="page-accounting">
+  <div class="page-hdr">
+    <h2 data-rw="Ibarura ry'Imari" data-en="Accounting &amp; Finance">Accounting &amp; Finance</h2>
+  </div>
+  <!-- Stats -->
+  <div class="ac-stats">
+    <div class="ac-stat-card ac-revenue"><span class="ac-stat-val" id="ac-stat-revenue">0</span><span class="ac-stat-lbl" data-rw="Amashingiro y'Ukwezi" data-en="Revenue (Month)">Revenue (Month)</span></div>
+    <div class="ac-stat-card ac-outstanding"><span class="ac-stat-val" id="ac-stat-outstanding">0</span><span class="ac-stat-lbl" data-rw="Invoice Zitishyuwe" data-en="Outstanding Invoices">Outstanding</span></div>
+    <div class="ac-stat-card ac-expenses"><span class="ac-stat-val" id="ac-stat-expenses">0</span><span class="ac-stat-lbl" data-rw="Ibisonerwa by'Ukwezi" data-en="Expenses (Month)">Expenses (Month)</span></div>
+    <div class="ac-stat-card ac-net"><span class="ac-stat-val" id="ac-stat-net">0</span><span class="ac-stat-lbl" data-rw="Inyungu Yuzuye" data-en="Net Profit (Month)">Net Profit</span></div>
+  </div>
+  <!-- Tabs -->
+  <div class="off-tabs-nav">
+    <button class="off-tab active" id="actab-btn-invoices"  onclick="switchAccountingTab('invoices')"  data-rw="Invoice" data-en="Invoices">Invoices</button>
+    <button class="off-tab" id="actab-btn-expenses" onclick="switchAccountingTab('expenses')" data-rw="Ibisonerwa" data-en="Expenses">Expenses</button>
+    <button class="off-tab" id="actab-btn-reports"  onclick="switchAccountingTab('reports')"  data-rw="Raporo" data-en="Reports">Reports</button>
+  </div>
+
+  <!-- INVOICES PANE -->
+  <div class="off-pane" id="actab-invoices">
+    <div class="off-pane-hdr">
+      <div class="off-pane-filters">
+        <select id="ac-inv-status-filter" onchange="filterInvoices()" class="off-filter">
+          <option value="" data-en="All Statuses" data-rw="Imiterere Yose">All Statuses</option>
+          <option value="draft" data-en="Draft" data-rw="Amavange">Draft</option>
+          <option value="sent" data-en="Sent" data-rw="Yoherejwe">Sent</option>
+          <option value="paid" data-en="Paid" data-rw="Yishyuwe">Paid</option>
+          <option value="overdue" data-en="Overdue" data-rw="Yarengeje Igihe">Overdue</option>
+          <option value="cancelled" data-en="Cancelled" data-rw="Yavanyweho">Cancelled</option>
+        </select>
+        <input type="text" id="ac-inv-search" placeholder="Search client / invoice #..." oninput="filterInvoices()" class="off-search">
+      </div>
+      <button class="btn btn-primary" id="ac-new-invoice-btn" onclick="openInvoiceCreate()" style="display:none;align-items:center;gap:.4rem">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-rw="Ongera Invoice" data-en="New Invoice">New Invoice</span>
+      </button>
+    </div>
+    <div id="ac-invoices-list"></div>
+  </div>
+
+  <!-- EXPENSES PANE -->
+  <div class="off-pane" id="actab-expenses" style="display:none">
+    <div class="off-pane-hdr">
+      <div class="off-pane-filters">
+        <select id="ac-exp-cat-filter" onchange="filterExpenses()" class="off-filter">
+          <option value="" data-en="All Categories" data-rw="Ibyiciro Byose">All Categories</option>
+          <option value="office">Office</option>
+          <option value="transport">Transport</option>
+          <option value="utilities">Utilities</option>
+          <option value="marketing">Marketing</option>
+          <option value="legal">Legal</option>
+          <option value="maintenance">Maintenance</option>
+          <option value="equipment">Equipment</option>
+          <option value="salaries">Salaries</option>
+          <option value="other">Other</option>
+        </select>
+        <input type="month" id="ac-exp-month" onchange="filterExpenses()" class="off-filter">
+      </div>
+      <button class="btn btn-primary" id="ac-new-expense-btn" onclick="openExpenseCreate()" style="display:none;align-items:center;gap:.4rem">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-rw="Ongera Igisonerwa" data-en="Add Expense">Add Expense</span>
+      </button>
+    </div>
+    <div id="ac-expenses-list"></div>
+  </div>
+
+  <!-- REPORTS PANE -->
+  <div class="off-pane" id="actab-reports" style="display:none">
+    <div class="off-pane-hdr">
+      <div class="off-pane-filters">
+        <select id="ac-rep-year" onchange="loadReports()" class="off-filter"></select>
+      </div>
+    </div>
+    <div id="ac-reports-content"></div>
   </div>
 </div>
 
@@ -6622,6 +6701,161 @@ html,body{overscroll-behavior-x:none}
     </div>
     <div id="pd-paid-status" style="margin-top:.6rem"></div>
     <div id="pd-actions" style="margin-top:.75rem"></div>
+  </div>
+</div>
+
+<!-- === ACCOUNTING: INVOICE CREATE MODAL === -->
+<div class="modal-wrap" id="invoice-create-modal" style="display:none">
+  <div class="modal" style="max-width:600px;max-height:92vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title" data-rw="Ongera Invoice" data-en="Create Invoice">Create Invoice</div>
+      <button class="modal-close" onclick="closeInvoiceCreate()">&times;</button>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label data-rw="Inomero ya Invoice" data-en="Invoice Number">Invoice Number</label>
+        <input type="text" id="ic-inv-no" class="form-control" readonly style="background:var(--light)">
+      </div>
+      <div class="form-group">
+        <label data-rw="Itariki y'Iherezo" data-en="Due Date">Due Date</label>
+        <input type="date" id="ic-due-date" class="form-control">
+      </div>
+    </div>
+    <div class="form-section-title" data-rw="Amakuru y'Umukiriya" data-en="Client Details">Client Details</div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label data-rw="Izina ry'Umukiriya" data-en="Client Name">Client Name</label>
+        <input type="text" id="ic-client-name" placeholder="Full name or company" class="form-control">
+      </div>
+      <div class="form-group">
+        <label data-rw="Imeyili y'Umukiriya" data-en="Client Email">Client Email</label>
+        <input type="email" id="ic-client-email" placeholder="client@email.com" class="form-control">
+      </div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label data-rw="Aho Batuye" data-en="Client Address">Client Address</label>
+        <input type="text" id="ic-client-address" placeholder="Kigali, Rwanda" class="form-control">
+      </div>
+      <div class="form-group">
+        <label data-rw="Inomero ya Dosiye / Deal" data-en="Deal Reference (optional)">Deal Reference</label>
+        <input type="text" id="ic-deal-ref" placeholder="Deal ID (optional)" class="form-control">
+      </div>
+    </div>
+    <div class="form-section-title" data-rw="Ibinyabiziga" data-en="Line Items">Line Items</div>
+    <div id="ic-line-items">
+      <!-- Rows added by addInvoiceLine() -->
+    </div>
+    <button class="btn btn-outline" onclick="addInvoiceLine()" style="width:100%;margin:.35rem 0;font-size:.82rem" data-rw="Ongera Akajisho" data-en="+ Add Line Item">+ Add Line Item</button>
+    <!-- Totals -->
+    <div class="ac-invoice-totals">
+      <div class="ac-total-row"><span data-rw="Subtotal" data-en="Subtotal">Subtotal</span><span id="ic-subtotal">0 RWF</span></div>
+      <div class="ac-total-row"><span data-rw="TVA (18%)" data-en="VAT (18%)">VAT (18%)</span><span id="ic-vat">0 RWF</span></div>
+      <div class="ac-total-row ac-grand-total"><span data-rw="Amafaranga Yose" data-en="Total Amount">Total Amount</span><span id="ic-total">0 RWF</span></div>
+    </div>
+    <div class="form-group" style="margin-top:.6rem">
+      <label data-rw="Ibisobanuro" data-en="Notes">Notes</label>
+      <textarea id="ic-notes" rows="2" placeholder="Payment terms, notes..." class="form-control" style="resize:vertical"></textarea>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" onclick="closeInvoiceCreate()" data-rw="Reka" data-en="Cancel">Cancel</button>
+      <button class="btn" style="background:var(--muted);color:#fff;border:none" onclick="submitInvoice('draft')" data-rw="Bika nk'Amavange" data-en="Save as Draft">Save as Draft</button>
+      <button class="btn btn-primary" onclick="submitInvoice('sent')" data-rw="Ohereza Invoice" data-en="Send Invoice">Send Invoice</button>
+    </div>
+  </div>
+</div>
+
+<!-- === ACCOUNTING: INVOICE DETAIL MODAL === -->
+<div class="modal-wrap" id="invoice-detail-modal" style="display:none">
+  <div class="modal" style="max-width:560px;max-height:92vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title" data-rw="Amakuru ya Invoice" data-en="Invoice Detail">Invoice Detail</div>
+      <button class="modal-close" onclick="closeInvoiceDetail()">&times;</button>
+    </div>
+    <!-- Invoice header -->
+    <div class="ac-inv-header">
+      <div class="ac-inv-company">KOMISIYONERI ConnectPro Services Ltd</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-top:.4rem">
+        <span class="ac-inv-number" id="id-inv-no"></span>
+        <span class="ac-inv-status-badge" id="id-status-badge"></span>
+      </div>
+    </div>
+    <div class="ac-inv-bizcol">
+      <div>
+        <div class="ac-inv-section-lbl" data-rw="Boherezwa" data-en="Bill To">Bill To</div>
+        <div id="id-client-name" style="font-weight:600"></div>
+        <div id="id-client-email" style="font-size:.8rem;color:var(--muted)"></div>
+        <div id="id-client-address" style="font-size:.8rem;color:var(--muted)"></div>
+      </div>
+      <div style="text-align:right">
+        <div class="ac-inv-section-lbl" data-rw="Itariki" data-en="Dates">Dates</div>
+        <div style="font-size:.8rem"><strong>Issued:</strong> <span id="id-issued-date"></span></div>
+        <div style="font-size:.8rem"><strong>Due:</strong> <span id="id-due-date"></span></div>
+      </div>
+    </div>
+    <!-- Line items table -->
+    <div id="id-line-items-table" style="margin:.75rem 0"></div>
+    <!-- Totals -->
+    <div class="ac-invoice-totals">
+      <div class="ac-total-row"><span data-rw="Subtotal" data-en="Subtotal">Subtotal</span><span id="id-subtotal"></span></div>
+      <div class="ac-total-row"><span data-rw="TVA (18%)" data-en="VAT (18%)">VAT (18%)</span><span id="id-vat"></span></div>
+      <div class="ac-total-row ac-grand-total"><span data-rw="Amafaranga Yose" data-en="Total Amount">Total Amount</span><span id="id-total"></span></div>
+    </div>
+    <div id="id-notes" style="font-size:.8rem;color:var(--muted);margin:.5rem 0;font-style:italic"></div>
+    <div id="id-paid-info" style="margin:.4rem 0"></div>
+    <div id="id-actions" style="margin-top:.75rem;display:flex;gap:.6rem;flex-wrap:wrap"></div>
+  </div>
+</div>
+
+<!-- === ACCOUNTING: EXPENSE CREATE MODAL === -->
+<div class="modal-wrap" id="expense-create-modal" style="display:none">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hdr">
+      <div class="modal-title" data-rw="Ongera Igisonerwa" data-en="Add Expense">Add Expense</div>
+      <button class="modal-close" onclick="closeExpenseCreate()">&times;</button>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label data-rw="Icyiciro" data-en="Category">Category</label>
+        <select id="ex-category" class="form-control">
+          <option value="office">Office</option>
+          <option value="transport">Transport</option>
+          <option value="utilities">Utilities</option>
+          <option value="marketing">Marketing</option>
+          <option value="legal">Legal</option>
+          <option value="maintenance">Maintenance</option>
+          <option value="equipment">Equipment</option>
+          <option value="salaries">Salaries</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label data-rw="Itariki" data-en="Date">Date</label>
+        <input type="date" id="ex-date" class="form-control">
+      </div>
+    </div>
+    <div class="form-group">
+      <label data-rw="Ibisobanuro" data-en="Description">Description</label>
+      <input type="text" id="ex-description" placeholder="What was the expense for?" class="form-control">
+    </div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label data-rw="Amafaranga (RWF)" data-en="Amount (RWF)">Amount (RWF)</label>
+        <input type="number" id="ex-amount" placeholder="0" class="form-control">
+      </div>
+      <div class="form-group">
+        <label data-rw="Inomero ya Dosiye" data-en="Reference (optional)">Reference</label>
+        <input type="text" id="ex-ref" placeholder="Deal ID or ref" class="form-control">
+      </div>
+    </div>
+    <div class="form-group">
+      <label data-rw="Icyemezo cy'Isoko" data-en="Receipt / Notes">Receipt / Notes</label>
+      <textarea id="ex-notes" rows="2" placeholder="Add notes or receipt URL..." class="form-control" style="resize:vertical"></textarea>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" onclick="closeExpenseCreate()" data-rw="Reka" data-en="Cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitExpense()" data-rw="Bika Igisonerwa" data-en="Save Expense">Save Expense</button>
+    </div>
   </div>
 </div>
 
@@ -11543,6 +11777,9 @@ go = function(page) {
   if(page === 'hr') {
     setTimeout(loadHR, 150);
   }
+  if(page === 'accounting') {
+    setTimeout(loadAccounting, 150);
+  }
 };
 
 </script>
@@ -11929,6 +12166,519 @@ go = function(page) {
       ? document.addEventListener('DOMContentLoaded', attachRealtimeListeners)
       : attachRealtimeListeners();
   } catch(e){ console.error('Sync error:',e); }
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHASE 12 — ACCOUNTING & FINANCE
+     Invoices | Expenses | Reports
+════════════════════════════════════════════════════════ -->
+<script>
+/* ── Phase 12 globals ── */
+var _invoices       = [];
+var _invFilter      = { status: '', q: '' };
+var _expenses       = [];
+var _expFilter      = { category: '', month: '' };
+var _idCurrentId    = null;
+var _lineItemCount  = 0;
+
+var INV_STATUS = {
+  draft:     { label: 'Draft',     color: '#64748B' },
+  sent:      { label: 'Sent',      color: '#1249B3' },
+  paid:      { label: 'Paid',      color: '#16A34A' },
+  overdue:   { label: 'Overdue',   color: '#DC2626' },
+  cancelled: { label: 'Cancelled', color: '#9CA3AF' }
+};
+
+var EXP_CATEGORIES = {
+  office: 'Office', transport: 'Transport', utilities: 'Utilities',
+  marketing: 'Marketing', legal: 'Legal', maintenance: 'Maintenance',
+  equipment: 'Equipment', salaries: 'Salaries', other: 'Other'
+};
+
+var RWANDA_VAT = 0.18;
+
+function fmtRwfAC(n) {
+  if (!n && n !== 0) return '0 RWF';
+  return Math.round(Number(n)).toLocaleString() + ' RWF';
+}
+
+function fmtMRwf(n) {
+  if (!n && n !== 0) return '0';
+  var m = Number(n) / 1000000;
+  if (m >= 1) return m.toFixed(1) + 'M RWF';
+  var k = Number(n) / 1000;
+  if (k >= 1) return k.toFixed(0) + 'K RWF';
+  return Math.round(Number(n)).toLocaleString() + ' RWF';
+}
+
+function genInvoiceNo() {
+  var now = new Date();
+  var y = now.getFullYear();
+  var m = String(now.getMonth()+1).padStart(2,'0');
+  var s = String(now.getTime()).slice(-4);
+  return 'INV-' + y + m + '-' + s;
+}
+
+/* ── entry point ── */
+function loadAccounting() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+  if (g('ac-new-invoice-btn')) g('ac-new-invoice-btn').style.display = isAdmin ? 'flex' : 'none';
+  if (g('ac-new-expense-btn')) g('ac-new-expense-btn').style.display = isAdmin ? 'flex' : 'none';
+  var expM = g('ac-exp-month');
+  if (expM) { var n = new Date(); expM.value = n.getFullYear() + '-' + String(n.getMonth()+1).padStart(2,'0'); }
+  var repY = g('ac-rep-year');
+  if (repY) {
+    repY.innerHTML = '';
+    var yr = new Date().getFullYear();
+    for (var i = yr; i >= yr-3; i--) {
+      var opt = document.createElement('option');
+      opt.value = i; opt.textContent = i;
+      repY.appendChild(opt);
+    }
+  }
+  switchAccountingTab('invoices');
+  loadAccountingStats();
+}
+
+function loadAccountingStats() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var now    = new Date();
+  var period = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  var mStart = period + '-01';
+  var mEnd   = period + '-' + String(new Date(now.getFullYear(), now.getMonth()+1, 0).getDate()).padStart(2,'0');
+
+  db.collection('invoices').where('isActive','==',true).limit(500).get().then(function(snap) {
+    var revMonth = 0, outstanding = 0;
+    snap.forEach(function(d) {
+      var inv = d.data();
+      if (inv.status === 'paid' && inv.paidAt) {
+        var pd = inv.paidAt.toDate ? inv.paidAt.toDate() : new Date(inv.paidAt);
+        var pdPeriod = pd.getFullYear() + '-' + String(pd.getMonth()+1).padStart(2,'0');
+        if (pdPeriod === period) revMonth += (inv.totalAmount||0);
+      }
+      if (inv.status === 'sent' || inv.status === 'overdue') outstanding++;
+    });
+    if (g('ac-stat-revenue'))     g('ac-stat-revenue').textContent     = fmtMRwf(revMonth);
+    if (g('ac-stat-outstanding')) g('ac-stat-outstanding').textContent = outstanding;
+  }).catch(function(){});
+
+  db.collection('expenses').where('isActive','==',true).where('date','>=',mStart).where('date','<=',mEnd).limit(500).get().then(function(snap) {
+    var total = 0;
+    snap.forEach(function(d) { total += (d.data().amount||0); });
+    if (g('ac-stat-expenses')) g('ac-stat-expenses').textContent = fmtMRwf(total);
+  }).catch(function(){});
+}
+
+function switchAccountingTab(tab) {
+  ['invoices','expenses','reports'].forEach(function(t) {
+    var btn  = g('actab-btn-' + t);
+    var pane = g('actab-' + t);
+    if (btn)  btn.classList.toggle('active', t === tab);
+    if (pane) pane.style.display = (t === tab) ? '' : 'none';
+  });
+  if (tab === 'invoices')      loadInvoices();
+  else if (tab === 'expenses') loadExpenses();
+  else if (tab === 'reports')  loadReports();
+}
+
+/* ── INVOICES ── */
+function loadInvoices() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var el = g('ac-invoices-list'); if (el) el.innerHTML = '<div class="off-loading">Loading invoices...</div>';
+  db.collection('invoices').where('isActive','==',true).orderBy('createdAt','desc').limit(100).get().then(function(snap) {
+    _invoices = [];
+    snap.forEach(function(d) { var inv = d.data(); inv.id = d.id; _invoices.push(inv); });
+    checkOverdueInvoices();
+    filterInvoices();
+  }).catch(function() { if (el) el.innerHTML = '<div class="off-empty">Unable to load invoices.</div>'; });
+}
+
+function checkOverdueInvoices() {
+  var today = new Date().toISOString().slice(0,10);
+  _invoices.forEach(function(inv) {
+    if (inv.status === 'sent' && inv.dueDate && inv.dueDate < today) {
+      inv.status = 'overdue';
+      db.collection('invoices').doc(inv.id).update({ status: 'overdue', updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid }).catch(function(){});
+    }
+  });
+}
+
+function filterInvoices() {
+  var sf = (g('ac-inv-status-filter')||{}).value || '';
+  var q  = ((g('ac-inv-search')||{}).value||'').toLowerCase();
+  renderInvoices(_invoices.filter(function(inv) {
+    if (sf && inv.status !== sf) return false;
+    if (q) {
+      var hay = ((inv.invoiceNo||'') + (inv.billedTo||'') + (inv.clientEmail||'')).toLowerCase();
+      if (hay.indexOf(q) < 0) return false;
+    }
+    return true;
+  }));
+}
+
+function renderInvoices(list) {
+  var el = g('ac-invoices-list');
+  if (!el) return;
+  if (!list.length) { el.innerHTML = '<div class="off-empty">No invoices found.</div>'; return; }
+  el.innerHTML = list.map(function(inv) {
+    var st = INV_STATUS[inv.status] || { label: inv.status, color: '#64748B' };
+    var issuedDate = inv.createdAt ? new Date(inv.createdAt.toDate ? inv.createdAt.toDate() : inv.createdAt).toLocaleDateString() : '—';
+    return '<div class="ac-invoice-card" onclick="openInvoiceDetail(\'' + inv.id + '\')">' +
+      '<div class="ac-inv-card-top">' +
+        '<div>' +
+          '<div class="ac-inv-no">' + (inv.invoiceNo||'—') + '</div>' +
+          '<div class="ac-inv-client">' + (inv.billedTo||'—') + '</div>' +
+        '</div>' +
+        '<div style="text-align:right">' +
+          '<div class="ac-inv-amount">' + fmtMRwf(inv.totalAmount) + '</div>' +
+          '<span class="ac-inv-status" style="background:' + st.color + '">' + st.label + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="ac-inv-card-foot">' +
+        '<span>Issued: ' + issuedDate + '</span>' +
+        '<span>Due: ' + (inv.dueDate||'—') + '</span>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* Invoice create */
+function openInvoiceCreate() {
+  var m = g('invoice-create-modal'); if (!m) return;
+  var no = genInvoiceNo();
+  g('ic-inv-no').value = no;
+  var due = new Date(); due.setDate(due.getDate() + 30);
+  g('ic-due-date').value = due.toISOString().slice(0,10);
+  g('ic-client-name').value    = '';
+  g('ic-client-email').value   = '';
+  g('ic-client-address').value = '';
+  g('ic-deal-ref').value       = '';
+  g('ic-notes').value          = '';
+  _lineItemCount = 0;
+  var lc = g('ic-line-items'); if (lc) lc.innerHTML = '';
+  addInvoiceLine();
+  recalcInvoice();
+  openModal('invoice-create-modal');
+}
+function closeInvoiceCreate() { closeModal('invoice-create-modal'); }
+
+function addInvoiceLine() {
+  _lineItemCount++;
+  var idx = _lineItemCount;
+  var row = document.createElement('div');
+  row.className = 'ic-line-row';
+  row.id = 'ic-row-' + idx;
+  row.innerHTML =
+    '<input type="text" placeholder="Description" class="form-control ic-li-desc" style="flex:2">' +
+    '<input type="number" placeholder="Qty" class="form-control ic-li-qty" style="width:70px;text-align:center" value="1" oninput="recalcInvoice()">' +
+    '<input type="number" placeholder="Unit Price" class="form-control ic-li-price" style="width:130px" oninput="recalcInvoice()">' +
+    '<span class="ic-li-total" style="min-width:100px;text-align:right;font-weight:600;font-size:.82rem;color:var(--navy)">0 RWF</span>' +
+    '<button class="ic-remove-btn" onclick="removeInvoiceLine(\'ic-row-' + idx + '\')" title="Remove">&times;</button>';
+  var lc = g('ic-line-items');
+  if (lc) lc.appendChild(row);
+  recalcInvoice();
+}
+
+function removeInvoiceLine(rowId) {
+  var row = g(rowId); if (row) row.remove();
+  recalcInvoice();
+}
+
+function recalcInvoice() {
+  var lc = g('ic-line-items'); if (!lc) return;
+  var rows = lc.querySelectorAll('.ic-line-row');
+  var subtotal = 0;
+  rows.forEach(function(row) {
+    var qty   = parseFloat((row.querySelector('.ic-li-qty')  ||{}).value)||0;
+    var price = parseFloat((row.querySelector('.ic-li-price')||{}).value)||0;
+    var lineTotal = qty * price;
+    subtotal += lineTotal;
+    var totEl = row.querySelector('.ic-li-total');
+    if (totEl) totEl.textContent = fmtRwfAC(lineTotal);
+  });
+  var vat   = Math.round(subtotal * RWANDA_VAT);
+  var total = subtotal + vat;
+  if (g('ic-subtotal')) g('ic-subtotal').textContent = fmtRwfAC(subtotal);
+  if (g('ic-vat'))      g('ic-vat').textContent      = fmtRwfAC(vat);
+  if (g('ic-total'))    g('ic-total').textContent     = fmtRwfAC(total);
+}
+
+function submitInvoice(statusVal) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var clientName = (g('ic-client-name').value||'').trim();
+  if (!clientName) { showToast('Client name is required', 'error'); return; }
+  var lc = g('ic-line-items'); if (!lc) return;
+  var rows = lc.querySelectorAll('.ic-line-row');
+  var lineItems = [];
+  var subtotal  = 0;
+  rows.forEach(function(row) {
+    var desc  = (row.querySelector('.ic-li-desc') ||{}).value||'';
+    var qty   = parseFloat((row.querySelector('.ic-li-qty')  ||{}).value)||0;
+    var price = parseFloat((row.querySelector('.ic-li-price')||{}).value)||0;
+    var lineTotal = qty * price;
+    if (desc || lineTotal) {
+      lineItems.push({ description: desc, qty: qty, unitPrice: price, lineTotal: lineTotal });
+      subtotal += lineTotal;
+    }
+  });
+  if (!lineItems.length) { showToast('Add at least one line item', 'error'); return; }
+  var vatAmount   = Math.round(subtotal * RWANDA_VAT);
+  var totalAmount = subtotal + vatAmount;
+  var doc = {
+    id: '', invoiceNo: g('ic-inv-no').value,
+    billedTo: clientName, clientEmail: g('ic-client-email').value||'',
+    clientAddress: g('ic-client-address').value||'',
+    dealId: g('ic-deal-ref').value||'',
+    lineItems: lineItems, subtotal: subtotal,
+    vatAmount: vatAmount, totalAmount: totalAmount,
+    dueDate: g('ic-due-date').value||'',
+    notes: g('ic-notes').value||'',
+    paidAt: null, pdfUrl: null,
+    status: statusVal, isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: currentUser.uid, updatedBy: currentUser.uid
+  };
+  db.collection('invoices').add(doc).then(function(ref) { return ref.update({ id: ref.id }); })
+    .then(function() {
+      showToast('Invoice ' + (statusVal === 'sent' ? 'created and sent' : 'saved as draft'), 'success');
+      closeInvoiceCreate(); loadInvoices(); loadAccountingStats();
+      logAudit('invoice_created', 'invoices', 'new', null, { invoiceNo: doc.invoiceNo, totalAmount: totalAmount, status: statusVal });
+    }).catch(function() { showToast('Error saving invoice', 'error'); });
+}
+
+function openInvoiceDetail(id) {
+  _idCurrentId = id;
+  var inv = _invoices.find(function(x) { return x.id === id; });
+  if (!inv) return;
+  var m = g('invoice-detail-modal'); if (!m) return;
+  var st = INV_STATUS[inv.status] || { label: inv.status, color: '#64748B' };
+  g('id-inv-no').textContent = inv.invoiceNo || '—';
+  g('id-status-badge').textContent = st.label;
+  g('id-status-badge').style.background = st.color;
+  g('id-client-name').textContent    = inv.billedTo || '—';
+  g('id-client-email').textContent   = inv.clientEmail || '';
+  g('id-client-address').textContent = inv.clientAddress || '';
+  var issuedDate = inv.createdAt ? new Date(inv.createdAt.toDate ? inv.createdAt.toDate() : inv.createdAt).toLocaleDateString() : '—';
+  g('id-issued-date').textContent = issuedDate;
+  g('id-due-date').textContent    = inv.dueDate || '—';
+  var items = inv.lineItems || [];
+  g('id-line-items-table').innerHTML =
+    '<table class="ac-li-table"><thead><tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead><tbody>' +
+    items.map(function(li) {
+      return '<tr><td>' + (li.description||'—') + '</td><td style="text-align:center">' + (li.qty||1) + '</td><td style="text-align:right">' + fmtRwfAC(li.unitPrice) + '</td><td style="text-align:right;font-weight:600">' + fmtRwfAC(li.lineTotal) + '</td></tr>';
+    }).join('') + '</tbody></table>';
+  g('id-subtotal').textContent = fmtRwfAC(inv.subtotal);
+  g('id-vat').textContent      = fmtRwfAC(inv.vatAmount);
+  g('id-total').textContent    = fmtRwfAC(inv.totalAmount);
+  var notesEl = g('id-notes');
+  if (notesEl) notesEl.textContent = inv.notes ? 'Notes: ' + inv.notes : '';
+  var paidEl = g('id-paid-info');
+  if (paidEl) {
+    paidEl.innerHTML = inv.paidAt
+      ? '<div style="color:var(--success);font-weight:600;font-size:.82rem">Paid on ' + new Date(inv.paidAt.toDate ? inv.paidAt.toDate() : inv.paidAt).toLocaleDateString() + '</div>'
+      : '';
+  }
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf((currentUser||{}).role) > -1;
+  var actEl = g('id-actions');
+  if (actEl) {
+    var html = '';
+    if (isAdmin) {
+      if (inv.status === 'draft') {
+        html += '<button class="btn btn-primary" onclick="updateInvStatus(\'' + id + '\',\'sent\')" data-en="Mark as Sent" data-rw="Ohereza">Mark as Sent</button>';
+      }
+      if (inv.status !== 'paid' && inv.status !== 'cancelled') {
+        html += '<button class="btn" style="background:var(--success);color:#fff;border:none" onclick="updateInvStatus(\'' + id + '\',\'paid\')" data-en="Mark as Paid" data-rw="Yishyuwe">Mark as Paid</button>';
+        html += '<button class="btn btn-outline" onclick="updateInvStatus(\'' + id + '\',\'cancelled\')" data-en="Cancel Invoice" data-rw="Siba">Cancel</button>';
+      }
+    }
+    actEl.innerHTML = html;
+    if (typeof switchLang !== 'undefined') switchLang(currentLang);
+  }
+  openModal('invoice-detail-modal');
+}
+function closeInvoiceDetail() { closeModal('invoice-detail-modal'); }
+
+function updateInvStatus(id, newStatus) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var inv = _invoices.find(function(x) { return x.id === id; });
+  var oldStatus = inv ? inv.status : '';
+  var upd = { status: newStatus, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid };
+  if (newStatus === 'paid') upd.paidAt = firebase.firestore.FieldValue.serverTimestamp();
+  db.collection('invoices').doc(id).update(upd).then(function() {
+    showToast('Invoice ' + newStatus, 'success');
+    if (inv) inv.status = newStatus;
+    closeInvoiceDetail(); loadInvoices(); loadAccountingStats();
+    logAudit('invoice_status_changed', 'invoices', id, { status: oldStatus }, { status: newStatus });
+  }).catch(function() { showToast('Error updating invoice', 'error'); });
+}
+
+/* ── EXPENSES ── */
+function loadExpenses() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var el = g('ac-expenses-list'); if (el) el.innerHTML = '<div class="off-loading">Loading expenses...</div>';
+  db.collection('expenses').where('isActive','==',true).orderBy('createdAt','desc').limit(200).get().then(function(snap) {
+    _expenses = [];
+    snap.forEach(function(d) { var ex = d.data(); ex.id = d.id; _expenses.push(ex); });
+    filterExpenses();
+  }).catch(function() { if (el) el.innerHTML = '<div class="off-empty">Unable to load expenses.</div>'; });
+}
+
+function filterExpenses() {
+  var cf = (g('ac-exp-cat-filter')||{}).value || '';
+  var mf = (g('ac-exp-month')||{}).value || '';
+  renderExpenses(_expenses.filter(function(ex) {
+    if (cf && ex.category !== cf) return false;
+    if (mf && ex.date && ex.date.substring(0,7) !== mf) return false;
+    return true;
+  }));
+}
+
+function renderExpenses(list) {
+  var el = g('ac-expenses-list');
+  if (!el) return;
+  if (!list.length) { el.innerHTML = '<div class="off-empty">No expenses found.</div>'; return; }
+  var catColors = { office:'#1249B3', transport:'#D97706', utilities:'#16A34A', marketing:'#6366F1', legal:'#64748B', maintenance:'#EA580C', equipment:'#C9A84C', salaries:'#0D3B8C', other:'#9CA3AF' };
+  el.innerHTML = list.map(function(ex) {
+    var cc = catColors[ex.category] || '#64748B';
+    var catLabel = EXP_CATEGORIES[ex.category] || ex.category || 'Other';
+    return '<div class="ac-expense-card">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between">' +
+        '<div style="display:flex;align-items:center;gap:.6rem">' +
+          '<div class="ac-exp-cat-dot" style="background:' + cc + '"></div>' +
+          '<div>' +
+            '<div class="ac-exp-desc">' + (ex.description||'Expense') + '</div>' +
+            '<div style="display:flex;gap:.5rem;align-items:center;margin-top:.15rem">' +
+              '<span class="ac-exp-cat-chip" style="background:' + cc + '20;color:' + cc + '">' + catLabel + '</span>' +
+              '<span style="font-size:.72rem;color:var(--muted)">' + (ex.date||'') + '</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="ac-exp-amount">' + fmtMRwf(ex.amount) + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openExpenseCreate() {
+  var m = g('expense-create-modal'); if (!m) return;
+  g('ex-category').value   = 'office';
+  g('ex-date').value       = new Date().toISOString().slice(0,10);
+  g('ex-description').value= '';
+  g('ex-amount').value     = '';
+  g('ex-ref').value        = '';
+  g('ex-notes').value      = '';
+  openModal('expense-create-modal');
+}
+function closeExpenseCreate() { closeModal('expense-create-modal'); }
+
+function submitExpense() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var desc   = (g('ex-description').value||'').trim();
+  var amount = parseFloat(g('ex-amount').value)||0;
+  if (!desc)   { showToast('Description is required', 'error'); return; }
+  if (!amount) { showToast('Amount is required', 'error'); return; }
+  var doc = {
+    id: '', category: g('ex-category').value||'other',
+    date: g('ex-date').value||new Date().toISOString().slice(0,10),
+    description: desc, amount: amount,
+    reference: g('ex-ref').value||'',
+    notes: g('ex-notes').value||'',
+    approvedBy: null,
+    status: 'recorded', isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: currentUser.uid, updatedBy: currentUser.uid
+  };
+  db.collection('expenses').add(doc).then(function(ref) { return ref.update({ id: ref.id }); })
+    .then(function() {
+      showToast('Expense recorded', 'success');
+      closeExpenseCreate(); loadExpenses(); loadAccountingStats();
+      logAudit('expense_recorded', 'expenses', 'new', null, { category: doc.category, amount: amount });
+    }).catch(function() { showToast('Error recording expense', 'error'); });
+}
+
+/* ── REPORTS ── */
+function loadReports() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var el = g('ac-reports-content');
+  if (!el) return;
+  el.innerHTML = '<div class="off-loading">Generating reports...</div>';
+  var yr = parseInt((g('ac-rep-year')||{}).value || new Date().getFullYear());
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  Promise.all([
+    db.collection('invoices').where('isActive','==',true).where('status','==','paid').limit(500).get(),
+    db.collection('expenses').where('isActive','==',true).limit(500).get()
+  ]).then(function(results) {
+    var invSnap = results[0], expSnap = results[1];
+    var revByMonth  = new Array(12).fill(0);
+    var expByMonth  = new Array(12).fill(0);
+    invSnap.forEach(function(d) {
+      var inv = d.data();
+      if (inv.paidAt) {
+        var pd = inv.paidAt.toDate ? inv.paidAt.toDate() : new Date(inv.paidAt);
+        if (pd.getFullYear() === yr) revByMonth[pd.getMonth()] += (inv.totalAmount||0);
+      }
+    });
+    expSnap.forEach(function(d) {
+      var ex = d.data();
+      if (ex.date && ex.date.startsWith(yr + '')) {
+        var mo = parseInt(ex.date.substring(5,7)) - 1;
+        if (mo >= 0 && mo < 12) expByMonth[mo] += (ex.amount||0);
+      }
+    });
+    var totalRev = revByMonth.reduce(function(a,b){ return a+b; }, 0);
+    var totalExp = expByMonth.reduce(function(a,b){ return a+b; }, 0);
+    var netProfit = totalRev - totalExp;
+    var maxVal = Math.max.apply(null, revByMonth.concat(expByMonth).concat([1]));
+    var html = '<div class="ac-rep-summary">' +
+      '<div class="ac-rep-kpi ac-revenue"><span class="ac-rep-kpi-val">' + fmtMRwf(totalRev) + '</span><span class="ac-rep-kpi-lbl" data-en="Total Revenue ' + yr + '" data-rw="Amafaranga Yinjiye ' + yr + '">Total Revenue ' + yr + '</span></div>' +
+      '<div class="ac-rep-kpi ac-expenses-kpi"><span class="ac-rep-kpi-val">' + fmtMRwf(totalExp) + '</span><span class="ac-rep-kpi-lbl" data-en="Total Expenses ' + yr + '" data-rw="Ibisonerwa Byose ' + yr + '">Total Expenses ' + yr + '</span></div>' +
+      '<div class="ac-rep-kpi ' + (netProfit >= 0 ? 'ac-net' : 'ac-net-neg') + '"><span class="ac-rep-kpi-val">' + fmtMRwf(Math.abs(netProfit)) + '</span><span class="ac-rep-kpi-lbl">' + (netProfit >= 0 ? 'Net Profit' : 'Net Loss') + ' ' + yr + '</span></div>' +
+    '</div>';
+    html += '<div class="ac-chart-wrap"><div class="ac-chart-title" data-en="Monthly Revenue vs Expenses" data-rw="Amashingiro vs Ibisonerwa bya Buri Kwezi">Monthly Revenue vs Expenses</div>';
+    html += '<div class="ac-bars">';
+    months.forEach(function(mo, i) {
+      var revH = maxVal > 0 ? Math.round(revByMonth[i] / maxVal * 120) : 0;
+      var expH = maxVal > 0 ? Math.round(expByMonth[i] / maxVal * 120) : 0;
+      html += '<div class="ac-bar-col">' +
+        '<div class="ac-bar-pair">' +
+          '<div class="ac-bar ac-bar-rev" style="height:' + revH + 'px" title="Revenue: ' + fmtMRwf(revByMonth[i]) + '"></div>' +
+          '<div class="ac-bar ac-bar-exp" style="height:' + expH + 'px" title="Expenses: ' + fmtMRwf(expByMonth[i]) + '"></div>' +
+        '</div>' +
+        '<div class="ac-bar-lbl">' + mo + '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+    html += '<div class="ac-chart-legend"><span class="ac-leg-rev"></span>Revenue<span class="ac-leg-exp" style="margin-left:1rem"></span>Expenses</div>';
+    html += '</div>';
+    html += '<div class="ac-monthly-table"><div class="ac-mt-head"><span>Month</span><span>Revenue</span><span>Expenses</span><span>Net</span></div>';
+    months.forEach(function(mo, i) {
+      var net = revByMonth[i] - expByMonth[i];
+      html += '<div class="ac-mt-row"><span>' + mo + ' ' + yr + '</span><span style="color:var(--success)">' + fmtMRwf(revByMonth[i]) + '</span><span style="color:var(--error)">' + fmtMRwf(expByMonth[i]) + '</span><span style="font-weight:600;color:' + (net >= 0 ? 'var(--navy)' : 'var(--error)') + '">' + fmtMRwf(Math.abs(net)) + '</span></div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+    if (typeof switchLang !== 'undefined') switchLang(currentLang);
+    var repRev = revByMonth.reduce(function(a,b){return a+b;},0);
+    var repExp = expByMonth.reduce(function(a,b){return a+b;},0);
+    var repNet = repRev - repExp;
+    if (g('ac-stat-net')) g('ac-stat-net').textContent = fmtMRwf(repNet);
+  }).catch(function() { el.innerHTML = '<div class="off-empty">Error loading report data.</div>'; });
+}
+
+/* ── SIDEBAR BADGE ── */
+(function() {
+  var _acTimer = setInterval(function() {
+    if (typeof db === 'undefined' || !currentUser) return;
+    clearInterval(_acTimer);
+    db.collection('invoices').where('status','in',['sent','overdue']).where('isActive','==',true).limit(50).get().then(function(snap) {
+      var el = g('ac-sidebar-count');
+      if (el) el.textContent = snap.size > 0 ? snap.size : '';
+    }).catch(function(){});
+  }, 8000);
 })();
 </script>
 

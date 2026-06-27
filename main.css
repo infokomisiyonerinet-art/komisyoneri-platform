@@ -2963,3 +2963,96 @@ html,body{overscroll-behavior-x:none}
   .hr-payroll-summary { grid-template-columns: repeat(2, 1fr); }
   .hr-perf-metrics { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ============================================================
+   PHASE 12 — ACCOUNTING & FINANCE
+   ============================================================ */
+
+/* Stats */
+.ac-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+.ac-stat-card { background: #fff; border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 8px rgba(0,0,0,.07); border-left: 4px solid var(--navy); }
+.ac-stat-card.ac-revenue { border-left-color: #16A34A; }
+.ac-stat-card.ac-outstanding { border-left-color: #D97706; }
+.ac-stat-card.ac-expenses { border-left-color: #DC2626; }
+.ac-stat-card.ac-net { border-left-color: var(--navy); }
+.ac-stat-lbl { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+.ac-stat-val { font-size: 1.35rem; font-weight: 700; color: var(--dark); }
+
+/* Invoice List */
+.ac-invoice-list { display: flex; flex-direction: column; gap: 10px; }
+.ac-invoice-card { background: #fff; border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 6px rgba(0,0,0,.06); display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; transition: var(--tr); border: 1.5px solid transparent; }
+.ac-invoice-card:hover { border-color: var(--navy); }
+.ac-inv-card-top { flex: 1; min-width: 0; }
+.ac-inv-no { font-size: .78rem; font-weight: 700; color: var(--navy); }
+.ac-inv-client { font-size: .82rem; color: var(--dark); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-inv-card-foot { display: flex; align-items: center; gap: 12px; }
+.ac-inv-amount { font-size: .95rem; font-weight: 700; color: var(--dark); white-space: nowrap; }
+.ac-inv-status { font-size: .68rem; font-weight: 600; padding: 3px 9px; border-radius: 20px; background: #F1F5F9; color: var(--muted); }
+
+/* Invoice Totals */
+.ac-invoice-totals { border-top: 1px solid #E2E8F0; margin-top: 10px; padding-top: 10px; }
+.ac-total-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: .84rem; color: var(--dark); }
+.ac-total-row.ac-grand-total { font-weight: 700; font-size: .95rem; border-top: 2px solid var(--navy); padding-top: 8px; margin-top: 4px; color: var(--navy); }
+
+/* Line Items */
+.ac-li-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.ac-li-table th { font-size: .68rem; color: var(--muted); text-align: left; padding: 4px 6px; background: var(--light); }
+.ac-li-table td { font-size: .8rem; padding: 5px 6px; border-bottom: 1px solid #F1F5F9; }
+.ic-line-row td input { width: 100%; border: 1px solid #E2E8F0; border-radius: 5px; padding: 4px 6px; font-size: .8rem; }
+.ic-remove-btn { background: none; border: none; color: var(--error); cursor: pointer; font-size: .85rem; padding: 4px 6px; }
+
+/* Invoice Detail View */
+.ac-inv-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.ac-inv-number { font-size: 1.1rem; font-weight: 700; color: var(--navy); }
+.ac-inv-status-badge { font-size: .72rem; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
+.ac-inv-bizcol { text-align: right; }
+.ac-inv-section-lbl { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 6px; }
+
+/* Expense Cards */
+.ac-expense-list { display: flex; flex-direction: column; gap: 10px; }
+.ac-expense-card { background: #fff; border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 6px rgba(0,0,0,.06); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ac-exp-left { flex: 1; min-width: 0; }
+.ac-exp-desc { font-size: .84rem; color: var(--dark); font-weight: 500; }
+.ac-exp-meta { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+.ac-exp-cat-chip { font-size: .68rem; background: var(--light); color: var(--muted); padding: 2px 8px; border-radius: 20px; display: inline-block; margin-top: 4px; }
+.ac-exp-amount { font-size: .95rem; font-weight: 700; color: var(--error); white-space: nowrap; }
+
+/* Reports / Charts */
+.ac-rep-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; }
+.ac-rep-kpi { background: #fff; border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 6px rgba(0,0,0,.06); text-align: center; }
+.ac-rep-kpi-val { font-size: 1.2rem; font-weight: 700; color: var(--navy); display: block; }
+.ac-rep-kpi-lbl { font-size: .68rem; color: var(--muted); margin-top: 4px; }
+.ac-chart-wrap { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 1px 6px rgba(0,0,0,.06); margin-bottom: 20px; overflow-x: auto; }
+.ac-chart-title { font-size: .8rem; font-weight: 700; color: var(--dark); margin-bottom: 14px; }
+.ac-bars { display: flex; align-items: flex-end; gap: 6px; height: 140px; padding-bottom: 20px; position: relative; }
+.ac-bar-col { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; min-width: 28px; }
+.ac-bar-pair { display: flex; align-items: flex-end; gap: 2px; width: 100%; }
+.ac-bar { width: 48%; border-radius: 3px 3px 0 0; min-height: 3px; transition: var(--tr); }
+.ac-bar-rev { background: #16A34A; }
+.ac-bar-exp { background: #DC2626; }
+.ac-bar-lbl { font-size: .55rem; color: var(--muted); text-align: center; white-space: nowrap; }
+.ac-chart-legend { display: flex; gap: 14px; margin-top: 8px; }
+.ac-chart-legend span { font-size: .7rem; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+.ac-chart-legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+.ac-chart-legend span.ac-leg-rev::before { background: #16A34A; }
+.ac-chart-legend span.ac-leg-exp::before { background: #DC2626; }
+
+/* Monthly Table */
+.ac-monthly-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.ac-mt-head th { padding: 8px 10px; background: var(--light); color: var(--muted); text-align: left; font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; }
+.ac-mt-row td { padding: 8px 10px; border-bottom: 1px solid #F1F5F9; color: var(--dark); }
+.ac-mt-row:hover td { background: var(--light); }
+.ac-mt-net-pos { color: #16A34A; font-weight: 600; }
+.ac-mt-net-neg { color: #DC2626; font-weight: 600; }
+
+/* Mobile */
+@media (max-width: 660px) {
+  .ac-stats { grid-template-columns: repeat(2, 1fr); }
+  .ac-rep-summary { grid-template-columns: repeat(2, 1fr); }
+  .ac-inv-card-foot { flex-direction: column; align-items: flex-end; gap: 4px; }
+}
+@media (max-width: 414px) {
+  .ac-stats { grid-template-columns: repeat(2, 1fr); }
+  .ac-rep-summary { grid-template-columns: 1fr 1fr; }
+  .ac-bars { gap: 3px; }
+}
