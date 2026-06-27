@@ -2152,3 +2152,70 @@ html,body{overscroll-behavior-x:none}
   .contract-signatures{gap:.75rem}
   .contract-sig-line{width:90px}
 }
+
+/* ═══ PHASE 7 — PARTNER PORTAL ═══ */
+.partner-card{
+  background:#fff;border:1px solid var(--border);border-radius:12px;
+  padding:1rem 1.1rem;cursor:pointer;transition:var(--tr);
+}
+.partner-card:hover{box-shadow:0 4px 16px rgba(13,59,140,.1);transform:translateY(-1px)}
+.partner-card-head{display:flex;align-items:flex-start;gap:.85rem;margin-bottom:.65rem}
+.partner-avatar{
+  width:48px;height:48px;border-radius:50%;background:var(--navy);
+  color:#fff;font-size:1.25rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0
+}
+.partner-card-info{flex:1;min-width:0}
+.partner-card-name{font-size:.95rem;font-weight:700;color:var(--dark);margin-bottom:.25rem;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.partner-type-chip{
+  display:inline-block;font-size:.7rem;font-weight:600;
+  background:rgba(18,73,179,.1);color:var(--blue);
+  padding:.15rem .55rem;border-radius:20px;margin-right:.35rem;margin-bottom:.25rem
+}
+.partner-badge{
+  display:inline-block;font-size:.68rem;font-weight:700;padding:.15rem .5rem;
+  border-radius:20px;vertical-align:middle
+}
+.partner-badge.verified{background:#dcfce7;color:#16a34a}
+.partner-badge.pending{background:#fef9c3;color:#a16207}
+.partner-badge.rejected{background:#fee2e2;color:#dc2626}
+.partner-card-meta{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.4rem;font-size:.78rem;color:var(--muted)}
+.partner-stars{display:inline-flex;align-items:center;gap:.15rem;font-size:.85rem}
+.partner-stars .star,.partner-stars-sm .star{color:#d1d5db}
+.partner-stars .star.filled,.partner-stars-sm .star.filled{color:var(--gold)}
+.partner-stars .star.half,.partner-stars-sm .star.half{color:var(--gold);opacity:.6}
+.partner-stars-sm{display:inline-flex;gap:.1rem;font-size:.75rem}
+.partner-districts{font-size:.75rem;color:var(--muted)}
+.pd-head{display:flex;align-items:center;gap:1rem;padding:.75rem 0;border-bottom:1px solid var(--border);margin-bottom:.85rem}
+.pd-avatar-lg{
+  width:64px;height:64px;border-radius:50%;background:var(--navy);
+  color:#fff;font-size:1.6rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0
+}
+.pd-name-block{flex:1}
+.pd-fullname{font-size:1.1rem;font-weight:700;color:var(--dark)}
+.pd-company{font-size:.85rem;color:var(--muted);margin-top:.1rem}
+.pd-badges{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.4rem}
+.pd-rating-row{display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;font-size:.9rem}
+.pd-info-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:.6rem .85rem;
+  background:var(--light);border-radius:8px;padding:.85rem;margin-bottom:.85rem;font-size:.82rem
+}
+.pd-info-item label{display:block;font-size:.7rem;color:var(--muted);font-weight:600;margin-bottom:.15rem}
+.pd-bio-section{margin-bottom:.85rem;font-size:.82rem;color:var(--dark)}
+.pd-bio-section label{display:block;font-size:.7rem;color:var(--muted);font-weight:600;margin-bottom:.25rem}
+.pd-reviews-section{margin-bottom:.85rem}
+.pd-reviews-section h4{font-size:.82rem;font-weight:700;color:var(--dark);margin-bottom:.5rem}
+.partner-review{border-bottom:1px solid var(--border);padding:.6rem 0}
+.partner-review:last-child{border-bottom:none}
+.partner-review-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.15rem}
+.pd-actions{display:flex;gap:.5rem;flex-wrap:wrap;padding-top:.75rem;border-top:1px solid var(--border)}
+.rp-stars{display:flex;gap:.35rem;font-size:2rem;justify-content:center;margin:.75rem 0}
+.rp-stars span{cursor:pointer;color:#d1d5db;transition:color .15s}
+.rp-stars span.active,.rp-stars span:hover{color:var(--gold)}
+@media(max-width:480px){
+  .pd-info-grid{grid-template-columns:1fr}
+  .rp-stars{font-size:1.6rem}
+  .pd-avatar-lg{width:52px;height:52px}
+}

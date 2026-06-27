@@ -3596,6 +3596,7 @@ html,body{overscroll-behavior-x:none}
       <div class="ds-section" data-rw="SERIVISI" data-en="SERVICES">SERIVISI</div>
       <div class="dn" onclick="go('verification')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg><span data-rw="Kugenzura" data-en="Verification">Verification</span><span class="ds-badge" id="verif-sidebar-count">0</span></div>
       <div class="dn" onclick="go('documents')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span data-rw="Dosiye / Vault" data-en="Document Vault">Document Vault</span><span class="ds-badge" id="docs-sidebar-count">0</span></div>
+      <div class="dn" onclick="go('partners')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Abahuza" data-en="Partners">Partners</span><span class="ds-badge" id="partners-sidebar-count">0</span></div>
       <div class="ds-section" data-rw="IMARI" data-en="FINANCE">IMARI</div>
       <div class="dn" onclick="go('commissions')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span data-rw="Komisiyoni" data-en="Commissions">Komisiyoni</span><span class="ds-badge" id="comm-sidebar-count">0</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-rw="Kwishyura" data-en="Payments">Kwishyura</span></div>
@@ -4339,6 +4340,73 @@ html,body{overscroll-behavior-x:none}
       <div class="crm-empty">
         <div class="crm-empty-icon">📁</div>
         <div class="crm-empty-title" data-rw="Gutegura dosiye..." data-en="Loading documents...">Loading documents...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === PAGE: PARTNER PORTAL === -->
+<div class="page" id="page-partners">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">🤝 Partners</div>
+      <h1 class="h1" data-rw="Portal y'Abahuza" data-en="Partner Portal">Partner Portal</h1>
+      <p style="color:rgba(255,255,255,.82);font-size:.85rem" data-rw="Aba surveyor, notaire, inzego z'amabanki, n'abavoka bahuza na K-REOS" data-en="Surveyors, notaries, banks, lawyers, and inspectors connected to K-REOS">Surveyors, notaries, banks, and legal professionals connected to K-REOS</p>
+    </div>
+  </div>
+  <div class="crm-wrap">
+    <div class="crm-header">
+      <div>
+        <p style="color:var(--muted);font-size:.82rem" data-rw="Kanda ku muhuza kugirango ubone profile ye no guha serivisi" data-en="Click any partner to view their profile and assign services">Click any partner to view profile</p>
+      </div>
+      <button class="btn btn-navy btn-sm" onclick="openPartnerRegister()">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-rw="Iyandikishe nk'Umuhuza" data-en="Register as Partner">Register Partner</span>
+      </button>
+    </div>
+    <!-- Stats -->
+    <div class="crm-stats">
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="partners-stat-total">0</div>
+        <div class="crm-stat-l" data-rw="Abahuza Bose" data-en="Total">Total</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="partners-stat-verified" style="color:#16A34A">0</div>
+        <div class="crm-stat-l" data-rw="Bemejwe" data-en="Verified">Verified</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="partners-stat-active" style="color:#F59E0B">0</div>
+        <div class="crm-stat-l" data-rw="Bakorwa" data-en="Active Jobs">Active</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="partners-stat-rating" style="color:var(--gold)">—</div>
+        <div class="crm-stat-l" data-rw="Ijanisha ry'Ubuziranenge" data-en="Avg Rating">Avg Rating</div>
+      </div>
+    </div>
+    <!-- Filters -->
+    <div class="crm-filters">
+      <select id="partners-filter-type" onchange="filterPartners()">
+        <option value="">-- Ubwoko Bwose / All Types --</option>
+        <option value="surveyor">📐 Land Surveyor</option>
+        <option value="notary">⚖️ Notary</option>
+        <option value="lawyer">📋 Lawyer</option>
+        <option value="bank">🏦 Bank / MFI</option>
+        <option value="inspector">🔍 Property Inspector</option>
+        <option value="valuer">💰 Valuer</option>
+      </select>
+      <select id="partners-filter-district" onchange="filterPartners()">
+        <option value="">-- Akarere Kose / All Districts --</option>
+        <option>Gasabo</option><option>Kicukiro</option><option>Nyarugenge</option>
+        <option>Musanze</option><option>Rubavu</option><option>Huye</option>
+        <option>Rwamagana</option><option>Nyagatare</option>
+      </select>
+      <input type="text" id="partners-search" placeholder="Shakisha umuhuza... / Search partner..." oninput="filterPartners()">
+    </div>
+    <!-- Partner list -->
+    <div id="partners-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.85rem;margin-top:.5rem">
+      <div class="crm-empty" style="grid-column:1/-1">
+        <div class="crm-empty-icon">🤝</div>
+        <div class="crm-empty-title" data-rw="Gutegura abahuza..." data-en="Loading partners...">Loading partners...</div>
       </div>
     </div>
   </div>
@@ -5391,6 +5459,150 @@ html,body{overscroll-behavior-x:none}
           </div>
         </div>
         <div id="cg-preview-content" class="contract-preview"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === PARTNER REGISTER MODAL === -->
+<div class="modal-wrap" id="partner-register-modal" style="display:none">
+  <div class="modal" style="max-width:480px;width:95%;max-height:92vh;overflow-y:auto">
+    <button class="modal-x" onclick="closePartnerRegister()" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:.25rem" data-rw="IYANDIKISHE" data-en="PARTNER REGISTRATION">PARTNER REGISTRATION</div>
+      <h2 style="font-size:1.1rem;font-weight:800;color:var(--navy)" data-rw="Iyandikishe nk'Umuhuza" data-en="Register as Partner">Register as Partner</h2>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.65rem">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+        <div class="vr-field">
+          <label data-rw="Amazina Yuzuye" data-en="Full Name">Full Name *</label>
+          <input type="text" id="pr-name" placeholder="Full name" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;box-sizing:border-box">
+        </div>
+        <div class="vr-field">
+          <label data-rw="Izina ry'Ikigo" data-en="Company Name">Company Name</label>
+          <input type="text" id="pr-company" placeholder="e.g. RwandaSurvey Ltd" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;box-sizing:border-box">
+        </div>
+      </div>
+      <div class="vr-field">
+        <label data-rw="Ubwoko bw'Akazi" data-en="Partner Type">Partner Type *</label>
+        <select id="pr-type" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
+          <option value="">-- Hitamo / Select --</option>
+          <option value="surveyor">📐 Land Surveyor</option>
+          <option value="notary">⚖️ Notary</option>
+          <option value="lawyer">📋 Lawyer</option>
+          <option value="bank">🏦 Bank / MFI</option>
+          <option value="inspector">🔍 Property Inspector</option>
+          <option value="valuer">💰 Valuer</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+        <div class="vr-field">
+          <label data-rw="Nimero ya Lisansi" data-en="License / Registration No.">License No.</label>
+          <input type="text" id="pr-license" placeholder="e.g. RDB/2023/001" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;box-sizing:border-box">
+        </div>
+        <div class="vr-field">
+          <label data-rw="Telefoni" data-en="Phone">Phone *</label>
+          <input type="tel" id="pr-phone" placeholder="+250 7XX XXX XXX" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;box-sizing:border-box">
+        </div>
+      </div>
+      <div class="vr-field">
+        <label data-rw="Imeli" data-en="Email">Email</label>
+        <input type="email" id="pr-email" placeholder="partner@example.com" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Indangamuntu / TIN" data-en="National ID / TIN">National ID / TIN</label>
+        <input type="text" id="pr-nid" placeholder="16-digit NID or TIN" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Akarere Bakoraho" data-en="Districts Covered">Districts Covered</label>
+        <input type="text" id="pr-districts" placeholder="e.g. Gasabo, Kicukiro, Nyarugenge" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Ubuzobere" data-en="Specializations">Specializations</label>
+        <input type="text" id="pr-spec" placeholder="e.g. Residential, Commercial, Agricultural" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Ibyo wabagiriye" data-en="Bio / Experience">Bio / Experience</label>
+        <textarea id="pr-bio" rows="2" placeholder="Brief professional background..." style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box;resize:vertical"></textarea>
+      </div>
+      <button id="pr-submit-btn" class="btn btn-navy" style="width:100%;justify-content:center" onclick="submitPartnerRegister()">
+        <span id="pr-submit-lbl" data-rw="Ohereza Iyandikishe" data-en="Submit Registration">Submit Registration</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- === PARTNER DETAIL MODAL === -->
+<div class="modal-wrap" id="partner-detail-modal" style="display:none">
+  <div class="modal" style="max-width:520px;max-height:92vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title">🤝 <span id="pd-name">Partner</span></div>
+      <button class="modal-x" onclick="closePartnerDetail()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <input type="hidden" id="pd-partner-id">
+    <div style="padding:1.25rem;display:flex;flex-direction:column;gap:1rem">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;gap:.85rem">
+        <div class="partner-avatar" id="pd-avatar">S</div>
+        <div>
+          <div style="font-weight:800;font-size:1rem" id="pd-fullname">—</div>
+          <div style="font-size:.78rem;color:var(--muted)" id="pd-company">—</div>
+          <div style="display:flex;gap:.4rem;margin-top:.25rem;flex-wrap:wrap" id="pd-badges"></div>
+        </div>
+      </div>
+      <!-- Rating -->
+      <div style="display:flex;align-items:center;gap:.5rem">
+        <div class="partner-stars" id="pd-stars"></div>
+        <span style="font-size:.82rem;color:var(--muted)" id="pd-rating-text"></span>
+      </div>
+      <!-- Info grid -->
+      <div style="background:var(--light);border-radius:8px;padding:.85rem;font-size:.82rem;display:flex;flex-direction:column;gap:.4rem">
+        <div><span style="color:var(--muted)">Type:</span> <strong id="pd-type">—</strong></div>
+        <div><span style="color:var(--muted)">License:</span> <span id="pd-license">—</span></div>
+        <div><span style="color:var(--muted)">Phone:</span> <span id="pd-phone">—</span></div>
+        <div><span style="color:var(--muted)">Email:</span> <span id="pd-email">—</span></div>
+        <div><span style="color:var(--muted)">Districts:</span> <span id="pd-districts">—</span></div>
+        <div><span style="color:var(--muted)">Specializations:</span> <span id="pd-spec">—</span></div>
+        <div id="pd-bio-row"><span style="color:var(--muted)">Bio:</span> <span id="pd-bio">—</span></div>
+      </div>
+      <!-- Reviews preview -->
+      <div id="pd-reviews-wrap">
+        <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.08em;margin-bottom:.5rem">RECENT REVIEWS</div>
+        <div id="pd-reviews-list" style="display:flex;flex-direction:column;gap:.4rem"></div>
+      </div>
+      <!-- Actions -->
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap" id="pd-actions"></div>
+    </div>
+  </div>
+</div>
+
+<!-- === RATE PARTNER MODAL === -->
+<div class="modal-wrap" id="rate-partner-modal" style="display:none">
+  <div class="modal" style="max-width:400px;width:95%">
+    <div style="text-align:center;margin-bottom:1rem">
+      <div style="font-size:1.8rem;margin-bottom:.4rem">⭐</div>
+      <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:.3rem" data-rw="GUSUZUMA UMUHUZA" data-en="RATE PARTNER">RATE PARTNER</div>
+      <h2 style="font-size:1.05rem;font-weight:800;color:var(--navy)" id="rp-partner-name">Partner</h2>
+    </div>
+    <input type="hidden" id="rp-partner-id">
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+      <div style="display:flex;justify-content:center;gap:.5rem" id="rp-stars-input">
+        <span class="rp-star" data-val="1" onclick="setRpStar(1)" style="font-size:2rem;cursor:pointer;opacity:.35;transition:var(--tr)">⭐</span>
+        <span class="rp-star" data-val="2" onclick="setRpStar(2)" style="font-size:2rem;cursor:pointer;opacity:.35;transition:var(--tr)">⭐</span>
+        <span class="rp-star" data-val="3" onclick="setRpStar(3)" style="font-size:2rem;cursor:pointer;opacity:.35;transition:var(--tr)">⭐</span>
+        <span class="rp-star" data-val="4" onclick="setRpStar(4)" style="font-size:2rem;cursor:pointer;opacity:.35;transition:var(--tr)">⭐</span>
+        <span class="rp-star" data-val="5" onclick="setRpStar(5)" style="font-size:2rem;cursor:pointer;opacity:.35;transition:var(--tr)">⭐</span>
+      </div>
+      <input type="hidden" id="rp-rating-val" value="0">
+      <div class="vr-field">
+        <label data-rw="Igitekerezo (optional)" data-en="Review (optional)">Review</label>
+        <textarea id="rp-review" rows="3" placeholder="Share your experience..." style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box;resize:vertical"></textarea>
+      </div>
+      <div style="display:flex;gap:.6rem">
+        <button id="rp-submit-btn" class="btn btn-navy" style="flex:1;justify-content:center" onclick="submitPartnerRating()">
+          <span data-rw="Ohereza Isuzuma" data-en="Submit Rating">Submit Rating</span>
+        </button>
+        <button class="btn btn-outline" onclick="document.getElementById('rate-partner-modal').style.display='none'" style="padding:.5rem .8rem">✕</button>
       </div>
     </div>
   </div>
@@ -10299,6 +10511,9 @@ go = function(page) {
   if(page === 'documents') {
     setTimeout(loadDocuments, 150);
   }
+  if(page === 'partners') {
+    setTimeout(loadPartners, 150);
+  }
 };
 
 </script>
@@ -10686,6 +10901,362 @@ go = function(page) {
       : attachRealtimeListeners();
   } catch(e){ console.error('Sync error:',e); }
 })();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHASE 7 — PARTNER PORTAL
+     Register | Profiles | Rating | Assignment
+════════════════════════════════════════════════════════ -->
+<script>
+/* ── Phase 7 globals ── */
+var _partners = [];
+var _partnerFilter = { type: 'all', district: 'all', q: '' };
+var _rpCurrentPartnerId = null;
+var _rpStarVal = 0;
+
+var PARTNER_TYPES = {
+  surveyor:  { label: 'Land Surveyor',     labelRW: 'Umureshya w\'Ubutaka' },
+  notary:    { label: 'Notary',            labelRW: 'Noteri' },
+  lawyer:    { label: 'Lawyer',            labelRW: 'Avoka' },
+  bank:      { label: 'Bank / MFI',        labelRW: 'Banki / MFI' },
+  inspector: { label: 'Property Inspector',labelRW: 'Ugenzura Imitungo' },
+  valuer:    { label: 'Valuer',            labelRW: 'Umureshya w\'Agaciro' }
+};
+
+var RWANDA_DISTRICTS = [
+  'Kigali City','Nyarugenge','Gasabo','Kicukiro',
+  'Huye','Muhanga','Karongi','Rubavu','Musanze',
+  'Rwamagana','Bugesera','Kayonza','Kirehe','Ngoma',
+  'Burera','Gakenke','Gicumbi','Rulindo','Nyabihu',
+  'Ngororero','Nyamasheke','Rusizi','Nyamagabe','Nyaruguru',
+  'Gisagara','Nyanza','Ruhango','Kamonyi','Gatsibo'
+];
+
+/* ── Load ── */
+function loadPartners() {
+  if (typeof db === 'undefined') {
+    g('partners-list').innerHTML = '<p style="text-align:center;color:var(--muted);padding:2rem">Offline — cannot load partners</p>';
+    return;
+  }
+  db.collection('partners').where('isActive','==',true)
+    .orderBy('createdAt','desc').limit(100)
+    .get().then(function(snap) {
+      _partners = [];
+      snap.forEach(function(d) { _partners.push(Object.assign({ id: d.id }, d.data())); });
+      renderPartnerList();
+      updatePartnerStats();
+    }).catch(function(e) {
+      console.error('loadPartners', e);
+    });
+}
+
+function renderPartnerList() {
+  var f = _partnerFilter;
+  var list = _partners.filter(function(p) {
+    if (f.type !== 'all' && p.partnerType !== f.type) return false;
+    if (f.district !== 'all') {
+      var dists = p.districts || [];
+      if (!dists.includes(f.district)) return false;
+    }
+    if (f.q) {
+      var q = f.q.toLowerCase();
+      var hay = ((p.companyName||'') + ' ' + (p.displayName||'')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  var el = g('partners-list');
+  if (!list.length) {
+    el.innerHTML = '<p style="text-align:center;color:var(--muted);padding:2rem" data-rw="Nta bahuza babonetse" data-en="No partners found">No partners found</p>';
+    if (typeof switchLang === 'function') switchLang(curLang);
+    return;
+  }
+
+  el.innerHTML = list.map(function(p) {
+    var typeInfo = PARTNER_TYPES[p.partnerType] || { label: p.partnerType };
+    var stars = renderStarsHtml(p.avgRating || 0);
+    var verBadge = p.verified
+      ? '<span class="partner-badge verified" data-rw="Kwemezwa" data-en="Verified">Verified</span>'
+      : '<span class="partner-badge pending" data-rw="Bitegereje" data-en="Pending">Pending</span>';
+    var initials = ((p.companyName||p.displayName||'P')[0]).toUpperCase();
+    return '<div class="partner-card" onclick="openPartnerDetail(\'' + p.id + '\')">'
+      + '<div class="partner-card-head">'
+      + '<div class="partner-avatar">' + initials + '</div>'
+      + '<div class="partner-card-info">'
+      + '<div class="partner-card-name">' + (p.companyName || p.displayName || 'Partner') + '</div>'
+      + '<div class="partner-type-chip">' + typeInfo.label + '</div>'
+      + verBadge
+      + '</div>'
+      + '</div>'
+      + '<div class="partner-card-meta">'
+      + '<div class="partner-stars">' + stars + ' <span>(' + (p.reviewCount || 0) + ')</span></div>'
+      + '<div class="partner-districts">' + ((p.districts || []).slice(0,2).join(', ') || 'N/A') + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+  if (typeof switchLang === 'function') switchLang(curLang);
+}
+
+function renderStarsHtml(rating) {
+  var r = Math.round(rating * 2) / 2;
+  var html = '';
+  for (var i = 1; i <= 5; i++) {
+    if (r >= i) html += '<span class="star filled">&#9733;</span>';
+    else if (r >= i - 0.5) html += '<span class="star half">&#9733;</span>';
+    else html += '<span class="star empty">&#9733;</span>';
+  }
+  return html;
+}
+
+function updatePartnerStats() {
+  var total    = _partners.length;
+  var verified = _partners.filter(function(p) { return p.verified; }).length;
+  var active   = _partners.filter(function(p) { return p.status === 'active'; }).length;
+  var ratings  = _partners.filter(function(p) { return p.avgRating; });
+  var avgR     = ratings.length ? (ratings.reduce(function(s,p) { return s + p.avgRating; }, 0) / ratings.length).toFixed(1) : '0.0';
+  if(g('partners-stat-total'))    g('partners-stat-total').textContent    = total;
+  if(g('partners-stat-verified')) g('partners-stat-verified').textContent = verified;
+  if(g('partners-stat-active'))   g('partners-stat-active').textContent   = active;
+  if(g('partners-stat-rating'))   g('partners-stat-rating').textContent   = avgR;
+  var badge = g('partners-sidebar-count');
+  if (badge) badge.textContent = total > 0 ? total : '';
+}
+
+function filterPartners() {
+  _partnerFilter.type     = (g('partners-filter-type')     || {}).value || 'all';
+  _partnerFilter.district = (g('partners-filter-district') || {}).value || 'all';
+  _partnerFilter.q        = ((g('partners-search')         || {}).value || '').trim();
+  renderPartnerList();
+}
+
+/* ── Register ── */
+function openPartnerRegister() {
+  var f = g('partner-register-form');
+  if (f) f.reset();
+  openModal('partner-register-modal');
+}
+function closePartnerRegister() { closeModal('partner-register-modal'); }
+
+function submitPartnerRegister() {
+  if (typeof db === 'undefined') { showToast('Offline — cannot register', 'error'); return; }
+  var cu = currentUser;
+  if (!cu) { showToast('Login required', 'error'); return; }
+
+  var companyName     = (g('pr-company')  || {}).value || '';
+  var displayName     = (g('pr-name')     || {}).value || '';
+  var partnerType     = (g('pr-type')     || {}).value || '';
+  var licenseNo       = (g('pr-license')  || {}).value || '';
+  var phone           = (g('pr-phone')    || {}).value || '';
+  var email           = (g('pr-email')    || {}).value || '';
+  var nid             = (g('pr-nid')      || {}).value || '';
+  var bio             = (g('pr-bio')      || {}).value || '';
+  var distsRaw        = (g('pr-districts')  || {}).value || '';
+  var specsRaw        = (g('pr-specs')      || {}).value || '';
+  var districts       = distsRaw.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+  var specializations = specsRaw.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+
+  if (!companyName || !partnerType || !licenseNo || !phone) {
+    showToast('Fill required fields', 'error');
+    return;
+  }
+
+  var ref = db.collection('partners').doc();
+  var doc = {
+    id: ref.id, companyName: companyName, displayName: displayName,
+    partnerType: partnerType, licenseNo: licenseNo, phone: phone,
+    email: email, nid: nid, bio: bio, districts: districts,
+    specializations: specializations, verified: false,
+    avgRating: 0, reviewCount: 0, userId: cu.uid,
+    status: 'pending', isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: cu.uid, updatedBy: cu.uid
+  };
+
+  ref.set(doc).then(function() {
+    logAudit('partner_register', 'partners', ref.id, null, doc);
+    showToast('Partner registered!', 'success');
+    closePartnerRegister();
+    loadPartners();
+  }).catch(function(e) {
+    showToast('Error: ' + e.message, 'error');
+  });
+}
+
+/* ── Detail ── */
+function openPartnerDetail(id) {
+  var p = _partners.find(function(x){ return x.id === id; });
+  if (!p) return;
+  _rpCurrentPartnerId = id;
+
+  var typeInfo = PARTNER_TYPES[p.partnerType] || { label: p.partnerType };
+  var initials = ((p.companyName||p.displayName||'P')[0]).toUpperCase();
+
+  if(g('pd-avatar'))      g('pd-avatar').textContent      = initials;
+  if(g('pd-fullname'))    g('pd-fullname').textContent    = p.displayName || '';
+  if(g('pd-company'))     g('pd-company').textContent     = p.companyName || '';
+  if(g('pd-partner-id'))  g('pd-partner-id').value        = id;
+
+  var badges = g('pd-badges');
+  if (badges) {
+    badges.innerHTML = '<span class="partner-type-chip">' + typeInfo.label + '</span>'
+      + (p.verified ? '<span class="partner-badge verified">Verified</span>' : '<span class="partner-badge pending">Pending</span>');
+  }
+
+  if(g('pd-stars'))         g('pd-stars').innerHTML         = renderStarsHtml(p.avgRating || 0) + ' ' + (p.avgRating||0).toFixed(1);
+  if(g('pd-info-type'))     g('pd-info-type').textContent   = typeInfo.label;
+  if(g('pd-info-license'))  g('pd-info-license').textContent= p.licenseNo || 'N/A';
+  if(g('pd-info-phone'))    g('pd-info-phone').textContent  = p.phone || 'N/A';
+  if(g('pd-info-email'))    g('pd-info-email').textContent  = p.email || 'N/A';
+  if(g('pd-info-districts'))g('pd-info-districts').textContent = (p.districts||[]).join(', ') || 'N/A';
+  if(g('pd-info-specs'))    g('pd-info-specs').textContent  = (p.specializations||[]).join(', ') || 'N/A';
+  if(g('pd-bio'))           g('pd-bio').textContent         = p.bio || '';
+
+  var actionsEl = g('pd-actions');
+  if (actionsEl) {
+    var cu = currentUser;
+    var isAdm = cu && ['admin','super_admin','staff','ceo'].includes(cu.role);
+    actionsEl.innerHTML = '<button class="btn btn-outline" onclick="openRatePartner(\'' + id + '\')" data-rw="Tanga Amanota" data-en="Rate Partner">Rate Partner</button>'
+      + (isAdm && !p.verified ? '<button class="btn btn-primary" onclick="verifyPartner(\'' + id + '\')" data-rw="Emeza Umuhuza" data-en="Verify Partner">Verify Partner</button>' : '')
+      + (isAdm && !p.verified ? '<button class="btn" style="background:var(--error);color:#fff" onclick="rejectPartner(\'' + id + '\')" data-rw="Tangaza Kwangwa" data-en="Reject">Reject</button>' : '');
+    if (typeof switchLang === 'function') switchLang(curLang);
+  }
+
+  loadPartnerReviews(id);
+  openModal('partner-detail-modal');
+}
+function closePartnerDetail() { closeModal('partner-detail-modal'); }
+
+function loadPartnerReviews(partnerId) {
+  if (typeof db === 'undefined') return;
+  var revEl = g('pd-reviews');
+  if (!revEl) return;
+  revEl.innerHTML = '<p style="color:var(--muted);font-size:.82rem">Loading reviews...</p>';
+  db.collection('reviews').where('partnerId','==',partnerId).where('isActive','==',true)
+    .orderBy('createdAt','desc').limit(10).get().then(function(snap) {
+      if (snap.empty) { revEl.innerHTML = '<p style="color:var(--muted);font-size:.82rem">No reviews yet</p>'; return; }
+      revEl.innerHTML = snap.docs.map(function(d) {
+        var r = d.data();
+        return '<div class="partner-review">'
+          + '<div class="partner-review-head">'
+          + '<span class="partner-stars-sm">' + renderStarsHtml(r.rating||0) + '</span>'
+          + '<span style="font-size:.75rem;color:var(--muted)">' + (r.reviewerName||'Anonymous') + '</span>'
+          + '</div>'
+          + '<div style="font-size:.82rem;margin-top:.25rem">' + (r.comment||'') + '</div>'
+          + '</div>';
+      }).join('');
+    }).catch(function(){ revEl.innerHTML = ''; });
+}
+
+/* ── Rate Partner ── */
+function openRatePartner(id) {
+  _rpCurrentPartnerId = id;
+  _rpStarVal = 0;
+  var textarea = g('rp-comment');
+  if (textarea) textarea.value = '';
+  for (var i = 1; i <= 5; i++) {
+    var s = g('rp-star-' + i);
+    if (s) s.classList.remove('active');
+  }
+  openModal('rate-partner-modal');
+}
+function closeRatePartner() { closeModal('rate-partner-modal'); }
+
+function setRpStar(val) {
+  _rpStarVal = val;
+  for (var i = 1; i <= 5; i++) {
+    var s = g('rp-star-' + i);
+    if (s) { if (i <= val) s.classList.add('active'); else s.classList.remove('active'); }
+  }
+  if (g('rp-rating-val')) g('rp-rating-val').value = val;
+}
+
+function submitPartnerRating() {
+  if (typeof db === 'undefined') { showToast('Offline', 'error'); return; }
+  var cu = currentUser;
+  if (!cu) { showToast('Login required', 'error'); return; }
+  if (!_rpStarVal) { showToast('Select a star rating', 'error'); return; }
+
+  var comment = (g('rp-comment')||{}).value || '';
+  var partnerId = _rpCurrentPartnerId;
+  var partner = _partners.find(function(x){ return x.id === partnerId; });
+  if (!partner) return;
+
+  var revRef = db.collection('reviews').doc();
+  var revDoc = {
+    id: revRef.id, partnerId: partnerId, reviewerId: cu.uid,
+    reviewerName: cu.displayName || cu.email || 'User',
+    rating: _rpStarVal, comment: comment,
+    status: 'active', isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: cu.uid, updatedBy: cu.uid
+  };
+
+  var newCount  = (partner.reviewCount || 0) + 1;
+  var newAvg    = (((partner.avgRating || 0) * (partner.reviewCount || 0)) + _rpStarVal) / newCount;
+
+  var batch = db.batch();
+  batch.set(revRef, revDoc);
+  batch.update(db.collection('partners').doc(partnerId), {
+    avgRating: parseFloat(newAvg.toFixed(2)),
+    reviewCount: newCount,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: cu.uid
+  });
+
+  batch.commit().then(function() {
+    logAudit('partner_rated', 'reviews', revRef.id, null, revDoc);
+    showToast('Rating submitted!', 'success');
+    closeRatePartner();
+    closePartnerDetail();
+    loadPartners();
+  }).catch(function(e) { showToast('Error: ' + e.message, 'error'); });
+}
+
+/* ── Verify / Reject ── */
+function verifyPartner(id) {
+  if (typeof db === 'undefined') { showToast('Offline', 'error'); return; }
+  var cu = currentUser;
+  db.collection('partners').doc(id).update({
+    verified: true, status: 'active',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: cu ? cu.uid : 'system'
+  }).then(function() {
+    logAudit('partner_verified', 'partners', id, { verified: false }, { verified: true });
+    showToast('Partner verified!', 'success');
+    closePartnerDetail();
+    loadPartners();
+  }).catch(function(e) { showToast('Error: ' + e.message, 'error'); });
+}
+
+function rejectPartner(id) {
+  if (typeof db === 'undefined') { showToast('Offline', 'error'); return; }
+  var cu = currentUser;
+  db.collection('partners').doc(id).update({
+    status: 'rejected', isActive: false,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: cu ? cu.uid : 'system'
+  }).then(function() {
+    logAudit('partner_rejected', 'partners', id, { status: 'pending' }, { status: 'rejected' });
+    showToast('Partner rejected', 'info');
+    closePartnerDetail();
+    loadPartners();
+  }).catch(function(e) { showToast('Error: ' + e.message, 'error'); });
+}
+
+/* ── Sidebar badge ── */
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    if (typeof db === 'undefined') return;
+    db.collection('partners').where('isActive','==',true)
+      .get().then(function(snap) {
+        var badge = g('partners-sidebar-count');
+        if (badge) badge.textContent = snap.size > 0 ? snap.size : '';
+      }).catch(function(){});
+  }, 5500);
+});
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
