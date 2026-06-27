@@ -2095,3 +2095,60 @@ html,body{overscroll-behavior-x:none}
   .verif-step{min-width:52px}
   .verif-step-lbl{font-size:.52rem}
 }
+
+/* ── PHASE 6 — DOCUMENT VAULT ────────────────────────── */
+.doc-card{
+  background:#fff;border:1.5px solid var(--border);border-radius:12px;
+  padding:1rem 1.1rem;cursor:pointer;transition:var(--tr);margin-bottom:.6rem
+}
+.doc-card:hover{border-color:var(--navy);box-shadow:0 4px 16px rgba(13,59,140,.08)}
+.doc-card-header{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:.5rem;flex-wrap:wrap;margin-bottom:.25rem
+}
+.doc-card-name{font-weight:700;font-size:.9rem;color:var(--dark);margin:.25rem 0}
+
+/* Contract preview */
+.contract-preview{
+  font-family:'DM Sans',sans-serif;font-size:.82rem;line-height:1.6;
+  border:1.5px solid var(--border);border-radius:8px;overflow:hidden
+}
+.contract-doc{color:var(--dark)}
+.contract-header{
+  background:var(--navy);color:#fff;padding:1.25rem 1.5rem;text-align:center
+}
+.contract-logo{font-size:1.2rem;font-weight:900;letter-spacing:.05em;color:var(--gold)}
+.contract-company{font-size:.7rem;opacity:.8;margin:.15rem 0}
+.contract-title{font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-top:.5rem}
+.contract-title-rw{font-size:.72rem;opacity:.75}
+.contract-date{padding:.6rem 1.25rem 0;font-size:.78rem;color:var(--muted)}
+.contract-body{padding:.4rem 1.25rem;font-size:.82rem}
+.contract-parties{
+  display:flex;gap:1rem;flex-wrap:wrap;padding:.5rem 1.25rem;
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  background:var(--light);margin:.5rem 0
+}
+.contract-party{display:flex;flex-direction:column;gap:.15rem;min-width:150px}
+.contract-party-role{font-size:.62rem;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.08em}
+.contract-party-name{font-weight:700;font-size:.85rem}
+.contract-clauses{padding:.5rem 1.25rem}
+.contract-clause{margin-bottom:.75rem;font-size:.8rem}
+.contract-signatures{
+  display:flex;gap:1rem;flex-wrap:wrap;justify-content:space-around;
+  padding:1rem 1.25rem;border-top:2px solid var(--border);margin-top:.5rem
+}
+.contract-sig-block{display:flex;flex-direction:column;align-items:center;gap:.3rem;min-width:120px;font-size:.78rem;text-align:center}
+.contract-sig-line{width:120px;height:1px;background:var(--dark);margin-bottom:.2rem}
+.contract-sig-role{color:var(--muted);font-size:.7rem}
+.contract-footer{
+  text-align:center;font-size:.68rem;color:var(--muted);
+  padding:.75rem 1.25rem;border-top:1px solid var(--border);background:var(--light)
+}
+
+/* Mobile — Documents */
+@media(max-width:480px){
+  .doc-card{padding:.75rem .85rem}
+  .contract-parties{flex-direction:column;gap:.5rem}
+  .contract-signatures{gap:.75rem}
+  .contract-sig-line{width:90px}
+}

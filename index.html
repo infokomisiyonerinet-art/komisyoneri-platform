@@ -3595,6 +3595,7 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="go('deals')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5a1 1 0 00-1-1H3a1 1 0 00-1 1v6c0 .552.448 1 1 1"/><path d="M3 12v6a1 1 0 001 1h16a1 1 0 001-1v-6"/></svg><span data-rw="Deals" data-en="Deals">Deals</span><span class="ds-badge" id="deals-sidebar-count">0</span></div>
       <div class="ds-section" data-rw="SERIVISI" data-en="SERVICES">SERIVISI</div>
       <div class="dn" onclick="go('verification')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg><span data-rw="Kugenzura" data-en="Verification">Verification</span><span class="ds-badge" id="verif-sidebar-count">0</span></div>
+      <div class="dn" onclick="go('documents')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span data-rw="Dosiye / Vault" data-en="Document Vault">Document Vault</span><span class="ds-badge" id="docs-sidebar-count">0</span></div>
       <div class="ds-section" data-rw="IMARI" data-en="FINANCE">IMARI</div>
       <div class="dn" onclick="go('commissions')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span data-rw="Komisiyoni" data-en="Commissions">Komisiyoni</span><span class="ds-badge" id="comm-sidebar-count">0</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-rw="Kwishyura" data-en="Payments">Kwishyura</span></div>
@@ -4263,6 +4264,81 @@ html,body{overscroll-behavior-x:none}
       <div class="crm-empty">
         <div class="crm-empty-icon">🛡️</div>
         <div class="crm-empty-title" data-rw="Gutegura serivisi..." data-en="Loading services...">Loading services...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === PAGE: DOCUMENT VAULT === -->
+<div class="page" id="page-documents">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">📁 Documents</div>
+      <h1 class="h1" data-rw="Ububiko bwa Dosiye" data-en="Document Vault">Document Vault</h1>
+      <p style="color:rgba(255,255,255,.82);font-size:.85rem" data-rw="Bika, genzura no gusinya inyandiko za property, amasezerano n'ibindi" data-en="Store, review, and sign property documents, contracts, and agreements">Store, review, and sign property documents</p>
+    </div>
+  </div>
+  <div class="crm-wrap">
+    <div class="crm-header">
+      <div>
+        <p style="color:var(--muted);font-size:.82rem" data-rw="Kanda ku dosiye kugirango ubone ibirenzeho" data-en="Click any document to view, sign, or share">Click any document to view details</p>
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="openContractGenerator()">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          <span data-rw="Inyandiko Mushya" data-en="Generate Contract">Generate</span>
+        </button>
+        <button class="btn btn-navy btn-sm" onclick="openDocumentUpload()">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+          <span data-rw="Shyira Dosiye" data-en="Upload Document">Upload</span>
+        </button>
+      </div>
+    </div>
+    <!-- Stats -->
+    <div class="crm-stats">
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="doc-stat-total">0</div>
+        <div class="crm-stat-l" data-rw="Dosiye Zose" data-en="Total">Total</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="doc-stat-pending" style="color:#F59E0B">0</div>
+        <div class="crm-stat-l" data-rw="Itegereza Umukono" data-en="Pending Sign">Pending</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="doc-stat-signed" style="color:#16A34A">0</div>
+        <div class="crm-stat-l" data-rw="Zashyiriweho Umukono" data-en="Signed">Signed</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="doc-stat-contracts">0</div>
+        <div class="crm-stat-l" data-rw="Amasezerano" data-en="Contracts">Contracts</div>
+      </div>
+    </div>
+    <!-- Filters -->
+    <div class="crm-filters">
+      <select id="doc-filter-type" onchange="filterDocuments()">
+        <option value="">-- Ubwoko Bwose / All Types --</option>
+        <option value="sale_agreement">Sale Agreement</option>
+        <option value="rental_agreement">Rental Agreement</option>
+        <option value="title_deed">Title Deed</option>
+        <option value="survey_report">Survey Report</option>
+        <option value="valuation_report">Valuation Report</option>
+        <option value="id_document">ID Document</option>
+        <option value="bank_statement">Bank Statement</option>
+        <option value="other">Other</option>
+      </select>
+      <select id="doc-filter-status" onchange="filterDocuments()">
+        <option value="">-- Imiterere Yose / All Status --</option>
+        <option value="draft">Draft</option>
+        <option value="pending_signature">Pending Signature</option>
+        <option value="signed">Signed</option>
+        <option value="archived">Archived</option>
+      </select>
+    </div>
+    <!-- Document list -->
+    <div class="crm-list" id="doc-list">
+      <div class="crm-empty">
+        <div class="crm-empty-icon">📁</div>
+        <div class="crm-empty-title" data-rw="Gutegura dosiye..." data-en="Loading documents...">Loading documents...</div>
       </div>
     </div>
   </div>
@@ -5126,6 +5202,195 @@ html,body{overscroll-behavior-x:none}
           <input type="url" id="vd-report-url" placeholder="https://drive.google.com/..." style="flex:1;padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem">
           <button class="btn btn-navy btn-sm" onclick="saveReportUrl()"><span data-rw="Bika" data-en="Save">Save</span></button>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === DOCUMENT UPLOAD MODAL === -->
+<div class="modal-wrap" id="document-upload-modal" style="display:none">
+  <div class="modal" style="max-width:460px;width:95%;max-height:92vh;overflow-y:auto">
+    <button class="modal-x" onclick="closeDocumentUpload()" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:.25rem" data-rw="DOSIYE NSHYA" data-en="UPLOAD DOCUMENT">UPLOAD DOCUMENT</div>
+      <h2 style="font-size:1.1rem;font-weight:800;color:var(--navy)" data-rw="Shyira Dosiye" data-en="Upload Document">Upload Document</h2>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.7rem">
+      <div class="vr-field">
+        <label data-rw="Izina rya Dosiye" data-en="Document Name">Document Name *</label>
+        <input type="text" id="du-name" placeholder="e.g. Sale Agreement — Villa Kimironko" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Ubwoko" data-en="Document Type">Type *</label>
+        <select id="du-type" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
+          <option value="">-- Hitamo / Select --</option>
+          <option value="sale_agreement">📜 Sale Agreement</option>
+          <option value="rental_agreement">🔑 Rental Agreement</option>
+          <option value="title_deed">🏛️ Title Deed</option>
+          <option value="survey_report">📐 Survey Report</option>
+          <option value="valuation_report">💰 Valuation Report</option>
+          <option value="id_document">🪪 ID Document</option>
+          <option value="bank_statement">🏦 Bank Statement</option>
+          <option value="other">📄 Other</option>
+        </select>
+      </div>
+      <div class="vr-field">
+        <label data-rw="URL ya Dosiye (Google Drive, Dropbox...)" data-en="File URL (Google Drive, Dropbox...)">File URL *</label>
+        <input type="url" id="du-url" placeholder="https://drive.google.com/..." style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Imitungo Ihuye (optional)" data-en="Related Property (optional)">Related Property</label>
+        <input type="text" id="du-prop" placeholder="Property title or ID" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Abagomba Gusinya" data-en="Signatories (names, comma-separated)">Signatories</label>
+        <input type="text" id="du-signatories" placeholder="Jean Bosco, Marie Claire" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Uburenganzira bwo Kubona" data-en="Access Roles">Access Roles</label>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.25rem" id="du-roles-wrap">
+          <label style="font-size:.78rem;display:flex;align-items:center;gap:.3rem"><input type="checkbox" value="agent" checked> Agent</label>
+          <label style="font-size:.78rem;display:flex;align-items:center;gap:.3rem"><input type="checkbox" value="admin" checked> Admin</label>
+          <label style="font-size:.78rem;display:flex;align-items:center;gap:.3rem"><input type="checkbox" value="client"> Client</label>
+          <label style="font-size:.78rem;display:flex;align-items:center;gap:.3rem"><input type="checkbox" value="partner"> Partner</label>
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <label style="font-size:.82rem;display:flex;align-items:center;gap:.4rem;cursor:pointer">
+          <input type="checkbox" id="du-needs-sign"> <span data-rw="Isaba Umukono" data-en="Requires Signature">Requires Signature</span>
+        </label>
+      </div>
+      <button id="du-submit-btn" class="btn btn-navy" style="width:100%;justify-content:center" onclick="submitDocumentUpload()">
+        <span id="du-submit-lbl" data-rw="Shyira Dosiye" data-en="Upload Document">Upload Document</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- === DOCUMENT VIEW MODAL === -->
+<div class="modal-wrap" id="document-view-modal" style="display:none">
+  <div class="modal" style="max-width:540px;max-height:92vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title">📄 <span id="dv-title">Document</span></div>
+      <button class="modal-x" onclick="closeDocumentView()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <input type="hidden" id="dv-doc-id">
+    <div style="padding:1.25rem;display:flex;flex-direction:column;gap:1rem">
+      <!-- Status + type -->
+      <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+        <span class="comm-status-badge" id="dv-status-badge">Draft</span>
+        <span class="verif-type-chip" id="dv-type-chip">Type</span>
+        <span style="font-size:.75rem;color:var(--muted)" id="dv-date"></span>
+        <span style="font-size:.75rem;color:var(--muted)" id="dv-version"></span>
+      </div>
+      <!-- Info -->
+      <div style="background:var(--light);border-radius:8px;padding:.85rem;font-size:.82rem;display:flex;flex-direction:column;gap:.4rem">
+        <div><span style="color:var(--muted)">Property:</span> <strong id="dv-prop">—</strong></div>
+        <div><span style="color:var(--muted)">Uploaded by:</span> <span id="dv-uploaded-by">—</span></div>
+        <div><span style="color:var(--muted)">Access:</span> <span id="dv-access">—</span></div>
+      </div>
+      <!-- Signatories -->
+      <div id="dv-sig-section">
+        <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.08em;margin-bottom:.5rem" data-rw="ABASINYIYE" data-en="SIGNATORIES">SIGNATORIES</div>
+        <div id="dv-signatories-list" style="display:flex;flex-direction:column;gap:.3rem"></div>
+      </div>
+      <!-- Actions -->
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap" id="dv-actions"></div>
+    </div>
+  </div>
+</div>
+
+<!-- === DOCUMENT SIGN MODAL === -->
+<div class="modal-wrap" id="document-sign-modal" style="display:none">
+  <div class="modal" style="max-width:400px;width:95%">
+    <div style="text-align:center;margin-bottom:1rem">
+      <div style="font-size:2rem;margin-bottom:.5rem">✍️</div>
+      <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:.3rem" data-rw="GUSINYA DOSIYE" data-en="SIGN DOCUMENT">SIGN DOCUMENT</div>
+      <h2 style="font-size:1.1rem;font-weight:800;color:var(--navy)" id="ds-doc-name">Document</h2>
+      <p style="font-size:.8rem;color:var(--muted);margin-top:.3rem" data-rw="Kanda gusinya usinyuze ko ubyemera" data-en="By signing you confirm you have read and agreed to this document">By signing you confirm you have read and agreed to this document.</p>
+    </div>
+    <input type="hidden" id="ds-doc-id">
+    <div style="display:flex;flex-direction:column;gap:.7rem">
+      <div class="vr-field">
+        <label data-rw="Amazina yuzuye (Signature)" data-en="Full Name (as signature)">Full Name *</label>
+        <input type="text" id="ds-full-name" placeholder="Type your full name" style="width:100%;padding:.65rem .8rem;border:2px solid var(--navy);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:700;box-sizing:border-box;letter-spacing:.02em">
+      </div>
+      <div style="background:var(--light);border-radius:8px;padding:.7rem;font-size:.78rem;color:var(--muted)">
+        📅 <span data-rw="Tariki y'ubu:" data-en="Today:">Today:</span> <strong id="ds-today-date"></strong><br>
+        🌐 <span data-rw="IP yawe izabikwa" data-en="Your IP address and timestamp will be recorded">Your timestamp will be recorded for audit.</span>
+      </div>
+      <div style="display:flex;gap:.6rem">
+        <button id="ds-confirm-btn" class="btn btn-navy" style="flex:1;justify-content:center" onclick="confirmSignature()">
+          <span data-rw="Emeza Umukono" data-en="Sign Document">Sign Document</span>
+        </button>
+        <button class="btn btn-outline" onclick="document.getElementById('document-sign-modal').style.display='none'" style="padding:.5rem .8rem">✕</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === CONTRACT GENERATOR MODAL === -->
+<div class="modal-wrap" id="contract-generator-modal" style="display:none">
+  <div class="modal" style="max-width:560px;width:95%;max-height:92vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title">📜 <span data-rw="Inyandiko y'Amasezerano" data-en="Contract Generator">Contract Generator</span></div>
+      <button class="modal-x" onclick="closeContractGenerator()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="padding:1.1rem">
+      <!-- Step 1: fill fields -->
+      <div id="cg-step1">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem" data-rw="INJIZA AMAKURU" data-en="FILL IN DETAILS">FILL IN DETAILS</div>
+        <div style="display:flex;flex-direction:column;gap:.6rem">
+          <div class="vr-field">
+            <label data-rw="Ubwoko bw'Amasezerano" data-en="Contract Type">Contract Type</label>
+            <select id="cg-type" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
+              <option value="sale">Sale Agreement (Amasezerano yo Kugurisha)</option>
+              <option value="rental">Rental Agreement (Amasezerano yo Gukodesha)</option>
+            </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+            <div class="vr-field">
+              <label data-rw="Amazina y'Ugurisha" data-en="Seller / Landlord">Seller / Landlord</label>
+              <input type="text" id="cg-seller" placeholder="Full name" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;box-sizing:border-box">
+            </div>
+            <div class="vr-field">
+              <label data-rw="Amazina y'Ugura" data-en="Buyer / Tenant">Buyer / Tenant</label>
+              <input type="text" id="cg-buyer" placeholder="Full name" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;box-sizing:border-box">
+            </div>
+          </div>
+          <div class="vr-field">
+            <label data-rw="Imitungo / Inzu" data-en="Property Description">Property Description</label>
+            <input type="text" id="cg-prop" placeholder="e.g. Plot 12, KN 5 Rd, Kimironko, Gasabo, Kigali" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+            <div class="vr-field">
+              <label data-rw="Igiciro (RWF)" data-en="Price / Rent (RWF)">Price / Rent (RWF)</label>
+              <input type="number" id="cg-price" placeholder="e.g. 50000000" min="0" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;box-sizing:border-box">
+            </div>
+            <div class="vr-field">
+              <label data-rw="Itariki y'Amasezerano" data-en="Agreement Date">Agreement Date</label>
+              <input type="date" id="cg-date" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;box-sizing:border-box">
+            </div>
+          </div>
+          <div class="vr-field">
+            <label data-rw="Umukomisiyoneri" data-en="Agent Name">Agent</label>
+            <input type="text" id="cg-agent" placeholder="Agent full name" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+          </div>
+          <button class="btn btn-navy" style="width:100%;justify-content:center" onclick="previewContract()">
+            <span data-rw="Reba Inyandiko" data-en="Preview Contract">Preview Contract</span>
+          </button>
+        </div>
+      </div>
+      <!-- Step 2: preview + save -->
+      <div id="cg-step2" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem">
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('cg-step1').style.display='';document.getElementById('cg-step2').style.display='none'">← <span data-rw="Subira Inyuma" data-en="Back">Back</span></button>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn btn-outline btn-sm" onclick="window.print()"><span data-rw="Sohora" data-en="Print">Print</span></button>
+            <button class="btn btn-gold btn-sm" onclick="saveGeneratedContract()"><span data-rw="Bika kuri Vault" data-en="Save to Vault">Save to Vault</span></button>
+          </div>
+        </div>
+        <div id="cg-preview-content" class="contract-preview"></div>
       </div>
     </div>
   </div>
@@ -10031,6 +10296,9 @@ go = function(page) {
   if(page === 'verification') {
     setTimeout(loadVerifications, 150);
   }
+  if(page === 'documents') {
+    setTimeout(loadDocuments, 150);
+  }
 };
 
 </script>
@@ -10418,6 +10686,542 @@ go = function(page) {
       : attachRealtimeListeners();
   } catch(e){ console.error('Sync error:',e); }
 })();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHASE 6 — DOCUMENT VAULT
+     Upload | Sign | Contract generator | My folder
+════════════════════════════════════════════════════════ -->
+<script>
+
+// ── Doc Types ─────────────────────────────────────────
+var DOC_TYPES = {
+  sale_agreement:   { label:'Sale Agreement',    icon:'📜' },
+  rental_agreement: { label:'Rental Agreement',  icon:'🔑' },
+  title_deed:       { label:'Title Deed',        icon:'🏛️' },
+  survey_report:    { label:'Survey Report',     icon:'📐' },
+  valuation_report: { label:'Valuation Report',  icon:'💰' },
+  id_document:      { label:'ID Document',       icon:'🪪' },
+  bank_statement:   { label:'Bank Statement',    icon:'🏦' },
+  other:            { label:'Other',             icon:'📄' }
+};
+
+// ── State ─────────────────────────────────────────────
+var _documents       = [];
+var _docFilterType   = '';
+var _docFilterStatus = '';
+var _dvCurrentDoc    = null;
+var _cgContractData  = null;
+
+// ── Load Documents ────────────────────────────────────
+function loadDocuments() {
+  var list = document.getElementById('doc-list');
+  if (!list) return;
+  list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⏳</div>'
+    + '<div class="crm-empty-title">' + (curLang === 'rw' ? 'Gutegura...' : 'Loading...') + '</div></div>';
+
+  if (typeof db === 'undefined') return;
+
+  var isAdmin = typeof currentUser !== 'undefined' && currentUser &&
+    ['admin','staff','ceo','super_admin','Admin'].indexOf(currentUser.role) !== -1;
+
+  var query;
+  if (isAdmin) {
+    query = db.collection('documents').where('isActive','==',true).orderBy('createdAt','desc').limit(200);
+  } else if (typeof currentUser !== 'undefined' && currentUser) {
+    query = db.collection('documents').where('isActive','==',true)
+              .where('clientId','==',currentUser.uid).orderBy('createdAt','desc').limit(200);
+  } else { return; }
+
+  query.get().then(function(snap) {
+    _documents = [];
+    snap.forEach(function(doc) { var d = doc.data(); d._docId = doc.id; _documents.push(d); });
+    renderDocumentList();
+    updateDocumentStats();
+  }).catch(function(err) {
+    list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⚠️</div><div class="crm-empty-title">Error loading</div></div>';
+    console.error('[Documents] load error:', err);
+  });
+}
+
+function updateDocumentStats() {
+  var total     = _documents.length;
+  var pending   = _documents.filter(function(d){ return d.status === 'pending_signature'; }).length;
+  var signed    = _documents.filter(function(d){ return d.signed === true || d.status === 'signed'; }).length;
+  var contracts = _documents.filter(function(d){ return d.type === 'sale_agreement' || d.type === 'rental_agreement'; }).length;
+  var e2 = document.getElementById.bind(document);
+  if (e2('doc-stat-total'))     e2('doc-stat-total').textContent     = total;
+  if (e2('doc-stat-pending'))   e2('doc-stat-pending').textContent   = pending;
+  if (e2('doc-stat-signed'))    e2('doc-stat-signed').textContent    = signed;
+  if (e2('doc-stat-contracts')) e2('doc-stat-contracts').textContent = contracts;
+}
+
+function filterDocuments() {
+  _docFilterType   = (document.getElementById('doc-filter-type')   || {}).value || '';
+  _docFilterStatus = (document.getElementById('doc-filter-status') || {}).value || '';
+  renderDocumentList();
+}
+
+function renderDocumentList() {
+  var list = document.getElementById('doc-list');
+  if (!list) return;
+  var filtered = _documents.filter(function(d) {
+    if (_docFilterType   && d.type   !== _docFilterType)   return false;
+    if (_docFilterStatus && d.status !== _docFilterStatus) return false;
+    return true;
+  });
+  if (!filtered.length) {
+    list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">📁</div>'
+      + '<div class="crm-empty-title">' + (curLang === 'rw' ? 'Nta dosiye ibonetse' : 'No documents found') + '</div></div>';
+    return;
+  }
+  var STATUS_COLORS = { draft:'#64748B', pending_signature:'#F59E0B', signed:'#16A34A', archived:'#94A3B8' };
+  list.innerHTML = filtered.map(function(d) {
+    var dt   = DOC_TYPES[d.type] || { label: d.type || 'Document', icon:'📄' };
+    var sColor = STATUS_COLORS[d.status] || '#64748B';
+    var sLabel = (d.status || 'draft').replace(/_/g,' ');
+    var date   = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleDateString('en-RW') : '';
+    var sigBadge = d.signed ? '<span style="color:#16A34A;font-size:.72rem;font-weight:700">✅ Signed</span>'
+      : d.signatories && d.signatories.length
+        ? '<span style="color:#F59E0B;font-size:.72rem">⏳ ' + d.signatories.length + ' signator' + (d.signatories.length > 1 ? 'ies' : 'y') + '</span>'
+        : '';
+    return '<div class="doc-card" onclick="openDocumentView(\'' + (d._docId||d.id) + '\')">'
+      + '<div class="doc-card-header">'
+      + '<span class="verif-type-chip">' + dt.icon + ' ' + dt.label + '</span>'
+      + '<span class="comm-status-badge" style="background:' + sColor + '20;color:' + sColor + ';border:1px solid ' + sColor + '40">' + sLabel + '</span>'
+      + '</div>'
+      + '<div class="doc-card-name">' + (d.name || 'Untitled') + '</div>'
+      + '<div class="deal-card-meta" style="margin-top:.35rem">'
+      + (d.propertyTitle ? '<span>🏠 ' + d.propertyTitle + '</span>' : '')
+      + '<span>📅 ' + date + '</span>'
+      + (d.version ? '<span>v' + d.version + '</span>' : '')
+      + '</div>'
+      + (sigBadge ? '<div style="margin-top:.3rem">' + sigBadge + '</div>' : '')
+      + '</div>';
+  }).join('');
+}
+
+// ── Upload Document ───────────────────────────────────
+function openDocumentUpload() {
+  var m = document.getElementById('document-upload-modal');
+  if (m) m.style.display = 'flex';
+}
+function closeDocumentUpload() {
+  var m = document.getElementById('document-upload-modal');
+  if (m) m.style.display = 'none';
+}
+
+function submitDocumentUpload() {
+  var nameEl  = document.getElementById('du-name');
+  var typeEl  = document.getElementById('du-type');
+  var urlEl   = document.getElementById('du-url');
+  var propEl  = document.getElementById('du-prop');
+  var sigEl   = document.getElementById('du-signatories');
+  var needSig = document.getElementById('du-needs-sign');
+  var btn     = document.getElementById('du-submit-btn');
+  var lbl     = document.getElementById('du-submit-lbl');
+
+  var name      = nameEl  ? nameEl.value.trim()  : '';
+  var type      = typeEl  ? typeEl.value          : '';
+  var fileUrl   = urlEl   ? urlEl.value.trim()   : '';
+  var propTitle = propEl  ? propEl.value.trim()  : '';
+  var reqSign   = needSig ? needSig.checked       : false;
+
+  if (!name)    { showToast(curLang === 'rw' ? 'Injiza izina rya dosiye!' : 'Enter document name!', 'error'); return; }
+  if (!type)    { showToast(curLang === 'rw' ? 'Hitamo ubwoko!' : 'Select document type!', 'error'); return; }
+  if (!fileUrl) { showToast(curLang === 'rw' ? 'Injiza URL ya dosiye!' : 'Enter file URL!', 'error'); return; }
+  if (typeof db === 'undefined') { showToast('Firebase ntabwo ihuye', 'error'); return; }
+
+  // Collect checked access roles
+  var roleChecks = document.querySelectorAll('#du-roles-wrap input[type=checkbox]:checked');
+  var accessRoles = [];
+  roleChecks.forEach(function(cb) { accessRoles.push(cb.value); });
+
+  // Parse signatories
+  var sigText  = sigEl ? sigEl.value.trim() : '';
+  var sigNames = sigText ? sigText.split(',').map(function(s){ return s.trim(); }).filter(Boolean) : [];
+
+  if (btn) btn.disabled = true;
+  if (lbl) lbl.textContent = curLang === 'rw' ? 'Gutuma...' : 'Uploading...';
+
+  var uid  = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'anonymous';
+  var uName= typeof currentUser !== 'undefined' && currentUser
+    ? (currentUser.displayName || currentUser.name || currentUser.email || '') : '';
+
+  db.collection('documents').add({
+    id:           '',
+    name:         name,
+    type:         type,
+    fileUrl:      fileUrl,
+    propertyTitle:propTitle,
+    propertyId:   '',
+    dealId:       '',
+    clientId:     uid,
+    uploadedByName: uName,
+    accessRoles:  accessRoles,
+    signatories:  sigNames.map(function(n){ return { name:n, signed:false, signedAt:null }; }),
+    signed:       false,
+    version:      1,
+    requiresSignature: reqSign,
+    status:       reqSign ? 'pending_signature' : 'draft',
+    isActive:     true,
+    createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:    uid,
+    updatedBy:    uid
+  }).then(function(ref) {
+    ref.update({ id: ref.id });
+    logAudit('document.uploaded', 'documents', ref.id, null, { name: name, type: type });
+    showToast(curLang === 'rw' ? 'Dosiye yashyizwe!' : 'Document uploaded!', 'success');
+    closeDocumentUpload();
+    if (nameEl) nameEl.value = '';
+    if (typeEl) typeEl.value = '';
+    if (urlEl)  urlEl.value  = '';
+    if (propEl) propEl.value = '';
+    if (sigEl)  sigEl.value  = '';
+    if (needSig) needSig.checked = false;
+    if (btn) btn.disabled = false;
+    if (lbl) lbl.textContent = curLang === 'rw' ? 'Shyira Dosiye' : 'Upload Document';
+    var badge = document.getElementById('docs-sidebar-count');
+    if (badge) badge.textContent = parseInt(badge.textContent || 0) + 1;
+    loadDocuments();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error uploading', 'error');
+    if (btn) btn.disabled = false;
+    if (lbl) lbl.textContent = curLang === 'rw' ? 'Shyira Dosiye' : 'Upload Document';
+    console.error('[Documents] upload error:', err);
+  });
+}
+
+// ── View Document ─────────────────────────────────────
+function openDocumentView(id) {
+  var doc = null;
+  for (var i = 0; i < _documents.length; i++) {
+    if ((_documents[i]._docId || _documents[i].id) === id) { doc = _documents[i]; break; }
+  }
+  if (!doc) return;
+  _dvCurrentDoc = doc;
+  var m = document.getElementById('document-view-modal');
+  if (!m) return;
+
+  var e2 = function(eid) { return document.getElementById(eid); };
+  var STATUS_COLORS = { draft:'#64748B', pending_signature:'#F59E0B', signed:'#16A34A', archived:'#94A3B8' };
+  var dt = DOC_TYPES[doc.type] || { label: doc.type || 'Document', icon:'📄' };
+
+  if (e2('dv-doc-id'))   e2('dv-doc-id').value         = id;
+  if (e2('dv-title'))    e2('dv-title').textContent     = doc.name || 'Document';
+  if (e2('dv-type-chip')) e2('dv-type-chip').textContent = dt.icon + ' ' + dt.label;
+  var sColor = STATUS_COLORS[doc.status] || '#64748B';
+  var sLabel = (doc.status || 'draft').replace(/_/g,' ');
+  if (e2('dv-status-badge')) {
+    e2('dv-status-badge').textContent = sLabel;
+    e2('dv-status-badge').style.background = sColor + '20';
+    e2('dv-status-badge').style.color      = sColor;
+    e2('dv-status-badge').style.border     = '1px solid ' + sColor + '40';
+  }
+  var date = doc.createdAt && doc.createdAt.toDate ? doc.createdAt.toDate().toLocaleDateString('en-RW') : '';
+  if (e2('dv-date'))    e2('dv-date').textContent    = date;
+  if (e2('dv-version')) e2('dv-version').textContent = doc.version ? 'v' + doc.version : '';
+  if (e2('dv-prop'))    e2('dv-prop').textContent    = doc.propertyTitle || '—';
+  if (e2('dv-uploaded-by')) e2('dv-uploaded-by').textContent = doc.uploadedByName || '—';
+  if (e2('dv-access'))  e2('dv-access').textContent  = doc.accessRoles ? doc.accessRoles.join(', ') : '—';
+
+  // Signatories
+  var sigList = e2('dv-signatories-list');
+  var sigSection = e2('dv-sig-section');
+  if (sigList && doc.signatories && doc.signatories.length) {
+    if (sigSection) sigSection.style.display = '';
+    sigList.innerHTML = doc.signatories.map(function(s) {
+      var signed = s.signed || s.signedAt;
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:.35rem .6rem;background:var(--light);border-radius:6px;font-size:.82rem">'
+        + '<span>' + (s.name || s) + '</span>'
+        + '<span style="color:' + (signed ? '#16A34A' : '#F59E0B') + ';font-weight:700">' + (signed ? '✅ Signed' : '⏳ Pending') + '</span>'
+        + '</div>';
+    }).join('');
+  } else if (sigSection) {
+    sigSection.style.display = 'none';
+  }
+
+  // Action buttons
+  var actDiv = e2('dv-actions');
+  if (actDiv) {
+    var btns = '';
+    if (doc.fileUrl) {
+      btns += '<a href="' + doc.fileUrl + '" target="_blank" class="btn btn-outline btn-sm">'
+        + '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'
+        + ' <span data-rw="Fungura" data-en="Open">Open</span></a>';
+    }
+    if (doc.status === 'pending_signature' || doc.requiresSignature) {
+      btns += '<button class="btn btn-navy btn-sm" onclick="openSignDocument(\'' + id + '\')">'
+        + '✍️ <span data-rw="Sinya" data-en="Sign">Sign</span></button>';
+    }
+    btns += '<button class="btn btn-outline btn-sm" onclick="shareDocument(\'' + id + '\')">'
+      + '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>'
+      + ' <span data-rw="Sangira" data-en="Share">Share</span></button>';
+    btns += '<button class="btn btn-outline btn-sm" onclick="archiveDocument(\'' + id + '\')" style="border-color:#94A3B8;color:#94A3B8">'
+      + '<span data-rw="Shyira mu Archive" data-en="Archive">Archive</span></button>';
+    actDiv.innerHTML = btns;
+  }
+
+  m.style.display = 'flex';
+}
+
+function closeDocumentView() {
+  var m = document.getElementById('document-view-modal');
+  if (m) m.style.display = 'none';
+  _dvCurrentDoc = null;
+}
+
+// ── Sign Document ─────────────────────────────────────
+function openSignDocument(id) {
+  var doc = null;
+  for (var i = 0; i < _documents.length; i++) {
+    if ((_documents[i]._docId || _documents[i].id) === id) { doc = _documents[i]; break; }
+  }
+  var m = document.getElementById('document-sign-modal');
+  if (!m) return;
+  var idEl = document.getElementById('ds-doc-id');
+  if (idEl) idEl.value = id;
+  var nameEl = document.getElementById('ds-doc-name');
+  if (nameEl && doc) nameEl.textContent = doc.name || 'Document';
+  var todayEl = document.getElementById('ds-today-date');
+  if (todayEl) todayEl.textContent = new Date().toLocaleDateString('en-RW');
+  var fullNameEl = document.getElementById('ds-full-name');
+  if (fullNameEl) fullNameEl.value = typeof currentUser !== 'undefined' && currentUser
+    ? (currentUser.displayName || currentUser.name || '') : '';
+  m.style.display = 'flex';
+}
+
+function confirmSignature() {
+  var id   = (document.getElementById('ds-doc-id')    || {}).value || '';
+  var name = ((document.getElementById('ds-full-name') || {}).value || '').trim();
+  var btn  = document.getElementById('ds-confirm-btn');
+
+  if (!name) { showToast(curLang === 'rw' ? 'Injiza amazina yawe!' : 'Enter your full name!', 'error'); return; }
+  if (!id || typeof db === 'undefined') return;
+
+  if (btn) btn.disabled = true;
+  var uid  = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'anonymous';
+  var now  = firebase.firestore.FieldValue.serverTimestamp();
+  var doc  = _dvCurrentDoc;
+
+  // Update signatories array
+  var sigs = doc && doc.signatories ? doc.signatories.map(function(s) {
+    var matchName = (s.name || '').toLowerCase();
+    if (matchName === name.toLowerCase() || s.signed) return s;
+    return { name: s.name, signed: true, signedAt: new Date().toISOString(), signedBy: uid };
+  }) : [{ name: name, signed: true, signedAt: new Date().toISOString(), signedBy: uid }];
+
+  var allSigned = sigs.every(function(s){ return s.signed; });
+
+  db.collection('documents').doc(id).update({
+    signatories: sigs,
+    signed:      allSigned,
+    status:      allSigned ? 'signed' : 'pending_signature',
+    updatedAt:   now,
+    updatedBy:   uid
+  }).then(function() {
+    logAudit('document.signed', 'documents', id, { signed: false }, { signed: allSigned, signerName: name });
+    showToast(allSigned
+      ? (curLang === 'rw' ? 'Dosiye yasinywe yose!' : 'Document fully signed!')
+      : (curLang === 'rw' ? 'Umukono wawe wabitswe!' : 'Your signature recorded!'), 'success');
+    document.getElementById('document-sign-modal').style.display = 'none';
+    if (btn) btn.disabled = false;
+    for (var i = 0; i < _documents.length; i++) {
+      if ((_documents[i]._docId || _documents[i].id) === id) {
+        _documents[i].signatories = sigs;
+        _documents[i].signed      = allSigned;
+        _documents[i].status      = allSigned ? 'signed' : 'pending_signature';
+        break;
+      }
+    }
+    renderDocumentList();
+    updateDocumentStats();
+    closeDocumentView();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error signing', 'error');
+    if (btn) btn.disabled = false;
+    console.error('[Documents] sign error:', err);
+  });
+}
+
+// ── Share Document ────────────────────────────────────
+function shareDocument(id) {
+  var doc = null;
+  for (var i = 0; i < _documents.length; i++) {
+    if ((_documents[i]._docId || _documents[i].id) === id) { doc = _documents[i]; break; }
+  }
+  var url = doc && doc.fileUrl ? doc.fileUrl : window.location.origin + '/?doc=' + id;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(function() {
+      showToast(curLang === 'rw' ? 'URL yakopijwe!' : 'Link copied!', 'success');
+    }).catch(function() { showToast(url, 'info'); });
+  } else {
+    showToast(url, 'info');
+  }
+  logAudit('document.shared', 'documents', id, null, { sharedUrl: url });
+}
+
+// ── Archive Document ──────────────────────────────────
+function archiveDocument(id) {
+  if (typeof db === 'undefined') return;
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+  db.collection('documents').doc(id).update({
+    status: 'archived', updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: uid
+  }).then(function() {
+    logAudit('document.archived', 'documents', id, { status: 'active' }, { status: 'archived' });
+    showToast(curLang === 'rw' ? 'Dosiye yashyizwe mu archive' : 'Document archived', 'info');
+    for (var i = 0; i < _documents.length; i++) {
+      if ((_documents[i]._docId || _documents[i].id) === id) { _documents[i].status = 'archived'; break; }
+    }
+    renderDocumentList();
+    updateDocumentStats();
+    closeDocumentView();
+  }).catch(function(err) { console.error('[Documents] archive error:', err); });
+}
+
+// ── Contract Generator ────────────────────────────────
+function openContractGenerator() {
+  var m = document.getElementById('contract-generator-modal');
+  if (!m) return;
+  var dateEl = document.getElementById('cg-date');
+  if (dateEl && !dateEl.value) dateEl.value = new Date().toISOString().split('T')[0];
+  var agentEl = document.getElementById('cg-agent');
+  if (agentEl && !agentEl.value && typeof currentUser !== 'undefined' && currentUser) {
+    agentEl.value = currentUser.displayName || currentUser.name || '';
+  }
+  document.getElementById('cg-step1').style.display = '';
+  document.getElementById('cg-step2').style.display = 'none';
+  m.style.display = 'flex';
+}
+function closeContractGenerator() {
+  var m = document.getElementById('contract-generator-modal');
+  if (m) m.style.display = 'none';
+}
+
+function previewContract() {
+  var type   = (document.getElementById('cg-type')   || {}).value   || 'sale';
+  var seller = ((document.getElementById('cg-seller') || {}).value || '').trim();
+  var buyer  = ((document.getElementById('cg-buyer')  || {}).value || '').trim();
+  var prop   = ((document.getElementById('cg-prop')   || {}).value || '').trim();
+  var price  = parseFloat((document.getElementById('cg-price') || {}).value) || 0;
+  var date   = ((document.getElementById('cg-date')   || {}).value || new Date().toISOString().split('T')[0]);
+  var agent  = ((document.getElementById('cg-agent')  || {}).value || '').trim();
+
+  if (!seller || !buyer || !prop) {
+    showToast(curLang === 'rw' ? 'Uzuza amamakuru yose!' : 'Fill in all required fields!', 'error'); return;
+  }
+
+  _cgContractData = { type: type, seller: seller, buyer: buyer, prop: prop, price: price, date: date, agent: agent };
+
+  var isSale = type === 'sale';
+  var title  = isSale ? 'SALE AGREEMENT' : 'RENTAL AGREEMENT';
+  var titleRW= isSale ? 'AMASEZERANO YO KUGURISHA' : 'AMASEZERANO YO GUKODESHA';
+  var priceFormatted = price.toLocaleString() + ' RWF' + (isSale ? '' : ' per month');
+
+  var html = '<div class="contract-doc">'
+    + '<div class="contract-header">'
+    + '<div class="contract-logo">KOMISIYONERI</div>'
+    + '<div class="contract-company">ConnectPro Services Ltd — Kigali, Rwanda</div>'
+    + '<div class="contract-title">' + title + '</div>'
+    + '<div class="contract-title-rw">' + titleRW + '</div>'
+    + '</div>'
+    + '<p class="contract-date">Date: ' + date + '</p>'
+    + '<p class="contract-body">This ' + (isSale ? 'Sale' : 'Rental') + ' Agreement is entered into on <strong>' + date + '</strong> between:</p>'
+    + '<div class="contract-parties">'
+    + '<div class="contract-party"><span class="contract-party-role">' + (isSale ? 'SELLER' : 'LANDLORD') + '</span><span class="contract-party-name">' + seller + '</span></div>'
+    + '<div class="contract-party"><span class="contract-party-role">' + (isSale ? 'BUYER' : 'TENANT') + '</span><span class="contract-party-name">' + buyer + '</span></div>'
+    + '</div>'
+    + '<p class="contract-body"><strong>Property:</strong> ' + prop + '</p>'
+    + '<p class="contract-body"><strong>' + (isSale ? 'Agreed Sale Price' : 'Monthly Rent') + ':</strong> ' + priceFormatted + '</p>'
+    + '<div class="contract-clauses">'
+    + '<div class="contract-clause"><strong>1. ' + (isSale ? 'Transfer of Ownership' : 'Lease Term') + '</strong><br>'
+    + (isSale
+        ? 'The Seller agrees to transfer full ownership of the above-mentioned property to the Buyer upon receipt of full payment as agreed herein.'
+        : 'The Landlord agrees to lease the above-mentioned property to the Tenant for the agreed monthly rent, payable on or before the 5th of each month.')
+    + '</div>'
+    + '<div class="contract-clause"><strong>2. Payment Terms</strong><br>'
+    + (isSale
+        ? 'The Buyer shall pay the full agreed price of ' + priceFormatted + ' as follows: a deposit of 30% upon signing; the balance upon title transfer at the Rwanda Land Management and Use Authority (RLMUA).'
+        : 'Rent of ' + priceFormatted + ' shall be paid monthly. A security deposit of two (2) months\' rent is due upon signing.')
+    + '</div>'
+    + '<div class="contract-clause"><strong>3. Conditions</strong><br>'
+    + 'This agreement is subject to the property being free and clear of all encumbrances, liens, and unpaid dues. Both parties confirm the property details are accurate.</div>'
+    + '<div class="contract-clause"><strong>4. Commission</strong><br>'
+    + 'KOMISIYONERI ConnectPro Services Ltd, represented by agent <strong>' + (agent || '[Agent Name]') + '</strong>, facilitated this transaction and is entitled to the agreed commission as per a separate commission agreement.</div>'
+    + '<div class="contract-clause"><strong>5. Governing Law</strong><br>'
+    + 'This agreement shall be governed by the laws of the Republic of Rwanda.</div>'
+    + '</div>'
+    + '<div class="contract-signatures">'
+    + '<div class="contract-sig-block"><div class="contract-sig-line"></div><div>' + seller + '</div><div class="contract-sig-role">' + (isSale ? 'Seller' : 'Landlord') + '</div></div>'
+    + '<div class="contract-sig-block"><div class="contract-sig-line"></div><div>' + buyer + '</div><div class="contract-sig-role">' + (isSale ? 'Buyer' : 'Tenant') + '</div></div>'
+    + '<div class="contract-sig-block"><div class="contract-sig-line"></div><div>' + (agent || 'Agent') + '</div><div class="contract-sig-role">KOMISIYONERI Agent</div></div>'
+    + '</div>'
+    + '<div class="contract-footer">KOMISIYONERI ConnectPro Services Ltd — Kigali, Rwanda — info.komisiyoneri.net@gmail.com</div>'
+    + '</div>';
+
+  document.getElementById('cg-step1').style.display = 'none';
+  document.getElementById('cg-step2').style.display = '';
+  document.getElementById('cg-preview-content').innerHTML = html;
+}
+
+function saveGeneratedContract() {
+  if (!_cgContractData || typeof db === 'undefined') return;
+  var uid   = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'anonymous';
+  var uName = typeof currentUser !== 'undefined' && currentUser
+    ? (currentUser.displayName || currentUser.name || currentUser.email || '') : '';
+  var d     = _cgContractData;
+  var docType = d.type === 'sale' ? 'sale_agreement' : 'rental_agreement';
+  var docName = (d.type === 'sale' ? 'Sale Agreement' : 'Rental Agreement') + ' — ' + d.prop;
+
+  db.collection('documents').add({
+    id: '', name: docName, type: docType, fileUrl: '',
+    propertyTitle: d.prop, propertyId: '', dealId: '', clientId: uid,
+    uploadedByName: uName,
+    contractData: d,
+    accessRoles: ['agent','admin','client'],
+    signatories: [
+      { name: d.seller, signed: false, signedAt: null },
+      { name: d.buyer,  signed: false, signedAt: null }
+    ],
+    signed: false, version: 1, requiresSignature: true,
+    status: 'pending_signature', isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: uid, updatedBy: uid
+  }).then(function(ref) {
+    ref.update({ id: ref.id });
+    logAudit('document.contract.generated', 'documents', ref.id, null, { name: docName, type: docType });
+    showToast(curLang === 'rw' ? 'Amasezerano yabitswe kuri Vault!' : 'Contract saved to Vault!', 'success');
+    closeContractGenerator();
+    _cgContractData = null;
+    var badge = document.getElementById('docs-sidebar-count');
+    if (badge) badge.textContent = parseInt(badge.textContent || 0) + 1;
+    loadDocuments();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error saving contract', 'error');
+    console.error('[Documents] contract save error:', err);
+  });
+}
+
+// ── Sidebar badge ─────────────────────────────────────
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      if (typeof db !== 'undefined' && typeof currentUser !== 'undefined' && currentUser) {
+        var isAdmin = ['admin','staff','ceo','super_admin','Admin'].indexOf(currentUser.role) !== -1;
+        var q = isAdmin
+          ? db.collection('documents').where('isActive','==',true).where('status','==','pending_signature')
+          : db.collection('documents').where('isActive','==',true).where('clientId','==',currentUser.uid).where('status','in',['pending_signature','draft']);
+        q.get().then(function(snap) {
+          var badge = document.getElementById('docs-sidebar-count');
+          if (badge) badge.textContent = snap.size;
+        }).catch(function(){});
+      }
+    }, 5000);
+  });
+})();
+
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
