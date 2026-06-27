@@ -3593,6 +3593,8 @@ html,body{overscroll-behavior-x:none}
       <div class="dn"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Abakiliya" data-en="Clients">Abakiliya</span><span class="ds-badge">5</span></div>
       <div class="dn" onclick="go('crm')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><span data-rw="CRM — Leads" data-en="CRM — Leads">CRM — Leads</span><span class="ds-badge" id="crm-sidebar-count">0</span></div>
       <div class="dn" onclick="go('deals')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5a1 1 0 00-1-1H3a1 1 0 00-1 1v6c0 .552.448 1 1 1"/><path d="M3 12v6a1 1 0 001 1h16a1 1 0 001-1v-6"/></svg><span data-rw="Deals" data-en="Deals">Deals</span><span class="ds-badge" id="deals-sidebar-count">0</span></div>
+      <div class="ds-section" data-rw="SERIVISI" data-en="SERVICES">SERIVISI</div>
+      <div class="dn" onclick="go('verification')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg><span data-rw="Kugenzura" data-en="Verification">Verification</span><span class="ds-badge" id="verif-sidebar-count">0</span></div>
       <div class="ds-section" data-rw="IMARI" data-en="FINANCE">IMARI</div>
       <div class="dn" onclick="go('commissions')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span data-rw="Komisiyoni" data-en="Commissions">Komisiyoni</span><span class="ds-badge" id="comm-sidebar-count">0</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-rw="Kwishyura" data-en="Payments">Kwishyura</span></div>
@@ -4193,6 +4195,74 @@ html,body{overscroll-behavior-x:none}
       <div class="crm-empty">
         <div class="crm-empty-icon">💰</div>
         <div class="crm-empty-title" data-rw="Gutegura komisiyoni..." data-en="Loading commissions...">Loading commissions...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === PAGE: VERIFICATION CENTER === -->
+<div class="page" id="page-verification">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">🛡️ Verification</div>
+      <h1 class="h1" data-rw="Ikigo cyo Kugenzura" data-en="Verification Center">Verification Center</h1>
+      <p style="color:rgba(255,255,255,.82);font-size:.85rem" data-rw="Gusaba no gukurikirana serivisi zo kugenzura title, survey, notaire n'amategeko" data-en="Request and track title verification, surveys, notary, and legal services">Request and track verification services</p>
+    </div>
+  </div>
+  <div class="crm-wrap">
+    <div class="crm-header">
+      <div>
+        <p style="color:var(--muted);font-size:.82rem" data-rw="Kanda ku serivisi kugirango ubone ibirenzeho" data-en="Click any service to view details and update status">Click any request to view details</p>
+      </div>
+      <button class="btn btn-navy btn-sm" onclick="openVerificationRequest()">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-rw="Saba Serivisi" data-en="New Request">New Request</span>
+      </button>
+    </div>
+    <!-- Stats -->
+    <div class="crm-stats">
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="verif-stat-total">0</div>
+        <div class="crm-stat-l" data-rw="Ibikorwa Byose" data-en="Total">Total</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="verif-stat-pending" style="color:#F59E0B">0</div>
+        <div class="crm-stat-l" data-rw="Itegereza" data-en="Pending">Pending</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="verif-stat-inprogress" style="color:#3B82F6">0</div>
+        <div class="crm-stat-l" data-rw="Bikorwa" data-en="In Progress">In Progress</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="verif-stat-completed" style="color:#16A34A">0</div>
+        <div class="crm-stat-l" data-rw="Byarangiye" data-en="Completed">Completed</div>
+      </div>
+    </div>
+    <!-- Filters -->
+    <div class="crm-filters">
+      <select id="verif-filter-type" onchange="filterVerifications()">
+        <option value="">-- Ubwoko Bwose / All Types --</option>
+        <option value="title_verification">Title Verification</option>
+        <option value="survey">Land Survey</option>
+        <option value="notary">Notary</option>
+        <option value="legal">Legal Review</option>
+        <option value="valuation">Valuation</option>
+        <option value="inspection">Property Inspection</option>
+      </select>
+      <select id="verif-filter-status" onchange="filterVerifications()">
+        <option value="">-- Imiterere Yose / All Status --</option>
+        <option value="pending">Pending</option>
+        <option value="assigned">Assigned</option>
+        <option value="in_progress">In Progress</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+    <!-- Service list -->
+    <div class="crm-list" id="verif-list">
+      <div class="crm-empty">
+        <div class="crm-empty-icon">🛡️</div>
+        <div class="crm-empty-title" data-rw="Gutegura serivisi..." data-en="Loading services...">Loading services...</div>
       </div>
     </div>
   </div>
@@ -4944,6 +5014,119 @@ html,body{overscroll-behavior-x:none}
       <button id="mc-submit-btn" class="btn btn-gold" style="width:100%;justify-content:center" onclick="createManualCommission()">
         <span id="mc-submit-lbl" data-rw="Bika Komisiyoni" data-en="Save Commission">Save Commission</span>
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- === VERIFICATION REQUEST MODAL === -->
+<div class="modal-wrap" id="verification-request-modal" style="display:none">
+  <div class="modal" style="max-width:460px;width:95%;max-height:92vh;overflow-y:auto">
+    <button class="modal-x" onclick="closeVerificationRequest()" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:.25rem" data-rw="SERIVISI NSHYA" data-en="NEW SERVICE REQUEST">NEW SERVICE REQUEST</div>
+      <h2 style="font-size:1.1rem;font-weight:800;color:var(--navy)" data-rw="Saba Serivisi yo Kugenzura" data-en="Request Verification Service">Request Verification Service</h2>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.7rem">
+      <div class="vr-field">
+        <label data-rw="Ubwoko bwa Serivisi" data-en="Service Type">Service Type *</label>
+        <select id="vr-service-type" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem" onchange="updateVerifQuote()">
+          <option value="">-- Hitamo / Select --</option>
+          <option value="title_verification">🏛️ Title Deed Verification</option>
+          <option value="survey">📐 Land Survey</option>
+          <option value="notary">⚖️ Notary Services</option>
+          <option value="legal">📋 Legal Review</option>
+          <option value="valuation">💰 Property Valuation</option>
+          <option value="inspection">🔍 Property Inspection</option>
+        </select>
+      </div>
+      <div class="vr-field">
+        <label data-rw="Izina ry'Imitungo / Address" data-en="Property / Address">Property / Address</label>
+        <input type="text" id="vr-prop-title" placeholder="e.g. Plot 12, Kimironko, Gasabo" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Akarere" data-en="District">District</label>
+        <select id="vr-district" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
+          <option value="">-- Akarere / District --</option>
+          <option>Gasabo</option><option>Kicukiro</option><option>Nyarugenge</option>
+          <option>Bugesera</option><option>Gatsibo</option><option>Kayonza</option>
+          <option>Kirehe</option><option>Ngoma</option><option>Nyagatare</option>
+          <option>Rwamagana</option><option>Burera</option><option>Gakenke</option>
+          <option>Gicumbi</option><option>Musanze</option><option>Rulindo</option>
+          <option>Gisagara</option><option>Huye</option><option>Kamonyi</option>
+          <option>Muhanga</option><option>Nyamagabe</option><option>Nyanza</option>
+          <option>Nyaruguru</option><option>Ruhango</option>
+          <option>Karongi</option><option>Ngororero</option><option>Nyabihu</option>
+          <option>Nyamasheke</option><option>Rubavu</option><option>Rusizi</option><option>Rutsiro</option>
+        </select>
+      </div>
+      <div class="vr-field">
+        <label data-rw="Itariki Ishakwa" data-en="Preferred Date">Preferred Date</label>
+        <input type="date" id="vr-date" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Ubutumwa bugerekaho" data-en="Additional Notes">Additional Notes</label>
+        <textarea id="vr-notes" rows="3" placeholder="Amakuru yongeye..." style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box;resize:vertical"></textarea>
+      </div>
+      <div id="vr-quote-preview" style="background:linear-gradient(135deg,var(--gold)15,transparent);border:1.5px solid var(--gold)40;border-radius:8px;padding:.75rem;font-size:.82rem;display:none"></div>
+      <button id="vr-submit-btn" class="btn btn-navy" style="width:100%;justify-content:center" onclick="submitVerificationRequest()">
+        <span id="vr-submit-lbl" data-rw="Ohereza Ikibazo" data-en="Submit Request">Submit Request</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- === VERIFICATION DETAIL MODAL === -->
+<div class="modal-wrap" id="verification-detail-modal" style="display:none">
+  <div class="modal" style="max-width:520px;max-height:92vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title">🛡️ <span id="vd-title">Service Details</span></div>
+      <button class="modal-x" onclick="closeVerificationDetail()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <input type="hidden" id="vd-service-id">
+    <div style="padding:1.25rem;display:flex;flex-direction:column;gap:1rem">
+      <!-- Status + type -->
+      <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+        <span class="comm-status-badge" id="vd-status-badge">Pending</span>
+        <span class="verif-type-chip" id="vd-type-chip">Title</span>
+        <span style="font-size:.75rem;color:var(--muted)" id="vd-date"></span>
+      </div>
+      <!-- Info block -->
+      <div style="background:var(--light);border-radius:8px;padding:.85rem;font-size:.82rem;display:flex;flex-direction:column;gap:.4rem">
+        <div><span style="color:var(--muted)" data-rw="Imitungo:" data-en="Property:">Property:</span> <strong id="vd-prop">—</strong></div>
+        <div><span style="color:var(--muted)" data-rw="Akarere:" data-en="District:">District:</span> <span id="vd-district">—</span></div>
+        <div><span style="color:var(--muted)" data-rw="Wasabiye:" data-en="Requested by:">Requested by:</span> <span id="vd-requested-by">—</span></div>
+        <div><span style="color:var(--muted)" data-rw="Itariki Ishakwa:" data-en="Preferred Date:">Preferred Date:</span> <span id="vd-pref-date">—</span></div>
+        <div id="vd-partner-row"><span style="color:var(--muted)" data-rw="Byahawe:" data-en="Assigned to:">Assigned to:</span> <span id="vd-partner">—</span></div>
+        <div id="vd-price-row"><span style="color:var(--muted)" data-rw="Igiciro cyashyizweho:" data-en="Quoted price:">Quoted price:</span> <span id="vd-price">—</span></div>
+        <div id="vd-notes-row"><span style="color:var(--muted)">Notes:</span> <span id="vd-notes-val">—</span></div>
+      </div>
+      <!-- Status stepper -->
+      <div>
+        <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.08em;margin-bottom:.6rem" data-rw="INTAMBWE" data-en="STATUS STEPS">STATUS STEPS</div>
+        <div class="verif-steps" id="vd-steps"></div>
+      </div>
+      <!-- Admin: Assign partner + status actions -->
+      <div id="vd-admin-actions" style="display:none;flex-direction:column;gap:.65rem">
+        <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.08em" data-rw="GUTUNGA / GUTURA" data-en="ASSIGN PARTNER">ASSIGN PARTNER</div>
+        <div style="display:flex;gap:.5rem">
+          <input type="text" id="vd-assign-partner" placeholder="Partner name or email" style="flex:1;padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem">
+          <input type="number" id="vd-quoted-price" placeholder="Quote (RWF)" min="0" style="width:120px;padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;box-sizing:border-box">
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn btn-navy btn-sm" onclick="assignServicePartner()"><span data-rw="Ha Umunyamakuru" data-en="Assign Partner">Assign Partner</span></button>
+          <button class="btn btn-outline btn-sm" onclick="updateServiceStatus('in_progress')"><span data-rw="Tangira" data-en="Start">Start</span></button>
+          <button class="btn btn-outline btn-sm" onclick="updateServiceStatus('completed')" style="border-color:#16A34A;color:#16A34A"><span data-rw="Rangiza" data-en="Complete">Complete</span></button>
+          <button class="btn btn-outline btn-sm" onclick="updateServiceStatus('cancelled')" style="border-color:#DC2626;color:#DC2626"><span data-rw="Hagarika" data-en="Cancel">Cancel</span></button>
+        </div>
+      </div>
+      <!-- Report upload (completed) -->
+      <div id="vd-report-section" style="display:none">
+        <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.08em;margin-bottom:.5rem" data-rw="RAPORO" data-en="REPORT URL">REPORT</div>
+        <div style="display:flex;gap:.5rem">
+          <input type="url" id="vd-report-url" placeholder="https://drive.google.com/..." style="flex:1;padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem">
+          <button class="btn btn-navy btn-sm" onclick="saveReportUrl()"><span data-rw="Bika" data-en="Save">Save</span></button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -9845,6 +10028,9 @@ go = function(page) {
   if(page === 'commissions') {
     setTimeout(loadCommissions, 150);
   }
+  if(page === 'verification') {
+    setTimeout(loadVerifications, 150);
+  }
 };
 
 </script>
@@ -10232,6 +10418,392 @@ go = function(page) {
       : attachRealtimeListeners();
   } catch(e){ console.error('Sync error:',e); }
 })();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHASE 5 — VERIFICATION CENTER
+     Title deed | Survey | Notary | Partner assignment
+════════════════════════════════════════════════════════ -->
+<script>
+
+// ── Service Types ─────────────────────────────────────
+var SERVICE_TYPES = {
+  title_verification: { label:'Title Deed Verification', icon:'🏛️', quotedPrice: 50000  },
+  survey:             { label:'Land Survey',             icon:'📐', quotedPrice: 120000 },
+  notary:             { label:'Notary Services',          icon:'⚖️', quotedPrice: 150000 },
+  legal:              { label:'Legal Review',            icon:'📋', quotedPrice: 100000 },
+  valuation:          { label:'Property Valuation',      icon:'💰', quotedPrice: 80000  },
+  inspection:         { label:'Property Inspection',     icon:'🔍', quotedPrice: 40000  }
+};
+
+var VERIF_STATUSES = ['pending','assigned','in_progress','completed','cancelled'];
+
+// ── State ─────────────────────────────────────────────
+var _verifications  = [];
+var _verifFilterType   = '';
+var _verifFilterStatus = '';
+var _vdCurrentService  = null;
+
+// ── Load Verifications ────────────────────────────────
+function loadVerifications() {
+  var list = document.getElementById('verif-list');
+  if (!list) return;
+  list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⏳</div>'
+    + '<div class="crm-empty-title">' + (curLang === 'rw' ? 'Gutegura...' : 'Loading...') + '</div></div>';
+
+  if (typeof db === 'undefined') return;
+
+  var isAdmin = typeof currentUser !== 'undefined' && currentUser &&
+    ['admin','staff','ceo','super_admin','Admin'].indexOf(currentUser.role) !== -1;
+
+  var query;
+  if (isAdmin) {
+    query = db.collection('services').where('isActive','==',true).orderBy('createdAt','desc').limit(200);
+  } else if (typeof currentUser !== 'undefined' && currentUser) {
+    query = db.collection('services').where('isActive','==',true)
+              .where('requestedBy','==',currentUser.uid).orderBy('createdAt','desc').limit(200);
+  } else { return; }
+
+  query.get().then(function(snap) {
+    _verifications = [];
+    snap.forEach(function(doc) { var d = doc.data(); d._docId = doc.id; _verifications.push(d); });
+    renderVerificationList();
+    updateVerificationStats();
+  }).catch(function(err) {
+    list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⚠️</div><div class="crm-empty-title">Error loading</div></div>';
+    console.error('[Verification] load error:', err);
+  });
+}
+
+function updateVerificationStats() {
+  var total    = _verifications.length;
+  var pending  = _verifications.filter(function(s){ return s.status === 'pending'; }).length;
+  var inprog   = _verifications.filter(function(s){ return s.status === 'in_progress' || s.status === 'assigned'; }).length;
+  var done     = _verifications.filter(function(s){ return s.status === 'completed'; }).length;
+  var e2 = document.getElementById.bind(document);
+  if (e2('verif-stat-total'))      e2('verif-stat-total').textContent      = total;
+  if (e2('verif-stat-pending'))    e2('verif-stat-pending').textContent    = pending;
+  if (e2('verif-stat-inprogress')) e2('verif-stat-inprogress').textContent = inprog;
+  if (e2('verif-stat-completed'))  e2('verif-stat-completed').textContent  = done;
+}
+
+function filterVerifications() {
+  _verifFilterType   = (document.getElementById('verif-filter-type')   || {}).value || '';
+  _verifFilterStatus = (document.getElementById('verif-filter-status') || {}).value || '';
+  renderVerificationList();
+}
+
+function renderVerificationList() {
+  var list = document.getElementById('verif-list');
+  if (!list) return;
+  var filtered = _verifications.filter(function(s) {
+    if (_verifFilterType   && s.serviceType !== _verifFilterType)   return false;
+    if (_verifFilterStatus && s.status       !== _verifFilterStatus) return false;
+    return true;
+  });
+  if (!filtered.length) {
+    list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">🛡️</div>'
+      + '<div class="crm-empty-title">' + (curLang === 'rw' ? 'Nta serivisi ibonetse' : 'No services found') + '</div></div>';
+    return;
+  }
+  var STATUS_COLORS = { pending:'#F59E0B', assigned:'#3B82F6', in_progress:'#8B5CF6', completed:'#16A34A', cancelled:'#DC2626' };
+  list.innerHTML = filtered.map(function(s) {
+    var stColor  = STATUS_COLORS[s.status] || '#64748B';
+    var stLabel  = s.status ? s.status.replace(/_/g,' ') : 'pending';
+    var svc      = SERVICE_TYPES[s.serviceType] || { label: s.serviceType || 'Service', icon: '🔧' };
+    var price    = s.quotedPrice ? (parseFloat(s.quotedPrice)||0).toLocaleString() + ' RWF' : svc.quotedPrice ? svc.quotedPrice.toLocaleString() + ' RWF (est.)' : '—';
+    var dt       = s.createdAt && s.createdAt.toDate ? s.createdAt.toDate().toLocaleDateString('en-RW') : '';
+    return '<div class="verif-card" onclick="openVerificationDetail(\'' + (s._docId||s.id) + '\')">'
+      + '<div class="verif-card-header">'
+      + '<span class="verif-type-chip">' + svc.icon + ' ' + svc.label + '</span>'
+      + '<span class="comm-status-badge" style="background:' + stColor + '20;color:' + stColor + ';border:1px solid ' + stColor + '40">' + stLabel + '</span>'
+      + '</div>'
+      + '<div style="font-weight:700;font-size:.88rem;margin:.3rem 0">' + (s.propertyTitle || 'Property') + '</div>'
+      + '<div class="deal-card-meta">'
+      + '<span>📍 ' + (s.district || '—') + '</span>'
+      + '<span>📅 ' + dt + '</span>'
+      + '<span>💰 ' + price + '</span>'
+      + '</div>'
+      + (s.assignedTo ? '<div style="font-size:.75rem;color:var(--muted);margin-top:.3rem">👤 ' + s.assignedTo + '</div>' : '')
+      + '</div>';
+  }).join('');
+}
+
+// ── Submit Verification Request ───────────────────────
+function updateVerifQuote() {
+  var typeEl = document.getElementById('vr-service-type');
+  var prv    = document.getElementById('vr-quote-preview');
+  if (!typeEl || !prv) return;
+  var svc = SERVICE_TYPES[typeEl.value];
+  if (!svc) { prv.style.display = 'none'; return; }
+  prv.style.display = '';
+  prv.innerHTML = svc.icon + ' <strong>' + svc.label + '</strong> — Estimated price: <strong style="color:var(--gold)">'
+    + (svc.quotedPrice||0).toLocaleString() + ' RWF</strong>';
+}
+
+function openVerificationRequest() {
+  var m = document.getElementById('verification-request-modal');
+  if (m) m.style.display = 'flex';
+  var dateEl = document.getElementById('vr-date');
+  if (dateEl && !dateEl.value) {
+    var t = new Date(); t.setDate(t.getDate() + 3);
+    dateEl.min = new Date().toISOString().split('T')[0];
+    dateEl.value = t.toISOString().split('T')[0];
+  }
+}
+
+function closeVerificationRequest() {
+  var m = document.getElementById('verification-request-modal');
+  if (m) m.style.display = 'none';
+}
+
+function submitVerificationRequest() {
+  var typeEl  = document.getElementById('vr-service-type');
+  var propEl  = document.getElementById('vr-prop-title');
+  var distEl  = document.getElementById('vr-district');
+  var dateEl  = document.getElementById('vr-date');
+  var notesEl = document.getElementById('vr-notes');
+  var btn     = document.getElementById('vr-submit-btn');
+  var lbl     = document.getElementById('vr-submit-lbl');
+
+  var serviceType  = typeEl  ? typeEl.value.trim()  : '';
+  var propertyTitle= propEl  ? propEl.value.trim()  : '';
+  var district     = distEl  ? distEl.value.trim()  : '';
+  var scheduledDate= dateEl  ? dateEl.value.trim()  : '';
+  var notes        = notesEl ? notesEl.value.trim()  : '';
+
+  if (!serviceType) { showToast(curLang === 'rw' ? 'Hitamo ubwoko bwa serivisi!' : 'Select a service type!', 'error'); return; }
+  if (!propertyTitle) { showToast(curLang === 'rw' ? 'Injiza izina ry\'imitungo!' : 'Enter property details!', 'error'); return; }
+  if (typeof db === 'undefined') { showToast('Firebase ntabwo ihuye', 'error'); return; }
+
+  if (btn) btn.disabled = true;
+  if (lbl) lbl.textContent = curLang === 'rw' ? 'Gutuma...' : 'Submitting...';
+
+  var uid  = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'anonymous';
+  var uName= typeof currentUser !== 'undefined' && currentUser
+    ? (currentUser.displayName || currentUser.name || currentUser.email || '') : '';
+  var svc  = SERVICE_TYPES[serviceType] || {};
+
+  db.collection('services').add({
+    id:            '',
+    serviceType:   serviceType,
+    propertyTitle: propertyTitle,
+    district:      district,
+    scheduledDate: scheduledDate,
+    notes:         notes,
+    requestedBy:   uid,
+    requestedByName: uName,
+    assignedTo:    '',
+    assignedToId:  '',
+    quotedPrice:   svc.quotedPrice || 0,
+    agreedPrice:   0,
+    reportUrl:     '',
+    propertyId:    '',
+    dealId:        '',
+    leadId:        '',
+    status:        'pending',
+    isActive:      true,
+    createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:     uid,
+    updatedBy:     uid
+  }).then(function(ref) {
+    ref.update({ id: ref.id });
+    logAudit('service.requested', 'services', ref.id, null, { serviceType: serviceType, propertyTitle: propertyTitle });
+    showToast(curLang === 'rw' ? 'Ikibazo cyatumwe!' : 'Request submitted!', 'success');
+    closeVerificationRequest();
+    if (typeEl)  typeEl.value  = '';
+    if (propEl)  propEl.value  = '';
+    if (distEl)  distEl.value  = '';
+    if (notesEl) notesEl.value = '';
+    var prv = document.getElementById('vr-quote-preview');
+    if (prv) prv.style.display = 'none';
+    if (btn) btn.disabled = false;
+    if (lbl) lbl.textContent = curLang === 'rw' ? 'Ohereza Ikibazo' : 'Submit Request';
+    var badge = document.getElementById('verif-sidebar-count');
+    if (badge) badge.textContent = parseInt(badge.textContent || 0) + 1;
+    loadVerifications();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error submitting request', 'error');
+    if (btn) btn.disabled = false;
+    if (lbl) lbl.textContent = curLang === 'rw' ? 'Ohereza Ikibazo' : 'Submit Request';
+    console.error('[Verification] submit error:', err);
+  });
+}
+
+// ── Service Detail Modal ──────────────────────────────
+function openVerificationDetail(id) {
+  var svc = null;
+  for (var i = 0; i < _verifications.length; i++) {
+    if ((_verifications[i]._docId || _verifications[i].id) === id) { svc = _verifications[i]; break; }
+  }
+  if (!svc) return;
+  _vdCurrentService = svc;
+  var m = document.getElementById('verification-detail-modal');
+  if (!m) return;
+
+  var e2 = function(eid) { return document.getElementById(eid); };
+  var STATUS_COLORS = { pending:'#F59E0B', assigned:'#3B82F6', in_progress:'#8B5CF6', completed:'#16A34A', cancelled:'#DC2626' };
+  var svcDef = SERVICE_TYPES[svc.serviceType] || { label: svc.serviceType || 'Service', icon:'🔧' };
+
+  if (e2('vd-service-id')) e2('vd-service-id').value = id;
+  if (e2('vd-title')) e2('vd-title').textContent = svcDef.icon + ' ' + svcDef.label;
+  var stColor = STATUS_COLORS[svc.status] || '#64748B';
+  var stLabel = (svc.status || 'pending').replace(/_/g,' ');
+  if (e2('vd-status-badge')) {
+    e2('vd-status-badge').textContent = stLabel;
+    e2('vd-status-badge').style.background = stColor + '20';
+    e2('vd-status-badge').style.color      = stColor;
+    e2('vd-status-badge').style.border     = '1px solid ' + stColor + '40';
+  }
+  if (e2('vd-type-chip')) e2('vd-type-chip').textContent = svcDef.icon + ' ' + svcDef.label;
+  var dt = svc.createdAt && svc.createdAt.toDate ? svc.createdAt.toDate().toLocaleDateString('en-RW') : '';
+  if (e2('vd-date')) e2('vd-date').textContent = dt;
+  if (e2('vd-prop'))        e2('vd-prop').textContent         = svc.propertyTitle || '—';
+  if (e2('vd-district'))    e2('vd-district').textContent     = svc.district      || '—';
+  if (e2('vd-requested-by'))e2('vd-requested-by').textContent = svc.requestedByName || svc.requestedBy || '—';
+  if (e2('vd-pref-date'))   e2('vd-pref-date').textContent   = svc.scheduledDate  || '—';
+  if (e2('vd-partner'))     e2('vd-partner').textContent      = svc.assignedTo     || 'Not assigned';
+  var priceDisp = svc.agreedPrice ? (svc.agreedPrice).toLocaleString() + ' RWF'
+    : svc.quotedPrice ? (svc.quotedPrice).toLocaleString() + ' RWF (quoted)' : '—';
+  if (e2('vd-price'))       e2('vd-price').textContent        = priceDisp;
+  if (e2('vd-notes-val'))   e2('vd-notes-val').textContent   = svc.notes           || '—';
+
+  // Status stepper
+  var stepsEl = e2('vd-steps');
+  if (stepsEl) {
+    var curIdx = VERIF_STATUSES.indexOf(svc.status);
+    stepsEl.innerHTML = VERIF_STATUSES.map(function(st, i) {
+      var isCurrent = i === curIdx;
+      var isDone    = i < curIdx;
+      var cls       = isDone ? 'verif-step done' : isCurrent ? 'verif-step current' : 'verif-step';
+      var lbl2 = st.replace(/_/g,' ');
+      return '<div class="' + cls + '">'
+        + '<div class="verif-step-dot"></div>'
+        + '<div class="verif-step-lbl">' + lbl2 + '</div>'
+        + '</div>';
+    }).join('<div class="verif-step-line"></div>');
+  }
+
+  // Admin actions
+  var isAdmin = typeof currentUser !== 'undefined' && currentUser &&
+    ['admin','staff','ceo','super_admin','Admin'].indexOf(currentUser.role) !== -1;
+  var adminDiv = e2('vd-admin-actions');
+  if (adminDiv) adminDiv.style.display = isAdmin && svc.status !== 'completed' && svc.status !== 'cancelled' ? 'flex' : 'none';
+
+  var reportSection = e2('vd-report-section');
+  if (reportSection) reportSection.style.display = isAdmin && svc.status === 'completed' ? '' : 'none';
+  if (svc.reportUrl && e2('vd-report-url')) e2('vd-report-url').value = svc.reportUrl;
+
+  m.style.display = 'flex';
+}
+
+function closeVerificationDetail() {
+  var m = document.getElementById('verification-detail-modal');
+  if (m) m.style.display = 'none';
+  _vdCurrentService = null;
+}
+
+// ── Assign Partner ────────────────────────────────────
+function assignServicePartner() {
+  var id = (document.getElementById('vd-service-id') || {}).value || '';
+  var partner = ((document.getElementById('vd-assign-partner') || {}).value || '').trim();
+  var price   = parseFloat((document.getElementById('vd-quoted-price') || {}).value) || 0;
+  if (!id || !partner) { showToast(curLang === 'rw' ? 'Injiza amazina y\'umunyamakuru!' : 'Enter partner name!', 'error'); return; }
+  if (typeof db === 'undefined') return;
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+
+  var update = { assignedTo: partner, status: 'assigned', updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: uid };
+  if (price) update.quotedPrice = price;
+
+  db.collection('services').doc(id).update(update).then(function() {
+    logAudit('service.assigned', 'services', id, { assignedTo: '', status: 'pending' }, { assignedTo: partner, status: 'assigned' });
+    showToast(curLang === 'rw' ? 'Serivisi yahawe ' + partner : 'Assigned to ' + partner, 'success');
+    for (var i = 0; i < _verifications.length; i++) {
+      if ((_verifications[i]._docId || _verifications[i].id) === id) {
+        _verifications[i].assignedTo  = partner;
+        _verifications[i].status      = 'assigned';
+        if (price) _verifications[i].quotedPrice = price;
+        break;
+      }
+    }
+    renderVerificationList();
+    updateVerificationStats();
+    closeVerificationDetail();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error assigning', 'error');
+    console.error('[Verification] assign error:', err);
+  });
+}
+
+// ── Update Service Status ─────────────────────────────
+function updateServiceStatus(newStatus) {
+  var id = (document.getElementById('vd-service-id') || {}).value || '';
+  if (!id || typeof db === 'undefined') return;
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+  var oldStatus = _vdCurrentService ? _vdCurrentService.status : '';
+
+  db.collection('services').doc(id).update({
+    status:    newStatus,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: uid
+  }).then(function() {
+    logAudit('service.status.changed', 'services', id, { status: oldStatus }, { status: newStatus });
+    var label = newStatus.replace(/_/g,' ');
+    showToast((curLang === 'rw' ? 'Status yahinduwe: ' : 'Status updated: ') + label, 'success');
+    for (var i = 0; i < _verifications.length; i++) {
+      if ((_verifications[i]._docId || _verifications[i].id) === id) {
+        _verifications[i].status = newStatus; break;
+      }
+    }
+    renderVerificationList();
+    updateVerificationStats();
+    closeVerificationDetail();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error updating status', 'error');
+    console.error('[Verification] status error:', err);
+  });
+}
+
+// ── Save Report URL ───────────────────────────────────
+function saveReportUrl() {
+  var id  = (document.getElementById('vd-service-id') || {}).value || '';
+  var url = ((document.getElementById('vd-report-url') || {}).value || '').trim();
+  if (!id || !url) return;
+  if (typeof db === 'undefined') return;
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+
+  db.collection('services').doc(id).update({
+    reportUrl: url, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: uid
+  }).then(function() {
+    logAudit('service.report.saved', 'services', id, { reportUrl: '' }, { reportUrl: url });
+    showToast(curLang === 'rw' ? 'URL ya raporo yabitswe!' : 'Report URL saved!', 'success');
+    for (var i = 0; i < _verifications.length; i++) {
+      if ((_verifications[i]._docId || _verifications[i].id) === id) {
+        _verifications[i].reportUrl = url; break;
+      }
+    }
+  }).catch(function(err) { console.error('[Verification] report URL error:', err); });
+}
+
+// ── Sidebar badge ─────────────────────────────────────
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      if (typeof db !== 'undefined' && typeof currentUser !== 'undefined' && currentUser) {
+        var isAdmin = ['admin','staff','ceo','super_admin','Admin'].indexOf(currentUser.role) !== -1;
+        var q = isAdmin
+          ? db.collection('services').where('isActive','==',true).where('status','==','pending')
+          : db.collection('services').where('isActive','==',true).where('requestedBy','==',currentUser.uid).where('status','in',['pending','assigned','in_progress']);
+        q.get().then(function(snap) {
+          var badge = document.getElementById('verif-sidebar-count');
+          if (badge) badge.textContent = snap.size;
+        }).catch(function(){});
+      }
+    }, 4500);
+  });
+})();
+
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
