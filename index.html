@@ -3594,7 +3594,7 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="go('crm')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><span data-rw="CRM — Leads" data-en="CRM — Leads">CRM — Leads</span><span class="ds-badge" id="crm-sidebar-count">0</span></div>
       <div class="dn" onclick="go('deals')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5a1 1 0 00-1-1H3a1 1 0 00-1 1v6c0 .552.448 1 1 1"/><path d="M3 12v6a1 1 0 001 1h16a1 1 0 001-1v-6"/></svg><span data-rw="Deals" data-en="Deals">Deals</span><span class="ds-badge" id="deals-sidebar-count">0</span></div>
       <div class="ds-section" data-rw="IMARI" data-en="FINANCE">IMARI</div>
-      <div class="dn"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span data-rw="Komisiyoni" data-en="Commissions">Komisiyoni</span></div>
+      <div class="dn" onclick="go('commissions')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span data-rw="Komisiyoni" data-en="Commissions">Komisiyoni</span><span class="ds-badge" id="comm-sidebar-count">0</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-rw="Kwishyura" data-en="Payments">Kwishyura</span></div>
       <div class="ds-section" data-rw="KONTI" data-en="ACCOUNT">KONTI</div>
       <div class="dn"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Profil" data-en="Profile">Profil</span></div>
@@ -4130,6 +4130,69 @@ html,body{overscroll-behavior-x:none}
       <div class="crm-empty">
         <div class="crm-empty-icon">💼</div>
         <div class="crm-empty-title" data-rw="Gutegura deals..." data-en="Loading deals...">Loading deals...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === PAGE: COMMISSIONS === -->
+<div class="page" id="page-commissions">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">💰 Commissions</div>
+      <h1 class="h1" data-rw="Engine ya Komisiyoni" data-en="Commission Engine">Commission Engine</h1>
+      <p style="color:rgba(255,255,255,.82);font-size:.85rem" data-rw="Gukurikirana komisiyoni, kwemeza, no kwishyura abakomisiyoneri" data-en="Track commissions, approvals, and agent payouts">Track commissions, approvals, and agent payouts</p>
+    </div>
+  </div>
+  <div class="crm-wrap">
+    <div class="crm-header">
+      <div>
+        <p style="color:var(--muted);font-size:.82rem" data-rw="Kanda ku komisiyoni kugirango ubone ibirenzeho" data-en="Click any commission to view details and approve">Click any commission to view details</p>
+      </div>
+      <button class="btn btn-gold btn-sm" onclick="openManualCommission()">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-rw="Komisiyoni Nshya" data-en="Add Commission">Add Commission</span>
+      </button>
+    </div>
+    <!-- Stats bar -->
+    <div class="crm-stats">
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="comm-stat-total">0</div>
+        <div class="crm-stat-l" data-rw="Komisiyoni Zose" data-en="Total">Total</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="comm-stat-pending" style="color:#F59E0B">0</div>
+        <div class="crm-stat-l" data-rw="Itegereza" data-en="Pending">Pending</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="comm-stat-approved" style="color:#16A34A">0</div>
+        <div class="crm-stat-l" data-rw="Yemejwe" data-en="Approved">Approved</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="comm-stat-paid" style="color:var(--gold)">0</div>
+        <div class="crm-stat-l" data-rw="Yishyuwe" data-en="Paid">Paid</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="comm-stat-total-rwf" style="color:var(--navy);font-size:.82rem">0</div>
+        <div class="crm-stat-l" data-rw="Igiteranyo (RWF M)" data-en="Total (RWF M)">Total (M)</div>
+      </div>
+    </div>
+    <!-- Filters -->
+    <div class="crm-filters">
+      <select id="comm-filter-status" onchange="filterCommissions()">
+        <option value="">-- Imiterere Yose / All Status --</option>
+        <option value="pending" data-rw="Itegereza" data-en="Pending">Pending</option>
+        <option value="approved" data-rw="Yemejwe" data-en="Approved">Approved</option>
+        <option value="paid" data-rw="Yishyuwe" data-en="Paid">Paid</option>
+        <option value="rejected" data-rw="Yanzwe" data-en="Rejected">Rejected</option>
+      </select>
+      <input type="text" id="comm-search" placeholder="Shakisha komisiyoni... / Search..." oninput="filterCommissions()">
+    </div>
+    <!-- Commission list -->
+    <div class="crm-list" id="comm-list">
+      <div class="crm-empty">
+        <div class="crm-empty-icon">💰</div>
+        <div class="crm-empty-title" data-rw="Gutegura komisiyoni..." data-en="Loading commissions...">Loading commissions...</div>
       </div>
     </div>
   </div>
@@ -4739,6 +4802,147 @@ html,body{overscroll-behavior-x:none}
       </div>
       <button id="cd-submit-btn" class="btn btn-navy" style="width:100%;justify-content:center" onclick="createNewDeal()">
         <span id="cd-submit-lbl" data-rw="Fungura Deal" data-en="Open Deal">Open Deal</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- === COMMISSION DETAIL MODAL === -->
+<div class="modal-wrap" id="commission-detail-modal" style="display:none">
+  <div class="modal" style="max-width:540px;max-height:92vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title">💰 <span id="cd2-title" data-rw="Ibisobanuro bya Komisiyoni" data-en="Commission Details">Commission Details</span></div>
+      <button class="modal-x" onclick="closeCommissionDetail()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <input type="hidden" id="cd2-comm-id">
+    <div style="padding:1.25rem;display:flex;flex-direction:column;gap:1rem">
+      <!-- Status badge + amounts -->
+      <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+        <span class="comm-status-badge" id="cd2-status-badge">Pending</span>
+        <span style="font-size:.75rem;color:var(--muted)" id="cd2-date"></span>
+      </div>
+      <div class="comm-amount-block">
+        <div class="comm-amount-row">
+          <span data-rw="Agaciro ka Deal" data-en="Deal Value">Deal Value</span>
+          <strong id="cd2-deal-value">—</strong>
+        </div>
+        <div class="comm-amount-row">
+          <span data-rw="Igipimo cya Komisiyoni" data-en="Commission Rate">Commission Rate</span>
+          <strong id="cd2-rate">—</strong>
+        </div>
+        <div class="comm-amount-row comm-total-row">
+          <span data-rw="Komisiyoni Yose" data-en="Total Commission">Total Commission</span>
+          <strong id="cd2-total" style="color:var(--gold)">—</strong>
+        </div>
+        <div class="comm-amount-row">
+          <span data-rw="Igice cy'Umukomisiyoneri (60%)" data-en="Agent Share (60%)">Agent Share</span>
+          <strong id="cd2-agent-share" style="color:#16A34A">—</strong>
+        </div>
+        <div class="comm-amount-row">
+          <span data-rw="Igice cy'Ikompanyi (40%)" data-en="Company Share (40%)">Company Share</span>
+          <strong id="cd2-company-share" style="color:var(--navy)">—</strong>
+        </div>
+      </div>
+      <!-- Deal / Agent info -->
+      <div style="background:var(--light);border-radius:8px;padding:.85rem;font-size:.82rem;display:flex;flex-direction:column;gap:.35rem">
+        <div><span style="color:var(--muted)" data-rw="Umukomisiyoneri:" data-en="Agent:">Agent:</span> <strong id="cd2-agent-name">—</strong></div>
+        <div><span style="color:var(--muted)" data-rw="Imitungo:" data-en="Property:">Property:</span> <strong id="cd2-prop-title">—</strong></div>
+        <div><span style="color:var(--muted)" data-rw="Ubwoko bwa Deal:" data-en="Deal Type:">Deal Type:</span> <span id="cd2-deal-type">—</span></div>
+        <div><span style="color:var(--muted)" data-rw="Umukiliya:" data-en="Client:">Client:</span> <span id="cd2-client-name">—</span></div>
+        <div id="cd2-paid-row" style="display:none"><span style="color:var(--muted)" data-rw="Yishyuwe:" data-en="Paid:">Paid:</span> <span id="cd2-paid-at">—</span></div>
+        <div id="cd2-approved-row" style="display:none"><span style="color:var(--muted)" data-rw="Yemejwe na:" data-en="Approved by:">Approved by:</span> <span id="cd2-approved-by">—</span></div>
+      </div>
+      <!-- Notes -->
+      <div id="cd2-notes-wrap" style="display:none">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:.3rem">Notes</div>
+        <div id="cd2-notes" style="font-size:.82rem;color:var(--dark)"></div>
+      </div>
+      <!-- Actions -->
+      <div id="cd2-actions" style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.5rem"></div>
+    </div>
+  </div>
+</div>
+
+<!-- === APPROVE COMMISSION MODAL === -->
+<div class="modal-wrap" id="approve-commission-modal" style="display:none">
+  <div class="modal" style="max-width:420px;width:95%">
+    <div style="margin-bottom:1rem">
+      <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:.25rem" data-rw="KWEMEZA KOMISIYONI" data-en="APPROVE COMMISSION">APPROVE COMMISSION</div>
+      <h2 style="font-size:1.1rem;font-weight:800;color:var(--navy)" data-rw="Emeza Igihembo" data-en="Approve Commission">Approve Commission</h2>
+      <p style="font-size:.82rem;color:var(--muted);margin-top:.3rem" id="ac-summary"></p>
+    </div>
+    <input type="hidden" id="ac-comm-id">
+    <div style="display:flex;flex-direction:column;gap:.7rem">
+      <div class="vr-field">
+        <label data-rw="Inyandiko y'Icyemezo" data-en="Approval Note">Approval Note</label>
+        <textarea id="ac-note" rows="3" placeholder="Optional note..." style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box;resize:vertical"></textarea>
+      </div>
+      <div style="display:flex;gap:.6rem">
+        <button id="ac-approve-btn" class="btn btn-navy" style="flex:1;justify-content:center" onclick="submitCommissionDecision(true)">
+          <span data-rw="Emeza" data-en="Approve">Approve</span>
+        </button>
+        <button class="btn btn-outline" style="flex:1;justify-content:center" onclick="submitCommissionDecision(false)">
+          <span data-rw="Siba" data-en="Reject">Reject</span>
+        </button>
+        <button class="btn btn-outline" onclick="document.getElementById('approve-commission-modal').style.display='none'" style="padding:.5rem .8rem">✕</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === PAYSLIP MODAL === -->
+<div class="modal-wrap" id="payslip-modal" style="display:none">
+  <div class="modal" style="max-width:500px;max-height:92vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title">📄 <span data-rw="Payslip" data-en="Commission Payslip">Commission Payslip</span></div>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <button class="btn btn-navy btn-sm" onclick="window.print()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> <span data-rw="Sohora" data-en="Print">Print</span></button>
+        <button class="modal-x" onclick="closePayslip()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+    </div>
+    <div id="payslip-content" style="padding:1.25rem">
+      <!-- Rendered by generatePayslip() -->
+    </div>
+  </div>
+</div>
+
+<!-- === MANUAL COMMISSION MODAL === -->
+<div class="modal-wrap" id="manual-commission-modal" style="display:none">
+  <div class="modal" style="max-width:440px;width:95%">
+    <button class="modal-x" onclick="document.getElementById('manual-commission-modal').style.display='none'" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:.25rem" data-rw="KOMISIYONI NSHYA" data-en="NEW COMMISSION">NEW COMMISSION</div>
+      <h2 style="font-size:1.1rem;font-weight:800;color:var(--navy)" data-rw="Injiza Komisiyoni" data-en="Add Commission">Add Commission</h2>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.7rem">
+      <div class="vr-field">
+        <label data-rw="Izina ry'Umukomisiyoneri" data-en="Agent Name">Agent Name</label>
+        <input type="text" id="mc-agent-name" placeholder="Agent full name" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Izina ry'Imitungo" data-en="Property Title">Property Title</label>
+        <input type="text" id="mc-prop-title" placeholder="e.g. Villa Kimironko" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Ubwoko bwa Deal" data-en="Deal Type">Deal Type</label>
+        <select id="mc-deal-type" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
+          <option value="sale">Sale</option>
+          <option value="rental">Rental</option>
+          <option value="valuation">Valuation</option>
+          <option value="property_management">Property Management</option>
+        </select>
+      </div>
+      <div class="vr-field">
+        <label data-rw="Agaciro ka Deal (RWF)" data-en="Deal Value (RWF)">Deal Value (RWF)</label>
+        <input type="number" id="mc-deal-value" placeholder="e.g. 50000000" min="0" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Igipimo (%) — Sisitemu izabyubara" data-en="Rate (%) — System will calculate">Rate (%) — leave blank for default</label>
+        <input type="number" id="mc-rate" placeholder="e.g. 4" min="0" max="15" step="0.5" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div id="mc-preview" style="background:var(--light);border-radius:8px;padding:.75rem;font-size:.82rem;display:none"></div>
+      <button id="mc-submit-btn" class="btn btn-gold" style="width:100%;justify-content:center" onclick="createManualCommission()">
+        <span id="mc-submit-lbl" data-rw="Bika Komisiyoni" data-en="Save Commission">Save Commission</span>
       </button>
     </div>
   </div>
@@ -9638,6 +9842,9 @@ go = function(page) {
   if(page === 'deals') {
     setTimeout(loadDeals, 150);
   }
+  if(page === 'commissions') {
+    setTimeout(loadCommissions, 150);
+  }
 };
 
 </script>
@@ -10028,6 +10235,547 @@ go = function(page) {
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
+     PHASE 4 — COMMISSION ENGINE
+     Auto-calc | Approval workflow | Payslip | 60/40 split
+════════════════════════════════════════════════════════ -->
+<script>
+
+// ── Commission Rates (configurable per deal type) ─────
+var COMMISSION_RATES = {
+  sale:                { default: 0.04, min: 0.03, max: 0.05, label: 'Sale (3–5%)' },
+  rental:              { default: null, min: null, max: null, label: 'Rental (1 month rent)' },
+  property_management: { default: 0.10, min: 0.08, max: 0.12, label: 'Mgmt (8–12% monthly)' },
+  valuation:           { flat: 80000,  label: 'Valuation (flat 80,000 RWF)' },
+  surveying:           { flat: 120000, label: 'Survey (flat 120,000 RWF)' },
+  legal:               { flat: 150000, label: 'Legal (flat 150,000 RWF)' },
+  mortgage_referral:   { default: 0.0075, min: 0.005, max: 0.01, label: 'Mortgage (0.5–1%)' },
+  construction:        { default: 0.075, min: 0.05,  max: 0.10, label: 'Construction (5–10%)' }
+};
+
+// ── Agent/Company split (default 60/40) ───────────────
+var COMM_AGENT_SPLIT   = 0.60;
+var COMM_COMPANY_SPLIT = 0.40;
+
+// ── Commission state ──────────────────────────────────
+var _commissions  = [];
+var _commFilter   = '';
+var _commSearch   = '';
+var _cdCurrentComm = null;
+
+// ── Calculate commission amount for a deal ────────────
+function calcCommissionAmount(dealType, dealValue) {
+  dealValue = parseFloat(dealValue) || 0;
+  var rates = COMMISSION_RATES[dealType] || COMMISSION_RATES['sale'];
+  if (rates.flat) return rates.flat;
+  var rate = rates.default || 0.04;
+  return Math.round(dealValue * rate);
+}
+
+// ── Auto-calculate on deal closed_won ────────────────
+function autoCalculateCommission(dealId, deal) {
+  if (typeof db === 'undefined' || !dealId) return;
+  if (!deal) deal = {};
+  var dealType  = deal.dealType || 'sale';
+  var dealValue = deal.agreedPrice || deal.price || 0;
+  var rate      = (COMMISSION_RATES[dealType] && COMMISSION_RATES[dealType].default) || 0.04;
+  var total     = calcCommissionAmount(dealType, dealValue);
+  var agentShare   = Math.round(total * COMM_AGENT_SPLIT);
+  var companyShare = Math.round(total * COMM_COMPANY_SPLIT);
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+
+  // Check if commission already exists for this deal
+  db.collection('commissions').where('dealId','==',dealId).where('isActive','==',true).get()
+    .then(function(snap) {
+      if (!snap.empty) {
+        showToast(curLang === 'rw' ? 'Komisiyoni isanzwe ihari kuri iyi deal' : 'Commission already exists for this deal', 'info');
+        return;
+      }
+      return db.collection('commissions').add({
+        id:           '',
+        dealId:       dealId,
+        agentId:      deal.agentId || uid,
+        agentName:    deal.agentName || '',
+        propertyId:   deal.propertyId || '',
+        propertyTitle:deal.propertyTitle || deal.propTitle || '',
+        clientName:   deal.clientName || '',
+        dealType:     dealType,
+        dealValue:    dealValue,
+        commissionRate:  rate,
+        totalCommission: total,
+        agentShare:      agentShare,
+        companyShare:    companyShare,
+        agentSplitPct:   COMM_AGENT_SPLIT,
+        companySplitPct: COMM_COMPANY_SPLIT,
+        approvedBy:   '',
+        approvedAt:   null,
+        paidAt:       null,
+        paymentRef:   '',
+        notes:        '',
+        status:       'pending',
+        isActive:     true,
+        createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy:    uid,
+        updatedBy:    uid
+      });
+    })
+    .then(function(ref) {
+      if (!ref) return;
+      ref.update({ id: ref.id });
+      logAudit('commission.calculated', 'commissions', ref.id, null, {
+        dealId: dealId, total: total, agentShare: agentShare, companyShare: companyShare
+      });
+      showToast(curLang === 'rw'
+        ? 'Komisiyoni yabarwe: ' + total.toLocaleString() + ' RWF'
+        : 'Commission calculated: ' + total.toLocaleString() + ' RWF', 'success');
+      var badge = document.getElementById('comm-sidebar-count');
+      if (badge) badge.textContent = parseInt(badge.textContent || 0) + 1;
+    })
+    .catch(function(err) { console.error('[Commission] auto-calc error:', err); });
+}
+
+// ── Load Commissions ──────────────────────────────────
+function loadCommissions() {
+  var list = document.getElementById('comm-list');
+  if (!list) return;
+  list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⏳</div>'
+    + '<div class="crm-empty-title">' + (curLang === 'rw' ? 'Gutegura...' : 'Loading...') + '</div></div>';
+
+  if (typeof db === 'undefined') return;
+
+  var isAdmin = typeof currentUser !== 'undefined' && currentUser &&
+    ['admin','staff','ceo','super_admin','Admin'].indexOf(currentUser.role) !== -1;
+
+  var query;
+  if (isAdmin) {
+    query = db.collection('commissions').where('isActive','==',true)
+              .orderBy('createdAt','desc').limit(200);
+  } else if (typeof currentUser !== 'undefined' && currentUser) {
+    query = db.collection('commissions').where('isActive','==',true)
+              .where('agentId','==',currentUser.uid)
+              .orderBy('createdAt','desc').limit(200);
+  } else { return; }
+
+  query.get().then(function(snap) {
+    _commissions = [];
+    snap.forEach(function(doc) {
+      var d = doc.data();
+      d._docId = doc.id;
+      _commissions.push(d);
+    });
+    renderCommissionList();
+    updateCommissionStats();
+  }).catch(function(err) {
+    list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⚠️</div><div class="crm-empty-title">Error loading</div></div>';
+    console.error('[Commissions] load error:', err);
+  });
+}
+
+function updateCommissionStats() {
+  var total    = _commissions.length;
+  var pending  = _commissions.filter(function(c){ return c.status === 'pending'; }).length;
+  var approved = _commissions.filter(function(c){ return c.status === 'approved'; }).length;
+  var paid     = _commissions.filter(function(c){ return c.status === 'paid'; }).length;
+  var totalRwf = _commissions.reduce(function(s,c){ return s + (parseFloat(c.totalCommission)||0); }, 0);
+  var e2 = document.getElementById.bind(document);
+  if (e2('comm-stat-total'))    e2('comm-stat-total').textContent    = total;
+  if (e2('comm-stat-pending'))  e2('comm-stat-pending').textContent  = pending;
+  if (e2('comm-stat-approved')) e2('comm-stat-approved').textContent = approved;
+  if (e2('comm-stat-paid'))     e2('comm-stat-paid').textContent     = paid;
+  if (e2('comm-stat-total-rwf')) {
+    e2('comm-stat-total-rwf').textContent = totalRwf >= 1000000
+      ? (totalRwf/1000000).toFixed(1) + 'M'
+      : totalRwf >= 1000 ? Math.round(totalRwf/1000) + 'K'
+      : totalRwf.toLocaleString();
+  }
+}
+
+function filterCommissions() {
+  _commFilter = (document.getElementById('comm-filter-status') || {}).value || '';
+  _commSearch = ((document.getElementById('comm-search') || {}).value || '').toLowerCase();
+  renderCommissionList();
+}
+
+function renderCommissionList() {
+  var list = document.getElementById('comm-list');
+  if (!list) return;
+  var filtered = _commissions.filter(function(c) {
+    if (_commFilter && c.status !== _commFilter) return false;
+    if (_commSearch) {
+      var hay = ((c.agentName||'') + ' ' + (c.propertyTitle||'') + ' ' + (c.clientName||'')).toLowerCase();
+      if (hay.indexOf(_commSearch) === -1) return false;
+    }
+    return true;
+  });
+  if (!filtered.length) {
+    list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">💰</div>'
+      + '<div class="crm-empty-title">' + (curLang === 'rw' ? 'Nta komisiyoni ibonetse' : 'No commissions found') + '</div></div>';
+    return;
+  }
+  var STATUS_COLORS = { pending:'#F59E0B', approved:'#16A34A', paid:'var(--gold)', rejected:'#DC2626' };
+  var STATUS_LABELS = { pending:'Pending', approved:'Approved', paid:'Paid', rejected:'Rejected' };
+  list.innerHTML = filtered.map(function(c) {
+    var color  = STATUS_COLORS[c.status] || '#64748B';
+    var lbl    = STATUS_LABELS[c.status] || c.status;
+    var total  = (c.totalCommission||0).toLocaleString();
+    var aShare = (c.agentShare||0).toLocaleString();
+    var dt     = c.createdAt && c.createdAt.toDate ? c.createdAt.toDate().toLocaleDateString('en-RW') : '';
+    return '<div class="deal-card" onclick="openCommissionDetail(\'' + (c._docId||c.id) + '\')" style="cursor:pointer">'
+      + '<div class="deal-card-header">'
+      + '<div class="deal-card-title">' + (c.propertyTitle || 'Unknown Property') + '</div>'
+      + '<span class="comm-status-badge" style="background:' + color + '20;color:' + color + ';border:1px solid ' + color + '40">' + lbl + '</span>'
+      + '</div>'
+      + '<div class="deal-card-meta">'
+      + '<span>👤 ' + (c.agentName || '—') + '</span>'
+      + '<span>📋 ' + (c.dealType || '—') + '</span>'
+      + '<span>📅 ' + dt + '</span>'
+      + '</div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border)">'
+      + '<div style="font-size:.78rem;color:var(--muted)">Total: <strong style="color:var(--gold)">' + total + ' RWF</strong></div>'
+      + '<div style="font-size:.78rem;color:var(--muted)">Agent: <strong style="color:#16A34A">' + aShare + ' RWF</strong></div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+// ── Commission Detail ──────────────────────────────────
+function openCommissionDetail(id) {
+  var comm = null;
+  for (var i = 0; i < _commissions.length; i++) {
+    if ((_commissions[i]._docId || _commissions[i].id) === id) { comm = _commissions[i]; break; }
+  }
+  if (!comm) return;
+  _cdCurrentComm = comm;
+  var m = document.getElementById('commission-detail-modal');
+  if (!m) return;
+
+  var e2 = function(eid) { return document.getElementById(eid); };
+  var STATUS_LABELS = { pending:'Pending', approved:'Approved', paid:'Paid', rejected:'Rejected' };
+  var STATUS_COLORS = { pending:'#F59E0B', approved:'#16A34A', paid:'var(--gold)', rejected:'#DC2626' };
+
+  if (e2('cd2-comm-id'))  e2('cd2-comm-id').value = id;
+  if (e2('cd2-status-badge')) {
+    var s = comm.status || 'pending';
+    e2('cd2-status-badge').textContent = STATUS_LABELS[s] || s;
+    e2('cd2-status-badge').style.background = (STATUS_COLORS[s]||'#64748B') + '20';
+    e2('cd2-status-badge').style.color      = STATUS_COLORS[s] || '#64748B';
+    e2('cd2-status-badge').style.border     = '1px solid ' + (STATUS_COLORS[s]||'#64748B') + '40';
+  }
+  var dt = comm.createdAt && comm.createdAt.toDate ? comm.createdAt.toDate().toLocaleDateString('en-RW') : '';
+  if (e2('cd2-date')) e2('cd2-date').textContent = dt;
+  if (e2('cd2-deal-value'))    e2('cd2-deal-value').textContent    = (parseFloat(comm.dealValue)||0).toLocaleString() + ' RWF';
+  var rateDisp = comm.commissionRate ? (comm.commissionRate * 100).toFixed(1) + '%' : '—';
+  if (e2('cd2-rate'))          e2('cd2-rate').textContent          = rateDisp;
+  if (e2('cd2-total'))         e2('cd2-total').textContent         = (comm.totalCommission||0).toLocaleString() + ' RWF';
+  if (e2('cd2-agent-share'))   e2('cd2-agent-share').textContent   = (comm.agentShare||0).toLocaleString() + ' RWF';
+  if (e2('cd2-company-share')) e2('cd2-company-share').textContent = (comm.companyShare||0).toLocaleString() + ' RWF';
+  if (e2('cd2-agent-name'))    e2('cd2-agent-name').textContent    = comm.agentName || '—';
+  if (e2('cd2-prop-title'))    e2('cd2-prop-title').textContent    = comm.propertyTitle || '—';
+  if (e2('cd2-deal-type'))     e2('cd2-deal-type').textContent     = comm.dealType || '—';
+  if (e2('cd2-client-name'))   e2('cd2-client-name').textContent   = comm.clientName || '—';
+
+  var paidRow     = e2('cd2-paid-row');
+  var approvedRow = e2('cd2-approved-row');
+  if (paidRow)     paidRow.style.display     = comm.paidAt ? '' : 'none';
+  if (approvedRow) approvedRow.style.display = comm.approvedBy ? '' : 'none';
+  if (comm.paidAt && e2('cd2-paid-at')) {
+    var pd = comm.paidAt.toDate ? comm.paidAt.toDate().toLocaleDateString('en-RW') : comm.paidAt;
+    e2('cd2-paid-at').textContent = pd;
+  }
+  if (comm.approvedBy && e2('cd2-approved-by')) e2('cd2-approved-by').textContent = comm.approvedBy;
+
+  var notesWrap = e2('cd2-notes-wrap');
+  if (notesWrap) notesWrap.style.display = comm.notes ? '' : 'none';
+  if (comm.notes && e2('cd2-notes')) e2('cd2-notes').textContent = comm.notes;
+
+  // Build action buttons
+  var actDiv  = e2('cd2-actions');
+  var isAdmin = typeof currentUser !== 'undefined' && currentUser &&
+    ['admin','staff','ceo','super_admin','Admin'].indexOf(currentUser.role) !== -1;
+  var btns = '';
+  if (comm.status === 'pending' && isAdmin) {
+    btns += '<button class="btn btn-navy btn-sm" onclick="openApproveCommission(\'' + id + '\')"><span data-rw="Emeza" data-en="Approve">Approve</span></button>';
+  }
+  if (comm.status === 'approved' && isAdmin) {
+    btns += '<button class="btn btn-gold btn-sm" onclick="markCommissionPaid(\'' + id + '\')"><span data-rw="Emeza ko Yishyuwe" data-en="Mark Paid">Mark Paid</span></button>';
+  }
+  btns += '<button class="btn btn-outline btn-sm" onclick="openPayslip(\'' + id + '\')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> <span data-rw="Payslip" data-en="Payslip">Payslip</span></button>';
+  if (actDiv) actDiv.innerHTML = btns;
+
+  m.style.display = 'flex';
+}
+
+function closeCommissionDetail() {
+  var m = document.getElementById('commission-detail-modal');
+  if (m) m.style.display = 'none';
+  _cdCurrentComm = null;
+}
+
+// ── Approve / Reject Commission ───────────────────────
+function openApproveCommission(id) {
+  var m = document.getElementById('approve-commission-modal');
+  if (!m) return;
+  var comm = null;
+  for (var i = 0; i < _commissions.length; i++) {
+    if ((_commissions[i]._docId || _commissions[i].id) === id) { comm = _commissions[i]; break; }
+  }
+  var sumEl = document.getElementById('ac-summary');
+  if (sumEl && comm) {
+    sumEl.textContent = (comm.agentName || 'Agent') + ' — '
+      + (comm.totalCommission||0).toLocaleString() + ' RWF ('
+      + (comm.propertyTitle || 'Property') + ')';
+  }
+  var idEl = document.getElementById('ac-comm-id');
+  if (idEl) idEl.value = id;
+  m.style.display = 'flex';
+}
+
+function submitCommissionDecision(approved) {
+  var id   = (document.getElementById('ac-comm-id') || {}).value || '';
+  var note = ((document.getElementById('ac-note') || {}).value || '').trim();
+  if (!id || typeof db === 'undefined') return;
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+  var name = typeof currentUser !== 'undefined' && currentUser
+    ? (currentUser.displayName || currentUser.name || currentUser.email || uid) : uid;
+
+  var update = {
+    status:     approved ? 'approved' : 'rejected',
+    approvedBy: approved ? name : '',
+    notes:      note,
+    updatedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy:  uid
+  };
+  if (approved) update.approvedAt = firebase.firestore.FieldValue.serverTimestamp();
+
+  db.collection('commissions').doc(id).update(update).then(function() {
+    logAudit(approved ? 'commission.approved' : 'commission.rejected', 'commissions', id,
+      { status: 'pending' }, { status: update.status, approvedBy: name });
+    showToast(approved
+      ? (curLang === 'rw' ? 'Komisiyoni yemejwe!' : 'Commission approved!')
+      : (curLang === 'rw' ? 'Komisiyoni yanzwe' : 'Commission rejected'), approved ? 'success' : 'info');
+    document.getElementById('approve-commission-modal').style.display = 'none';
+    for (var i = 0; i < _commissions.length; i++) {
+      if ((_commissions[i]._docId || _commissions[i].id) === id) {
+        _commissions[i].status = update.status;
+        _commissions[i].approvedBy = update.approvedBy;
+        break;
+      }
+    }
+    renderCommissionList();
+    updateCommissionStats();
+    closeCommissionDetail();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error updating commission', 'error');
+    console.error('[Commission] approval error:', err);
+  });
+}
+
+// ── Mark Commission Paid ──────────────────────────────
+function markCommissionPaid(id) {
+  if (typeof db === 'undefined') return;
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+  db.collection('commissions').doc(id).update({
+    status: 'paid',
+    paidAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: uid
+  }).then(function() {
+    logAudit('commission.paid', 'commissions', id, { status: 'approved' }, { status: 'paid' });
+    showToast(curLang === 'rw' ? 'Komisiyoni yishyuwe!' : 'Commission marked as paid!', 'success');
+    for (var i = 0; i < _commissions.length; i++) {
+      if ((_commissions[i]._docId || _commissions[i].id) === id) {
+        _commissions[i].status = 'paid';
+        break;
+      }
+    }
+    renderCommissionList();
+    updateCommissionStats();
+    closeCommissionDetail();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error marking paid', 'error');
+    console.error('[Commission] paid error:', err);
+  });
+}
+
+// ── Payslip ───────────────────────────────────────────
+function openPayslip(id) {
+  var comm = null;
+  for (var i = 0; i < _commissions.length; i++) {
+    if ((_commissions[i]._docId || _commissions[i].id) === id) { comm = _commissions[i]; break; }
+  }
+  if (!comm) return;
+  var m = document.getElementById('payslip-modal');
+  var content = document.getElementById('payslip-content');
+  if (!m || !content) return;
+
+  var today = new Date().toLocaleDateString('en-RW');
+  var commDate = comm.createdAt && comm.createdAt.toDate ? comm.createdAt.toDate().toLocaleDateString('en-RW') : today;
+  var payDate  = comm.paidAt && comm.paidAt.toDate ? comm.paidAt.toDate().toLocaleDateString('en-RW') : (comm.status === 'paid' ? today : 'Pending');
+  var STATUS_LABELS = { pending:'PENDING', approved:'APPROVED', paid:'PAID', rejected:'REJECTED' };
+
+  content.innerHTML = '<div class="payslip">'
+    + '<div class="payslip-header">'
+    + '<div class="payslip-logo">KOMISIYONERI</div>'
+    + '<div class="payslip-company">ConnectPro Services Ltd — Kigali, Rwanda</div>'
+    + '<div class="payslip-title">COMMISSION PAYSLIP</div>'
+    + '</div>'
+    + '<div class="payslip-meta">'
+    + '<div><span>Ref:</span> <strong>' + (comm._docId || comm.id || '—').substring(0,12).toUpperCase() + '</strong></div>'
+    + '<div><span>Date:</span> <strong>' + commDate + '</strong></div>'
+    + '<div><span>Status:</span> <strong style="color:' + (comm.status==='paid'?'#16A34A':'#F59E0B') + '">' + (STATUS_LABELS[comm.status]||comm.status) + '</strong></div>'
+    + '</div>'
+    + '<div class="payslip-agent">'
+    + '<div class="payslip-section-lbl">AGENT INFORMATION</div>'
+    + '<div class="payslip-row"><span>Agent Name:</span><span>' + (comm.agentName || '—') + '</span></div>'
+    + '<div class="payslip-row"><span>Property:</span><span>' + (comm.propertyTitle || '—') + '</span></div>'
+    + '<div class="payslip-row"><span>Client:</span><span>' + (comm.clientName || '—') + '</span></div>'
+    + '<div class="payslip-row"><span>Deal Type:</span><span>' + (comm.dealType || '—') + '</span></div>'
+    + '</div>'
+    + '<div class="payslip-calc">'
+    + '<div class="payslip-section-lbl">COMMISSION CALCULATION</div>'
+    + '<div class="payslip-row"><span>Deal Value:</span><span>' + (parseFloat(comm.dealValue)||0).toLocaleString() + ' RWF</span></div>'
+    + '<div class="payslip-row"><span>Commission Rate:</span><span>' + (comm.commissionRate ? (comm.commissionRate*100).toFixed(1)+'%' : '—') + '</span></div>'
+    + '<div class="payslip-row payslip-row-total"><span>Total Commission:</span><span>' + (comm.totalCommission||0).toLocaleString() + ' RWF</span></div>'
+    + '</div>'
+    + '<div class="payslip-split">'
+    + '<div class="payslip-section-lbl">SPLIT</div>'
+    + '<div class="payslip-row payslip-row-agent"><span>Agent Share (' + Math.round((comm.agentSplitPct||0.6)*100) + '%):</span><span>' + (comm.agentShare||0).toLocaleString() + ' RWF</span></div>'
+    + '<div class="payslip-row"><span>Company Share (' + Math.round((comm.companySplitPct||0.4)*100) + '%):</span><span>' + (comm.companyShare||0).toLocaleString() + ' RWF</span></div>'
+    + '</div>'
+    + '<div class="payslip-footer">'
+    + '<div class="payslip-row"><span>Approved By:</span><span>' + (comm.approvedBy || 'Pending approval') + '</span></div>'
+    + '<div class="payslip-row"><span>Payment Date:</span><span>' + payDate + '</span></div>'
+    + '</div>'
+    + '<div style="text-align:center;margin-top:1.5rem;font-size:.7rem;color:var(--muted)">'
+    + 'KOMISIYONERI ConnectPro Services Ltd — info.komisiyoneri.net@gmail.com<br>'
+    + 'This payslip is computer-generated. Generated: ' + today
+    + '</div>'
+    + '</div>';
+
+  m.style.display = 'flex';
+}
+
+function closePayslip() {
+  var m = document.getElementById('payslip-modal');
+  if (m) m.style.display = 'none';
+}
+
+// ── Manual Commission Entry ───────────────────────────
+function openManualCommission() {
+  var m = document.getElementById('manual-commission-modal');
+  if (m) m.style.display = 'flex';
+  var prv = document.getElementById('mc-preview');
+  if (prv) prv.style.display = 'none';
+  // Live preview on value / type change
+  var valEl = document.getElementById('mc-deal-value');
+  var typEl = document.getElementById('mc-deal-type');
+  var rateEl = document.getElementById('mc-rate');
+  function updatePreview() {
+    var dv = parseFloat(valEl ? valEl.value : 0) || 0;
+    var dt = typEl ? typEl.value : 'sale';
+    var customRate = parseFloat(rateEl ? rateEl.value : '') || null;
+    if (!dv || !prv) return;
+    var total = customRate ? Math.round(dv * customRate / 100) : calcCommissionAmount(dt, dv);
+    var agSh  = Math.round(total * COMM_AGENT_SPLIT);
+    var coSh  = Math.round(total * COMM_COMPANY_SPLIT);
+    prv.style.display = '';
+    prv.innerHTML = '<strong>Preview:</strong> Total: <span style="color:var(--gold)">' + total.toLocaleString() + ' RWF</span>'
+      + ' | Agent: <span style="color:#16A34A">' + agSh.toLocaleString() + '</span>'
+      + ' | Company: <span style="color:var(--navy)">' + coSh.toLocaleString() + '</span>';
+  }
+  if (valEl) valEl.oninput  = updatePreview;
+  if (typEl) typEl.onchange = updatePreview;
+  if (rateEl) rateEl.oninput = updatePreview;
+}
+
+function createManualCommission() {
+  var agentEl = document.getElementById('mc-agent-name');
+  var propEl  = document.getElementById('mc-prop-title');
+  var typeEl  = document.getElementById('mc-deal-type');
+  var valEl   = document.getElementById('mc-deal-value');
+  var rateEl  = document.getElementById('mc-rate');
+  var btn     = document.getElementById('mc-submit-btn');
+  var lbl     = document.getElementById('mc-submit-lbl');
+
+  var agentName = agentEl ? agentEl.value.trim() : '';
+  var propTitle = propEl  ? propEl.value.trim()  : '';
+  var dealType  = typeEl  ? typeEl.value          : 'sale';
+  var dealValue = parseFloat(valEl ? valEl.value : 0) || 0;
+  var customRate = parseFloat(rateEl ? rateEl.value : '') || null;
+
+  if (!agentName) { showToast(curLang === 'rw' ? 'Injiza izina ry\'umukomisiyoneri!' : 'Enter agent name!', 'error'); return; }
+  if (!dealValue) { showToast(curLang === 'rw' ? 'Injiza agaciro ka deal!' : 'Enter deal value!', 'error'); return; }
+  if (typeof db === 'undefined') { showToast('Firebase ntabwo ihuye', 'error'); return; }
+
+  if (btn) btn.disabled = true;
+  if (lbl) lbl.textContent = curLang === 'rw' ? 'Gutegura...' : 'Saving...';
+
+  var rate  = customRate ? (customRate / 100) : (COMMISSION_RATES[dealType] ? (COMMISSION_RATES[dealType].default || 0.04) : 0.04);
+  var total = customRate ? Math.round(dealValue * customRate / 100) : calcCommissionAmount(dealType, dealValue);
+  var agSh  = Math.round(total * COMM_AGENT_SPLIT);
+  var coSh  = Math.round(total * COMM_COMPANY_SPLIT);
+  var uid   = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+
+  db.collection('commissions').add({
+    id: '', dealId: '', agentId: uid, agentName: agentName,
+    propertyId: '', propertyTitle: propTitle, clientName: '',
+    dealType: dealType, dealValue: dealValue,
+    commissionRate: rate, totalCommission: total,
+    agentShare: agSh, companyShare: coSh,
+    agentSplitPct: COMM_AGENT_SPLIT, companySplitPct: COMM_COMPANY_SPLIT,
+    approvedBy: '', approvedAt: null, paidAt: null, paymentRef: '', notes: '',
+    status: 'pending', isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: uid, updatedBy: uid
+  }).then(function(ref) {
+    ref.update({ id: ref.id });
+    logAudit('commission.manual.created', 'commissions', ref.id, null, { agentName: agentName, total: total });
+    showToast(curLang === 'rw' ? 'Komisiyoni yabitswe!' : 'Commission saved!', 'success');
+    document.getElementById('manual-commission-modal').style.display = 'none';
+    if (agentEl) agentEl.value = '';
+    if (propEl)  propEl.value  = '';
+    if (valEl)   valEl.value   = '';
+    if (rateEl)  rateEl.value  = '';
+    if (btn) btn.disabled = false;
+    if (lbl) lbl.textContent = curLang === 'rw' ? 'Bika Komisiyoni' : 'Save Commission';
+    loadCommissions();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error saving commission', 'error');
+    if (btn) btn.disabled = false;
+    if (lbl) lbl.textContent = curLang === 'rw' ? 'Bika Komisiyoni' : 'Save Commission';
+    console.error('[Commission] manual create error:', err);
+  });
+}
+
+// ── Sidebar badge + dashboard KPI ────────────────────
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      if (typeof db !== 'undefined' && typeof currentUser !== 'undefined' && currentUser) {
+        var isAdmin = ['admin','staff','ceo','super_admin','Admin'].indexOf(currentUser.role) !== -1;
+        var q = isAdmin
+          ? db.collection('commissions').where('isActive','==',true).where('status','==','pending')
+          : db.collection('commissions').where('isActive','==',true).where('agentId','==',currentUser.uid).where('status','in',['pending','approved']);
+        q.get().then(function(snap) {
+          var badge = document.getElementById('comm-sidebar-count');
+          if (badge) badge.textContent = snap.size;
+          var kpi = document.getElementById('dash-kpi-commission');
+          if (kpi && snap.size > 0) {
+            var total = 0;
+            snap.forEach(function(doc) { total += (doc.data().agentShare || 0); });
+            kpi.textContent = total >= 1000000 ? (total/1000000).toFixed(1)+'M'
+              : total >= 1000 ? Math.round(total/1000)+'K' : total.toLocaleString();
+          }
+        }).catch(function(){});
+      }
+    }, 4000);
+  });
+})();
+
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
      PHASE 3 — DEAL MANAGEMENT
      Viewings (Firestore) | Offers | Deals | Negotiation
 ════════════════════════════════════════════════════════ -->
@@ -10308,6 +11056,9 @@ function advanceDealStage() {
     }).then(function() {
       showToast((curLang === 'rw' ? 'Deal yafunguwe ku: ' : 'Deal moved to: ') + label, 'success');
       logAudit('deal.stage.changed', 'deals', dealId, { pipelineStage: curKey }, { pipelineStage: nextKey });
+      if (nextKey === 'closed_won' && typeof autoCalculateCommission === 'function') {
+        setTimeout(function() { autoCalculateCommission(dealId, _ddCurrentDeal); }, 500);
+      }
       if (_ddCurrentDeal) _ddCurrentDeal.pipelineStage = nextKey;
       for (var i = 0; i < _deals.length; i++) {
         if ((_deals[i]._docId || _deals[i].id) === dealId) { _deals[i].pipelineStage = nextKey; break; }
