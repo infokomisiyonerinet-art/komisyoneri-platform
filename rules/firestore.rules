@@ -1,0 +1,240 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ──────────────────────────────────────
+    function isAuth() {
+      return request.auth != null;
+    }
+    function isRole(r) {
+      return isAuth() && request.auth.token.role == r;
+    }
+    function isAdminOrStaff() {
+      return isAuth() && request.auth.token.role in
+        ['admin', 'super_admin', 'staff', 'Admin'];
+    }
+    function hasStandardFields() {
+      return request.resource.data.keys().hasAll([
+        'id','createdAt','updatedAt','createdBy','updatedBy','status','isActive'
+      ]);
+    }
+
+    // ── EXISTING collections ──────────────────────────
+
+    match /users/{uid} {
+      allow read:   if isAuth() && (request.auth.uid == uid || isAdminOrStaff());
+      allow create: if isAuth() && request.auth.uid == uid && hasStandardFields();
+      allow update: if isAuth() && (request.auth.uid == uid || isAdminOrStaff());
+      allow delete: if false;
+    }
+
+    match /properties/{id} {
+      allow read:   if true;
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAuth();
+      allow delete: if false;
+    }
+
+    match /leads/{id} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && (resource.data.clientId == request.auth.uid
+                        || resource.data.agentId  == request.auth.uid));
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && resource.data.agentId == request.auth.uid);
+      allow delete: if false;
+    }
+
+    match /deals/{id} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && (resource.data.clientId == request.auth.uid
+                        || resource.data.agentId  == request.auth.uid));
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && resource.data.agentId == request.auth.uid);
+      allow delete: if false;
+    }
+
+    match /commissions/{id} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && resource.data.agentId == request.auth.uid);
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAdminOrStaff();
+      allow delete: if false;
+    }
+
+    match /documents/{id} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && resource.data.clientId == request.auth.uid)
+                    || (isAuth() && resource.data.agentId  == request.auth.uid);
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAuth();
+      allow delete: if false;
+    }
+
+    match /offers/{id} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && (resource.data.fromUserId == request.auth.uid));
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAdminOrStaff() || isAuth();
+      allow delete: if false;
+    }
+
+    match /viewings/{id} {
+      allow read:   if isAuth();
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAuth();
+      allow delete: if false;
+    }
+
+    match /services/{id} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && (resource.data.requestedBy == request.auth.uid
+                        || resource.data.assignedTo == request.auth.uid));
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && resource.data.assignedTo == request.auth.uid);
+      allow delete: if false;
+    }
+
+    match /partners/{id} {
+      allow read:   if true;
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && resource.data.userId == request.auth.uid);
+      allow delete: if false;
+    }
+
+    match /invoices/{id} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && resource.data.billedTo == request.auth.uid);
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAdminOrStaff();
+      allow delete: if false;
+    }
+
+    match /expenses/{id} {
+      allow read:   if isAdminOrStaff();
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAdminOrStaff();
+      allow delete: if false;
+    }
+
+    match /tasks/{id} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && resource.data.assignedTo == request.auth.uid);
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && resource.data.assignedTo == request.auth.uid);
+      allow delete: if false;
+    }
+
+    match /attendance/{id} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && resource.data.userId == request.auth.uid);
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && resource.data.userId == request.auth.uid);
+      allow delete: if false;
+    }
+
+    match /leaves/{id} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && resource.data.userId == request.auth.uid);
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAdminOrStaff();
+      allow delete: if false;
+    }
+
+    match /payroll/{id} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && resource.data.userId == request.auth.uid);
+      allow create: if isAdminOrStaff() && hasStandardFields();
+      allow update: if isAdminOrStaff();
+      allow delete: if false;
+    }
+
+    match /reviews/{id} {
+      allow read:   if true;
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAdminOrStaff();
+      allow delete: if false;
+    }
+
+    match /branches/{id} {
+      allow read:   if isAuth();
+      allow create: if isAdminOrStaff() && hasStandardFields();
+      allow update: if isAdminOrStaff();
+      allow delete: if false;
+    }
+
+    match /referrals/{id} {
+      allow read:   if isAuth() && (resource.data.referrerId == request.auth.uid || isAdminOrStaff());
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAdminOrStaff();
+      allow delete: if false;
+    }
+
+    match /notifications/{id} {
+      allow read:   if isAuth() && resource.data.userId == request.auth.uid;
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAuth() && resource.data.userId == request.auth.uid;
+      allow delete: if false;
+    }
+
+    match /messages/{id} {
+      allow read:   if isAuth();
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAdminOrStaff();
+      allow delete: if false;
+    }
+
+    match /auditlogs/{id} {
+      // Immutable — no updates or deletes ever
+      allow read:   if isAdminOrStaff();
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ── SITE DEVELOPMENT MODULE ───────────────────────
+
+    match /sites/{siteId} {
+      allow read:   if true;
+      allow create: if isAuth()
+                    && request.auth.token.role in ['agent','Agent','developer','staff','admin','Admin','super_admin']
+                    && hasStandardFields();
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && isRole('agent')
+                        && resource.data.managingAgentId == request.auth.uid)
+                    || (isAuth() && isRole('developer')
+                        && resource.data.developerId == request.auth.uid);
+      allow delete: if false;
+    }
+
+    match /plots/{plotId} {
+      allow read:   if true;
+      allow create: if isAuth()
+                    && request.auth.token.role in ['agent','Agent','staff','admin','Admin','super_admin']
+                    && hasStandardFields();
+      allow update: if isAdminOrStaff()
+                    || (isAuth()
+                        && get(/databases/$(database)/documents/sites/$(resource.data.siteId))
+                           .data.managingAgentId == request.auth.uid)
+                    || (isAuth() && resource.data.clientId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status','clientId','reservedAt','reservedUntil','updatedAt','updatedBy']));
+      allow delete: if false;
+    }
+
+    match /site_enquiries/{enquiryId} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && resource.data.clientId == request.auth.uid)
+                    || (isAuth() && resource.data.agentId  == request.auth.uid);
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && resource.data.agentId == request.auth.uid);
+      allow delete: if false;
+    }
+  }
+}

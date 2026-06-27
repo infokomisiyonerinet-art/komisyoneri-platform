@@ -2062,6 +2062,118 @@ html,body{overscroll-behavior-x:none}
     padding:.75rem 1rem!important;
   }
 }
+
+/* ══════════════════════════════════════════
+   SITE DEVELOPMENT MODULE — Phase A
+══════════════════════════════════════════ */
+:root{
+  --plot-available:#C9A84C;
+  --plot-reserved:#1249B3;
+  --plot-sold:#DC2626;
+  --plot-hold:#64748B;
+}
+
+/* Site listing cards */
+.site-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.2rem;padding:1.2rem 0}
+.site-card{background:#fff;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;transition:var(--tr);cursor:pointer}
+.site-card:hover{box-shadow:0 6px 24px rgba(13,59,140,.12);transform:translateY(-2px)}
+.site-card-img{width:100%;height:160px;object-fit:cover;background:var(--light);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.8rem;position:relative}
+.site-card-img img{width:100%;height:100%;object-fit:cover}
+.site-card-status-badge{position:absolute;top:.6rem;right:.6rem;padding:.25rem .6rem;border-radius:20px;font-size:.68rem;font-weight:700;text-transform:uppercase;background:#fff;color:var(--navy)}
+.site-card-body{padding:1rem}
+.site-card-name{font-weight:700;font-size:.95rem;color:var(--dark);margin-bottom:.25rem;line-height:1.3}
+.site-card-district{font-size:.75rem;color:var(--muted);margin-bottom:.6rem;display:flex;align-items:center;gap:.3rem}
+.site-plot-counter{display:flex;gap:.5rem;margin-bottom:.7rem;flex-wrap:wrap}
+.site-plot-badge{display:flex;align-items:center;gap:.3rem;padding:.2rem .55rem;border-radius:20px;font-size:.7rem;font-weight:600}
+.site-plot-badge.avail{background:rgba(201,168,76,.15);color:#92650a}
+.site-plot-badge.resv{background:rgba(18,73,179,.12);color:var(--blue)}
+.site-plot-badge.sold{background:rgba(220,38,38,.1);color:var(--error)}
+.site-price-range{font-size:.8rem;color:var(--navy);font-weight:600;margin-bottom:.7rem}
+.site-amenity-icons{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.8rem}
+.site-amenity-icon{font-size:.75rem;padding:.15rem .4rem;background:var(--light);border-radius:6px;color:var(--dark)}
+.site-card-footer{display:flex;gap:.5rem}
+.site-card-footer .btn{flex:1;justify-content:center;font-size:.78rem;padding:.55rem .5rem}
+
+/* Site plan viewer */
+.site-plan-wrap{position:relative;width:100%;background:#0a0f1e;border-radius:12px;overflow:hidden;touch-action:pan-y pinch-zoom}
+.site-plan-img{width:100%;display:block;max-height:70vh;object-fit:contain}
+.site-plan-overlay{position:absolute;inset:0;pointer-events:none}
+.plot-overlay{position:absolute;border:2px solid rgba(255,255,255,.5);border-radius:4px;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7);transition:all .15s;min-width:44px;min-height:44px}
+.plot-overlay:hover,.plot-overlay:focus{border-color:#fff;filter:brightness(1.15);z-index:10}
+.plot-overlay.plot-available{background:rgba(201,168,76,.65)}
+.plot-overlay.plot-reserved{background:rgba(18,73,179,.7)}
+.plot-overlay.plot-sold{background:rgba(220,38,38,.75)}
+.plot-overlay.plot-sold::after{content:'✕';font-size:1rem;font-weight:900;position:absolute}
+.plot-overlay.plot-on-hold{background:rgba(100,116,139,.65)}
+
+/* Legend */
+.site-legend{display:flex;gap:.7rem;flex-wrap:wrap;padding:.7rem 0;font-size:.75rem}
+.legend-item{display:flex;align-items:center;gap:.35rem}
+.legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.legend-dot.avail{background:var(--plot-available)}
+.legend-dot.resv{background:var(--plot-reserved)}
+.legend-dot.sold{background:var(--plot-sold)}
+.legend-dot.hold{background:var(--plot-hold)}
+
+/* Plot popup (appears near plot) */
+.plot-popup{position:absolute;z-index:50;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.22);border:1.5px solid var(--border);padding:1rem;min-width:200px;max-width:240px;pointer-events:all}
+.plot-popup-close{position:absolute;top:.4rem;right:.5rem;background:none;border:none;font-size:1.1rem;cursor:pointer;line-height:1;color:var(--muted)}
+.plot-popup-num{font-weight:700;font-size:.95rem;color:var(--navy);margin-bottom:.25rem}
+.plot-popup-status{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .55rem;border-radius:20px;font-size:.68rem;font-weight:700;margin-bottom:.6rem}
+.plot-popup-status.available{background:rgba(201,168,76,.18);color:#7a5200}
+.plot-popup-status.reserved{background:rgba(18,73,179,.12);color:var(--blue)}
+.plot-popup-status.sold{background:rgba(220,38,38,.1);color:var(--error)}
+.plot-popup-status.on_hold{background:rgba(100,116,139,.12);color:var(--muted)}
+.plot-popup-row{display:flex;justify-content:space-between;font-size:.78rem;color:var(--dark);margin-bottom:.2rem}
+.plot-popup-row span:last-child{font-weight:600;color:var(--navy)}
+.plot-popup-btns{display:flex;flex-direction:column;gap:.4rem;margin-top:.7rem}
+.plot-popup-btns .btn{justify-content:center;font-size:.76rem;padding:.5rem}
+
+/* Site submission form steps */
+.site-step{display:none}
+.site-step.active{display:block}
+.site-step-indicator{display:flex;gap:0;margin-bottom:1.2rem;border-radius:8px;overflow:hidden;border:1.5px solid var(--border)}
+.site-step-dot{flex:1;padding:.45rem .3rem;text-align:center;font-size:.7rem;font-weight:600;color:var(--muted);background:var(--light);border-right:1px solid var(--border)}
+.site-step-dot:last-child{border-right:none}
+.site-step-dot.active{background:var(--navy);color:#fff}
+.site-step-dot.done{background:var(--blue);color:#fff}
+
+/* Plot grid (for site detail — simple grid before image upload) */
+.plot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:.6rem;padding:.5rem 0}
+.plot-cell{border-radius:8px;padding:.6rem .3rem;text-align:center;cursor:pointer;transition:var(--tr);border:2px solid transparent;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem}
+.plot-cell:hover{filter:brightness(.9)}
+.plot-cell.plot-available{background:rgba(201,168,76,.2);border-color:var(--plot-available)}
+.plot-cell.plot-reserved{background:rgba(18,73,179,.15);border-color:var(--plot-reserved)}
+.plot-cell.plot-sold{background:rgba(220,38,38,.12);border-color:var(--plot-sold)}
+.plot-cell.plot-on-hold{background:rgba(100,116,139,.12);border-color:var(--plot-hold)}
+.plot-cell-num{font-weight:700;font-size:.78rem;color:var(--dark)}
+.plot-cell-size{font-size:.62rem;color:var(--muted)}
+
+/* Site page header */
+#page-sites .list-hdr,#page-site .list-hdr{background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 100%)}
+.site-filters{display:flex;gap:.6rem;flex-wrap:wrap;padding:.8rem 0;align-items:center}
+.site-filters select,.site-filters input{padding:.5rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;font-family:inherit;background:#fff;min-width:140px}
+
+/* Stats row for site detail */
+.site-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;margin-bottom:1rem}
+.site-kpi{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:.8rem;text-align:center}
+.site-kpi-val{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:var(--navy)}
+.site-kpi-lbl{font-size:.68rem;color:var(--muted);margin-top:.1rem}
+
+/* Pending sites badge */
+.pending-sites-badge{display:none;background:#e53e3e;color:#fff;border-radius:50%;font-size:.6rem;font-weight:700;width:16px;height:16px;align-items:center;justify-content:center;margin-left:.3rem}
+
+@media(max-width:660px){
+  .site-grid{grid-template-columns:1fr}
+  .site-kpi-row{grid-template-columns:repeat(2,1fr)}
+  .site-step-dot{font-size:.6rem;padding:.4rem .15rem}
+  .plot-popup{min-width:175px;max-width:220px}
+  .plot-cell{min-height:48px}
+}
+@media(max-width:414px){
+  .site-card-img{height:130px}
+  .site-plan-img{max-height:55vw}
+}
 </style>
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -2204,6 +2316,7 @@ html,body{overscroll-behavior-x:none}
     <button class="nl active" id="nl-home" onclick="go('home')" aria-label="Ahabanza — Home page" aria-current="page" data-rw="Ahabanza" data-en="Home">Ahabanza</button>
     <button class="nl" id="nl-listings" onclick="go('listings')" aria-label="Imitungo — Properties page" data-rw="Imitungo" data-en="Properties">Imitungo</button>
     <button class="nl" id="nl-analytics" onclick="go('analytics')" aria-label="AI Analytics page" data-rw="AI Analytics" data-en="AI Analytics">AI Analytics</button>
+    <button class="nl" id="nl-sites" onclick="go('sites')" aria-label="New Developments page" data-rw="Sitey Nshya" data-en="New Sites">Sitey Nshya</button>
     <button class="nl" id="nl-dashboard" onclick="go('dashboard')" aria-label="Dashboard page" data-rw="Dashboard" data-en="Dashboard" style="display:none">Dashboard</button>
     <button class="nl" id="nl-auth" onclick="go('auth')" data-rw="Injira" data-en="Sign In">Injira</button>
   </div>
@@ -2269,6 +2382,10 @@ html,body{overscroll-behavior-x:none}
     <button onclick="go('analytics');closeHamburger()" class="hm-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       <span data-rw="AI Market" data-en="AI Market">AI Market</span>
+    </button>
+    <button onclick="go('sites');closeHamburger()" class="hm-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9" y1="14.5" x2="15" y2="14.5"/></svg>
+      <span data-rw="Sitey Nshya" data-en="New Sites">Sitey Nshya</span>
     </button>
     <button onclick="openLead();closeHamburger()" class="hm-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
@@ -5108,6 +5225,107 @@ html,body{overscroll-behavior-x:none}
   </div>
 </div>
 
+<!-- === PAGE: NEW SITES / SITE DEVELOPMENT === -->
+<div class="page" id="page-sites">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">🏗️ New Developments</div>
+      <h1 class="h1" data-rw="Sitey Nshya z'Imitungo" data-en="New Development Sites">Sitey Nshya z'Imitungo</h1>
+      <p style="color:rgba(255,255,255,.82);font-size:.85rem" data-rw="Shakisha ikiraro mu mashami mashya y'imitungo mu ntara zose z'u Rwanda" data-en="Browse plots in new housing developments across all 30 districts of Rwanda">Browse plots in new developments across Rwanda</p>
+    </div>
+  </div>
+  <div class="crm-wrap">
+    <div class="crm-header">
+      <div class="site-filters">
+        <select id="sites-filter-district" onchange="filterSites()">
+          <option value="" data-rw="Intara Zose" data-en="All Districts">All Districts</option>
+          <option value="Gasabo">Gasabo</option><option value="Kicukiro">Kicukiro</option><option value="Nyarugenge">Nyarugenge</option>
+          <option value="Bugesera">Bugesera</option><option value="Rwamagana">Rwamagana</option><option value="Musanze">Musanze</option>
+          <option value="Rubavu">Rubavu</option><option value="Huye">Huye</option><option value="Muhanga">Muhanga</option>
+          <option value="Kamonyi">Kamonyi</option><option value="Ngoma">Ngoma</option><option value="Kirehe">Kirehe</option>
+          <option value="Kayonza">Kayonza</option><option value="Nyagatare">Nyagatare</option><option value="Gisagara">Gisagara</option>
+          <option value="Nyamagabe">Nyamagabe</option><option value="Nyaruguru">Nyaruguru</option><option value="Ruhango">Ruhango</option>
+          <option value="Karongi">Karongi</option><option value="Rutsiro">Rutsiro</option><option value="Ngororero">Ngororero</option>
+          <option value="Nyabihu">Nyabihu</option><option value="Gakenke">Gakenke</option><option value="Gicumbi">Gicumbi</option>
+          <option value="Burera">Burera</option><option value="Gatsibo">Gatsibo</option><option value="Rusizi">Rusizi</option>
+          <option value="Rulindo">Rulindo</option><option value="Nyamasheke">Nyamasheke</option><option value="Karongi">Karongi</option>
+        </select>
+        <input type="text" id="sites-search" placeholder="Shakisha site... / Search site..." oninput="filterSites()" style="flex:1;min-width:180px;padding:.5rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;font-family:inherit">
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-navy btn-sm" onclick="openSiteSubmit()" id="site-submit-btn" style="display:none">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span data-rw="Ongeramo Site" data-en="Add Site">Add Site</span>
+        </button>
+      </div>
+    </div>
+    <div class="site-grid" id="sites-grid">
+      <div class="crm-empty" style="grid-column:1/-1">
+        <div class="crm-empty-icon">🏗️</div>
+        <div class="crm-empty-title" data-rw="Gutegura amasitey..." data-en="Loading sites...">Loading sites...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === PAGE: SINGLE SITE PLAN VIEWER === -->
+<div class="page" id="page-site">
+  <div class="list-hdr">
+    <div class="wrap">
+      <button onclick="go('sites')" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:.35rem .8rem;font-size:.78rem;cursor:pointer;margin-bottom:.7rem;display:inline-flex;align-items:center;gap:.4rem">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        <span data-rw="Garuka" data-en="Back">Back</span>
+      </button>
+      <div class="eyebrow tag-green" id="site-detail-district">📍 District</div>
+      <h1 class="h1" id="site-detail-name">Site Name</h1>
+      <p style="color:rgba(255,255,255,.82);font-size:.85rem" id="site-detail-desc">Description</p>
+    </div>
+  </div>
+  <div class="crm-wrap">
+    <!-- KPI strip -->
+    <div class="site-kpi-row" id="site-kpi-row">
+      <div class="site-kpi"><div class="site-kpi-val" id="site-kpi-total">—</div><div class="site-kpi-lbl" data-rw="Ibiraro Byose" data-en="Total Plots">Total Plots</div></div>
+      <div class="site-kpi"><div class="site-kpi-val" style="color:var(--plot-available)" id="site-kpi-avail">—</div><div class="site-kpi-lbl" data-rw="Ibihari" data-en="Available">Available</div></div>
+      <div class="site-kpi"><div class="site-kpi-val" style="color:var(--plot-reserved)" id="site-kpi-resv">—</div><div class="site-kpi-lbl" data-rw="Bibitswe" data-en="Reserved">Reserved</div></div>
+      <div class="site-kpi"><div class="site-kpi-val" style="color:var(--plot-sold)" id="site-kpi-sold">—</div><div class="site-kpi-lbl" data-rw="Bigurishijwe" data-en="Sold">Sold</div></div>
+    </div>
+
+    <!-- Amenities -->
+    <div id="site-amenities-bar" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem"></div>
+
+    <!-- Legend -->
+    <div class="site-legend">
+      <div class="legend-item"><div class="legend-dot avail"></div><span data-rw="Ibihari" data-en="Available">Available</span></div>
+      <div class="legend-item"><div class="legend-dot resv"></div><span data-rw="Bibitswe" data-en="Reserved">Reserved</span></div>
+      <div class="legend-item"><div class="legend-dot sold"></div><span data-rw="Bigurishijwe" data-en="Sold">Sold</span></div>
+      <div class="legend-item"><div class="legend-dot hold"></div><span data-rw="Bihagaritswe" data-en="On Hold">On Hold</span></div>
+    </div>
+
+    <!-- Site Plan (image + overlay) -->
+    <div id="site-plan-wrap" class="site-plan-wrap" style="margin-bottom:1rem;display:none">
+      <img id="site-plan-img" class="site-plan-img" src="" alt="Site Plan" onerror="this.style.display='none'">
+      <div class="site-plan-overlay" id="site-plan-overlay"></div>
+    </div>
+
+    <!-- Plot grid (fallback / simple view) -->
+    <div id="site-plot-grid" class="plot-grid"></div>
+
+    <!-- Staff actions -->
+    <div id="site-staff-actions" style="display:none;margin-top:1rem;padding:1rem;background:var(--light);border-radius:10px;border:1.5px solid var(--border)">
+      <div style="font-weight:700;font-size:.88rem;color:var(--navy);margin-bottom:.7rem" data-rw="Igikorwa cya Staff" data-en="Staff Actions">Staff Actions</div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+        <button class="btn btn-navy btn-sm" onclick="approveSite()" id="site-approve-btn" style="display:none" data-rw="Emeza Site" data-en="Approve Site">Approve Site</button>
+        <button class="btn btn-sm" style="background:#e53e3e;color:#fff;display:none" onclick="rejectSite()" id="site-reject-btn" data-rw="Suzuma Site" data-en="Reject Site">Reject Site</button>
+        <button class="btn btn-outline btn-sm" onclick="openSiteSubmit(currentSiteId)" id="site-edit-btn" style="display:none" data-rw="Hindura" data-en="Edit Site">Edit Site</button>
+      </div>
+      <div id="site-reject-reason-wrap" style="display:none;margin-top:.7rem">
+        <textarea id="site-reject-reason" placeholder="Reason for rejection..." style="width:100%;padding:.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.82rem;resize:vertical;min-height:60px"></textarea>
+        <button class="btn btn-sm" style="background:#e53e3e;color:#fff;margin-top:.4rem" onclick="confirmRejectSite()">Confirm Rejection</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- === BRANCH CREATE MODAL === -->
 <div class="modal-wrap" id="branch-create-modal" style="display:none">
   <div class="modal" style="max-width:500px">
@@ -5165,6 +5383,223 @@ html,body{overscroll-behavior-x:none}
       <button class="modal-x" onclick="closeBranchDetail()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div id="branch-detail-body"></div>
+  </div>
+</div>
+
+<!-- === SITE SUBMIT MODAL (multi-step) === -->
+<div class="modal-wrap" id="site-submit-modal" style="display:none">
+  <div class="modal" style="max-width:560px;max-height:92vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title" id="site-modal-title" data-rw="Ongeramo Site Nshya" data-en="Add New Development Site">Add New Development Site</div>
+      <button class="modal-x" onclick="closeSiteSubmit()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="padding:.5rem 0">
+      <!-- Step indicator -->
+      <div class="site-step-indicator">
+        <div class="site-step-dot active" id="site-sdot-1">1. Amakuru</div>
+        <div class="site-step-dot" id="site-sdot-2">2. Nyir'Ubutaka</div>
+        <div class="site-step-dot" id="site-sdot-3">3. Ibiraro</div>
+        <div class="site-step-dot" id="site-sdot-4">4. Ibiciro</div>
+      </div>
+      <input type="hidden" id="site-edit-id">
+
+      <!-- STEP 1: Basic Info -->
+      <div class="site-step active" id="site-step-1">
+        <div style="display:flex;flex-direction:column;gap:.8rem">
+          <div class="field"><label data-rw="Izina ry'Isitey (EN)" data-en="Site Name (EN)">Site Name (EN)</label><input type="text" id="site-name" placeholder="e.g. RWAMAGANA-NYAKALIRO-MUNINI"></div>
+          <div class="field"><label data-rw="Izina ry'Isitey (RW)" data-en="Site Name (RW)">Site Name (RW)</label><input type="text" id="site-name-rw" placeholder="Izina mu Kinyarwanda"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+            <div class="field"><label data-rw="Intara" data-en="District">District</label>
+              <select id="site-district" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem">
+                <option value="">Select district...</option>
+                <option>Gasabo</option><option>Kicukiro</option><option>Nyarugenge</option>
+                <option>Bugesera</option><option>Rulindo</option><option>Rwamagana</option>
+                <option>Musanze</option><option>Rubavu</option><option>Nyamasheke</option>
+                <option>Huye</option><option>Muhanga</option><option>Kamonyi</option>
+                <option>Ngoma</option><option>Kirehe</option><option>Kayonza</option>
+                <option>Nyagatare</option><option>Gisagara</option><option>Nyamagabe</option>
+                <option>Nyaruguru</option><option>Ruhango</option><option>Karongi</option>
+                <option>Rutsiro</option><option>Ngororero</option><option>Nyabihu</option>
+                <option>Gakenke</option><option>Gicumbi</option><option>Burera</option>
+                <option>Gatsibo</option><option>Rusizi</option>
+              </select>
+            </div>
+            <div class="field"><label data-rw="Umurenge" data-en="Sector">Sector</label><input type="text" id="site-sector" placeholder="Sector"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+            <div class="field"><label data-rw="Akagari" data-en="Cell">Cell</label><input type="text" id="site-cell" placeholder="Cell"></div>
+            <div class="field"><label data-rw="Umudugudu" data-en="Village">Village</label><input type="text" id="site-village" placeholder="Village"></div>
+          </div>
+          <div class="field"><label data-rw="Ibisobanuro (EN)" data-en="Description (EN)">Description (EN)</label><textarea id="site-desc" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem;resize:vertical;min-height:70px" placeholder="Describe the site..."></textarea></div>
+          <div class="field"><label data-rw="Ibisobanuro (RW)" data-en="Description (RW)">Description (RW)</label><textarea id="site-desc-rw" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem;resize:vertical;min-height:60px" placeholder="Ibisobanuro mu Kinyarwanda..."></textarea></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+            <div class="field"><label>GPS Lat</label><input type="number" id="site-lat" step="0.0001" placeholder="-1.9441"></div>
+            <div class="field"><label>GPS Lng</label><input type="number" id="site-lng" step="0.0001" placeholder="30.0619"></div>
+          </div>
+          <div class="field"><label data-rw="Inzira y'Umuhanda" data-en="Road Type">Road Type</label>
+            <select id="site-road" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem">
+              <option value="tarmac" data-rw="Asfaru" data-en="Tarmac">Tarmac</option>
+              <option value="murram" data-rw="Murram" data-en="Murram/Gravel">Murram/Gravel</option>
+              <option value="under_construction" data-rw="Irabakwa" data-en="Under Construction">Under Construction</option>
+            </select>
+          </div>
+          <div class="field"><label data-rw="Inshinga z'Ubutaka" data-en="Amenities">Amenities (check all that apply)</label>
+            <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.3rem">
+              <label style="display:flex;align-items:center;gap:.3rem;font-size:.82rem"><input type="checkbox" value="water" class="site-amenity-cb"> <span data-rw="Amazi" data-en="Water">Water</span></label>
+              <label style="display:flex;align-items:center;gap:.3rem;font-size:.82rem"><input type="checkbox" value="electricity" class="site-amenity-cb"> <span data-rw="Amashanyarazi" data-en="Electricity">Electricity</span></label>
+              <label style="display:flex;align-items:center;gap:.3rem;font-size:.82rem"><input type="checkbox" value="road" class="site-amenity-cb"> <span data-rw="Imihanda" data-en="Paved Road">Paved Road</span></label>
+              <label style="display:flex;align-items:center;gap:.3rem;font-size:.82rem"><input type="checkbox" value="school" class="site-amenity-cb"> <span data-rw="Ishuri hafi" data-en="School nearby">School nearby</span></label>
+              <label style="display:flex;align-items:center;gap:.3rem;font-size:.82rem"><input type="checkbox" value="hospital" class="site-amenity-cb"> <span data-rw="Ibitaro hafi" data-en="Hospital nearby">Hospital nearby</span></label>
+              <label style="display:flex;align-items:center;gap:.3rem;font-size:.82rem"><input type="checkbox" value="security" class="site-amenity-cb"> <span data-rw="Umutekano" data-en="Security">Security</span></label>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:1rem">
+          <button class="btn btn-primary" onclick="siteStepNext(1)" data-rw="Komeza" data-en="Next">Next →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Owner Info -->
+      <div class="site-step" id="site-step-2">
+        <div style="display:flex;flex-direction:column;gap:.8rem">
+          <div class="field"><label data-rw="Amazina ya Nyir'Ubutaka" data-en="Land Owner Name">Land Owner Name</label><input type="text" id="site-owner-name" placeholder="Full name"></div>
+          <div class="field"><label data-rw="Telefoni ya Nyir'Ubutaka" data-en="Owner Phone">Owner Phone</label><input type="tel" id="site-owner-phone" placeholder="+250 7XX XXX XXX"></div>
+          <div class="field"><label data-rw="Ubwoko bwa Nyir'Ubutaka" data-en="Owner Type">Owner Type</label>
+            <select id="site-owner-type" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem">
+              <option value="individual" data-rw="Umuntu Ku Giti Cye" data-en="Individual">Individual</option>
+              <option value="company" data-rw="Ikigo" data-en="Company">Company</option>
+              <option value="cooperative" data-rw="Koperative" data-en="Cooperative">Cooperative</option>
+            </select>
+          </div>
+          <div class="field"><label data-rw="Ref. ya Lotissement (Ubutaka Bwagabanywe)" data-en="Lotissement Approval Reference">Lotissement Reference</label><input type="text" id="site-lotissement" placeholder="e.g. LOT/2024/RWM/001"></div>
+          <div class="field"><label data-rw="Numero ya Title Deed" data-en="Title Deed Reference">Title Deed Reference</label><input type="text" id="site-title-deed" placeholder="e.g. TD/RWM/2024/001"></div>
+          <div class="field"><label data-rw="Shyiraho Itariki ya Lotissement (PDF/Image)" data-en="Upload Lotissement Document">Upload Lotissement Doc</label>
+            <input type="file" id="site-lotissement-file" accept=".pdf,.jpg,.jpeg,.png" style="font-size:.82rem">
+            <div id="site-lotissement-upload-status" style="font-size:.72rem;color:var(--muted);margin-top:.25rem"></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:1rem">
+          <button class="btn btn-outline" onclick="siteStepGo(1)" data-rw="Subira Inyuma" data-en="Back">← Back</button>
+          <button class="btn btn-primary" onclick="siteStepNext(2)" data-rw="Komeza" data-en="Next">Next →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Plots -->
+      <div class="site-step" id="site-step-3">
+        <div style="display:flex;flex-direction:column;gap:.8rem">
+          <div style="background:var(--light);border-radius:10px;padding:.8rem;font-size:.82rem;color:var(--muted)">
+            💡 <span data-rw="Ongeramo ibiraro buri kimwe. Ushobora kongera vuba inyuma yo gusabwa." data-en="Add plots one by one. You can add more after submission.">Add plots one by one. You can add more later.</span>
+          </div>
+          <!-- Quick plot entry -->
+          <div style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem">
+            <div style="font-weight:600;font-size:.85rem;color:var(--navy);margin-bottom:.6rem" data-rw="Ongeramo Ikiraro" data-en="Add Plot">Add Plot</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.5rem">
+              <div class="field"><label style="font-size:.72rem" data-rw="Numero" data-en="Plot #">Plot #</label><input type="text" id="plt-num" placeholder="1" style="padding:.5rem;font-size:.82rem"></div>
+              <div class="field"><label style="font-size:.72rem" data-rw="Ubuso (m²)" data-en="Size (m²)">Size m²</label><input type="number" id="plt-size" placeholder="302" style="padding:.5rem;font-size:.82rem"></div>
+              <div class="field"><label style="font-size:.72rem" data-rw="Igiciro (RWF)" data-en="Price (RWF)">Price RWF</label><input type="number" id="plt-price" placeholder="12500000" style="padding:.5rem;font-size:.82rem"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.6rem">
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem"><input type="checkbox" id="plt-corner"> <span data-rw="Ikiraro c'Ikona" data-en="Corner Plot">Corner Plot</span></label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem"><input type="checkbox" id="plt-road"> <span data-rw="Hafi y'Umuhanda" data-en="Road Facing">Road Facing</span></label>
+            </div>
+            <button class="btn btn-navy btn-sm" onclick="addPlotToList()" data-rw="Ongeraho Ikiraro" data-en="Add Plot">+ Add Plot</button>
+          </div>
+          <!-- Plot list preview -->
+          <div id="plot-preview-list" style="display:flex;flex-direction:column;gap:.4rem;max-height:200px;overflow-y:auto"></div>
+          <div id="plot-count-msg" style="font-size:.78rem;color:var(--muted);font-weight:600">0 plots added</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:1rem">
+          <button class="btn btn-outline" onclick="siteStepGo(2)" data-rw="Subira Inyuma" data-en="Back">← Back</button>
+          <button class="btn btn-primary" onclick="siteStepNext(3)" data-rw="Komeza" data-en="Next">Next →</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: Pricing & Commission -->
+      <div class="site-step" id="site-step-4">
+        <div style="display:flex;flex-direction:column;gap:.8rem">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+            <div class="field"><label data-rw="Igiciro Kinini (RWF/m²)" data-en="Min Price (RWF/m²)">Min Price RWF/m²</label><input type="number" id="site-price-min" placeholder="40000"></div>
+            <div class="field"><label data-rw="Igiciro Kinini (RWF/m²)" data-en="Max Price (RWF/m²)">Max Price RWF/m²</label><input type="number" id="site-price-max" placeholder="60000"></div>
+          </div>
+          <div class="field"><label data-rw="Umunota wa Komisiyoni (%)" data-en="Commission Rate (%)">Commission Rate %</label>
+            <select id="site-commission-rate" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem">
+              <option value="3">3%</option><option value="4" selected>4% (Default)</option><option value="5">5%</option>
+            </select>
+          </div>
+          <div style="background:var(--light);border-radius:10px;padding:.8rem;font-size:.82rem">
+            <div style="font-weight:600;color:var(--navy);margin-bottom:.3rem">Commission Split</div>
+            <div style="display:flex;justify-content:space-between;color:var(--muted)">
+              <span>Agent share</span><strong style="color:var(--navy)">60%</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;color:var(--muted)">
+              <span>KOMISIYONERI</span><strong style="color:var(--navy)">40%</strong>
+            </div>
+          </div>
+          <div class="field"><label data-rw="Shyiraho Itangazo ry'Isitey (Image)" data-en="Upload Site Plan Image">Upload Site Plan (optional)</label>
+            <input type="file" id="site-plan-file" accept=".jpg,.jpeg,.png,.pdf" style="font-size:.82rem">
+            <div id="site-plan-upload-status" style="font-size:.72rem;color:var(--muted);margin-top:.25rem"></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:1rem;gap:.6rem">
+          <button class="btn btn-outline" onclick="siteStepGo(3)" data-rw="Subira Inyuma" data-en="Back">← Back</button>
+          <button class="btn btn-primary" onclick="submitSiteForm()" id="site-submit-final-btn" style="flex:1;justify-content:center" data-rw="Saba Kwemezwa" data-en="Submit for Review">Submit for Review</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === PLOT DETAIL MODAL === -->
+<div class="modal-wrap" id="plot-detail-modal" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="plot-detail-title" data-rw="Ibisobanuro by'Ikiraro" data-en="Plot Details">Plot Details</div>
+      <button class="modal-x" onclick="closePlotDetail()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="plot-detail-body" style="padding:.3rem 0"></div>
+  </div>
+</div>
+
+<!-- === RESERVE PLOT MODAL === -->
+<div class="modal-wrap" id="reserve-plot-modal" style="display:none">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-hdr">
+      <div class="modal-title" data-rw="Bika Ikiraro" data-en="Reserve Plot">Reserve Plot</div>
+      <button class="modal-x" onclick="closeReservePlot()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="padding:.3rem 0">
+      <input type="hidden" id="reserve-plot-id">
+      <div style="background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;border-radius:10px;padding:1rem;margin-bottom:1rem">
+        <div style="font-size:.78rem;opacity:.75;margin-bottom:.3rem" data-rw="Ikiraro ukipfuza" data-en="Plot you are reserving">Reserving:</div>
+        <div id="reserve-plot-summary" style="font-weight:700;font-size:1rem">Plot #—</div>
+        <div id="reserve-plot-price" style="font-size:.88rem;opacity:.85;margin-top:.2rem">RWF —</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.8rem">
+        <div class="field"><label data-rw="Injyana Yo Gukoresha" data-en="Intended Use">Intended Use</label>
+          <select id="reserve-use" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem">
+            <option value="residential" data-rw="Aho Guturamamo" data-en="Residential">Residential</option>
+            <option value="investment" data-rw="Ishoramari" data-en="Investment">Investment</option>
+            <option value="commercial" data-rw="Ubucuruzi" data-en="Commercial">Commercial</option>
+          </select>
+        </div>
+        <div class="field"><label data-rw="Ukeneye Inguzanyo?" data-en="Financing Needed?">Financing Needed?</label>
+          <select id="reserve-financing" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem">
+            <option value="no" data-rw="Oya, nzishyura mwishyuro" data-en="No, paying cash">No, paying cash</option>
+            <option value="yes" data-rw="Yego, nsaba inguzanyo" data-en="Yes, need mortgage">Yes, need mortgage</option>
+          </select>
+        </div>
+        <div class="field"><label data-rw="Butumwa bwanyu (Ugitira)" data-en="Message (optional)">Message (optional)</label>
+          <textarea id="reserve-message" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem;resize:vertical;min-height:60px" placeholder="Any special requests..."></textarea>
+        </div>
+        <div style="font-size:.75rem;color:var(--muted);background:var(--light);padding:.7rem;border-radius:8px">
+          ℹ️ <span data-rw="Reservation irakora iminsi 7. Agent azatumanahana nawe hanyuma." data-en="Reservation is valid for 7 days. Our agent will contact you shortly to confirm.">Reservation valid 7 days. Agent will contact you to confirm.</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:.6rem;margin-top:1rem">
+        <button class="btn btn-primary" onclick="submitPlotReservation()" id="reserve-submit-btn" style="flex:1;justify-content:center" data-rw="Emeza Kubika" data-en="Confirm Reservation">Confirm Reservation</button>
+        <button class="btn btn-outline" onclick="closeReservePlot()" data-rw="Hagarika" data-en="Cancel">Cancel</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -19450,6 +19885,766 @@ function saveLeadFollowUp() {
     });
   }
 }
+
+/* ══════════════════════════════════════════════════════
+   SITE DEVELOPMENT MODULE — Phase A JavaScript
+   Collections: sites, plots, site_enquiries
+══════════════════════════════════════════════════════ */
+
+var currentSiteId = null;
+var _siteCurrentStep = 1;
+var _pendingPlots = [];  // plots staged during form entry
+var _sitesCache = [];
+var _currentPlotId = null;
+
+var AMENITY_ICONS = {
+  water: '💧 Water', electricity: '⚡ Electricity', road: '🛣️ Road',
+  school: '🏫 School', hospital: '🏥 Hospital', security: '🔒 Security'
+};
+
+var DISTRICT_OPTIONS = [
+  'Gasabo','Kicukiro','Nyarugenge','Bugesera','Rulindo','Rwamagana',
+  'Musanze','Rubavu','Nyamasheke','Huye','Muhanga','Kamonyi',
+  'Ngoma','Kirehe','Kayonza','Nyagatare','Gisagara','Nyamagabe',
+  'Nyaruguru','Ruhango','Karongi','Rutsiro','Ngororero','Nyabihu',
+  'Gakenke','Gicumbi','Burera','Gatsibo','Rusizi','Nyamasheke'
+];
+
+// ── Format RWF ──────────────────────────────────────
+function fmtRWF(n) {
+  if (!n) return 'RWF —';
+  if (n >= 1000000) return 'RWF ' + (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return 'RWF ' + Math.round(n/1000) + 'K';
+  return 'RWF ' + n.toLocaleString();
+}
+
+// ── Load all active sites ────────────────────────────
+function loadSites() {
+  var grid = document.getElementById('sites-grid');
+  if (!grid) return;
+  grid.innerHTML = '<div class="crm-empty" style="grid-column:1/-1"><div class="crm-empty-icon">🏗️</div><div class="crm-empty-title">Loading sites...</div></div>';
+
+  if (typeof db === 'undefined') { grid.innerHTML = '<div class="crm-empty" style="grid-column:1/-1"><div class="crm-empty-icon">⚠️</div><div class="crm-empty-title">Firebase not ready</div></div>'; return; }
+
+  db.collection('sites').where('status','==','active').where('isActive','==',true)
+    .orderBy('createdAt','desc').get()
+    .then(function(snap) {
+      _sitesCache = [];
+      snap.forEach(function(d) { var s = d.data(); s.id = d.id; _sitesCache.push(s); });
+      renderSitesGrid(_sitesCache);
+    })
+    .catch(function(err) {
+      console.error('[Sites] load error', err);
+      grid.innerHTML = '<div class="crm-empty" style="grid-column:1/-1"><div class="crm-empty-icon">⚠️</div><div class="crm-empty-title">Could not load sites</div></div>';
+    });
+
+  // Show "Add Site" button for agents/staff/admin
+  var btn = document.getElementById('site-submit-btn');
+  if (btn && typeof currentUser !== 'undefined' && currentUser) {
+    var r = currentUser.role || '';
+    if (r === 'agent' || r === 'Agent' || r === 'staff' || r === 'admin' || r === 'Admin' || r === 'developer') {
+      btn.style.display = 'flex';
+    }
+  }
+}
+
+function filterSites() {
+  var district = (document.getElementById('sites-filter-district') || {}).value || '';
+  var q = ((document.getElementById('sites-search') || {}).value || '').toLowerCase().trim();
+  var filtered = _sitesCache.filter(function(s) {
+    if (district && s.district !== district) return false;
+    if (q && !(s.name || '').toLowerCase().includes(q) && !(s.district || '').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  renderSitesGrid(filtered);
+}
+
+function renderSitesGrid(sites) {
+  var grid = document.getElementById('sites-grid');
+  if (!grid) return;
+  if (!sites || sites.length === 0) {
+    grid.innerHTML = '<div class="crm-empty" style="grid-column:1/-1"><div class="crm-empty-icon">🏗️</div><div class="crm-empty-title" data-rw="Nta sitey ihari" data-en="No sites found">No development sites found</div></div>';
+    return;
+  }
+  grid.innerHTML = sites.map(function(s) {
+    var avail = s.availablePlots || 0;
+    var resv  = s.reservedPlots  || 0;
+    var sold  = s.soldPlots      || 0;
+    var total = s.totalPlots     || 0;
+    var amenHtml = (s.amenities || []).slice(0,3).map(function(a) {
+      return '<span class="site-amenity-icon">' + (AMENITY_ICONS[a] || a) + '</span>';
+    }).join('');
+    var imgHtml = s.siteMapUrl
+      ? '<img src="' + s.siteMapUrl + '" alt="Site Plan" onerror="this.style.display=\'none\'">'
+      : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.3rem;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff"><div style="font-size:2rem">🏗️</div><div style="font-size:.72rem">Site Plan</div></div>';
+    var priceRw = s.pricePerSqmMin && s.pricePerSqmMax
+      ? 'RWF ' + (s.pricePerSqmMin/1000).toFixed(0) + 'K–' + (s.pricePerSqmMax/1000).toFixed(0) + 'K/m²'
+      : (s.totalValueRWF ? fmtRWF(s.totalValueRWF) + ' total' : 'Price on request');
+    return '<div class="site-card" onclick="loadSitePlan(\'' + s.id + '\')">' +
+      '<div class="site-card-img">' + imgHtml +
+        '<div class="site-card-status-badge">' + avail + ' <span data-rw="Ibihari" data-en="Available">Available</span></div>' +
+      '</div>' +
+      '<div class="site-card-body">' +
+        '<div class="site-card-name">' + (s.name || 'Unnamed Site') + '</div>' +
+        '<div class="site-card-district"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' + (s.district || '') + (s.sector ? ', ' + s.sector : '') + '</div>' +
+        '<div class="site-plot-counter">' +
+          (avail > 0 ? '<span class="site-plot-badge avail">✅ ' + avail + ' <span data-en="available" data-rw="ibihari">avail</span></span>' : '') +
+          (resv  > 0 ? '<span class="site-plot-badge resv">🔵 ' + resv  + ' <span data-en="reserved" data-rw="bibitswe">resv</span></span>' : '') +
+          (sold  > 0 ? '<span class="site-plot-badge sold">🔴 ' + sold  + ' <span data-en="sold" data-rw="bigurishijwe">sold</span></span>' : '') +
+        '</div>' +
+        '<div class="site-price-range">' + priceRw + '</div>' +
+        '<div class="site-amenity-icons">' + amenHtml + '</div>' +
+        '<div class="site-card-footer">' +
+          '<button class="btn btn-navy btn-sm" onclick="event.stopPropagation();loadSitePlan(\'' + s.id + '\')" data-rw="Reba Imishinga" data-en="View Site Plan">View Site Plan</button>' +
+          '<button class="btn btn-gold btn-sm" onclick="event.stopPropagation();loadSitePlan(\'' + s.id + '\')" data-rw="Ibiraro" data-en="View Plots">View Plots</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  if (typeof switchLang === 'function') switchLang(typeof curLang !== 'undefined' ? curLang : 'rw');
+}
+
+// ── Load single site + plots ─────────────────────────
+function loadSitePlan(siteId) {
+  if (!siteId) return;
+  currentSiteId = siteId;
+  go('site');
+
+  var nameEl  = document.getElementById('site-detail-name');
+  var descEl  = document.getElementById('site-detail-desc');
+  var distEl  = document.getElementById('site-detail-district');
+  if (nameEl) nameEl.textContent = 'Loading...';
+
+  if (typeof db === 'undefined') return;
+
+  db.collection('sites').doc(siteId).get().then(function(doc) {
+    if (!doc.exists) { showToast('Site not found', 'error'); return; }
+    var s = doc.data(); s.id = doc.id;
+    var lang = typeof curLang !== 'undefined' ? curLang : 'rw';
+
+    if (nameEl) nameEl.textContent = s.name || 'Site';
+    if (distEl) distEl.textContent = '📍 ' + (s.district || '') + (s.sector ? ', ' + s.sector : '');
+    if (descEl) descEl.textContent = (lang === 'rw' && s.descriptionRW) ? s.descriptionRW : (s.description || '');
+
+    // KPIs
+    var set = function(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+    set('site-kpi-total', s.totalPlots || 0);
+    set('site-kpi-avail', s.availablePlots || 0);
+    set('site-kpi-resv',  s.reservedPlots  || 0);
+    set('site-kpi-sold',  s.soldPlots      || 0);
+
+    // Amenities bar
+    var abar = document.getElementById('site-amenities-bar');
+    if (abar) abar.innerHTML = (s.amenities || []).map(function(a) {
+      return '<span class="site-amenity-icon">' + (AMENITY_ICONS[a] || a) + '</span>';
+    }).join('');
+
+    // Site plan image
+    var planWrap = document.getElementById('site-plan-wrap');
+    var planImg  = document.getElementById('site-plan-img');
+    if (planWrap && planImg && s.siteMapUrl) {
+      planImg.src = s.siteMapUrl;
+      planWrap.style.display = 'block';
+    } else if (planWrap) {
+      planWrap.style.display = 'none';
+    }
+
+    // Staff actions visibility
+    var staffBox = document.getElementById('site-staff-actions');
+    if (staffBox && typeof currentUser !== 'undefined' && currentUser) {
+      var r = currentUser.role || '';
+      var isStaffAdmin = r === 'staff' || r === 'admin' || r === 'Admin' || r === 'super_admin';
+      var isAgent = (r === 'agent' || r === 'Agent') && s.managingAgentId === currentUser.uid;
+      staffBox.style.display = (isStaffAdmin || isAgent) ? 'block' : 'none';
+      var approveBtn = document.getElementById('site-approve-btn');
+      var rejectBtn  = document.getElementById('site-reject-btn');
+      var editBtn    = document.getElementById('site-edit-btn');
+      if (approveBtn) approveBtn.style.display = (isStaffAdmin && s.status === 'pending_review') ? 'inline-flex' : 'none';
+      if (rejectBtn)  rejectBtn.style.display  = (isStaffAdmin && s.status === 'pending_review') ? 'inline-flex' : 'none';
+      if (editBtn)    editBtn.style.display    = (isAgent || isStaffAdmin) ? 'inline-flex' : 'none';
+    }
+
+    // Load plots
+    db.collection('plots').where('siteId','==',siteId).where('isActive','==',true)
+      .orderBy('plotNumber').get()
+      .then(function(psnap) {
+        var plots = [];
+        psnap.forEach(function(pd) { var p = pd.data(); p.id = pd.id; plots.push(p); });
+        renderPlotGrid(plots);
+        if (s.siteMapUrl) renderPlotOverlays(plots);
+      }).catch(function(e) {
+        console.error('[Sites] plots error', e);
+        renderPlotGrid([]);
+      });
+  }).catch(function(e) {
+    console.error('[Sites] site load error', e);
+    showToast('Could not load site', 'error');
+  });
+}
+
+// ── Render plot grid (color-coded cells) ────────────
+function renderPlotGrid(plots) {
+  var grid = document.getElementById('site-plot-grid');
+  if (!grid) return;
+  if (!plots || plots.length === 0) {
+    grid.innerHTML = '<div style="color:var(--muted);font-size:.82rem;padding:.5rem">No plots found for this site.</div>';
+    return;
+  }
+  grid.innerHTML = plots.map(function(p) {
+    var cls = 'plot-cell plot-' + (p.status || 'available');
+    var lbl = p.plotLabel || ('Plot ' + (p.plotNumber || p.id));
+    var sz  = p.size ? (p.size + 'm²') : '';
+    return '<div class="' + cls + '" onclick="openPlotDetail(\'' + p.id + '\')" title="' + lbl + '">' +
+      '<div class="plot-cell-num">' + (p.plotNumber || '?') + '</div>' +
+      (sz ? '<div class="plot-cell-size">' + sz + '</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+// ── Render overlays on site plan image ──────────────
+function renderPlotOverlays(plots) {
+  var overlay = document.getElementById('site-plan-overlay');
+  if (!overlay) return;
+  overlay.innerHTML = plots.filter(function(p) { return p.mapPosition; }).map(function(p) {
+    var mp  = p.mapPosition;
+    var cls = 'plot-overlay plot-' + (p.status || 'available');
+    var lbl = p.plotNumber || '?';
+    return '<div class="' + cls + '" style="left:' + mp.x + '%;top:' + mp.y + '%;width:' + (mp.width||8) + '%;height:' + (mp.height||8) + '%" onclick="openPlotDetail(\'' + p.id + '\')" title="Plot ' + lbl + '">' + lbl + '</div>';
+  }).join('');
+}
+
+// ── Open plot detail ─────────────────────────────────
+function openPlotDetail(plotId) {
+  if (!plotId) return;
+  _currentPlotId = plotId;
+  var modal = document.getElementById('plot-detail-modal');
+  var body  = document.getElementById('plot-detail-body');
+  if (!modal || !body) return;
+  body.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted)">Loading...</div>';
+  modal.style.display = 'flex';
+
+  if (typeof db === 'undefined') return;
+  db.collection('plots').doc(plotId).get().then(function(doc) {
+    if (!doc.exists) { body.innerHTML = '<p>Plot not found.</p>'; return; }
+    var p = doc.data(); p.id = doc.id;
+    var statusLabel = { available:'✅ Available', reserved:'🔵 Reserved', sold:'🔴 Sold', on_hold:'⏸️ On Hold' };
+    var statusCls   = { available:'available', reserved:'reserved', sold:'sold', on_hold:'on_hold' };
+    var lang = typeof curLang !== 'undefined' ? curLang : 'rw';
+    var canReserve = p.status === 'available' && typeof currentUser !== 'undefined' && currentUser;
+    var isStaffAdmin = currentUser && (currentUser.role === 'staff' || currentUser.role === 'admin' || currentUser.role === 'Admin');
+
+    body.innerHTML =
+      '<div class="plot-popup-num">' + (p.plotLabel || 'Plot ' + p.plotNumber) + '</div>' +
+      '<span class="plot-popup-status ' + (statusCls[p.status] || 'available') + '">' + (statusLabel[p.status] || p.status) + '</span>' +
+      '<div style="margin-bottom:.8rem"></div>' +
+      '<div class="plot-popup-row"><span data-rw="Ubuso" data-en="Size">Size</span><span>' + (p.size || '—') + ' m²</span></div>' +
+      '<div class="plot-popup-row"><span data-rw="Igiciro" data-en="Price">Price</span><span>' + fmtRWF(p.price) + '</span></div>' +
+      (p.pricePerSqm ? '<div class="plot-popup-row"><span>Per m²</span><span>' + fmtRWF(p.pricePerSqm) + '</span></div>' : '') +
+      (p.isCorner   ? '<div class="plot-popup-row"><span>Corner Plot</span><span>✅</span></div>' : '') +
+      (p.facesRoad  ? '<div class="plot-popup-row"><span>Road Facing</span><span>✅</span></div>' : '') +
+      (p.notes      ? '<div style="font-size:.75rem;color:var(--muted);margin-top:.4rem">' + p.notes + '</div>' : '') +
+      '<div class="plot-popup-btns">' +
+        (canReserve ? '<button class="btn btn-gold btn-sm" onclick="closePlotDetail();openReservePlot(\'' + p.id + '\')" data-rw="Bika Iki Kiraro" data-en="Reserve This Plot">Reserve This Plot</button>' : '') +
+        '<button class="btn btn-navy btn-sm" onclick="closePlotDetail();openSiteEnquiry(\'' + p.id + '\')" data-rw="Saba Agent" data-en="Contact Agent">Contact Agent</button>' +
+        (isStaffAdmin ? '<button class="btn btn-outline btn-sm" onclick="openPlotStatusChange(\'' + p.id + '\',\'' + p.status + '\')" data-rw="Hindura Imiterere" data-en="Change Status">Change Status</button>' : '') +
+      '</div>';
+
+    if (typeof switchLang === 'function') switchLang(lang);
+  }).catch(function(e) {
+    console.error('[Plots] detail error', e);
+    body.innerHTML = '<p style="color:var(--error)">Error loading plot.</p>';
+  });
+}
+
+function closePlotDetail() {
+  var m = document.getElementById('plot-detail-modal');
+  if (m) m.style.display = 'none';
+  _currentPlotId = null;
+}
+
+// ── Reserve a plot ───────────────────────────────────
+function openReservePlot(plotId) {
+  if (!currentUser) { showToast(curLang==='rw' ? 'Injira mbere yo kubika ikiraro!' : 'Please log in to reserve a plot!', 'warn'); go('auth'); return; }
+  if (!plotId) return;
+  _currentPlotId = plotId;
+
+  db.collection('plots').doc(plotId).get().then(function(doc) {
+    if (!doc.exists) return;
+    var p = doc.data();
+    if (p.status !== 'available') { showToast(curLang==='rw' ? 'Iki kiraro ntikihari!' : 'This plot is not available.', 'error'); return; }
+    var sumEl   = document.getElementById('reserve-plot-summary');
+    var priceEl = document.getElementById('reserve-plot-price');
+    var idEl    = document.getElementById('reserve-plot-id');
+    if (sumEl)   sumEl.textContent  = p.plotLabel || ('Plot ' + p.plotNumber);
+    if (priceEl) priceEl.textContent = fmtRWF(p.price);
+    if (idEl)    idEl.value = plotId;
+    var m = document.getElementById('reserve-plot-modal');
+    if (m) m.style.display = 'flex';
+  });
+}
+
+function closeReservePlot() {
+  var m = document.getElementById('reserve-plot-modal');
+  if (m) m.style.display = 'none';
+}
+
+function submitPlotReservation() {
+  var plotId = (document.getElementById('reserve-plot-id') || {}).value;
+  if (!plotId || !currentUser) return;
+
+  var btn = document.getElementById('reserve-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+  var use        = (document.getElementById('reserve-use') || {}).value || 'residential';
+  var financing  = (document.getElementById('reserve-financing') || {}).value || 'no';
+  var message    = ((document.getElementById('reserve-message') || {}).value || '').trim();
+  var now        = firebase.firestore.FieldValue.serverTimestamp();
+  var uid        = currentUser.uid;
+
+  // Get plot + site info then update atomically
+  db.collection('plots').doc(plotId).get().then(function(doc) {
+    if (!doc.exists) throw new Error('Plot not found');
+    var p = doc.data();
+    if (p.status !== 'available') throw new Error('Plot no longer available');
+    var siteId = p.siteId;
+
+    var reservedUntil = new Date();
+    reservedUntil.setDate(reservedUntil.getDate() + 7);
+
+    return db.runTransaction(function(tx) {
+      var plotRef = db.collection('plots').doc(plotId);
+      var siteRef = db.collection('sites').doc(siteId);
+      return tx.get(plotRef).then(function(pd) {
+        if (!pd.exists || pd.data().status !== 'available') throw new Error('Plot unavailable');
+        tx.update(plotRef, {
+          status:        'reserved',
+          clientId:      uid,
+          reservedAt:    now,
+          reservedUntil: firebase.firestore.Timestamp.fromDate(reservedUntil),
+          depositPaid:   false,
+          updatedAt:     now,
+          updatedBy:     uid
+        });
+        tx.update(siteRef, {
+          availablePlots: firebase.firestore.FieldValue.increment(-1),
+          reservedPlots:  firebase.firestore.FieldValue.increment(1),
+          updatedAt:      now,
+          updatedBy:      uid
+        });
+        return { siteId: siteId, p: p };
+      });
+    }).then(function(res) {
+      // Create enquiry record
+      return db.collection('site_enquiries').add({
+        id:               '',
+        siteId:           res.siteId,
+        plotId:           plotId,
+        clientId:         uid,
+        agentId:          res.p.agentId || '',
+        message:          message,
+        intendedUse:      use,
+        financingNeeded:  financing === 'yes',
+        viewingRequested: false,
+        preferredPlots:   [res.p.plotNumber || plotId],
+        budget:           res.p.price || 0,
+        status:           'new',
+        isActive:         true,
+        createdAt:        now,
+        updatedAt:        now,
+        createdBy:        uid,
+        updatedBy:        uid
+      }).then(function() { return res; });
+    });
+  }).then(function(res) {
+    logAudit('plot.reserved', 'plots', plotId,
+      { status: 'available' },
+      { status: 'reserved', clientId: uid }
+    );
+    // Notify agent via rtdb
+    if (typeof rtdb !== 'undefined') {
+      try {
+        rtdb.ref('notifications/' + (res.p.agentId || uid)).push({
+          title: 'Plot Reserved',
+          body:  'Plot ' + (res.p.plotNumber || '') + ' has been reserved by a client.',
+          at:    Date.now()
+        });
+      } catch(e) {}
+    }
+    closeReservePlot();
+    showToast(curLang==='rw' ? 'Ikiraro kibitswe neza! Agent azatumanahana nawe.' : 'Plot reserved! Agent will contact you shortly.', 'success');
+    // Refresh site view
+    if (currentSiteId) loadSitePlan(currentSiteId);
+  }).catch(function(err) {
+    console.error('[Reserve] error', err);
+    showToast(curLang==='rw' ? 'Habaye ikibazo: ' + err.message : 'Error: ' + err.message, 'error');
+  }).finally(function() {
+    if (btn) { btn.disabled = false; btn.textContent = curLang==='rw' ? 'Emeza Kubika' : 'Confirm Reservation'; }
+  });
+}
+
+// ── Contact agent (enquiry without reservation) ──────
+function openSiteEnquiry(plotId) {
+  showToast(curLang==='rw' ? 'Hamagara agent: +250 783 177 254' : 'Contact agent: +250 783 177 254', 'info');
+}
+
+// ── Staff: Change plot status ────────────────────────
+function openPlotStatusChange(plotId, currentStatus) {
+  var newStatus = prompt('Change plot status:\navailable / reserved / sold / on_hold\nCurrent: ' + currentStatus);
+  if (!newStatus) return;
+  var valid = ['available','reserved','sold','on_hold'];
+  if (valid.indexOf(newStatus.trim()) === -1) { showToast('Invalid status', 'error'); return; }
+  newStatus = newStatus.trim();
+  var now = firebase.firestore.FieldValue.serverTimestamp();
+
+  db.collection('plots').doc(plotId).update({
+    status:    newStatus,
+    updatedAt: now,
+    updatedBy: currentUser.uid
+  }).then(function() {
+    logAudit('plot.status.changed', 'plots', plotId,
+      { status: currentStatus },
+      { status: newStatus, changedBy: currentUser.uid }
+    );
+    showToast('Plot status updated to ' + newStatus, 'success');
+    closePlotDetail();
+    if (currentSiteId) loadSitePlan(currentSiteId);
+    if (newStatus === 'sold') calculatePlotCommission(plotId);
+  }).catch(function(e) {
+    showToast('Error updating status', 'error');
+    console.error(e);
+  });
+}
+
+// ── Commission auto-calculation on sale ──────────────
+function calculatePlotCommission(plotId) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  db.collection('plots').doc(plotId).get().then(function(pd) {
+    if (!pd.exists) return;
+    var p = pd.data();
+    return db.collection('sites').doc(p.siteId).get().then(function(sd) {
+      if (!sd.exists) return;
+      var s      = sd.data();
+      var price  = p.salePrice || p.price || 0;
+      var rate   = (s.commissionRate || 4) / 100;
+      var total  = price * rate;
+      var agSpl  = (s.agentSplit   || 60) / 100;
+      var coSpl  = (s.companySplit || 40) / 100;
+      var now    = firebase.firestore.FieldValue.serverTimestamp();
+      var uid    = currentUser.uid;
+
+      return db.collection('commissions').add({
+        id:              '',
+        dealType:        'plot_sale',
+        siteId:          p.siteId,
+        plotId:          plotId,
+        agentId:         s.managingAgentId || p.agentId || uid,
+        dealValue:       price,
+        commissionRate:  s.commissionRate || 4,
+        totalCommission: total,
+        agentShare:      total * agSpl,
+        companyShare:    total * coSpl,
+        status:          'pending',
+        isActive:        true,
+        createdAt:       now,
+        updatedAt:       now,
+        createdBy:       uid,
+        updatedBy:       uid
+      }).then(function(ref) {
+        // Link commission back to plot
+        db.collection('plots').doc(plotId).update({ commissionId: ref.id, updatedAt: now, updatedBy: uid });
+        logAudit('commission.calculated', 'commissions', ref.id, {},
+          { plotId: plotId, siteId: p.siteId, total: total, agentShare: total * agSpl }
+        );
+        // Update site counters
+        db.collection('sites').doc(p.siteId).update({
+          soldPlots:      firebase.firestore.FieldValue.increment(1),
+          availablePlots: firebase.firestore.FieldValue.increment(-1),
+          updatedAt:      now,
+          updatedBy:      uid
+        });
+      });
+    });
+  }).catch(function(e) { console.error('[Commission] error', e); });
+}
+
+// ── Staff: Approve site ──────────────────────────────
+function approveSite() {
+  if (!currentSiteId || !currentUser) return;
+  if (!confirm('Approve this site and make it live on the marketplace?')) return;
+  var now = firebase.firestore.FieldValue.serverTimestamp();
+  db.collection('sites').doc(currentSiteId).update({
+    status:      'active',
+    approvedBy:  currentUser.uid,
+    approvedAt:  now,
+    updatedAt:   now,
+    updatedBy:   currentUser.uid
+  }).then(function() {
+    logAudit('site.approved', 'sites', currentSiteId,
+      { status: 'pending_review' },
+      { status: 'active', approvedBy: currentUser.uid }
+    );
+    showToast(curLang==='rw' ? 'Site yemejwe kandi iri mu isoko!' : 'Site approved and now live!', 'success');
+    loadSitePlan(currentSiteId);
+  }).catch(function(e) { showToast('Error: ' + e.message, 'error'); });
+}
+
+// ── Staff: Reject site ───────────────────────────────
+function rejectSite() {
+  var wrap = document.getElementById('site-reject-reason-wrap');
+  if (wrap) wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+}
+
+function confirmRejectSite() {
+  if (!currentSiteId || !currentUser) return;
+  var reason = ((document.getElementById('site-reject-reason') || {}).value || '').trim();
+  if (!reason) { showToast('Please enter a rejection reason.', 'warn'); return; }
+  var now = firebase.firestore.FieldValue.serverTimestamp();
+  db.collection('sites').doc(currentSiteId).update({
+    status:          'rejected',
+    rejectionReason: reason,
+    rejectedAt:      now,
+    updatedAt:       now,
+    updatedBy:       currentUser.uid
+  }).then(function() {
+    logAudit('site.rejected', 'sites', currentSiteId,
+      { status: 'pending_review' },
+      { status: 'rejected', reason: reason }
+    );
+    showToast('Site rejected. Agent has been notified.', 'info');
+    go('sites');
+  }).catch(function(e) { showToast('Error: ' + e.message, 'error'); });
+}
+
+// ── Site submission form ─────────────────────────────
+function openSiteSubmit(editId) {
+  if (!currentUser) { showToast(curLang==='rw' ? 'Injira mbere!' : 'Please log in first!', 'warn'); go('auth'); return; }
+  _pendingPlots = [];
+  _siteCurrentStep = 1;
+  var m = document.getElementById('site-submit-modal');
+  if (!m) return;
+  // Reset form
+  ['site-name','site-name-rw','site-sector','site-cell','site-village',
+   'site-desc','site-desc-rw','site-lat','site-lng',
+   'site-owner-name','site-owner-phone','site-lotissement','site-title-deed',
+   'site-price-min','site-price-max'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.querySelectorAll('.site-amenity-cb').forEach(function(cb) { cb.checked = false; });
+  document.getElementById('site-edit-id').value = editId || '';
+  renderPlotPreview();
+  siteStepGo(1);
+  m.style.display = 'flex';
+  if (typeof switchLang === 'function') switchLang(typeof curLang !== 'undefined' ? curLang : 'rw');
+}
+
+function closeSiteSubmit() {
+  var m = document.getElementById('site-submit-modal');
+  if (m) m.style.display = 'none';
+}
+
+function siteStepGo(n) {
+  _siteCurrentStep = n;
+  for (var i = 1; i <= 4; i++) {
+    var step = document.getElementById('site-step-' + i);
+    var dot  = document.getElementById('site-sdot-' + i);
+    if (step) step.classList.toggle('active', i === n);
+    if (dot) {
+      dot.classList.toggle('active', i === n);
+      dot.classList.toggle('done', i < n);
+    }
+  }
+}
+
+function siteStepNext(current) {
+  if (current === 1) {
+    var name = (document.getElementById('site-name') || {}).value || '';
+    var dist = (document.getElementById('site-district') || {}).value || '';
+    if (!name.trim()) { showToast(curLang==='rw' ? 'Injiza izina ry\'isitey.' : 'Enter site name.', 'warn'); return; }
+    if (!dist)        { showToast(curLang==='rw' ? 'Hitamo intara.' : 'Select a district.', 'warn'); return; }
+  }
+  if (current === 2) {
+    var oName = (document.getElementById('site-owner-name') || {}).value || '';
+    if (!oName.trim()) { showToast(curLang==='rw' ? 'Injiza amazina ya nyir\'ubutaka.' : 'Enter land owner name.', 'warn'); return; }
+  }
+  siteStepGo(current + 1);
+}
+
+function addPlotToList() {
+  var num   = ((document.getElementById('plt-num')   || {}).value || '').trim();
+  var size  = parseFloat((document.getElementById('plt-size')  || {}).value || '0');
+  var price = parseFloat((document.getElementById('plt-price') || {}).value || '0');
+  if (!num)   { showToast('Enter plot number.', 'warn'); return; }
+  if (!size)  { showToast('Enter plot size (m²).', 'warn'); return; }
+  if (!price) { showToast('Enter plot price (RWF).', 'warn'); return; }
+  var corner = (document.getElementById('plt-corner') || {}).checked;
+  var road   = (document.getElementById('plt-road')   || {}).checked;
+  _pendingPlots.push({
+    plotNumber:   num,
+    plotLabel:    'Plot ' + num,
+    size:         size,
+    price:        price,
+    pricePerSqm:  Math.round(price / size),
+    isCorner:     corner,
+    facesRoad:    road,
+    shape:        'rectangular',
+    currency:     'RWF',
+    status:       'available',
+    mapPosition:  null
+  });
+  // Reset inputs
+  ['plt-num','plt-size','plt-price'].forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ''; });
+  var cb1 = document.getElementById('plt-corner'); if (cb1) cb1.checked = false;
+  var cb2 = document.getElementById('plt-road');   if (cb2) cb2.checked = false;
+  renderPlotPreview();
+}
+
+function renderPlotPreview() {
+  var list = document.getElementById('plot-preview-list');
+  var msg  = document.getElementById('plot-count-msg');
+  if (list) list.innerHTML = _pendingPlots.map(function(p, i) {
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:.4rem .6rem;background:var(--light);border-radius:7px;font-size:.78rem">' +
+      '<span><strong>Plot ' + p.plotNumber + '</strong> — ' + p.size + 'm² — ' + fmtRWF(p.price) +
+        (p.isCorner ? ' 📐' : '') + (p.facesRoad ? ' 🛣️' : '') + '</span>' +
+      '<button onclick="_pendingPlots.splice(' + i + ',1);renderPlotPreview()" style="background:none;border:none;color:var(--error);cursor:pointer;font-size:.9rem">✕</button>' +
+    '</div>';
+  }).join('');
+  if (msg) msg.textContent = _pendingPlots.length + ' plot' + (_pendingPlots.length !== 1 ? 's' : '') + ' added';
+}
+
+function submitSiteForm() {
+  if (!currentUser) return;
+  if (_pendingPlots.length === 0) { showToast(curLang==='rw' ? 'Ongeramo nibura ikiraro kimwe.' : 'Add at least one plot.', 'warn'); return; }
+
+  var btn = document.getElementById('site-submit-final-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+  var amenities = [];
+  document.querySelectorAll('.site-amenity-cb:checked').forEach(function(cb) { amenities.push(cb.value); });
+
+  var now = firebase.firestore.FieldValue.serverTimestamp();
+  var uid = currentUser.uid;
+  var role = currentUser.role || '';
+  var autoApprove = (role === 'staff' || role === 'admin' || role === 'Admin' || role === 'super_admin');
+
+  var siteData = {
+    id:              '',
+    name:            ((document.getElementById('site-name')    || {}).value || '').trim(),
+    nameRW:          ((document.getElementById('site-name-rw') || {}).value || '').trim(),
+    description:     ((document.getElementById('site-desc')    || {}).value || '').trim(),
+    descriptionRW:   ((document.getElementById('site-desc-rw') || {}).value || '').trim(),
+    district:        (document.getElementById('site-district')  || {}).value || '',
+    sector:          ((document.getElementById('site-sector')   || {}).value || '').trim(),
+    cell:            ((document.getElementById('site-cell')     || {}).value || '').trim(),
+    village:         ((document.getElementById('site-village')  || {}).value || '').trim(),
+    coordinates: {
+      lat: parseFloat((document.getElementById('site-lat') || {}).value || '0') || 0,
+      lng: parseFloat((document.getElementById('site-lng') || {}).value || '0') || 0
+    },
+    ownerName:       ((document.getElementById('site-owner-name')  || {}).value || '').trim(),
+    ownerPhone:      ((document.getElementById('site-owner-phone') || {}).value || '').trim(),
+    ownerType:       (document.getElementById('site-owner-type')   || {}).value || 'individual',
+    lotissementRef:  ((document.getElementById('site-lotissement') || {}).value || '').trim(),
+    titleDeedRef:    ((document.getElementById('site-title-deed')  || {}).value || '').trim(),
+    roadType:        (document.getElementById('site-road') || {}).value || 'tarmac',
+    amenities:       amenities,
+    totalPlots:      _pendingPlots.length,
+    availablePlots:  _pendingPlots.length,
+    reservedPlots:   0,
+    soldPlots:       0,
+    pricePerSqmMin:  parseFloat((document.getElementById('site-price-min') || {}).value || '0') || 0,
+    pricePerSqmMax:  parseFloat((document.getElementById('site-price-max') || {}).value || '0') || 0,
+    totalValueRWF:   _pendingPlots.reduce(function(s, p) { return s + (p.price || 0); }, 0),
+    commissionRate:  parseInt((document.getElementById('site-commission-rate') || {}).value || '4'),
+    agentSplit:      60,
+    companySplit:    40,
+    siteMapUrl:      '',
+    siteMapSvgUrl:   '',
+    lotissementDocUrl: '',
+    titleDeedDocUrl:   '',
+    managingAgentId: uid,
+    developerId:     (role === 'developer') ? uid : '',
+    createdByRole:   role,
+    ownerId:         '',
+    approvedBy:      autoApprove ? uid : '',
+    approvedAt:      autoApprove ? now : null,
+    rejectedAt:      null,
+    rejectionReason: '',
+    status:          autoApprove ? 'active' : 'pending_review',
+    isActive:        true,
+    createdAt:       now,
+    updatedAt:       now,
+    createdBy:       uid,
+    updatedBy:       uid
+  };
+
+  db.collection('sites').add(siteData).then(function(siteRef) {
+    var siteId = siteRef.id;
+    // Write back the id field
+    siteRef.update({ id: siteId });
+
+    // Save all plots
+    var plotPromises = _pendingPlots.map(function(p) {
+      var plotDoc = Object.assign({}, p, {
+        id:        '',
+        siteId:    siteId,
+        agentId:   uid,
+        clientId:  '',
+        reservedAt:    null,
+        reservedUntil: null,
+        depositAmount: 0,
+        depositPaid:   false,
+        soldAt:        null,
+        salePrice:     0,
+        commissionId:  '',
+        status:        'available',
+        isActive:      true,
+        createdAt:     now,
+        updatedAt:     now,
+        createdBy:     uid,
+        updatedBy:     uid
+      });
+      return db.collection('plots').add(plotDoc).then(function(ref) {
+        return ref.update({ id: ref.id });
+      });
+    });
+
+    return Promise.all(plotPromises).then(function() {
+      logAudit('site.submitted', 'sites', siteId, {}, { name: siteData.name, status: siteData.status });
+      return siteId;
+    });
+  }).then(function(siteId) {
+    closeSiteSubmit();
+    _pendingPlots = [];
+    var msg = autoApprove
+      ? (curLang==='rw' ? 'Site yanditswe kandi iri mu isoko!' : 'Site created and now live!')
+      : (curLang==='rw' ? 'Site yoherejwe kandi irategura kwemezwa na Staff.' : 'Site submitted for Staff review.');
+    showToast(msg, 'success');
+    if (autoApprove) {
+      loadSites();
+    } else {
+      go('sites');
+    }
+  }).catch(function(err) {
+    console.error('[Sites] submit error', err);
+    showToast(curLang==='rw' ? 'Habaye ikibazo: ' + err.message : 'Error: ' + err.message, 'error');
+  }).finally(function() {
+    if (btn) { btn.disabled = false; btn.textContent = curLang==='rw' ? 'Saba Kwemezwa' : 'Submit for Review'; }
+  });
+}
+
+// ── Hook loadSites on page navigation ───────────────
+(function() {
+  var _origGo = window.go;
+  // Override go() to trigger module loaders
+  var _realGo = typeof go === 'function' ? go : null;
+  if (_realGo) {
+    var _goOrig = go;
+    go = function(name) {
+      _goOrig(name);
+      if (name === 'sites')  { setTimeout(loadSites, 80); }
+    };
+  }
+})();
 
 // Auto-update CRM sidebar badge when dashboard loads
 (function() {
