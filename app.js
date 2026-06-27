@@ -191,7 +191,7 @@ CORE INSTRUCTIONS:
 - Izina: KOMISIYONERI Connectpro Services Ltd
 - Headquarters: Kigali, Rwanda
 - Telefoni/WhatsApp: +250 783 177 254
-- Imeyili: komisiyonericonnectproservices@gmail.com
+- Imeyili: info.komisiyoneri.net@gmail.com
 - Website: www.komisiyoneri.com
 
 == FEATURES 6 ZA PLATFORM ==
@@ -394,8 +394,8 @@ function sendChat() {
     chatApiLoading = false;
     // Fallback to local reply if API fails (offline/network)
     var fallbacks = {
-      rw: ['Hamagara agent wacu: +250 783 177 254','Twandikire: komisiyonericonnectproservices@gmail.com','Ibibazo byose: www.komisiyoneri.com'],
-      en: ['Call our agent: +250 783 177 254','Email us: komisiyonericonnectproservices@gmail.com','All info: www.komisiyoneri.com']
+      rw: ['Hamagara agent wacu: +250 783 177 254','Twandikire: info.komisiyoneri.net@gmail.com','Ibibazo byose: www.komisiyoneri.com'],
+      en: ['Call our agent: +250 783 177 254','Email us: info.komisiyoneri.net@gmail.com','All info: www.komisiyoneri.com']
     };
     var fb = fallbacks[curLang] || fallbacks.rw;
     var reply = fb[Math.floor(Math.random() * fb.length)];
@@ -581,7 +581,7 @@ function loadSavedUser() {
 
 function updateNavForUser(user) {
   var adminBtn = document.getElementById('nav-admin-btn');
-  if (adminBtn) adminBtn.style.display = (user && (user.email === 'komisiyonericonnectproservices@gmail.com' || user.email === 'admin@komisiyoneri.com')) ? 'block' : 'none';
+  if (adminBtn) adminBtn.style.display = (user && (user.email === 'info.komisiyoneri.net@gmail.com' || user.email === 'admin@komisiyoneri.com')) ? 'block' : 'none';
   var guest = document.getElementById('nav-guest');
   var userArea = document.getElementById('nav-user');
   var avatar = document.getElementById('nav-avatar');
@@ -716,7 +716,7 @@ function openProfile() {
   // Show Add Property button only for approved agents and admin
   var addPropBtn = e('profile-add-prop-btn');
   if (addPropBtn) {
-    var canAdd = currentUser.role === 'Agent' || currentUser.email === 'komisiyonericonnectproservices@gmail.com';
+    var canAdd = currentUser.role === 'Agent' || currentUser.email === 'info.komisiyoneri.net@gmail.com';
     addPropBtn.style.display = canAdd ? '' : 'none';
   }
   // ensure view mode is shown
@@ -876,7 +876,7 @@ function openAddProperty() {
     showToast(curLang==='rw'?'Injira mbere yo kongeramo imitungo!':'Please login first!', 'warn');
     go('auth'); return;
   }
-  var isAdminUser = currentUser.email === 'komisiyonericonnectproservices@gmail.com';
+  var isAdminUser = currentUser.email === 'info.komisiyoneri.net@gmail.com';
   if (!isAdminUser && currentUser.role !== 'Agent') {
     if (currentUser.role === 'PendingAgent') {
       showToast(curLang==='rw'
@@ -917,7 +917,7 @@ function submitProperty() {
     return;
   }
 
-  var isAdmin = currentUser.email === 'komisiyonericonnectproservices@gmail.com';
+  var isAdmin = currentUser.email === 'info.komisiyoneri.net@gmail.com';
   if (!isAdmin && currentUser.role !== 'Agent') {
     showToast(curLang==='rw'
       ? '🔒 Agents bemewe gusa ni bo bashobora ohereza imitungo.'
@@ -1894,7 +1894,7 @@ function loadApprovedProperties() {
 // --- OPEN ADMIN PANEL ---
 function openAdmin() {
   var isAdmin = currentUser && (
-    currentUser.email === 'komisiyonericonnectproservices@gmail.com' ||
+    currentUser.email === 'info.komisiyoneri.net@gmail.com' ||
     currentUser.email === 'admin@komisiyoneri.com' ||
     currentUser.role === 'Admin'
   );
@@ -3237,7 +3237,7 @@ function submitLead() {
 // === ADMIN LEAD DASHBOARD ===
 function openAdminLeads() {
   var isAdmin = currentUser && (
-    currentUser.email === 'komisiyonericonnectproservices@gmail.com' ||
+    currentUser.email === 'info.komisiyoneri.net@gmail.com' ||
     currentUser.email === 'admin@komisiyoneri.com' ||
     currentUser.role === 'Admin'
   );
@@ -3450,7 +3450,7 @@ function openAdminAddProp() {
 var _origOpenAddProp = openAddProperty;
 openAddProperty = function() {
   _origOpenAddProp();
-  var isAdmin = currentUser && currentUser.email === 'komisiyonericonnectproservices@gmail.com';
+  var isAdmin = currentUser && currentUser.email === 'info.komisiyoneri.net@gmail.com';
   var adminMedia = document.getElementById('admin-media-section');
   var userMedia = document.getElementById('user-media-section');
   if(adminMedia) adminMedia.style.display = isAdmin ? 'flex' : 'none';
@@ -3522,7 +3522,7 @@ var _origOpenAdd = openAddProperty;
 openAddProperty = function() {
   _origOpenAdd();
   setTimeout(function() {
-    var isAdmin = currentUser && currentUser.email === 'komisiyonericonnectproservices@gmail.com';
+    var isAdmin = currentUser && currentUser.email === 'info.komisiyoneri.net@gmail.com';
     var adminSec = document.getElementById('admin-media-section');
     var userSec = document.getElementById('user-media-section');
     if(adminSec) adminSec.style.display = isAdmin ? 'flex' : 'none';
@@ -3969,7 +3969,7 @@ function closeHamburger() {
 
 function updateHamburgerAuth() {
   var isLoggedIn = !!currentUser;
-  var isAdmin = isLoggedIn && currentUser.email === 'komisiyonericonnectproservices@gmail.com';
+  var isAdmin = isLoggedIn && currentUser.email === 'info.komisiyoneri.net@gmail.com';
 
   // User info section
   var uInfo = document.getElementById('hm-user-info');
