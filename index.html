@@ -3601,6 +3601,8 @@ html,body{overscroll-behavior-x:none}
       <div class="ds-section" data-rw="IMARI" data-en="FINANCE">IMARI</div>
       <div class="dn" onclick="go('commissions')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span data-rw="Komisiyoni" data-en="Commissions">Komisiyoni</span><span class="ds-badge" id="comm-sidebar-count">0</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-rw="Kwishyura" data-en="Payments">Kwishyura</span></div>
+      <div class="ds-section" data-rw="WATEJA" data-en="MY PORTAL">WATEJA</div>
+      <div class="dn" onclick="go('customer')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Portal Yanjye" data-en="My Portal">My Portal</span><span class="ds-badge" id="cust-sidebar-badge"></span></div>
       <div class="ds-section" data-rw="KONTI" data-en="ACCOUNT">KONTI</div>
       <div class="dn"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Profil" data-en="Profile">Profil</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-rw="Igenamiterere" data-en="Settings">Igenamiterere</span></div>
@@ -4484,6 +4486,77 @@ html,body{overscroll-behavior-x:none}
     </div>
     <!-- List -->
     <div id="fin-list" style="margin-top:.5rem"></div>
+  </div>
+</div>
+
+<!-- === PAGE: CUSTOMER PORTAL === -->
+<div class="page" id="page-customer">
+  <!-- Welcome hero -->
+  <div class="cust-hero">
+    <div class="cust-hero-inner">
+      <div class="cust-avatar" id="cust-avatar-initials">U</div>
+      <div>
+        <div class="cust-hero-name" id="cust-hero-name" data-rw="Murakaza neza" data-en="Welcome back">Welcome back</div>
+        <div class="cust-hero-sub">
+          <span class="cust-role-chip" id="cust-role-chip">Client</span>
+          <span id="cust-member-since" style="font-size:.72rem;color:rgba(255,255,255,.7)"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cust-wrap">
+    <!-- Stats -->
+    <div class="cust-stats">
+      <div class="cust-stat-card">
+        <div class="cust-stat-val" id="cst-deals">0</div>
+        <div class="cust-stat-lbl" data-rw="Ibikorwa" data-en="My Deals">My Deals</div>
+      </div>
+      <div class="cust-stat-card">
+        <div class="cust-stat-val" id="cst-docs">0</div>
+        <div class="cust-stat-lbl" data-rw="Inyandiko" data-en="Documents">Documents</div>
+      </div>
+      <div class="cust-stat-card">
+        <div class="cust-stat-val" id="cst-viewings">0</div>
+        <div class="cust-stat-lbl" data-rw="Inzibutso" data-en="Viewings">Viewings</div>
+      </div>
+      <div class="cust-stat-card">
+        <div class="cust-stat-val" id="cst-aftersale">0</div>
+        <div class="cust-stat-lbl" data-rw="Serivisi" data-en="Services">Services</div>
+      </div>
+    </div>
+
+    <!-- Tab navigation -->
+    <div class="cust-tabs-nav">
+      <button class="cust-tab active" id="ctab-btn-deals" onclick="switchCustTab('deals')" data-rw="Ibikorwa Byanjye" data-en="My Deals">My Deals</button>
+      <button class="cust-tab" id="ctab-btn-docs" onclick="switchCustTab('docs')" data-rw="Inyandiko" data-en="Documents">Documents</button>
+      <button class="cust-tab" id="ctab-btn-viewings" onclick="switchCustTab('viewings')" data-rw="Inzibutso" data-en="Viewings">Viewings</button>
+      <button class="cust-tab" id="ctab-btn-aftersale" onclick="switchCustTab('aftersale')" data-rw="After-Sale" data-en="After-Sale">After-Sale</button>
+    </div>
+
+    <!-- Tab panes -->
+    <div class="cust-tab-content">
+      <div id="ctab-deals">
+        <div id="cust-deals-list">
+          <div class="cust-empty"><div class="cust-empty-icon">🏠</div><div class="cust-empty-title" data-rw="Gutegura..." data-en="Loading...">Loading...</div></div>
+        </div>
+      </div>
+      <div id="ctab-docs" style="display:none">
+        <div id="cust-docs-list"></div>
+      </div>
+      <div id="ctab-viewings" style="display:none">
+        <div id="cust-viewings-list"></div>
+      </div>
+      <div id="ctab-aftersale" style="display:none">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:.75rem">
+          <button class="btn btn-primary btn-sm" onclick="openAfterSaleRequest()">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span data-rw="Saba Serivisi Nshya" data-en="New Service Request">New Service Request</span>
+          </button>
+        </div>
+        <div id="cust-aftersale-list"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -5965,6 +6038,83 @@ html,body{overscroll-behavior-x:none}
         <div style="font-size:1rem;font-weight:700;color:var(--gold)" id="ld-commission-val">—</div>
       </div>
       <div id="ld-actions" style="display:flex;gap:.5rem;flex-wrap:wrap;padding-top:.85rem;border-top:1px solid var(--border);margin-top:.75rem"></div>
+    </div>
+  </div>
+</div>
+
+<!-- === AFTER-SALE REQUEST MODAL === -->
+<div class="modal-wrap" id="aftersale-request-modal" style="display:none">
+  <div class="modal" style="max-width:500px;width:95%">
+    <div class="modal-hdr">
+      <div class="modal-title">🛠️ <span data-rw="Saba Serivisi After-Sale" data-en="New After-Sale Service Request">New After-Sale Service Request</span></div>
+      <button onclick="closeAfterSaleRequest()" class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label data-rw="Ubwoko bwa Serivisi *" data-en="Service Type *">Service Type *</label>
+        <select id="asr-type" style="width:100%">
+          <option value="">-- Hitamo Serivisi / Select Service --</option>
+          <option value="property_management" data-rw="Imicungire y'Imitungo" data-en="Property Management">Property Management</option>
+          <option value="maintenance" data-rw="Gusura Kugenzura" data-en="Maintenance Request">Maintenance Request</option>
+          <option value="renovation" data-rw="Kugereka Inzu" data-en="Renovation Consultation">Renovation Consultation</option>
+          <option value="insurance" data-rw="Ubwishingizi" data-en="Insurance Referral">Insurance Referral</option>
+          <option value="utility_setup" data-rw="Amazi n'Amashanyarazi" data-en="Utility Setup">Utility Setup (Water/Electricity)</option>
+          <option value="moving" data-rw="Gutwara Ibintu" data-en="Moving Services">Moving Services</option>
+          <option value="interior_design" data-rw="Gukora Imbere y'Inzu" data-en="Interior Design">Interior Design</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label data-rw="Imitungo Irebwa (Ntabwo Ngombwa)" data-en="Property / Deal Reference (optional)">Property Reference (optional)</label>
+        <input type="text" id="asr-property-ref" placeholder="Property name or address" style="width:100%">
+      </div>
+      <div class="form-group">
+        <label data-rw="Ibisobanuro *" data-en="Description *">Description *</label>
+        <textarea id="asr-description" rows="3" placeholder="Describe what you need in detail..." style="width:100%;resize:vertical"></textarea>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label data-rw="Itariki Washaka" data-en="Preferred Date">Preferred Date</label>
+          <input type="date" id="asr-date" style="width:100%">
+        </div>
+        <div class="form-group">
+          <label data-rw="Igihe cy'Ubwihutirwe" data-en="Priority">Priority</label>
+          <select id="asr-priority" style="width:100%">
+            <option value="normal" data-rw="Bisanzwe" data-en="Normal">Normal</option>
+            <option value="urgent" data-rw="Bihutirwa" data-en="Urgent">Urgent</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem;justify-content:flex-end">
+        <button class="btn btn-outline" onclick="closeAfterSaleRequest()" data-rw="Gusubira" data-en="Cancel">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAfterSaleRequest()" data-rw="Ohereza Ubusabe" data-en="Submit Request">Submit Request</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === AFTER-SALE DETAIL MODAL === -->
+<div class="modal-wrap" id="aftersale-detail-modal" style="display:none">
+  <div class="modal" style="max-width:480px;width:95%">
+    <div class="modal-hdr">
+      <div class="modal-title">🛠️ <span data-rw="Ibirenzeho bya Serivisi" data-en="Service Request Detail">Service Request Detail</span></div>
+      <button onclick="closeAfterSaleDetail()" class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="asd-id">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem;flex-wrap:wrap;gap:.5rem">
+        <span class="asd-type-chip" id="asd-type-chip">—</span>
+        <span id="asd-status-badge">—</span>
+      </div>
+      <div class="fin-summary-card">
+        <div class="fin-summary-row"><span data-rw="Usabye" data-en="Requested By">Requested By</span><strong id="asd-requestor">—</strong></div>
+        <div class="fin-summary-row"><span data-rw="Imitungo Irebwa" data-en="Property Ref">Property Ref</span><strong id="asd-prop-ref">—</strong></div>
+        <div class="fin-summary-row"><span data-rw="Ibisobanuro" data-en="Description">Description</span><span id="asd-description" style="max-width:60%;text-align:right;font-size:.8rem;color:var(--dark)">—</span></div>
+        <div class="fin-summary-row"><span data-rw="Ubwihutirwe" data-en="Priority">Priority</span><strong id="asd-priority">—</strong></div>
+        <div class="fin-summary-row"><span data-rw="Itariki Washakaga" data-en="Preferred Date">Preferred Date</span><strong id="asd-pref-date">—</strong></div>
+        <div class="fin-summary-row"><span data-rw="Uhabwa" data-en="Assigned To">Assigned To</span><strong id="asd-assigned">—</strong></div>
+        <div class="fin-summary-row" id="asd-notes-row" style="display:none"><span data-rw="Amanotisi ya Admin" data-en="Admin Notes">Admin Notes</span><span id="asd-admin-notes" style="max-width:60%;text-align:right;font-size:.8rem;font-style:italic;color:var(--dark)">—</span></div>
+      </div>
+      <div id="asd-actions" style="display:flex;gap:.5rem;flex-wrap:wrap;padding-top:.75rem;border-top:1px solid var(--border)"></div>
     </div>
   </div>
 </div>
@@ -10878,6 +11028,9 @@ go = function(page) {
   if(page === 'financing') {
     setTimeout(loadFinancing, 150);
   }
+  if(page === 'customer') {
+    setTimeout(loadCustomerPortal, 150);
+  }
 };
 
 </script>
@@ -11265,6 +11418,413 @@ go = function(page) {
       : attachRealtimeListeners();
   } catch(e){ console.error('Sync error:',e); }
 })();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHASE 9 — CUSTOMER PORTAL
+     My Deals | Documents | Viewings | After-Sale Services
+════════════════════════════════════════════════════════ -->
+<script>
+/* ── Phase 9 globals ── */
+var _custDeals     = [];
+var _custDocs      = [];
+var _custViewings  = [];
+var _custAfterSale = [];
+var _custTab       = 'deals';
+var _asdCurrentId  = null;
+
+var AFTERSALE_TYPES = {
+  property_management: 'Property Management',
+  maintenance:         'Maintenance Request',
+  renovation:          'Renovation Consultation',
+  insurance:           'Insurance Referral',
+  utility_setup:       'Utility Setup',
+  moving:              'Moving Services',
+  interior_design:     'Interior Design'
+};
+
+var AFTERSALE_STATUSES = {
+  submitted:   { label: 'Submitted',   color: '#6366F1' },
+  in_progress: { label: 'In Progress', color: '#F59E0B' },
+  on_hold:     { label: 'On Hold',     color: '#EA580C' },
+  completed:   { label: 'Completed',   color: '#16A34A' },
+  cancelled:   { label: 'Cancelled',   color: '#DC2626' }
+};
+
+var DEAL_STAGE_LABELS = {
+  new:               'Application Received',
+  contacted:         'Agent Assigned',
+  qualified:         'Property Qualified',
+  viewing_scheduled: 'Viewing Scheduled',
+  viewing_completed: 'Viewing Completed',
+  offer_submitted:   'Offer Submitted',
+  negotiation:       'In Negotiation',
+  due_diligence:     'Due Diligence',
+  financing:         'Securing Financing',
+  contract:          'Contract Stage',
+  closing:           'Final Closing',
+  closed_won:        'Completed',
+  closed_lost:       'Cancelled'
+};
+
+var DEAL_STAGE_LIST = [
+  'new','contacted','qualified','viewing_scheduled','viewing_completed',
+  'offer_submitted','negotiation','due_diligence','financing',
+  'contract','closing','closed_won'
+];
+
+/* ── Load portal ── */
+function loadCustomerPortal() {
+  if (typeof db === 'undefined') {
+    ['cust-deals-list','cust-docs-list','cust-viewings-list','cust-aftersale-list'].forEach(function(id) {
+      var el = g(id);
+      if (el) el.innerHTML = '<p style="text-align:center;color:var(--muted);padding:2rem">Offline — cannot load data</p>';
+    });
+    return;
+  }
+  var cu = currentUser;
+  if (!cu) return;
+
+  var initials = ((cu.displayName || cu.email || 'U').trim()[0] || 'U').toUpperCase();
+  if(g('cust-avatar-initials')) g('cust-avatar-initials').textContent = initials;
+  if(g('cust-hero-name')) g('cust-hero-name').textContent = cu.displayName || cu.email || 'Welcome';
+  if(g('cust-role-chip')) g('cust-role-chip').textContent = (cu.role || 'client').replace(/_/g,' ');
+
+  loadCustDeals(cu.uid);
+  loadCustDocs(cu.uid);
+  loadCustViewings(cu.uid);
+  loadCustAfterSale(cu.uid);
+}
+
+function loadCustDeals(uid) {
+  db.collection('deals').where('clientId','==',uid).where('isActive','==',true)
+    .orderBy('createdAt','desc').limit(50)
+    .get().then(function(snap) {
+      _custDeals = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+      if(g('cst-deals')) g('cst-deals').textContent = _custDeals.length;
+      if(_custTab === 'deals') renderCustDeals();
+    }).catch(function(e) { console.error('loadCustDeals', e); });
+}
+
+function loadCustDocs(uid) {
+  db.collection('documents').where('clientId','==',uid).where('isActive','==',true)
+    .orderBy('createdAt','desc').limit(50)
+    .get().then(function(snap) {
+      _custDocs = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+      if(g('cst-docs')) g('cst-docs').textContent = _custDocs.length;
+      if(_custTab === 'docs') renderCustDocs();
+    }).catch(function(e) { console.error('loadCustDocs', e); });
+}
+
+function loadCustViewings(uid) {
+  db.collection('viewings').where('clientId','==',uid).where('isActive','==',true)
+    .orderBy('scheduledAt','desc').limit(50)
+    .get().then(function(snap) {
+      _custViewings = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+      if(g('cst-viewings')) g('cst-viewings').textContent = _custViewings.length;
+      if(_custTab === 'viewings') renderCustViewings();
+    }).catch(function(e) { console.error('loadCustViewings', e); });
+}
+
+function loadCustAfterSale(uid) {
+  db.collection('services').where('requestedBy','==',uid).where('serviceType','==','after_sale').where('isActive','==',true)
+    .orderBy('createdAt','desc').limit(50)
+    .get().then(function(snap) {
+      _custAfterSale = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+      if(g('cst-aftersale')) g('cst-aftersale').textContent = _custAfterSale.length;
+      if(_custTab === 'aftersale') renderCustAfterSale();
+    }).catch(function(e) { console.error('loadCustAfterSale', e); });
+}
+
+/* ── Tab switching ── */
+function switchCustTab(tab) {
+  _custTab = tab;
+  ['deals','docs','viewings','aftersale'].forEach(function(t) {
+    var btn  = g('ctab-btn-' + t);
+    var pane = g('ctab-' + t);
+    if (btn)  btn.classList.toggle('active', t === tab);
+    if (pane) pane.style.display = t === tab ? '' : 'none';
+  });
+  if (tab === 'deals')     renderCustDeals();
+  if (tab === 'docs')      renderCustDocs();
+  if (tab === 'viewings')  renderCustViewings();
+  if (tab === 'aftersale') renderCustAfterSale();
+}
+
+/* ── Render: Deals ── */
+function renderCustDeals() {
+  var el = g('cust-deals-list');
+  if (!el) return;
+  if (!_custDeals.length) {
+    el.innerHTML = '<div class="cust-empty"><div class="cust-empty-icon">🏠</div>'
+      + '<div class="cust-empty-title" data-rw="Nta bikorwa bibonetse" data-en="No deals yet">No deals yet</div>'
+      + '<div class="cust-empty-sub" data-rw="Ibikorwa byawe bizagaragara hano" data-en="Your property transactions will appear here">Your property transactions will appear here</div></div>';
+    if (typeof switchLang === 'function') switchLang(curLang);
+    return;
+  }
+  el.innerHTML = _custDeals.map(function(deal) {
+    var stage      = deal.pipelineStage || deal.stage || 'new';
+    var stageLabel = DEAL_STAGE_LABELS[stage] || stage;
+    var stageIdx   = DEAL_STAGE_LIST.indexOf(stage);
+    var progress   = stageIdx >= 0 ? Math.round((stageIdx + 1) / DEAL_STAGE_LIST.length * 100) : 5;
+    var won   = stage === 'closed_won';
+    var lost  = stage === 'closed_lost';
+    var barColor   = won ? 'var(--success)' : lost ? 'var(--error)' : 'var(--navy)';
+    var stageColor = won ? '#16A34A' : lost ? '#DC2626' : 'var(--navy)';
+    var dealType   = (deal.dealType || 'Sale').replace(/_/g,' ');
+    return '<div class="cust-deal-card">'
+      + '<div class="cust-deal-head">'
+      + '<div class="cust-deal-title">' + (deal.propertyTitle || 'Property Deal') + '</div>'
+      + '<span class="cust-deal-type">' + dealType + '</span>'
+      + '</div>'
+      + '<div style="font-size:.82rem;font-weight:600;color:' + stageColor + ';margin:.45rem 0 .35rem">' + stageLabel + '</div>'
+      + '<div class="cust-progress-bar"><div class="cust-progress-fill" style="width:' + progress + '%;background:' + barColor + '"></div></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted);margin-top:.3rem">'
+      + '<span>' + progress + '% complete</span>'
+      + (deal.agreedPrice ? '<span style="color:var(--navy);font-weight:700">' + (deal.agreedPrice||0).toLocaleString() + ' RWF</span>' : '')
+      + '</div>'
+      + '</div>';
+  }).join('');
+  if (typeof switchLang === 'function') switchLang(curLang);
+}
+
+/* ── Render: Documents ── */
+function renderCustDocs() {
+  var el = g('cust-docs-list');
+  if (!el) return;
+  if (!_custDocs.length) {
+    el.innerHTML = '<div class="cust-empty"><div class="cust-empty-icon">📄</div>'
+      + '<div class="cust-empty-title" data-rw="Nta nyandiko zibonetse" data-en="No documents yet">No documents yet</div>'
+      + '<div class="cust-empty-sub" data-rw="Inyandiko zawe zigaragara hano" data-en="Your documents will appear here">Your documents will appear here</div></div>';
+    if (typeof switchLang === 'function') switchLang(curLang);
+    return;
+  }
+  el.innerHTML = _custDocs.map(function(doc) {
+    var signed    = doc.signed;
+    var sColor    = signed ? '#16A34A' : '#F59E0B';
+    var sLabel    = signed ? 'Signed' : 'Pending';
+    var docType   = (doc.type || 'document').replace(/_/g,' ');
+    return '<div class="cust-doc-card">'
+      + '<div style="display:flex;align-items:center;gap:.65rem">'
+      + '<div class="cust-doc-icon">📄</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div class="cust-doc-name">' + (doc.name || 'Document') + '</div>'
+      + '<div style="font-size:.72rem;color:var(--muted);margin-top:.1rem">' + docType + '</div>'
+      + '</div>'
+      + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.35rem">'
+      + '<span style="font-size:.68rem;font-weight:700;padding:.15rem .45rem;border-radius:20px;color:' + sColor + ';background:' + sColor + '20">' + sLabel + '</span>'
+      + (doc.fileUrl ? '<a href="' + doc.fileUrl + '" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="font-size:.7rem;padding:.2rem .55rem" data-en="View">View</a>' : '')
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+/* ── Render: Viewings ── */
+function renderCustViewings() {
+  var el = g('cust-viewings-list');
+  if (!el) return;
+  if (!_custViewings.length) {
+    el.innerHTML = '<div class="cust-empty"><div class="cust-empty-icon">🔍</div>'
+      + '<div class="cust-empty-title" data-rw="Nta nzibutso zibonetse" data-en="No viewings yet">No viewings yet</div>'
+      + '<div class="cust-empty-sub" data-rw="Inzibutso z\'imitungo zigaragara hano" data-en="Your property viewings will appear here">Your property viewings will appear here</div></div>';
+    if (typeof switchLang === 'function') switchLang(curLang);
+    return;
+  }
+  var vStatusColor = { completed: '#16A34A', scheduled: '#6366F1', cancelled: '#DC2626', no_show: '#EA580C' };
+  el.innerHTML = _custViewings.map(function(v) {
+    var dt  = v.scheduledAt && v.scheduledAt.toDate ? v.scheduledAt.toDate().toLocaleDateString('en-GB') : 'TBD';
+    var sc  = vStatusColor[v.status] || 'var(--muted)';
+    var rpt = v.report && v.report.notes;
+    return '<div class="cust-viewing-card">'
+      + '<div class="cust-viewing-date-col"><div class="cust-viewing-date">' + dt + '</div></div>'
+      + '<div class="cust-viewing-info">'
+      + '<div class="cust-viewing-property">' + (v.propertyTitle || v.propertyId || 'Property') + '</div>'
+      + '<div style="font-size:.75rem;color:var(--muted);margin-top:.12rem">Agent: ' + (v.agentName || 'TBD') + '</div>'
+      + (rpt ? '<div style="font-size:.72rem;color:var(--navy);margin-top:.25rem;font-style:italic">' + v.report.notes.substring(0,70) + (v.report.notes.length > 70 ? '...' : '') + '</div>' : '')
+      + '</div>'
+      + '<span style="font-size:.68rem;font-weight:700;align-self:flex-start;white-space:nowrap;padding:.2rem .5rem;border-radius:20px;color:' + sc + ';background:' + sc + '20">'
+      + (v.status || 'scheduled').replace(/_/g,' ')
+      + '</span>'
+      + '</div>';
+  }).join('');
+}
+
+/* ── Render: After-Sale ── */
+function renderCustAfterSale() {
+  var el = g('cust-aftersale-list');
+  if (!el) return;
+  if (!_custAfterSale.length) {
+    el.innerHTML = '<div class="cust-empty"><div class="cust-empty-icon">🛠️</div>'
+      + '<div class="cust-empty-title" data-rw="Nta serivisi zibonetse" data-en="No service requests yet">No service requests yet</div>'
+      + '<div class="cust-empty-sub" data-rw="Kanda \'Saba Serivisi Nshya\' gutangira" data-en="Click New Service Request to get started">Click New Service Request to get started</div></div>';
+    if (typeof switchLang === 'function') switchLang(curLang);
+    return;
+  }
+  el.innerHTML = _custAfterSale.map(function(s) {
+    var typeLabel  = AFTERSALE_TYPES[s.serviceSubtype] || s.serviceSubtype || 'Service';
+    var statusInfo = AFTERSALE_STATUSES[s.status] || { label: s.status, color: 'var(--muted)' };
+    var dt  = s.createdAt && s.createdAt.toDate ? s.createdAt.toDate().toLocaleDateString('en-GB') : '';
+    var desc = (s.description || '').substring(0, 80) + (s.description && s.description.length > 80 ? '...' : '');
+    return '<div class="cust-aftersale-card" onclick="openAfterSaleDetail(\'' + s.id + '\')">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-weight:700;font-size:.9rem;color:var(--dark)">' + typeLabel + '</div>'
+      + (s.propertyRef ? '<div style="font-size:.72rem;color:var(--muted);margin-top:.1rem">' + s.propertyRef + '</div>' : '')
+      + (desc ? '<div style="font-size:.78rem;color:var(--dark);margin-top:.3rem">' + desc + '</div>' : '')
+      + '</div>'
+      + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;flex-shrink:0">'
+      + '<span style="font-size:.68rem;font-weight:700;padding:.15rem .45rem;border-radius:20px;color:' + statusInfo.color + ';background:' + statusInfo.color + '20">' + statusInfo.label + '</span>'
+      + (dt ? '<span style="font-size:.68rem;color:var(--muted)">' + dt + '</span>' : '')
+      + (s.priority === 'urgent' ? '<span style="font-size:.62rem;font-weight:800;color:#DC2626;letter-spacing:.05em">URGENT</span>' : '')
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+/* ── After-Sale Request ── */
+function openAfterSaleRequest() {
+  ['asr-property-ref','asr-description'].forEach(function(id) { var el = g(id); if (el) el.value = ''; });
+  if(g('asr-type')) g('asr-type').value = '';
+  if(g('asr-priority')) g('asr-priority').value = 'normal';
+  var dateEl = g('asr-date');
+  if (dateEl) {
+    var today = new Date().toISOString().split('T')[0];
+    dateEl.min   = today;
+    dateEl.value = '';
+  }
+  openModal('aftersale-request-modal');
+}
+function closeAfterSaleRequest() { closeModal('aftersale-request-modal'); }
+
+function submitAfterSaleRequest() {
+  if (typeof db === 'undefined') { showToast('Offline — cannot submit', 'error'); return; }
+  var cu = currentUser;
+  if (!cu) { showToast('Login required', 'error'); return; }
+
+  var stype       = (g('asr-type')         ||{}).value || '';
+  var propRef     = (g('asr-property-ref') ||{}).value || '';
+  var description = (g('asr-description')  ||{}).value || '';
+  var prefDate    = (g('asr-date')         ||{}).value || '';
+  var priority    = (g('asr-priority')     ||{}).value || 'normal';
+
+  if (!stype || !description.trim()) {
+    showToast('Select a service type and add a description', 'error');
+    return;
+  }
+
+  var ref = db.collection('services').doc();
+  var doc = {
+    id: ref.id, serviceType: 'after_sale', serviceSubtype: stype,
+    propertyRef: propRef, description: description, preferredDate: prefDate,
+    priority: priority, adminNotes: '',
+    requestedBy: cu.uid, assignedTo: '',
+    scheduledAt: null, quotedPrice: 0, agreedPrice: 0, reportUrl: '',
+    status: 'submitted', isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: cu.uid, updatedBy: cu.uid
+  };
+
+  ref.set(doc).then(function() {
+    logAudit('aftersale_requested', 'services', ref.id, null, { serviceSubtype: stype });
+    showToast('Service request submitted!', 'success');
+    closeAfterSaleRequest();
+    loadCustAfterSale(cu.uid);
+    switchCustTab('aftersale');
+  }).catch(function(e) { showToast('Error: ' + e.message, 'error'); });
+}
+
+/* ── After-Sale Detail ── */
+function openAfterSaleDetail(id) {
+  var s = _custAfterSale.find(function(x) { return x.id === id; });
+  if (!s) return;
+  _asdCurrentId = id;
+  if(g('asd-id')) g('asd-id').value = id;
+
+  var typeLabel  = AFTERSALE_TYPES[s.serviceSubtype] || s.serviceSubtype || 'Service';
+  var statusInfo = AFTERSALE_STATUSES[s.status] || { label: s.status || '', color: 'var(--muted)' };
+
+  var tc = g('asd-type-chip');
+  if (tc) tc.textContent = typeLabel;
+  var sb = g('asd-status-badge');
+  if (sb) {
+    sb.textContent  = statusInfo.label;
+    sb.style.cssText = 'font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:20px;color:'
+      + statusInfo.color + ';background:' + statusInfo.color + '20';
+  }
+
+  var cu = currentUser;
+  if(g('asd-requestor'))   g('asd-requestor').textContent   = cu ? (cu.displayName || cu.email) : 'You';
+  if(g('asd-prop-ref'))    g('asd-prop-ref').textContent    = s.propertyRef || '—';
+  if(g('asd-description')) g('asd-description').textContent = s.description || '—';
+  if(g('asd-priority'))    g('asd-priority').textContent    = (s.priority || 'normal').toUpperCase();
+  if(g('asd-pref-date'))   g('asd-pref-date').textContent   = s.preferredDate || '—';
+  if(g('asd-assigned'))    g('asd-assigned').textContent    = s.assignedTo ? 'Partner assigned' : 'Pending assignment';
+
+  var nr = g('asd-notes-row');
+  if (nr) nr.style.display = s.adminNotes ? '' : 'none';
+  if(g('asd-admin-notes')) g('asd-admin-notes').textContent = s.adminNotes || '';
+
+  var actEl = g('asd-actions');
+  if (actEl) {
+    var isAdm = cu && ['admin','super_admin','staff'].includes(cu.role);
+    var html  = '';
+    if (isAdm) {
+      if (s.status === 'submitted') {
+        html += '<button class="btn btn-primary btn-sm" onclick="updateAfterSaleStatus(\'in_progress\')" data-en="Begin Work">Begin Work</button>';
+        html += '<button class="btn btn-outline btn-sm" onclick="updateAfterSaleStatus(\'on_hold\')" data-en="Put On Hold">Put On Hold</button>';
+      } else if (s.status === 'in_progress') {
+        html += '<button class="btn btn-primary btn-sm" onclick="updateAfterSaleStatus(\'completed\')" data-en="Mark Completed">Mark Completed</button>';
+        html += '<button class="btn btn-outline btn-sm" onclick="updateAfterSaleStatus(\'on_hold\')" data-en="On Hold">On Hold</button>';
+      } else if (s.status === 'on_hold') {
+        html += '<button class="btn btn-primary btn-sm" onclick="updateAfterSaleStatus(\'in_progress\')" data-en="Resume">Resume</button>';
+      }
+      if (s.status !== 'completed' && s.status !== 'cancelled') {
+        html += '<button class="btn btn-sm" style="background:var(--error);color:#fff" onclick="updateAfterSaleStatus(\'cancelled\')" data-en="Cancel">Cancel</button>';
+      }
+    }
+    html += '<button class="btn btn-outline btn-sm" onclick="closeAfterSaleDetail()" data-en="Close">Close</button>';
+    actEl.innerHTML = html;
+    if (typeof switchLang === 'function') switchLang(curLang);
+  }
+  openModal('aftersale-detail-modal');
+}
+function closeAfterSaleDetail() { closeModal('aftersale-detail-modal'); }
+
+function updateAfterSaleStatus(newStatus) {
+  if (typeof db === 'undefined') { showToast('Offline', 'error'); return; }
+  var cu = currentUser;
+  if (!cu || !_asdCurrentId) return;
+  var s = _custAfterSale.find(function(x) { return x.id === _asdCurrentId; });
+  var oldStatus = s ? s.status : '';
+
+  db.collection('services').doc(_asdCurrentId).update({
+    status:    newStatus,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: cu.uid
+  }).then(function() {
+    logAudit('aftersale_status_changed', 'services', _asdCurrentId, { status: oldStatus }, { status: newStatus });
+    showToast('Status updated', 'success');
+    closeAfterSaleDetail();
+    loadCustAfterSale(cu.uid);
+  }).catch(function(e) { showToast('Error: ' + e.message, 'error'); });
+}
+
+/* ── Sidebar badge ── */
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    if (typeof db === 'undefined') return;
+    var cu = currentUser;
+    if (!cu) return;
+    db.collection('deals').where('clientId','==',cu.uid).where('isActive','==',true)
+      .get().then(function(snap) {
+        var badge = g('cust-sidebar-badge');
+        if (badge && snap.size > 0) badge.textContent = snap.size;
+      }).catch(function(){});
+  }, 6500);
+});
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
