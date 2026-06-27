@@ -3607,6 +3607,8 @@ html,body{overscroll-behavior-x:none}
       <div class="ds-section" data-rw="OFISI" data-en="OFFICE">OFISI</div>
       <div class="dn" onclick="go('office')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg><span data-rw="Gucunga Ofisi" data-en="Office Management">Office Management</span><span class="ds-badge" id="office-sidebar-count"></span></div>
       <div class="dn" onclick="go('hr')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Ubucuruzi bw'Abakozi" data-en="HR Management">HR Management</span><span class="ds-badge" id="hr-sidebar-count"></span></div>
+      <div class="ds-section" data-rw="UBUYOBOZI" data-en="EXECUTIVE">UBUYOBOZI</div>
+      <div class="dn" onclick="go('exec')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h2v5H7zm4-3h2v8h-2zm4 2h2v6h-2z"/></svg><span data-rw="Ikigega cy'Ubuyobozi" data-en="Executive Dashboard">Executive Dashboard</span><span class="ds-badge" id="exec-sidebar-badge"></span></div>
       <div class="ds-section" data-rw="KONTI" data-en="ACCOUNT">KONTI</div>
       <div class="dn"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Profil" data-en="Profile">Profil</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-rw="Igenamiterere" data-en="Settings">Igenamiterere</span></div>
@@ -4820,6 +4822,105 @@ html,body{overscroll-behavior-x:none}
       </div>
     </div>
     <div id="ac-reports-content"></div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: EXECUTIVE DASHBOARD ═══ -->
+<div class="page" id="page-exec">
+  <div class="page-hdr">
+    <h2 data-rw="Ikigega cy'Ubuyobozi" data-en="Executive Dashboard">Executive Dashboard</h2>
+    <select id="exec-year-filter" onchange="loadExecDash()" class="off-filter" style="min-width:90px"></select>
+  </div>
+
+  <!-- KPI Strip -->
+  <div class="exec-kpi-strip" id="exec-kpi-strip">
+    <div class="exec-kpi-card exec-kpi-rev"><span class="exec-kpi-val" id="exec-kpi-rev">—</span><span class="exec-kpi-lbl" data-rw="Amashingiro (Ukwezi)" data-en="Revenue (MTD)">Revenue (MTD)</span></div>
+    <div class="exec-kpi-card exec-kpi-deals"><span class="exec-kpi-val" id="exec-kpi-deals">—</span><span class="exec-kpi-lbl" data-rw="Deals Zifunguye" data-en="Active Deals">Active Deals</span></div>
+    <div class="exec-kpi-card exec-kpi-props"><span class="exec-kpi-val" id="exec-kpi-props">—</span><span class="exec-kpi-lbl" data-rw="Imitungo" data-en="Properties">Properties</span></div>
+    <div class="exec-kpi-card exec-kpi-agents"><span class="exec-kpi-val" id="exec-kpi-agents">—</span><span class="exec-kpi-lbl" data-rw="Abacuruzi" data-en="Active Agents">Active Agents</span></div>
+    <div class="exec-kpi-card exec-kpi-leads"><span class="exec-kpi-val" id="exec-kpi-leads">—</span><span class="exec-kpi-lbl" data-rw="Leads Nshya" data-en="New Leads">New Leads</span></div>
+    <div class="exec-kpi-card exec-kpi-comm"><span class="exec-kpi-val" id="exec-kpi-comm">—</span><span class="exec-kpi-lbl" data-rw="Komisiyoni (Ukwezi)" data-en="Commissions (MTD)">Commissions (MTD)</span></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="off-tabs-nav">
+    <button class="off-tab active" id="extab-btn-overview"  onclick="switchExecTab('overview')"  data-rw="Incamake" data-en="Overview">Overview</button>
+    <button class="off-tab" id="extab-btn-revenue"   onclick="switchExecTab('revenue')"   data-rw="Amashingiro" data-en="Revenue">Revenue</button>
+    <button class="off-tab" id="extab-btn-pipeline"  onclick="switchExecTab('pipeline')"  data-rw="Pipeline" data-en="Pipeline">Pipeline</button>
+    <button class="off-tab" id="extab-btn-team"      onclick="switchExecTab('team')"      data-rw="Itsinda" data-en="Team">Team</button>
+  </div>
+
+  <!-- OVERVIEW PANE -->
+  <div class="off-pane" id="extab-overview">
+    <div class="exec-two-col">
+      <!-- Recent Alerts -->
+      <div class="exec-panel">
+        <div class="exec-panel-hdr" data-rw="Intangarugero" data-en="Alerts &amp; Insights">Alerts &amp; Insights</div>
+        <div id="exec-alerts-list"><div class="exec-empty" data-rw="Nta makuru mashya" data-en="No alerts">No alerts</div></div>
+      </div>
+      <!-- Activity Feed -->
+      <div class="exec-panel">
+        <div class="exec-panel-hdr" data-rw="Ibikorwa Biheruka" data-en="Recent Activity">Recent Activity</div>
+        <div id="exec-activity-list"><div class="exec-empty" data-rw="Nta bikorwa" data-en="No recent activity">No recent activity</div></div>
+      </div>
+    </div>
+    <!-- Module Health -->
+    <div class="exec-panel" style="margin-top:16px">
+      <div class="exec-panel-hdr" data-rw="Ubuzima bw'Sisitemu" data-en="Module Health">Module Health</div>
+      <div class="exec-health-grid" id="exec-health-grid"></div>
+    </div>
+  </div>
+
+  <!-- REVENUE PANE -->
+  <div class="off-pane" id="extab-revenue" style="display:none">
+    <div class="ac-chart-wrap">
+      <div class="ac-chart-title" data-rw="Amashingiro vs Ibisonerwa (Amezi 12)" data-en="Revenue vs Expenses (12 Months)">Revenue vs Expenses (12 Months)</div>
+      <div class="ac-bars" id="exec-rev-bars"></div>
+      <div class="ac-chart-legend">
+        <span class="ac-leg-rev" data-rw="Amashingiro" data-en="Revenue">Revenue</span>
+        <span class="ac-leg-exp" data-rw="Ibisonerwa" data-en="Expenses">Expenses</span>
+      </div>
+    </div>
+    <div class="exec-panel">
+      <div class="exec-panel-hdr" data-rw="Abacuruzi 5 b'Ibanze" data-en="Top 5 Agents by Commission">Top 5 Agents by Commission</div>
+      <div id="exec-top-agents"><div class="exec-empty">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- PIPELINE PANE -->
+  <div class="off-pane" id="extab-pipeline" style="display:none">
+    <div class="exec-panel">
+      <div class="exec-panel-hdr" data-rw="Urwego rwa CRM — Leads" data-en="CRM Pipeline Funnel">CRM Pipeline Funnel</div>
+      <div id="exec-funnel"></div>
+    </div>
+    <div class="exec-two-col" style="margin-top:16px">
+      <div class="exec-panel">
+        <div class="exec-panel-hdr" data-rw="Ikigereranyo cyo Guhinduranya" data-en="Conversion Metrics">Conversion Metrics</div>
+        <div id="exec-conversion"></div>
+      </div>
+      <div class="exec-panel">
+        <div class="exec-panel-hdr" data-rw="Igiciro cy'Deals" data-en="Deal Values by Stage">Deal Values by Stage</div>
+        <div id="exec-deal-values"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEAM PANE -->
+  <div class="off-pane" id="extab-team" style="display:none">
+    <div class="exec-panel">
+      <div class="exec-panel-hdr" data-rw="Ibikorwa by'Abacuruzi" data-en="Agent Performance">Agent Performance</div>
+      <div id="exec-agent-perf"><div class="exec-empty">Loading...</div></div>
+    </div>
+    <div class="exec-two-col" style="margin-top:16px">
+      <div class="exec-panel">
+        <div class="exec-panel-hdr" data-rw="Iya Gutura kw'Akazi" data-en="Attendance Rate (30d)">Attendance Rate (30d)</div>
+        <div id="exec-att-rate"><div class="exec-empty">Loading...</div></div>
+      </div>
+      <div class="exec-panel">
+        <div class="exec-panel-hdr" data-rw="Ibikorwa (Tasks)" data-en="Task Completion Rate">Task Completion Rate</div>
+        <div id="exec-task-rate"><div class="exec-empty">Loading...</div></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -11780,6 +11881,9 @@ go = function(page) {
   if(page === 'accounting') {
     setTimeout(loadAccounting, 150);
   }
+  if(page === 'exec') {
+    setTimeout(loadExecDash, 150);
+  }
 };
 
 </script>
@@ -12166,6 +12270,431 @@ go = function(page) {
       ? document.addEventListener('DOMContentLoaded', attachRealtimeListeners)
       : attachRealtimeListeners();
   } catch(e){ console.error('Sync error:',e); }
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHASE 13 — EXECUTIVE DASHBOARD
+     Overview | Revenue | Pipeline | Team Performance
+════════════════════════════════════════════════════════ -->
+<script>
+/* ── Phase 13 globals ── */
+var EXEC_CRM_STAGES = ['new','contacted','qualified','viewing_scheduled','viewing_completed','offer_submitted','negotiation','due_diligence','financing','contract','closing','closed_won','closed_lost'];
+var EXEC_STAGE_LABELS = { new:'New', contacted:'Contacted', qualified:'Qualified', viewing_scheduled:'View Sched.', viewing_completed:'View Done', offer_submitted:'Offer Out', negotiation:'Negotiation', due_diligence:'Due Diligence', financing:'Financing', contract:'Contract', closing:'Closing', closed_won:'Won', closed_lost:'Lost' };
+var _execTabActive = 'overview';
+
+function switchExecTab(tab) {
+  _execTabActive = tab;
+  ['overview','revenue','pipeline','team'].forEach(function(t) {
+    var btn = g('extab-btn-' + t);
+    var pane = g('extab-' + t);
+    if (btn) btn.classList.toggle('active', t === tab);
+    if (pane) pane.style.display = t === tab ? '' : 'none';
+  });
+  if (tab === 'revenue') loadExecRevenue();
+  if (tab === 'pipeline') loadExecPipeline();
+  if (tab === 'team') loadExecTeam();
+  switchLang(currentLang);
+}
+
+function loadExecDash() {
+  var cu = currentUser;
+  if (!cu) { showToast('Injira kuri konti yawe', 'error'); return; }
+  var allowed = ['super_admin','admin','ceo'];
+  if (allowed.indexOf(cu.role) === -1) {
+    var pg = g('page-exec');
+    if (pg) pg.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--muted)"><div style="font-size:2rem;margin-bottom:.5rem">&#128274;</div><div data-rw="Ntaburenganzira" data-en="Access restricted to executives">Access restricted to executives</div></div>';
+    return;
+  }
+  var yr = g('exec-year-filter');
+  if (yr && yr.options.length === 0) {
+    var curYear = new Date().getFullYear();
+    for (var y = curYear; y >= curYear - 3; y--) {
+      var opt = document.createElement('option');
+      opt.value = y; opt.text = y;
+      yr.appendChild(opt);
+    }
+  }
+  loadExecKPIs();
+  switchExecTab(_execTabActive);
+  switchLang(currentLang);
+}
+
+function loadExecKPIs() {
+  var now = new Date();
+  var monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  var ts = firebase.firestore.Timestamp.fromDate(monthStart);
+
+  db.collection('invoices').where('status','==','paid').where('isActive','==',true)
+    .where('createdAt','>=',ts).get().then(function(snap) {
+      var total = 0;
+      snap.forEach(function(d) { total += (d.data().totalAmount || 0); });
+      var el = g('exec-kpi-rev');
+      if (el) el.textContent = fmtRWF(total);
+    }).catch(function(){});
+
+  db.collection('deals').where('isActive','==',true).get().then(function(snap) {
+    var active = 0;
+    snap.forEach(function(d) {
+      var s = d.data().pipelineStage || '';
+      if (s !== 'closed_won' && s !== 'closed_lost') active++;
+    });
+    var el = g('exec-kpi-deals');
+    if (el) el.textContent = active;
+  }).catch(function(){});
+
+  db.collection('properties').where('isActive','==',true).where('status','==','approved').get().then(function(snap) {
+    var el = g('exec-kpi-props');
+    if (el) el.textContent = snap.size;
+  }).catch(function(){});
+
+  db.collection('users').where('role','==','agent').where('isActive','==',true).get().then(function(snap) {
+    var el = g('exec-kpi-agents');
+    if (el) el.textContent = snap.size;
+  }).catch(function(){});
+
+  db.collection('leads').where('isActive','==',true).where('createdAt','>=',ts).get().then(function(snap) {
+    var el = g('exec-kpi-leads');
+    if (el) el.textContent = snap.size;
+  }).catch(function(){});
+
+  db.collection('commissions').where('isActive','==',true).where('createdAt','>=',ts).get().then(function(snap) {
+    var total = 0;
+    snap.forEach(function(d) { total += (d.data().totalCommission || 0); });
+    var el = g('exec-kpi-comm');
+    if (el) el.textContent = fmtRWF(total);
+  }).catch(function(){});
+
+  loadExecOverview();
+}
+
+function loadExecOverview() {
+  loadExecAlerts();
+  loadExecActivity();
+  loadExecHealth();
+}
+
+function loadExecAlerts() {
+  var container = g('exec-alerts-list');
+  if (!container) return;
+  container.innerHTML = '<div class="exec-loading">Loading...</div>';
+  var alerts = [];
+  var pending = 2;
+  function done() {
+    pending--;
+    if (pending > 0) return;
+    if (alerts.length === 0) {
+      container.innerHTML = '<div class="exec-empty" data-rw="Nta makuru mashya" data-en="All clear">All clear</div>';
+      switchLang(currentLang);
+      return;
+    }
+    container.innerHTML = alerts.map(function(a) {
+      return '<div class="exec-alert-item exec-alert-' + a.type + '"><span class="exec-alert-icon">' + a.icon + '</span><span class="exec-alert-msg">' + a.msg + '</span></div>';
+    }).join('');
+  }
+  db.collection('invoices').where('status','==','overdue').where('isActive','==',true).get().then(function(snap) {
+    if (snap.size > 0) alerts.push({ type:'warn', icon:'&#9888;', msg: snap.size + ' overdue invoice' + (snap.size > 1 ? 's' : '') });
+    done();
+  }).catch(function() { done(); });
+  db.collection('leaves').where('status','==','pending').where('isActive','==',true).get().then(function(snap) {
+    if (snap.size > 0) alerts.push({ type:'info', icon:'&#128203;', msg: snap.size + ' pending leave request' + (snap.size > 1 ? 's' : '') });
+    done();
+  }).catch(function() { done(); });
+}
+
+function loadExecActivity() {
+  var container = g('exec-activity-list');
+  if (!container) return;
+  container.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('auditlogs').orderBy('createdAt','desc').limit(10).get().then(function(snap) {
+    if (snap.empty) {
+      container.innerHTML = '<div class="exec-empty">No recent activity</div>';
+      return;
+    }
+    var html = '';
+    snap.forEach(function(d) {
+      var data = d.data();
+      var ts = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt)) : new Date();
+      var timeStr = ts.toLocaleDateString('en-RW', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+      html += '<div class="exec-activity-row"><span class="exec-act-action">' + (data.action || '') + '</span><span class="exec-act-time">' + timeStr + '</span></div>';
+    });
+    container.innerHTML = html;
+  }).catch(function() {
+    container.innerHTML = '<div class="exec-empty">Audit log unavailable</div>';
+  });
+}
+
+function loadExecHealth() {
+  var grid = g('exec-health-grid');
+  if (!grid) return;
+  var modules = [
+    { key:'leads', label:'CRM / Leads', col:'leads' },
+    { key:'deals', label:'Deals', col:'deals' },
+    { key:'commissions', label:'Commissions', col:'commissions' },
+    { key:'invoices', label:'Invoices', col:'invoices' },
+    { key:'properties', label:'Properties', col:'properties' },
+    { key:'tasks', label:'Tasks', col:'tasks' },
+    { key:'attendance', label:'Attendance', col:'attendance' },
+    { key:'payroll', label:'Payroll', col:'payroll' }
+  ];
+  grid.innerHTML = modules.map(function(m) {
+    return '<div class="exec-health-card" id="exec-health-' + m.key + '"><div class="exec-health-dot exec-health-loading"></div><div class="exec-health-lbl">' + m.label + '</div><div class="exec-health-count" id="exec-health-cnt-' + m.key + '">—</div></div>';
+  }).join('');
+  modules.forEach(function(m) {
+    db.collection(m.col).where('isActive','==',true).limit(1).get().then(function() {
+      var card = g('exec-health-' + m.key);
+      if (card) { var dot = card.querySelector('.exec-health-dot'); if (dot) { dot.classList.remove('exec-health-loading'); dot.classList.add('exec-health-ok'); } }
+    }).catch(function() {
+      var card = g('exec-health-' + m.key);
+      if (card) { var dot = card.querySelector('.exec-health-dot'); if (dot) { dot.classList.remove('exec-health-loading'); dot.classList.add('exec-health-err'); } }
+    });
+    db.collection(m.col).where('isActive','==',true).get().then(function(snap) {
+      var cnt = g('exec-health-cnt-' + m.key);
+      if (cnt) cnt.textContent = snap.size;
+    }).catch(function(){});
+  });
+}
+
+/* ── REVENUE TAB ── */
+function loadExecRevenue() {
+  loadExecRevChart();
+  loadExecTopAgents();
+}
+
+function loadExecRevChart() {
+  var barsEl = g('exec-rev-bars');
+  if (!barsEl) return;
+  barsEl.innerHTML = '<div class="exec-loading">Loading chart...</div>';
+  var yr = g('exec-year-filter');
+  var year = yr ? parseInt(yr.value) : new Date().getFullYear();
+  var monthLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var revData = new Array(12).fill(0);
+  var expData = new Array(12).fill(0);
+  var pending = 2;
+  function renderChart() {
+    pending--;
+    if (pending > 0) return;
+    var maxVal = Math.max.apply(null, revData.concat(expData).concat([1]));
+    var html = monthLabels.map(function(lbl, i) {
+      var rh = Math.round((revData[i] / maxVal) * 120);
+      var eh = Math.round((expData[i] / maxVal) * 120);
+      return '<div class="ac-bar-col"><div class="ac-bar-pair"><div class="ac-bar ac-bar-rev" style="height:' + rh + 'px" title="Rev: ' + fmtRWF(revData[i]) + '"></div><div class="ac-bar ac-bar-exp" style="height:' + eh + 'px" title="Exp: ' + fmtRWF(expData[i]) + '"></div></div><div class="ac-bar-lbl">' + lbl + '</div></div>';
+    }).join('');
+    barsEl.innerHTML = html;
+  }
+  var yStart = firebase.firestore.Timestamp.fromDate(new Date(year, 0, 1));
+  var yEnd   = firebase.firestore.Timestamp.fromDate(new Date(year + 1, 0, 1));
+  db.collection('invoices').where('status','==','paid').where('isActive','==',true)
+    .where('createdAt','>=',yStart).where('createdAt','<',yEnd).get().then(function(snap) {
+      snap.forEach(function(d) {
+        var dt = d.data().createdAt ? (d.data().createdAt.toDate ? d.data().createdAt.toDate() : new Date()) : new Date();
+        revData[dt.getMonth()] += (d.data().totalAmount || 0);
+      });
+      renderChart();
+    }).catch(function() { renderChart(); });
+  db.collection('expenses').where('isActive','==',true)
+    .where('createdAt','>=',yStart).where('createdAt','<',yEnd).get().then(function(snap) {
+      snap.forEach(function(d) {
+        var dt = d.data().createdAt ? (d.data().createdAt.toDate ? d.data().createdAt.toDate() : new Date()) : new Date();
+        expData[dt.getMonth()] += (d.data().amount || 0);
+      });
+      renderChart();
+    }).catch(function() { renderChart(); });
+}
+
+function loadExecTopAgents() {
+  var container = g('exec-top-agents');
+  if (!container) return;
+  container.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('commissions').where('isActive','==',true).get().then(function(snap) {
+    if (snap.empty) { container.innerHTML = '<div class="exec-empty">No commission data</div>'; return; }
+    var totals = {};
+    snap.forEach(function(d) {
+      var data = d.data();
+      var aid = data.agentId || 'unknown';
+      if (!totals[aid]) totals[aid] = { name: aid, total: 0, count: 0 };
+      totals[aid].total += (data.agentShare || 0);
+      totals[aid].count++;
+    });
+    var sorted = Object.values(totals).sort(function(a, b) { return b.total - a.total; }).slice(0, 5);
+    var namePromises = sorted.map(function(item) {
+      return db.collection('users').doc(item.name).get().then(function(u) {
+        if (u.exists) item.name = u.data().displayName || u.data().email || item.name;
+      }).catch(function(){});
+    });
+    Promise.all(namePromises).then(function() {
+      var html = '<table class="exec-perf-table"><thead><tr><th>#</th><th data-rw="Izina" data-en="Agent">Agent</th><th data-rw="Komisiyoni" data-en="Commission">Commission</th><th>#Deals</th></tr></thead><tbody>';
+      sorted.forEach(function(item, i) {
+        html += '<tr><td>' + (i + 1) + '</td><td>' + item.name + '</td><td style="font-weight:700;color:var(--navy)">' + fmtRWF(item.total) + '</td><td>' + item.count + '</td></tr>';
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+      switchLang(currentLang);
+    });
+  }).catch(function() {
+    container.innerHTML = '<div class="exec-empty">Unable to load agent data</div>';
+  });
+}
+
+/* ── PIPELINE TAB ── */
+function loadExecPipeline() {
+  loadExecFunnel();
+  loadExecConversion();
+}
+
+function loadExecFunnel() {
+  var container = g('exec-funnel');
+  if (!container) return;
+  container.innerHTML = '<div class="exec-loading">Loading pipeline...</div>';
+  db.collection('leads').where('isActive','==',true).get().then(function(snap) {
+    var counts = {};
+    EXEC_CRM_STAGES.forEach(function(s) { counts[s] = 0; });
+    snap.forEach(function(d) {
+      var stage = d.data().pipelineStage || 'new';
+      if (counts[stage] !== undefined) counts[stage]++;
+    });
+    var total = snap.size || 1;
+    var html = '<div class="exec-funnel-wrap">';
+    EXEC_CRM_STAGES.forEach(function(stage) {
+      var count = counts[stage];
+      var pct = Math.round((count / total) * 100);
+      var width = Math.max(pct, 4);
+      var isWon = stage === 'closed_won';
+      var isLost = stage === 'closed_lost';
+      html += '<div class="exec-funnel-row"><div class="exec-funnel-lbl">' + (EXEC_STAGE_LABELS[stage] || stage) + '</div><div class="exec-funnel-bar-wrap"><div class="exec-funnel-bar' + (isWon ? ' exec-funnel-won' : isLost ? ' exec-funnel-lost' : '') + '" style="width:' + width + '%"></div></div><div class="exec-funnel-count">' + count + '</div></div>';
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  }).catch(function() {
+    container.innerHTML = '<div class="exec-empty">Pipeline data unavailable</div>';
+  });
+}
+
+function loadExecConversion() {
+  var container = g('exec-conversion');
+  var dv = g('exec-deal-values');
+  if (!container) return;
+  container.innerHTML = '<div class="exec-loading">Loading...</div>';
+  var pending = 2;
+  var totalLeads = 0, wonDeals = 0, totalDealValue = 0;
+  var dealsByStage = {};
+  function render() {
+    pending--;
+    if (pending > 0) return;
+    var rate = totalLeads > 0 ? Math.round((wonDeals / totalLeads) * 100) : 0;
+    container.innerHTML = '<div class="exec-conv-grid"><div class="exec-conv-kpi"><span class="exec-conv-val">' + totalLeads + '</span><span class="exec-conv-lbl">Total Leads</span></div><div class="exec-conv-kpi"><span class="exec-conv-val">' + wonDeals + '</span><span class="exec-conv-lbl">Closed Won</span></div><div class="exec-conv-kpi"><span class="exec-conv-val" style="color:var(--success)">' + rate + '%</span><span class="exec-conv-lbl">Conversion Rate</span></div><div class="exec-conv-kpi"><span class="exec-conv-val">' + fmtRWF(totalDealValue) + '</span><span class="exec-conv-lbl">Total Value</span></div></div>';
+    if (dv) {
+      var dvHtml = '';
+      Object.keys(dealsByStage).slice(0, 8).forEach(function(stage) {
+        dvHtml += '<div class="exec-dv-row"><span class="exec-dv-stage">' + (EXEC_STAGE_LABELS[stage] || stage) + '</span><span class="exec-dv-val">' + fmtRWF(dealsByStage[stage]) + '</span></div>';
+      });
+      dv.innerHTML = dvHtml || '<div class="exec-empty">No deal data</div>';
+    }
+    switchLang(currentLang);
+  }
+  db.collection('leads').where('isActive','==',true).get().then(function(snap) {
+    totalLeads = snap.size; render();
+  }).catch(function() { render(); });
+  db.collection('deals').where('isActive','==',true).get().then(function(snap) {
+    snap.forEach(function(d) {
+      var data = d.data();
+      if (data.pipelineStage === 'closed_won') wonDeals++;
+      totalDealValue += (data.agreedPrice || 0);
+      var stage = data.pipelineStage || 'new';
+      if (!dealsByStage[stage]) dealsByStage[stage] = 0;
+      dealsByStage[stage] += (data.agreedPrice || 0);
+    });
+    render();
+  }).catch(function() { render(); });
+}
+
+/* ── TEAM TAB ── */
+function loadExecTeam() {
+  loadExecAgentPerf();
+  loadExecAttRate();
+  loadExecTaskRate();
+}
+
+function loadExecAgentPerf() {
+  var container = g('exec-agent-perf');
+  if (!container) return;
+  container.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('users').where('role','==','agent').where('isActive','==',true).get().then(function(snap) {
+    if (snap.empty) { container.innerHTML = '<div class="exec-empty">No agents found</div>'; return; }
+    var agents = [];
+    snap.forEach(function(d) { agents.push({ id: d.id, name: d.data().displayName || d.data().email || d.id, leads: 0, deals: 0, commission: 0 }); });
+    var pending = agents.length * 3;
+    if (pending === 0) { renderAgentPerf(agents, container); return; }
+    function done() { pending--; if (pending === 0) renderAgentPerf(agents, container); }
+    agents.forEach(function(a) {
+      db.collection('leads').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s) { a.leads = s.size; done(); }).catch(done);
+      db.collection('deals').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s) { a.deals = s.size; done(); }).catch(done);
+      db.collection('commissions').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s) { var tot = 0; s.forEach(function(d) { tot += (d.data().agentShare || 0); }); a.commission = tot; done(); }).catch(done);
+    });
+  }).catch(function() {
+    container.innerHTML = '<div class="exec-empty">Unable to load agent data</div>';
+  });
+}
+
+function renderAgentPerf(agents, container) {
+  agents.sort(function(a, b) { return b.commission - a.commission; });
+  var html = '<div class="exec-scroll"><table class="exec-perf-table"><thead><tr><th data-rw="Izina" data-en="Agent">Agent</th><th>Leads</th><th>Deals</th><th data-rw="Komisiyoni" data-en="Commission">Commission</th></tr></thead><tbody>';
+  agents.forEach(function(a) {
+    html += '<tr><td>' + a.name + '</td><td>' + a.leads + '</td><td>' + a.deals + '</td><td style="font-weight:600;color:var(--navy)">' + fmtRWF(a.commission) + '</td></tr>';
+  });
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+  switchLang(currentLang);
+}
+
+function loadExecAttRate() {
+  var container = g('exec-att-rate');
+  if (!container) return;
+  var now = new Date();
+  var thirtyAgo = new Date(now.getTime() - 30 * 24 * 3600 * 1000);
+  var ts = firebase.firestore.Timestamp.fromDate(thirtyAgo);
+  db.collection('attendance').where('isActive','==',true).where('createdAt','>=',ts).get().then(function(snap) {
+    var checkouts = 0;
+    snap.forEach(function(d) { if (d.data().checkOut) checkouts++; });
+    var rate = snap.size > 0 ? Math.round((checkouts / snap.size) * 100) : 0;
+    container.innerHTML = '<div class="exec-ring-wrap"><div class="exec-ring-val" style="color:var(--success)">' + rate + '%</div><div class="exec-ring-lbl">Staff check-ins (30d)</div><div class="exec-ring-sub">' + snap.size + ' records</div></div>';
+  }).catch(function() {
+    container.innerHTML = '<div class="exec-empty">Attendance data unavailable</div>';
+  });
+}
+
+function loadExecTaskRate() {
+  var container = g('exec-task-rate');
+  if (!container) return;
+  db.collection('tasks').where('isActive','==',true).get().then(function(snap) {
+    var done = 0;
+    snap.forEach(function(d) { if (d.data().status === 'done') done++; });
+    var rate = snap.size > 0 ? Math.round((done / snap.size) * 100) : 0;
+    container.innerHTML = '<div class="exec-ring-wrap"><div class="exec-ring-val" style="color:var(--navy)">' + rate + '%</div><div class="exec-ring-lbl">Tasks completed</div><div class="exec-ring-sub">' + done + ' / ' + snap.size + ' tasks</div></div>';
+  }).catch(function() {
+    container.innerHTML = '<div class="exec-empty">Task data unavailable</div>';
+  });
+}
+
+/* ── helpers ── */
+function fmtRWF(n) {
+  if (!n) return '0 RWF';
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M RWF';
+  if (n >= 1000) return (n / 1000).toFixed(0) + 'K RWF';
+  return n.toLocaleString() + ' RWF';
+}
+
+/* ── SIDEBAR BADGE ── */
+(function() {
+  var _exTimer = setInterval(function() {
+    if (typeof db === 'undefined' || !currentUser) return;
+    clearInterval(_exTimer);
+    var total = 0;
+    var p = 2;
+    function check() { p--; if (p === 0) { var el = g('exec-sidebar-badge'); if (el) el.textContent = total > 0 ? total : ''; } }
+    db.collection('invoices').where('status','==','overdue').where('isActive','==',true).get().then(function(s) { total += s.size; check(); }).catch(check);
+    db.collection('leaves').where('status','==','pending').where('isActive','==',true).get().then(function(s) { total += s.size; check(); }).catch(check);
+  }, 8500);
 })();
 </script>
 
