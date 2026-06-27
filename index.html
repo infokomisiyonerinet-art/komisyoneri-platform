@@ -3605,6 +3605,7 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="go('customer')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Portal Yanjye" data-en="My Portal">My Portal</span><span class="ds-badge" id="cust-sidebar-badge"></span></div>
       <div class="ds-section" data-rw="OFISI" data-en="OFFICE">OFISI</div>
       <div class="dn" onclick="go('office')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg><span data-rw="Gucunga Ofisi" data-en="Office Management">Office Management</span><span class="ds-badge" id="office-sidebar-count"></span></div>
+      <div class="dn" onclick="go('hr')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Ubucuruzi bw'Abakozi" data-en="HR Management">HR Management</span><span class="ds-badge" id="hr-sidebar-count"></span></div>
       <div class="ds-section" data-rw="KONTI" data-en="ACCOUNT">KONTI</div>
       <div class="dn"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Profil" data-en="Profile">Profil</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-rw="Igenamiterere" data-en="Settings">Igenamiterere</span></div>
@@ -4666,6 +4667,80 @@ html,body{overscroll-behavior-x:none}
       <h3 style="margin:0;font-size:.95rem;color:var(--navy)" data-rw="Gahunda ya Iki Cyumweru" data-en="This Week Schedule">This Week Schedule</h3>
     </div>
     <div id="off-schedule-grid"></div>
+  </div>
+</div>
+
+<!-- === PAGE: HR MANAGEMENT === -->
+<div class="page" id="page-hr">
+  <div class="page-hdr">
+    <h2 data-rw="Ubucuruzi bw'Abakozi" data-en="HR Management">HR Management</h2>
+  </div>
+  <!-- Stats -->
+  <div class="hr-stats">
+    <div class="hr-stat-card"><span class="hr-stat-val" id="hr-stat-total">0</span><span class="hr-stat-lbl" data-rw="Abakozi Bose" data-en="Total Staff">Total Staff</span></div>
+    <div class="hr-stat-card"><span class="hr-stat-val" id="hr-stat-agents">0</span><span class="hr-stat-lbl" data-rw="Abakozi ba Pari" data-en="Active Agents">Active Agents</span></div>
+    <div class="hr-stat-card"><span class="hr-stat-val" id="hr-stat-payroll">0</span><span class="hr-stat-lbl" data-rw="Amafaranga Yishyuwe (uku kwezi)" data-en="Payslips This Month">Payslips This Month</span></div>
+    <div class="hr-stat-card"><span class="hr-stat-val" id="hr-stat-leave-active">0</span><span class="hr-stat-lbl" data-rw="Congo Yemewe" data-en="Approved Leaves">Approved Leaves</span></div>
+  </div>
+  <!-- Tabs -->
+  <div class="off-tabs-nav">
+    <button class="off-tab active" id="hrtab-btn-staff" onclick="switchHRTab('staff')" data-rw="Abakozi" data-en="Staff Directory">Staff Directory</button>
+    <button class="off-tab" id="hrtab-btn-payroll" onclick="switchHRTab('payroll')" data-rw="Mishahara" data-en="Payroll">Payroll</button>
+    <button class="off-tab" id="hrtab-btn-performance" onclick="switchHRTab('performance')" data-rw="Imikorere" data-en="Performance">Performance</button>
+  </div>
+
+  <!-- STAFF DIRECTORY PANE -->
+  <div class="off-pane" id="hrtab-staff">
+    <div class="off-pane-hdr">
+      <div class="off-pane-filters">
+        <select id="hr-role-filter" onchange="filterStaff()" class="off-filter">
+          <option value="" data-rw="Imirimo Yose" data-en="All Roles">All Roles</option>
+          <option value="admin">Admin</option>
+          <option value="staff">Staff</option>
+          <option value="agent">Agent</option>
+          <option value="partner">Partner</option>
+          <option value="client">Client</option>
+        </select>
+        <input type="text" id="hr-staff-search" placeholder="Search by name or email..." oninput="filterStaff()" class="off-search">
+      </div>
+      <button class="btn btn-primary" id="hr-payslip-quick-btn" onclick="openPayslipCreate(null)" style="display:none;align-items:center;gap:.4rem">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-rw="Ongera Payslip" data-en="New Payslip">New Payslip</span>
+      </button>
+    </div>
+    <div id="hr-staff-list" class="hr-staff-grid"></div>
+  </div>
+
+  <!-- PAYROLL PANE -->
+  <div class="off-pane" id="hrtab-payroll" style="display:none">
+    <div class="off-pane-hdr">
+      <div class="off-pane-filters">
+        <input type="month" id="hr-payroll-month" onchange="loadPayroll()" class="off-filter">
+      </div>
+      <button class="btn btn-primary" id="hr-new-payslip-btn" onclick="openPayslipCreate(null)" style="display:none;align-items:center;gap:.4rem">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-rw="Ongera Payslip" data-en="Generate Payslip">Generate Payslip</span>
+      </button>
+    </div>
+    <!-- Payroll summary totals -->
+    <div class="hr-payroll-summary" id="hr-payroll-summary" style="display:none">
+      <div class="hr-ps-item"><span class="hr-ps-label" data-rw="Abakozi Bose" data-en="Total Employees">Total Employees</span><span class="hr-ps-val" id="ps-total-emp">0</span></div>
+      <div class="hr-ps-item"><span class="hr-ps-label" data-rw="Amafaranga Yose" data-en="Total Gross">Total Gross</span><span class="hr-ps-val" id="ps-total-gross">0</span></div>
+      <div class="hr-ps-item"><span class="hr-ps-label" data-rw="RSSB (5%)" data-en="RSSB (5%)">RSSB (5%)</span><span class="hr-ps-val" id="ps-total-rssb">0</span></div>
+      <div class="hr-ps-item"><span class="hr-ps-label" data-rw="PAYE" data-en="PAYE">PAYE</span><span class="hr-ps-val" id="ps-total-paye">0</span></div>
+      <div class="hr-ps-item"><span class="hr-ps-label" data-rw="Amafaranga Asigaye" data-en="Total Net">Total Net</span><span class="hr-ps-val" id="ps-total-net">0</span></div>
+    </div>
+    <div id="hr-payroll-list"></div>
+  </div>
+
+  <!-- PERFORMANCE PANE -->
+  <div class="off-pane" id="hrtab-performance" style="display:none">
+    <div class="off-pane-hdr">
+      <div class="off-pane-filters">
+        <input type="month" id="hr-perf-month" class="off-filter" onchange="loadPerformance()">
+      </div>
+    </div>
+    <div id="hr-performance-list"></div>
   </div>
 </div>
 
@@ -6394,6 +6469,159 @@ html,body{overscroll-behavior-x:none}
       <div class="fin-summary-row"><span data-rw="Impamvu" data-en="Reason">Reason</span><span id="ld-reason" style="max-width:280px;text-align:right;word-break:break-word"></span></div>
     </div>
     <div id="ld-actions"></div>
+  </div>
+</div>
+
+<!-- === HR: STAFF PROFILE MODAL === -->
+<div class="modal-wrap" id="staff-profile-modal" style="display:none">
+  <div class="modal" style="max-width:540px;max-height:90vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title" data-rw="Profil y'Umukozi" data-en="Staff Profile">Staff Profile</div>
+      <button class="modal-close" onclick="closeStaffProfile()">&times;</button>
+    </div>
+    <div class="hr-profile-head">
+      <div class="hr-profile-avatar" id="sp-avatar">U</div>
+      <div>
+        <div class="hr-profile-name" id="sp-name"></div>
+        <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-top:.25rem">
+          <span class="hr-role-chip" id="sp-role-chip"></span>
+          <span id="sp-verified-badge"></span>
+        </div>
+      </div>
+    </div>
+    <div class="fin-summary-card" style="margin-bottom:.75rem">
+      <div class="fin-summary-row"><span data-rw="Imeyili" data-en="Email">Email</span><span id="sp-email"></span></div>
+      <div class="fin-summary-row"><span data-rw="Telefoni" data-en="Phone">Phone</span><span id="sp-phone"></span></div>
+      <div class="fin-summary-row"><span data-rw="Ishami" data-en="Department">Department</span><span id="sp-dept"></span></div>
+      <div class="fin-summary-row"><span data-rw="Itariki yo Kwinjira" data-en="Joined">Joined</span><span id="sp-joined"></span></div>
+      <div class="fin-summary-row"><span data-rw="Imiterere y'Konti" data-en="Account Status">Account Status</span><span id="sp-status"></span></div>
+    </div>
+    <!-- Admin-only: recent tasks & leave -->
+    <div id="sp-admin-section" style="display:none">
+      <div style="font-size:.85rem;font-weight:600;color:var(--navy);margin-bottom:.5rem" data-rw="Imikorere ya Vuba" data-en="Recent Activity">Recent Activity</div>
+      <div id="sp-activity" style="font-size:.8rem;color:var(--muted);padding:.5rem 0"></div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.75rem">
+        <button class="btn btn-primary" style="font-size:.82rem" onclick="openPayslipCreate(_spProfileId)" data-rw="Kora Payslip" data-en="Generate Payslip">Generate Payslip</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === HR: PAYSLIP CREATE MODAL === -->
+<div class="modal-wrap" id="payslip-create-modal" style="display:none">
+  <div class="modal" style="max-width:560px;max-height:92vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title" data-rw="Kora Payslip" data-en="Generate Payslip">Generate Payslip</div>
+      <button class="modal-close" onclick="closePayslipCreate()">&times;</button>
+    </div>
+    <input type="hidden" id="pc-uid">
+    <div class="form-row-2">
+      <div class="form-group">
+        <label data-rw="Umukozi (UID)" data-en="Staff Member (UID)">Staff Member (UID)</label>
+        <input type="text" id="pc-staff-uid" placeholder="User UID" class="form-control" oninput="lookupPcStaff()">
+      </div>
+      <div class="form-group">
+        <label data-rw="Ukwezi" data-en="Pay Period">Pay Period</label>
+        <input type="month" id="pc-period" class="form-control">
+      </div>
+    </div>
+    <div id="pc-staff-name-display" style="font-size:.82rem;color:var(--navy);font-weight:600;margin:-.3rem 0 .6rem;min-height:1.1em"></div>
+    <div class="form-section-title" data-rw="Amafaranga y'Ibanze" data-en="Earnings">Earnings</div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label data-rw="Musahara w'Ibanze (RWF)" data-en="Basic Salary (RWF)">Basic Salary (RWF)</label>
+        <input type="number" id="pc-basic" placeholder="0" class="form-control" oninput="recalcPayslip()">
+      </div>
+      <div class="form-group">
+        <label data-rw="Inshimbusha y'Inzu (RWF)" data-en="Housing Allowance (RWF)">Housing Allowance</label>
+        <input type="number" id="pc-allow-housing" placeholder="0" class="form-control" oninput="recalcPayslip()">
+      </div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label data-rw="Inshimbusha y'Urugendo (RWF)" data-en="Transport Allowance (RWF)">Transport Allowance</label>
+        <input type="number" id="pc-allow-transport" placeholder="0" class="form-control" oninput="recalcPayslip()">
+      </div>
+      <div class="form-group">
+        <label data-rw="Inshimbusha y'Ubuvuzi (RWF)" data-en="Medical Allowance (RWF)">Medical Allowance</label>
+        <input type="number" id="pc-allow-medical" placeholder="0" class="form-control" oninput="recalcPayslip()">
+      </div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label data-rw="Ibindi Inshimbusha (RWF)" data-en="Other Allowance (RWF)">Other Allowance</label>
+        <input type="number" id="pc-allow-other" placeholder="0" class="form-control" oninput="recalcPayslip()">
+      </div>
+      <div class="form-group">
+        <label data-rw="Ibikorwa (Komisiyoni) (RWF)" data-en="Commissions (RWF)">Commissions (RWF)</label>
+        <input type="number" id="pc-commissions" placeholder="0" class="form-control" oninput="recalcPayslip()">
+      </div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label data-rw="Ibihembo (RWF)" data-en="Bonus (RWF)">Bonus (RWF)</label>
+        <input type="number" id="pc-bonus" placeholder="0" class="form-control" oninput="recalcPayslip()">
+      </div>
+      <div class="form-group">
+        <label data-rw="Izindi Gukuramo (RWF)" data-en="Other Deductions (RWF)">Other Deductions</label>
+        <input type="number" id="pc-other-ded" placeholder="0" class="form-control" oninput="recalcPayslip()">
+      </div>
+    </div>
+    <!-- Live calculation preview -->
+    <div class="hr-calc-preview" id="hr-calc-preview">
+      <div class="hr-calc-row"><span data-rw="Umushahara w'Ibanze" data-en="Gross Salary">Gross Salary</span><span id="pc-display-gross">0 RWF</span></div>
+      <div class="hr-calc-row deduction"><span data-rw="RSSB (Umukozi 5%)" data-en="RSSB Employee (5%)">RSSB Employee (5%)</span><span id="pc-display-rssb">0 RWF</span></div>
+      <div class="hr-calc-row deduction"><span data-rw="PAYE" data-en="PAYE Tax">PAYE Tax</span><span id="pc-display-paye">0 RWF</span></div>
+      <div class="hr-calc-row deduction"><span data-rw="Izindi Gukuramo" data-en="Other Deductions">Other Deductions</span><span id="pc-display-other-ded">0 RWF</span></div>
+      <div class="hr-calc-row total"><span data-rw="Umushahara Udasubiwemo" data-en="Net Salary">Net Salary</span><span id="pc-display-net">0 RWF</span></div>
+      <div class="hr-calc-row bonus-row"><span data-rw="Komisiyoni + Ibihembo" data-en="Commissions + Bonus">Commissions + Bonus</span><span id="pc-display-extras">0 RWF</span></div>
+      <div class="hr-calc-row grand"><span data-rw="Amafaranga Yose" data-en="Total Pay">Total Pay</span><span id="pc-display-total">0 RWF</span></div>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" onclick="closePayslipCreate()" data-rw="Reka" data-en="Cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitPayslip()" data-rw="Bika Payslip" data-en="Save Payslip">Save Payslip</button>
+    </div>
+  </div>
+</div>
+
+<!-- === HR: PAYSLIP DETAIL MODAL === -->
+<div class="modal-wrap" id="payslip-detail-modal" style="display:none">
+  <div class="modal" style="max-width:520px;max-height:90vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title" data-rw="Amakuru ya Payslip" data-en="Payslip Detail">Payslip Detail</div>
+      <button class="modal-close" onclick="closePayslipDetail()">&times;</button>
+    </div>
+    <div class="hr-payslip-header">
+      <div class="hr-payslip-company">KOMISIYONERI ConnectPro Services Ltd</div>
+      <div class="hr-payslip-period" id="pd-period"></div>
+    </div>
+    <div class="fin-summary-card" style="margin-bottom:.5rem">
+      <div class="fin-summary-row"><span data-rw="Izina" data-en="Employee">Employee</span><span id="pd-name"></span></div>
+      <div class="fin-summary-row"><span data-rw="Urwego" data-en="Role">Role</span><span id="pd-role"></span></div>
+    </div>
+    <div class="hr-payslip-section-title" data-rw="Inyongeramusaruro" data-en="Earnings">Earnings</div>
+    <div class="fin-summary-card" style="margin-bottom:.5rem">
+      <div class="fin-summary-row"><span data-rw="Musahara w'Ibanze" data-en="Basic Salary">Basic Salary</span><span id="pd-basic"></span></div>
+      <div class="fin-summary-row"><span data-rw="Inshimbusha y'Inzu" data-en="Housing Allowance">Housing Allowance</span><span id="pd-allow-housing"></span></div>
+      <div class="fin-summary-row"><span data-rw="Inshimbusha y'Urugendo" data-en="Transport Allowance">Transport Allowance</span><span id="pd-allow-transport"></span></div>
+      <div class="fin-summary-row"><span data-rw="Inshimbusha y'Ubuvuzi" data-en="Medical Allowance">Medical Allowance</span><span id="pd-allow-medical"></span></div>
+      <div class="fin-summary-row"><span data-rw="Ibindi" data-en="Other Allowance">Other Allowance</span><span id="pd-allow-other"></span></div>
+      <div class="fin-summary-row" style="border-top:1px solid var(--border);padding-top:.4rem;font-weight:700"><span data-rw="Umushahara w'Ibanze" data-en="Gross Salary">Gross Salary</span><span id="pd-gross"></span></div>
+    </div>
+    <div class="hr-payslip-section-title" data-rw="Gukuramo" data-en="Deductions">Deductions</div>
+    <div class="fin-summary-card" style="margin-bottom:.5rem">
+      <div class="fin-summary-row"><span data-rw="RSSB (Umukozi 5%)" data-en="RSSB Employee (5%)">RSSB Employee (5%)</span><span id="pd-rssb"></span></div>
+      <div class="fin-summary-row"><span data-rw="PAYE" data-en="PAYE Tax">PAYE Tax</span><span id="pd-paye"></span></div>
+      <div class="fin-summary-row"><span data-rw="Izindi Gukuramo" data-en="Other Deductions">Other Deductions</span><span id="pd-other-ded"></span></div>
+    </div>
+    <div class="fin-summary-card" style="border-color:var(--navy)">
+      <div class="fin-summary-row" style="font-weight:700"><span data-rw="Umushahara Udasubiwemo" data-en="Net Salary">Net Salary</span><span id="pd-net" style="color:var(--navy)"></span></div>
+      <div class="fin-summary-row"><span data-rw="Komisiyoni" data-en="Commissions">Commissions</span><span id="pd-commissions"></span></div>
+      <div class="fin-summary-row"><span data-rw="Ibihembo" data-en="Bonus">Bonus</span><span id="pd-bonus"></span></div>
+      <div class="fin-summary-row" style="font-weight:700;border-top:1px solid var(--border);padding-top:.4rem"><span data-rw="Amafaranga Yose" data-en="Total Pay">Total Pay</span><span id="pd-total" style="color:var(--success);font-size:1.05rem"></span></div>
+    </div>
+    <div id="pd-paid-status" style="margin-top:.6rem"></div>
+    <div id="pd-actions" style="margin-top:.75rem"></div>
   </div>
 </div>
 
@@ -11312,6 +11540,9 @@ go = function(page) {
   if(page === 'office') {
     setTimeout(loadOffice, 150);
   }
+  if(page === 'hr') {
+    setTimeout(loadHR, 150);
+  }
 };
 
 </script>
@@ -11698,6 +11929,480 @@ go = function(page) {
       ? document.addEventListener('DOMContentLoaded', attachRealtimeListeners)
       : attachRealtimeListeners();
   } catch(e){ console.error('Sync error:',e); }
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHASE 11 — HR MANAGEMENT
+     Staff Directory | Payroll | Performance
+════════════════════════════════════════════════════════ -->
+<script>
+/* ── Phase 11 globals ── */
+var _hrStaff       = [];
+var _hrStaffFilter = { role: '', q: '' };
+var _payrollList   = [];
+var _spProfileId   = null;
+var _psDetailId    = null;
+
+var HR_ROLE_LABELS = {
+  super_admin: 'Super Admin', admin: 'Admin', ceo: 'CEO',
+  staff: 'Staff', agent: 'Agent', partner: 'Partner',
+  owner: 'Owner', client: 'Client', investor: 'Investor'
+};
+
+/* Rwanda PAYE — monthly income brackets */
+function calcRwPAYE(monthlyGross) {
+  var annual = monthlyGross * 12;
+  var paye = 0;
+  if (annual <= 360000) {
+    paye = 0;
+  } else if (annual <= 1200000) {
+    paye = (annual - 360000) * 0.20;
+  } else {
+    paye = (1200000 - 360000) * 0.20 + (annual - 1200000) * 0.30;
+  }
+  return Math.round(paye / 12);
+}
+
+function fmtRwfHR(n) {
+  if (n === null || n === undefined || isNaN(n)) return '0 RWF';
+  return Math.round(Number(n)).toLocaleString() + ' RWF';
+}
+
+/* ── entry point ── */
+function loadHR() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+  var qb = g('hr-payslip-quick-btn');
+  var nb = g('hr-new-payslip-btn');
+  if (qb) qb.style.display = isAdmin ? 'flex' : 'none';
+  if (nb) nb.style.display = isAdmin ? 'flex' : 'none';
+  var mi = g('hr-payroll-month');
+  if (mi) { var now = new Date(); mi.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0'); }
+  var pi = g('hr-perf-month');
+  if (pi) { var now2 = new Date(); pi.value = now2.getFullYear() + '-' + String(now2.getMonth()+1).padStart(2,'0'); }
+  switchHRTab('staff');
+  loadHRStats();
+}
+
+function loadHRStats() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  db.collection('users').where('isActive','==',true).limit(500).get().then(function(snap) {
+    var total = 0, agents = 0;
+    snap.forEach(function(d) {
+      var u = d.data();
+      total++;
+      if (u.role === 'agent') agents++;
+    });
+    if (g('hr-stat-total'))  g('hr-stat-total').textContent  = total;
+    if (g('hr-stat-agents')) g('hr-stat-agents').textContent = agents;
+  }).catch(function(){});
+
+  var now    = new Date();
+  var period = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  db.collection('payroll').where('period','==',period).where('isActive','==',true).limit(200).get().then(function(snap) {
+    if (g('hr-stat-payroll')) g('hr-stat-payroll').textContent = snap.size;
+  }).catch(function(){});
+
+  db.collection('leaves').where('status','==','approved').where('isActive','==',true).limit(200).get().then(function(snap) {
+    if (g('hr-stat-leave-active')) g('hr-stat-leave-active').textContent = snap.size;
+  }).catch(function(){});
+}
+
+function switchHRTab(tab) {
+  ['staff','payroll','performance'].forEach(function(t) {
+    var btn  = g('hrtab-btn-' + t);
+    var pane = g('hrtab-' + t);
+    if (btn)  btn.classList.toggle('active', t === tab);
+    if (pane) pane.style.display = (t === tab) ? '' : 'none';
+  });
+  if (tab === 'staff')       loadStaffDirectory();
+  else if (tab === 'payroll')loadPayroll();
+  else if (tab === 'performance') loadPerformance();
+}
+
+/* ── STAFF DIRECTORY ── */
+function loadStaffDirectory() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var el = g('hr-staff-list');
+  if (el) el.innerHTML = '<div class="off-loading">Loading staff...</div>';
+  db.collection('users').where('isActive','==',true).orderBy('displayName').limit(200).get().then(function(snap) {
+    _hrStaff = [];
+    snap.forEach(function(d) { var u = d.data(); u.id = d.id; _hrStaff.push(u); });
+    filterStaff();
+  }).catch(function() {
+    if (el) el.innerHTML = '<div class="off-empty">Unable to load staff directory.</div>';
+  });
+}
+
+function filterStaff() {
+  var rf = (g('hr-role-filter')||{}).value || '';
+  var q  = ((g('hr-staff-search')||{}).value||'').toLowerCase();
+  renderStaffDirectory(_hrStaff.filter(function(u) {
+    if (rf && u.role !== rf) return false;
+    if (q) {
+      var hay = ((u.displayName||'') + (u.email||'') + (u.phone||'')).toLowerCase();
+      if (hay.indexOf(q) < 0) return false;
+    }
+    return true;
+  }));
+}
+
+function renderStaffDirectory(list) {
+  var el = g('hr-staff-list');
+  if (!el) return;
+  if (!list.length) { el.innerHTML = '<div class="off-empty">No staff found.</div>'; return; }
+  el.innerHTML = list.map(function(u) {
+    var initials = (u.displayName||u.email||'U').substring(0,1).toUpperCase();
+    var role = HR_ROLE_LABELS[u.role] || (u.role||'—');
+    var verChip = u.isVerified ? '<span class="hr-verified-chip">Verified</span>' : '';
+    return '<div class="hr-staff-card" onclick="openStaffProfile(\'' + u.id + '\')">' +
+      '<div class="hr-staff-avatar">' + initials + '</div>' +
+      '<div class="hr-staff-info">' +
+        '<div class="hr-staff-name">' + (u.displayName||u.email||'—') + '</div>' +
+        '<div style="display:flex;gap:.35rem;align-items:center;margin:.15rem 0">' +
+          '<span class="hr-role-chip" style="font-size:.68rem">' + role + '</span>' +
+          verChip +
+        '</div>' +
+        '<div class="hr-staff-email">' + (u.email||'') + '</div>' +
+        (u.phone ? '<div class="hr-staff-phone">' + u.phone + '</div>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openStaffProfile(uid) {
+  _spProfileId = uid;
+  var u = _hrStaff.find(function(x) { return x.id === uid; });
+  if (!u) return;
+  var m = g('staff-profile-modal'); if (!m) return;
+  var initials = (u.displayName||u.email||'U').substring(0,1).toUpperCase();
+  g('sp-avatar').textContent = initials;
+  g('sp-avatar').style.background = 'var(--navy)';
+  g('sp-name').textContent = u.displayName || u.email || '—';
+  g('sp-role-chip').textContent = HR_ROLE_LABELS[u.role] || (u.role||'—');
+  g('sp-verified-badge').innerHTML = u.isVerified ? '<span class="hr-verified-chip">Verified</span>' : '';
+  g('sp-email').textContent  = u.email || '—';
+  g('sp-phone').textContent  = u.phone || '—';
+  g('sp-dept').textContent   = u.department || '—';
+  var joined = u.createdAt ? new Date(u.createdAt.toDate ? u.createdAt.toDate() : u.createdAt).toLocaleDateString() : '—';
+  g('sp-joined').textContent  = joined;
+  var activeChip = u.isActive ? '<span style="color:var(--success)">Active</span>' : '<span style="color:var(--error)">Suspended</span>';
+  g('sp-status').innerHTML    = activeChip;
+  var isAdmin = ['admin','super_admin','ceo'].indexOf((currentUser||{}).role) > -1;
+  var adminSec = g('sp-admin-section');
+  if (adminSec) {
+    adminSec.style.display = isAdmin ? '' : 'none';
+    if (isAdmin) {
+      var actEl = g('sp-activity');
+      if (actEl) actEl.textContent = 'Loading activity...';
+      db.collection('tasks').where('assignedTo','==',uid).where('isActive','==',true).orderBy('createdAt','desc').limit(5).get().then(function(snap) {
+        if (!snap.size) { if (actEl) actEl.textContent = 'No recent tasks assigned.'; return; }
+        var html = snap.docs.map(function(d) {
+          var t = d.data();
+          var st = (TASK_STATUS||{})[t.status] || { label: t.status, color: '#64748B' };
+          return '<div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border)">' +
+            '<span>' + (t.title||'Task') + '</span>' +
+            '<span class="off-status-chip" style="background:' + st.color + ';font-size:.68rem">' + st.label + '</span>' +
+          '</div>';
+        }).join('');
+        if (actEl) actEl.innerHTML = html;
+      }).catch(function(){});
+    }
+  }
+  openModal('staff-profile-modal');
+}
+function closeStaffProfile() { closeModal('staff-profile-modal'); }
+
+/* ── PAYROLL ── */
+function loadPayroll() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var el = g('hr-payroll-list');
+  if (el) el.innerHTML = '<div class="off-loading">Loading payroll...</div>';
+  var mi = g('hr-payroll-month');
+  var mv = mi ? mi.value : '';
+  if (!mv) { var now = new Date(); mv = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0'); }
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+  var q = isAdmin
+    ? db.collection('payroll').where('period','==',mv).where('isActive','==',true).orderBy('createdAt','desc').limit(200)
+    : db.collection('payroll').where('period','==',mv).where('userId','==',currentUser.uid).where('isActive','==',true).limit(5);
+  q.get().then(function(snap) {
+    _payrollList = [];
+    var totalGross = 0, totalRssb = 0, totalPaye = 0, totalNet = 0;
+    snap.forEach(function(d) {
+      var p = d.data(); p.id = d.id; _payrollList.push(p);
+      totalGross += (p.grossSalary||0);
+      totalRssb  += (p.rssbEmployee||0);
+      totalPaye  += (p.paye||0);
+      totalNet   += (p.netSalary||0);
+    });
+    var sumEl = g('hr-payroll-summary');
+    if (sumEl && _payrollList.length) {
+      sumEl.style.display = '';
+      if (g('ps-total-emp'))   g('ps-total-emp').textContent   = snap.size;
+      if (g('ps-total-gross')) g('ps-total-gross').textContent = fmtRwfHR(totalGross);
+      if (g('ps-total-rssb'))  g('ps-total-rssb').textContent  = fmtRwfHR(totalRssb);
+      if (g('ps-total-paye'))  g('ps-total-paye').textContent  = fmtRwfHR(totalPaye);
+      if (g('ps-total-net'))   g('ps-total-net').textContent   = fmtRwfHR(totalNet);
+    } else if (sumEl) { sumEl.style.display = 'none'; }
+    renderPayrollList(_payrollList);
+  }).catch(function() {
+    if (el) el.innerHTML = '<div class="off-empty">Unable to load payroll data.</div>';
+  });
+}
+
+function renderPayrollList(list) {
+  var el = g('hr-payroll-list');
+  if (!el) return;
+  if (!list.length) { el.innerHTML = '<div class="off-empty">No payslips for this period.</div>'; return; }
+  el.innerHTML = list.map(function(p) {
+    var paidBadge = p.paidAt
+      ? '<span style="color:var(--success);font-size:.75rem;font-weight:600">Paid</span>'
+      : '<span style="color:var(--warning);font-size:.75rem;font-weight:600">Pending</span>';
+    return '<div class="hr-payroll-row" onclick="openPayslipDetail(\'' + p.id + '\')">' +
+      '<div class="hr-pr-left">' +
+        '<div class="hr-pr-name">' + (p.staffName||p.userId||'Staff') + '</div>' +
+        '<div class="hr-pr-role">' + (HR_ROLE_LABELS[p.staffRole]||p.staffRole||'—') + '</div>' +
+      '</div>' +
+      '<div class="hr-pr-right">' +
+        '<div class="hr-pr-amount">' + fmtRwfHR(p.totalPay||p.netSalary) + '</div>' +
+        paidBadge +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openPayslipCreate(forUserId) {
+  var m = g('payslip-create-modal'); if (!m) return;
+  var now = new Date();
+  g('pc-period').value         = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  g('pc-staff-uid').value      = forUserId || '';
+  g('pc-basic').value          = '';
+  g('pc-allow-housing').value  = '';
+  g('pc-allow-transport').value= '';
+  g('pc-allow-medical').value  = '';
+  g('pc-allow-other').value    = '';
+  g('pc-commissions').value    = '';
+  g('pc-bonus').value          = '';
+  g('pc-other-ded').value      = '';
+  g('pc-uid').value            = forUserId || '';
+  var dn = g('pc-staff-name-display');
+  if (dn) {
+    if (forUserId) {
+      var u = _hrStaff.find(function(x) { return x.id === forUserId; });
+      dn.textContent = u ? (u.displayName||u.email||forUserId) : forUserId;
+    } else { dn.textContent = ''; }
+  }
+  recalcPayslip();
+  openModal('payslip-create-modal');
+}
+function closePayslipCreate() { closeModal('payslip-create-modal'); }
+
+function lookupPcStaff() {
+  var uid = (g('pc-staff-uid').value||'').trim();
+  var dn  = g('pc-staff-name-display');
+  if (!uid || !dn) return;
+  var u = _hrStaff.find(function(x) { return x.id === uid; });
+  dn.textContent = u ? (u.displayName||u.email||uid) : (uid ? uid : '');
+  g('pc-uid').value = uid;
+}
+
+function recalcPayslip() {
+  var basic     = parseFloat(g('pc-basic').value)||0;
+  var housing   = parseFloat(g('pc-allow-housing').value)||0;
+  var transport = parseFloat(g('pc-allow-transport').value)||0;
+  var medical   = parseFloat(g('pc-allow-medical').value)||0;
+  var otherA    = parseFloat(g('pc-allow-other').value)||0;
+  var comms     = parseFloat(g('pc-commissions').value)||0;
+  var bonus     = parseFloat(g('pc-bonus').value)||0;
+  var otherDed  = parseFloat(g('pc-other-ded').value)||0;
+  var gross     = basic + housing + transport + medical + otherA;
+  var rssb      = Math.round(gross * 0.05);
+  var paye      = calcRwPAYE(gross);
+  var net       = Math.max(0, gross - rssb - paye - otherDed);
+  var total     = net + comms + bonus;
+  if (g('pc-display-gross'))    g('pc-display-gross').textContent    = fmtRwfHR(gross);
+  if (g('pc-display-rssb'))     g('pc-display-rssb').textContent     = fmtRwfHR(rssb);
+  if (g('pc-display-paye'))     g('pc-display-paye').textContent     = fmtRwfHR(paye);
+  if (g('pc-display-other-ded'))g('pc-display-other-ded').textContent= fmtRwfHR(otherDed);
+  if (g('pc-display-net'))      g('pc-display-net').textContent      = fmtRwfHR(net);
+  if (g('pc-display-extras'))   g('pc-display-extras').textContent   = fmtRwfHR(comms+bonus);
+  if (g('pc-display-total'))    g('pc-display-total').textContent    = fmtRwfHR(total);
+}
+
+function submitPayslip() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var uid    = (g('pc-uid').value||g('pc-staff-uid').value||'').trim();
+  var period = g('pc-period').value;
+  var basic  = parseFloat(g('pc-basic').value)||0;
+  if (!uid)    { showToast('Staff UID is required', 'error'); return; }
+  if (!period) { showToast('Pay period is required', 'error'); return; }
+  if (!basic)  { showToast('Basic salary is required', 'error'); return; }
+  var housing   = parseFloat(g('pc-allow-housing').value)||0;
+  var transport = parseFloat(g('pc-allow-transport').value)||0;
+  var medical   = parseFloat(g('pc-allow-medical').value)||0;
+  var otherA    = parseFloat(g('pc-allow-other').value)||0;
+  var comms     = parseFloat(g('pc-commissions').value)||0;
+  var bonus     = parseFloat(g('pc-bonus').value)||0;
+  var otherDed  = parseFloat(g('pc-other-ded').value)||0;
+  var gross     = basic + housing + transport + medical + otherA;
+  var rssb      = Math.round(gross * 0.05);
+  var rssbEmp   = Math.round(gross * 0.05);
+  var paye      = calcRwPAYE(gross);
+  var net       = Math.max(0, gross - rssb - paye - otherDed);
+  var total     = net + comms + bonus;
+  var staffUser = _hrStaff.find(function(x) { return x.id === uid; });
+  var doc = {
+    id: '', userId: uid,
+    staffName: staffUser ? (staffUser.displayName||staffUser.email||uid) : uid,
+    staffRole: staffUser ? (staffUser.role||'') : '',
+    period: period,
+    basicSalary: basic,
+    allowances: { housing: housing, transport: transport, medical: medical, other: otherA },
+    grossSalary: gross,
+    rssbEmployee: rssbEmp, rssbEmployer: rssbEmp,
+    paye: paye, otherDeductions: otherDed,
+    netSalary: net,
+    commissions: comms, bonuses: bonus, totalPay: total,
+    payslipUrl: null, paidAt: null, paymentRef: null,
+    status: 'generated', isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: currentUser.uid, updatedBy: currentUser.uid
+  };
+  db.collection('payroll').add(doc).then(function(ref) { return ref.update({ id: ref.id }); })
+    .then(function() {
+      showToast('Payslip saved for ' + period, 'success');
+      closePayslipCreate();
+      loadPayroll();
+      loadHRStats();
+      logAudit('payslip_generated', 'payroll', 'new', null, { userId: uid, period: period, totalPay: total });
+    }).catch(function() { showToast('Error saving payslip', 'error'); });
+}
+
+function openPayslipDetail(id) {
+  _psDetailId = id;
+  var p = _payrollList.find(function(x) { return x.id === id; });
+  if (!p) return;
+  var m = g('payslip-detail-modal'); if (!m) return;
+  g('pd-period').textContent      = 'Pay Period: ' + (p.period||'—');
+  g('pd-name').textContent        = p.staffName || p.userId || '—';
+  g('pd-role').textContent        = HR_ROLE_LABELS[p.staffRole] || (p.staffRole||'—');
+  g('pd-basic').textContent       = fmtRwfHR(p.basicSalary);
+  var al = p.allowances || {};
+  g('pd-allow-housing').textContent   = fmtRwfHR(al.housing||0);
+  g('pd-allow-transport').textContent = fmtRwfHR(al.transport||0);
+  g('pd-allow-medical').textContent   = fmtRwfHR(al.medical||0);
+  g('pd-allow-other').textContent     = fmtRwfHR(al.other||0);
+  g('pd-gross').textContent           = fmtRwfHR(p.grossSalary);
+  g('pd-rssb').textContent            = fmtRwfHR(p.rssbEmployee);
+  g('pd-paye').textContent            = fmtRwfHR(p.paye);
+  g('pd-other-ded').textContent       = fmtRwfHR(p.otherDeductions||0);
+  g('pd-net').textContent             = fmtRwfHR(p.netSalary);
+  g('pd-commissions').textContent     = fmtRwfHR(p.commissions||0);
+  g('pd-bonus').textContent           = fmtRwfHR(p.bonuses||0);
+  g('pd-total').textContent           = fmtRwfHR(p.totalPay);
+  var paidEl = g('pd-paid-status');
+  if (paidEl) {
+    paidEl.innerHTML = p.paidAt
+      ? '<div style="color:var(--success);font-size:.82rem;font-weight:600">Paid on ' + new Date(p.paidAt.toDate ? p.paidAt.toDate() : p.paidAt).toLocaleDateString() + '</div>'
+      : '<div style="color:var(--warning);font-size:.82rem">Status: Pending Payment</div>';
+  }
+  var isAdmin = ['admin','super_admin','ceo'].indexOf((currentUser||{}).role) > -1;
+  var actEl = g('pd-actions');
+  if (actEl && isAdmin && !p.paidAt) {
+    actEl.innerHTML = '<button class="btn" style="background:var(--success);color:#fff;border:none" onclick="markPayslipPaid(\'' + id + '\')">Mark as Paid</button>';
+  } else if (actEl) { actEl.innerHTML = ''; }
+  openModal('payslip-detail-modal');
+}
+function closePayslipDetail() { closeModal('payslip-detail-modal'); }
+
+function markPayslipPaid(id) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  db.collection('payroll').doc(id).update({
+    paidAt:    firebase.firestore.FieldValue.serverTimestamp(),
+    status:    'paid',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: currentUser.uid
+  }).then(function() {
+    showToast('Payslip marked as paid', 'success');
+    var p = _payrollList.find(function(x) { return x.id === id; });
+    if (p) p.paidAt = new Date();
+    closePayslipDetail();
+    loadPayroll();
+    logAudit('payslip_paid', 'payroll', id, { paidAt: null }, { paidAt: 'now' });
+  }).catch(function() { showToast('Error updating payslip', 'error'); });
+}
+
+/* ── PERFORMANCE ── */
+function loadPerformance() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var el = g('hr-performance-list');
+  if (!el) return;
+  el.innerHTML = '<div class="off-loading">Loading performance data...</div>';
+  var mi = g('hr-perf-month');
+  var mv = mi ? mi.value : '';
+  if (!mv) { var now = new Date(); mv = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0'); }
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+  var usersToQuery = isAdmin ? _hrStaff.slice(0, 20) : [{ id: currentUser.uid, displayName: currentUser.displayName, email: currentUser.email, role: currentUser.role }];
+  if (!usersToQuery.length) {
+    el.innerHTML = '<div class="off-empty">No staff data loaded. Load the Staff Directory first.</div>';
+    return;
+  }
+  var promises = usersToQuery.map(function(u) {
+    return Promise.all([
+      db.collection('tasks').where('assignedTo','==',u.id).where('isActive','==',true).limit(100).get(),
+      db.collection('attendance').where('userId','==',u.id).where('date','>=',mv+'-01').where('date','<=',mv+'-31').where('isActive','==',true).limit(31).get(),
+      db.collection('leaves').where('userId','==',u.id).where('status','==','approved').where('isActive','==',true).limit(20).get()
+    ]).then(function(results) {
+      var taskSnap = results[0], attSnap = results[1], leaveSnap = results[2];
+      var tasksTotal = taskSnap.size;
+      var tasksDone  = 0; taskSnap.forEach(function(d){ if(d.data().status==='done') tasksDone++; });
+      var totalHours = 0; attSnap.forEach(function(d){ totalHours += (d.data().hoursWorked||0); });
+      var leaveDays  = 0; leaveSnap.forEach(function(d){ leaveDays += (d.data().days||0); });
+      return { user: u, tasksTotal: tasksTotal, tasksDone: tasksDone, totalHours: totalHours, leaveDays: leaveDays };
+    });
+  });
+  Promise.all(promises).then(function(results) {
+    if (!results.length) { el.innerHTML = '<div class="off-empty">No performance data found.</div>'; return; }
+    el.innerHTML = results.map(function(r) {
+      var completionPct = r.tasksTotal > 0 ? Math.round(r.tasksDone / r.tasksTotal * 100) : 0;
+      var initials = (r.user.displayName||r.user.email||'U').substring(0,1).toUpperCase();
+      return '<div class="hr-perf-card">' +
+        '<div class="hr-perf-head">' +
+          '<div class="hr-staff-avatar" style="width:36px;height:36px;font-size:.9rem">' + initials + '</div>' +
+          '<div>' +
+            '<div class="hr-staff-name">' + (r.user.displayName||r.user.email||'—') + '</div>' +
+            '<div style="font-size:.72rem;color:var(--muted)">' + (HR_ROLE_LABELS[r.user.role]||r.user.role||'—') + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="hr-perf-metrics">' +
+          '<div class="hr-perf-metric"><span class="hr-pm-val">' + r.tasksDone + '/' + r.tasksTotal + '</span><span class="hr-pm-lbl">Tasks Done</span></div>' +
+          '<div class="hr-perf-metric"><span class="hr-pm-val">' + completionPct + '%</span><span class="hr-pm-lbl">Completion</span></div>' +
+          '<div class="hr-perf-metric"><span class="hr-pm-val">' + r.totalHours.toFixed(0) + 'h</span><span class="hr-pm-lbl">Hours (mo.)</span></div>' +
+          '<div class="hr-perf-metric"><span class="hr-pm-val">' + r.leaveDays + 'd</span><span class="hr-pm-lbl">Leave Used</span></div>' +
+        '</div>' +
+        '<div style="margin-top:.5rem">' +
+          '<div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-bottom:.2rem"><span>Task Completion</span><span>' + completionPct + '%</span></div>' +
+          '<div style="background:var(--light);border-radius:4px;height:6px;overflow:hidden"><div style="height:100%;border-radius:4px;background:' + (completionPct >= 80 ? 'var(--success)' : completionPct >= 50 ? 'var(--gold)' : 'var(--error)') + ';width:' + completionPct + '%"></div></div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }).catch(function() { el.innerHTML = '<div class="off-empty">Error loading performance data.</div>'; });
+}
+
+/* ── SIDEBAR BADGE ── */
+(function() {
+  var _hrTimer = setInterval(function() {
+    if (typeof db === 'undefined' || !currentUser) return;
+    clearInterval(_hrTimer);
+    var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+    if (!isAdmin) return;
+    db.collection('leaves').where('status','==','pending').where('isActive','==',true).limit(50).get().then(function(snap) {
+      var el = g('hr-sidebar-count');
+      if (el) el.textContent = snap.size > 0 ? snap.size : '';
+    }).catch(function(){});
+  }, 7500);
 })();
 </script>
 

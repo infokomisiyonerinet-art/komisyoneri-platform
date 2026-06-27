@@ -2745,3 +2745,221 @@ html,body{overscroll-behavior-x:none}
   .off-leave-balance { grid-template-columns: repeat(3, 1fr); }
   .off-lb-val { font-size: 1rem; }
 }
+
+/* ═══════════════════════════════════════════
+   PHASE 11 — HR MANAGEMENT
+   ═══════════════════════════════════════════ */
+
+/* Stats */
+.hr-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+.hr-stat-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .7rem .6rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+.hr-stat-val { font-size: 1.35rem; font-weight: 700; color: var(--navy); }
+.hr-stat-lbl { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .02em; }
+
+/* Staff grid */
+.hr-staff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: .6rem;
+}
+.hr-staff-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: .7rem;
+  transition: var(--tr);
+}
+.hr-staff-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.08); transform: translateY(-1px); }
+.hr-staff-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.hr-staff-info { flex: 1; min-width: 0; }
+.hr-staff-name { font-size: .88rem; font-weight: 600; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hr-role-chip {
+  background: var(--light);
+  color: var(--navy);
+  border-radius: 20px;
+  padding: .15rem .55rem;
+  font-size: .72rem;
+  font-weight: 600;
+}
+.hr-verified-chip {
+  background: #dcfce7;
+  color: #16a34a;
+  border-radius: 20px;
+  padding: .15rem .55rem;
+  font-size: .68rem;
+  font-weight: 600;
+}
+.hr-staff-email, .hr-staff-phone {
+  font-size: .72rem;
+  color: var(--muted);
+  margin-top: .1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Staff profile modal */
+.hr-profile-head {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  padding: .75rem 0 1rem;
+}
+.hr-profile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.hr-profile-name { font-size: 1.1rem; font-weight: 700; color: var(--dark); }
+
+/* Payroll */
+.hr-payroll-summary {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: .4rem;
+  background: var(--light);
+  border-radius: 10px;
+  padding: .7rem;
+  margin-bottom: .75rem;
+}
+.hr-ps-item { text-align: center; }
+.hr-ps-label { font-size: .65rem; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: .2rem; }
+.hr-ps-val { font-size: .88rem; font-weight: 700; color: var(--navy); }
+.hr-payroll-row {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .75rem .9rem;
+  margin-bottom: .45rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: var(--tr);
+}
+.hr-payroll-row:hover { box-shadow: 0 2px 10px rgba(0,0,0,.07); }
+.hr-pr-name { font-size: .88rem; font-weight: 600; color: var(--dark); }
+.hr-pr-role { font-size: .73rem; color: var(--muted); margin-top: .1rem; }
+.hr-pr-amount { font-size: .95rem; font-weight: 700; color: var(--navy); text-align: right; }
+
+/* Payslip create modal */
+.hr-calc-preview {
+  background: var(--light);
+  border-radius: 10px;
+  padding: .75rem .9rem;
+  margin-top: .5rem;
+}
+.hr-calc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .3rem 0;
+  font-size: .83rem;
+  color: var(--dark);
+  border-bottom: 1px solid var(--border);
+}
+.hr-calc-row:last-child { border-bottom: none; }
+.hr-calc-row.deduction { color: var(--error); }
+.hr-calc-row.deduction span:last-child { font-weight: 600; }
+.hr-calc-row.total { font-weight: 700; color: var(--navy); font-size: .9rem; }
+.hr-calc-row.bonus-row { color: var(--success); }
+.hr-calc-row.grand { font-weight: 700; color: var(--success); font-size: .95rem; background: rgba(22,163,74,.06); border-radius: 6px; padding: .4rem .5rem; margin-top: .25rem; border-bottom: none; }
+
+/* Payslip detail */
+.hr-payslip-header {
+  background: var(--navy);
+  color: #fff;
+  border-radius: 8px;
+  padding: .75rem 1rem;
+  margin-bottom: .75rem;
+  text-align: center;
+}
+.hr-payslip-company { font-weight: 700; font-size: .9rem; margin-bottom: .2rem; }
+.hr-payslip-period  { font-size: .78rem; opacity: .8; }
+.hr-payslip-section-title {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: .3rem 0 .2rem;
+  margin-bottom: .2rem;
+}
+
+/* Performance */
+.hr-perf-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .85rem .9rem;
+  margin-bottom: .5rem;
+}
+.hr-perf-head {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .65rem;
+}
+.hr-perf-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .4rem;
+  margin-bottom: .5rem;
+}
+.hr-perf-metric { text-align: center; }
+.hr-pm-val { font-size: .95rem; font-weight: 700; color: var(--navy); display: block; }
+.hr-pm-lbl { font-size: .65rem; color: var(--muted); }
+
+/* Mobile */
+@media (max-width: 660px) {
+  .hr-stats { grid-template-columns: repeat(2, 1fr); }
+  .hr-staff-grid { grid-template-columns: 1fr 1fr; }
+  .hr-payroll-summary { grid-template-columns: repeat(3, 1fr); }
+  .hr-payroll-summary .hr-ps-item:nth-child(4),
+  .hr-payroll-summary .hr-ps-item:nth-child(5) { display: none; }
+  .hr-perf-metrics { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 414px) {
+  .hr-stats { grid-template-columns: repeat(2, 1fr); }
+  .hr-staff-grid { grid-template-columns: 1fr; }
+  .hr-payroll-summary { grid-template-columns: repeat(2, 1fr); }
+  .hr-perf-metrics { grid-template-columns: repeat(2, 1fr); }
+}
