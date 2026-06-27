@@ -3603,6 +3603,8 @@ html,body{overscroll-behavior-x:none}
       <div class="dn"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-rw="Kwishyura" data-en="Payments">Kwishyura</span></div>
       <div class="ds-section" data-rw="WATEJA" data-en="MY PORTAL">WATEJA</div>
       <div class="dn" onclick="go('customer')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Portal Yanjye" data-en="My Portal">My Portal</span><span class="ds-badge" id="cust-sidebar-badge"></span></div>
+      <div class="ds-section" data-rw="OFISI" data-en="OFFICE">OFISI</div>
+      <div class="dn" onclick="go('office')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg><span data-rw="Gucunga Ofisi" data-en="Office Management">Office Management</span><span class="ds-badge" id="office-sidebar-count"></span></div>
       <div class="ds-section" data-rw="KONTI" data-en="ACCOUNT">KONTI</div>
       <div class="dn"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Profil" data-en="Profile">Profil</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-rw="Igenamiterere" data-en="Settings">Igenamiterere</span></div>
@@ -4557,6 +4559,113 @@ html,body{overscroll-behavior-x:none}
         <div id="cust-aftersale-list"></div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- === PAGE: OFFICE MANAGEMENT === -->
+<div class="page" id="page-office">
+  <div class="page-hdr">
+    <h2 data-rw="Gucunga Ofisi" data-en="Office Management">Office Management</h2>
+  </div>
+  <!-- Stats -->
+  <div class="off-stats">
+    <div class="off-stat-card"><span class="off-stat-val" id="off-stat-tasks-todo">0</span><span class="off-stat-lbl" data-rw="Imirimo: Itarashirwa" data-en="Tasks: To Do">Tasks: To Do</span></div>
+    <div class="off-stat-card"><span class="off-stat-val" id="off-stat-tasks-prog">0</span><span class="off-stat-lbl" data-rw="Imirimo: Iterwa" data-en="Tasks: In Progress">Tasks: In Progress</span></div>
+    <div class="off-stat-card"><span class="off-stat-val" id="off-stat-tasks-done">0</span><span class="off-stat-lbl" data-rw="Imirimo: Yarangiye" data-en="Tasks: Done">Tasks: Done</span></div>
+    <div class="off-stat-card"><span class="off-stat-val" id="off-stat-checkin">&#x2014;</span><span class="off-stat-lbl" data-rw="Igihe Yinjiye" data-en="Today Check-in">Today Check-in</span></div>
+    <div class="off-stat-card"><span class="off-stat-val" id="off-stat-leave-pending">0</span><span class="off-stat-lbl" data-rw="Ibyifuzo bya Congo" data-en="Leaves Pending">Leaves Pending</span></div>
+  </div>
+  <!-- Tab nav -->
+  <div class="off-tabs-nav">
+    <button class="off-tab active" id="otab-btn-tasks" onclick="switchOfficeTab('tasks')" data-rw="Imirimo" data-en="Tasks">Tasks</button>
+    <button class="off-tab" id="otab-btn-attendance" onclick="switchOfficeTab('attendance')" data-rw="Igihe Cyo Kuja" data-en="Attendance">Attendance</button>
+    <button class="off-tab" id="otab-btn-leave" onclick="switchOfficeTab('leave')" data-rw="Congo" data-en="Leave">Leave</button>
+    <button class="off-tab" id="otab-btn-schedule" onclick="switchOfficeTab('schedule')" data-rw="Gahunda" data-en="Schedule">Schedule</button>
+  </div>
+
+  <!-- TASKS PANE -->
+  <div class="off-pane" id="otab-tasks">
+    <div class="off-pane-hdr">
+      <div class="off-pane-filters">
+        <select id="off-task-status-filter" onchange="filterTasks()" class="off-filter">
+          <option value="" data-rw="Imiterere Yose" data-en="All Statuses">All Statuses</option>
+          <option value="todo" data-rw="Itarashirwa" data-en="To Do">To Do</option>
+          <option value="in_progress" data-rw="Iterwa" data-en="In Progress">In Progress</option>
+          <option value="done" data-rw="Yarangiye" data-en="Done">Done</option>
+          <option value="cancelled" data-rw="Yavanyweho" data-en="Cancelled">Cancelled</option>
+        </select>
+        <select id="off-task-priority-filter" onchange="filterTasks()" class="off-filter">
+          <option value="" data-rw="Ibyibanze Byose" data-en="All Priorities">All Priorities</option>
+          <option value="urgent" data-rw="Byihuse" data-en="Urgent">Urgent</option>
+          <option value="high" data-rw="Byinshi" data-en="High">High</option>
+          <option value="medium" data-rw="Hagati" data-en="Medium">Medium</option>
+          <option value="low" data-rw="Byo Munsi" data-en="Low">Low</option>
+        </select>
+        <input type="text" id="off-task-search" placeholder="Search tasks..." oninput="filterTasks()" class="off-search">
+      </div>
+      <button class="btn btn-primary" id="off-task-create-btn" onclick="openTaskCreate()" style="display:none;align-items:center;gap:.4rem">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-rw="Ongera Umurimo" data-en="New Task">New Task</span>
+      </button>
+    </div>
+    <div id="off-tasks-list"></div>
+  </div>
+
+  <!-- ATTENDANCE PANE -->
+  <div class="off-pane" id="otab-attendance" style="display:none">
+    <div class="off-pane-hdr">
+      <div class="off-pane-filters">
+        <input type="month" id="off-att-month" onchange="loadAttendance()" class="off-filter">
+      </div>
+      <button class="btn btn-primary" id="off-checkin-btn" onclick="openCheckin()" style="display:flex;align-items:center;gap:.4rem">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span data-rw="Injira / Sohoka" data-en="Check In / Out">Check In / Out</span>
+      </button>
+    </div>
+    <div class="off-today-card">
+      <div class="off-today-label" data-rw="Uyu Munsi" data-en="Today">Today</div>
+      <div class="off-today-row">
+        <div class="off-today-block"><div class="off-today-time" id="att-today-in">&#x2014;</div><div class="off-today-sub" data-rw="Igihe Yinjiye" data-en="Check-in">Check-in</div></div>
+        <div class="off-today-sep"></div>
+        <div class="off-today-block"><div class="off-today-time" id="att-today-out">&#x2014;</div><div class="off-today-sub" data-rw="Igihe Yasohokye" data-en="Check-out">Check-out</div></div>
+        <div class="off-today-sep"></div>
+        <div class="off-today-block"><div class="off-today-time" id="att-today-hours">&#x2014;</div><div class="off-today-sub" data-rw="Amasaha" data-en="Hours">Hours</div></div>
+      </div>
+      <div id="att-today-late" style="text-align:center;font-size:.78rem;color:var(--error);margin-top:.4rem"></div>
+    </div>
+    <div id="off-attendance-list"></div>
+  </div>
+
+  <!-- LEAVE PANE -->
+  <div class="off-pane" id="otab-leave" style="display:none">
+    <div class="off-pane-hdr">
+      <div class="off-pane-filters">
+        <select id="off-leave-status-filter" onchange="filterLeaves()" class="off-filter">
+          <option value="" data-rw="Byose" data-en="All">All</option>
+          <option value="pending" data-rw="Bitegereje" data-en="Pending">Pending</option>
+          <option value="approved" data-rw="Byemewe" data-en="Approved">Approved</option>
+          <option value="rejected" data-rw="Byanzwe" data-en="Rejected">Rejected</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="openLeaveApply()" style="display:flex;align-items:center;gap:.4rem">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-rw="Saba Congo" data-en="Request Leave">Request Leave</span>
+      </button>
+    </div>
+    <div class="off-leave-balance" id="off-leave-balance">
+      <div class="off-lb-item"><span class="off-lb-val" id="lb-annual">0d</span><span class="off-lb-lbl" data-rw="Congo ya Buri Mwaka" data-en="Annual Leave">Annual Leave</span></div>
+      <div class="off-lb-item"><span class="off-lb-val" id="lb-sick">0d</span><span class="off-lb-lbl" data-rw="Congo yo Kurwara" data-en="Sick Leave">Sick Leave</span></div>
+      <div class="off-lb-item"><span class="off-lb-val" id="lb-emergency">0d</span><span class="off-lb-lbl" data-rw="Ubucuti" data-en="Emergency">Emergency</span></div>
+    </div>
+    <div id="off-leave-list"></div>
+  </div>
+
+  <!-- SCHEDULE PANE -->
+  <div class="off-pane" id="otab-schedule" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+      <h3 style="margin:0;font-size:.95rem;color:var(--navy)" data-rw="Gahunda ya Iki Cyumweru" data-en="This Week Schedule">This Week Schedule</h3>
+    </div>
+    <div id="off-schedule-grid"></div>
   </div>
 </div>
 
@@ -6116,6 +6225,175 @@ html,body{overscroll-behavior-x:none}
       </div>
       <div id="asd-actions" style="display:flex;gap:.5rem;flex-wrap:wrap;padding-top:.75rem;border-top:1px solid var(--border)"></div>
     </div>
+  </div>
+</div>
+
+<!-- === OFFICE: TASK CREATE MODAL === -->
+<div class="modal-wrap" id="task-create-modal" style="display:none">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="task-modal-heading" data-en="New Task" data-rw="Ongera Umurimo">New Task</div>
+      <button class="modal-close" onclick="closeTaskCreate()">&times;</button>
+    </div>
+    <input type="hidden" id="tcm-edit-id">
+    <div class="form-group">
+      <label data-rw="Umutwe w'Umurimo" data-en="Task Title">Task Title</label>
+      <input type="text" id="tcm-title" placeholder="Enter task title" class="form-control">
+    </div>
+    <div class="form-group">
+      <label data-rw="Ibisobanuro" data-en="Description">Description</label>
+      <textarea id="tcm-desc" rows="3" placeholder="Task description..." class="form-control" style="resize:vertical"></textarea>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label data-rw="Ibyibanze" data-en="Priority">Priority</label>
+        <select id="tcm-priority" class="form-control">
+          <option value="low" data-en="Low" data-rw="Byo Munsi">Low</option>
+          <option value="medium" selected data-en="Medium" data-rw="Hagati">Medium</option>
+          <option value="high" data-en="High" data-rw="Byinshi">High</option>
+          <option value="urgent" data-en="Urgent" data-rw="Byihuse">Urgent</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label data-rw="Ishami" data-en="Department">Department</label>
+        <select id="tcm-department" class="form-control">
+          <option value="">Select department</option>
+          <option value="Sales">Sales</option>
+          <option value="Operations">Operations</option>
+          <option value="Finance">Finance</option>
+          <option value="HR">HR</option>
+          <option value="Admin">Admin</option>
+          <option value="Legal">Legal</option>
+          <option value="Marketing">Marketing</option>
+          <option value="IT">IT</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label data-rw="Igenamiterere ya: Uwahawe" data-en="Assigned To (User ID)">Assigned To (User ID)</label>
+        <input type="text" id="tcm-assigned" placeholder="User UID or email" class="form-control">
+      </div>
+      <div class="form-group">
+        <label data-rw="Itariki y'Iherezo" data-en="Due Date">Due Date</label>
+        <input type="date" id="tcm-due" class="form-control">
+      </div>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" onclick="closeTaskCreate()" data-rw="Reka" data-en="Cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitTask()" data-rw="Bika Umurimo" data-en="Save Task">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- === OFFICE: TASK DETAIL MODAL === -->
+<div class="modal-wrap" id="task-detail-modal" style="display:none">
+  <div class="modal" style="max-width:560px;max-height:90vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+      <div class="modal-title" data-en="Task Detail" data-rw="Amakuru y'Umurimo">Task Detail</div>
+      <button class="modal-close" onclick="closeTaskDetail()">&times;</button>
+    </div>
+    <div style="padding:0 .25rem">
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">
+        <span class="off-status-chip" id="td-status-badge">To Do</span>
+        <span class="off-priority-badge" id="td-priority-badge">Medium</span>
+      </div>
+      <h3 id="td-title" style="margin:0 0 .5rem;font-size:1.05rem;color:var(--dark)"></h3>
+      <div class="fin-summary-card" style="margin-bottom:.75rem">
+        <div class="fin-summary-row"><span data-rw="Ibisobanuro" data-en="Description">Description</span><span id="td-desc" style="max-width:320px;text-align:right;word-break:break-word"></span></div>
+        <div class="fin-summary-row"><span data-rw="Ishami" data-en="Department">Department</span><span id="td-dept"></span></div>
+        <div class="fin-summary-row"><span data-rw="Uwahawe" data-en="Assigned To">Assigned To</span><span id="td-assigned"></span></div>
+        <div class="fin-summary-row"><span data-rw="Itariki y'Iherezo" data-en="Due Date">Due Date</span><span id="td-due"></span></div>
+        <div class="fin-summary-row"><span data-rw="Itariki y'Inyandiko" data-en="Created">Created</span><span id="td-created"></span></div>
+      </div>
+      <div id="td-actions" style="margin-bottom:1rem"></div>
+      <!-- Comments -->
+      <div style="border-top:1px solid var(--border);padding-top:.75rem">
+        <div style="font-size:.85rem;font-weight:600;color:var(--navy);margin-bottom:.5rem" data-rw="Ibitekerezo" data-en="Comments">Comments</div>
+        <div id="td-comments-list"></div>
+        <div style="display:flex;gap:.5rem;margin-top:.6rem">
+          <input type="text" id="td-comment-input" placeholder="Add a comment..." class="form-control" style="flex:1;font-size:.82rem" onkeydown="if(event.key==='Enter')addTaskComment()">
+          <button class="btn btn-primary" style="white-space:nowrap;font-size:.82rem" onclick="addTaskComment()" data-rw="Ohereza" data-en="Send">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === OFFICE: CHECK-IN MODAL === -->
+<div class="modal-wrap" id="checkin-modal" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hdr">
+      <div class="modal-title" data-rw="Igihe Cyo Kuja / Gusohoka" data-en="Attendance Check-in / Out">Attendance Check-in / Out</div>
+      <button class="modal-close" onclick="closeCheckin()">&times;</button>
+    </div>
+    <div id="ci-status-block" style="margin-bottom:.75rem"></div>
+    <div class="form-group">
+      <label data-rw="Icyitonderwa" data-en="Note (optional)">Note (optional)</label>
+      <input type="text" id="ci-note" placeholder="Add a note..." class="form-control">
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" onclick="closeCheckin()" data-rw="Reka" data-en="Cancel">Cancel</button>
+      <button class="btn btn-primary" id="ci-action-btn" onclick="submitCheckin()" data-rw="Injira Ubu (GPS)" data-en="Check In Now (GPS)">Check In Now (GPS)</button>
+    </div>
+  </div>
+</div>
+
+<!-- === OFFICE: LEAVE APPLY MODAL === -->
+<div class="modal-wrap" id="leave-apply-modal" style="display:none">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hdr">
+      <div class="modal-title" data-rw="Saba Congo" data-en="Request Leave">Request Leave</div>
+      <button class="modal-close" onclick="closeLeaveApply()">&times;</button>
+    </div>
+    <div class="form-group">
+      <label data-rw="Ubwoko bwa Congo" data-en="Leave Type">Leave Type</label>
+      <select id="la-type" class="form-control">
+        <option value="annual" data-rw="Congo ya Buri Mwaka" data-en="Annual Leave">Annual Leave</option>
+        <option value="sick" data-rw="Congo yo Kurwara" data-en="Sick Leave">Sick Leave</option>
+        <option value="maternity" data-rw="Congo yo Kubyara" data-en="Maternity / Paternity">Maternity / Paternity</option>
+        <option value="emergency" data-rw="Ubucuti" data-en="Emergency Leave">Emergency Leave</option>
+        <option value="unpaid" data-rw="Congo Itabihwa" data-en="Unpaid Leave">Unpaid Leave</option>
+      </select>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label data-rw="Itariki yo Gutangira" data-en="Start Date">Start Date</label>
+        <input type="date" id="la-start" class="form-control" onchange="calcLeaveDays()">
+      </div>
+      <div class="form-group">
+        <label data-rw="Itariki yo Gukabiriza" data-en="End Date">End Date</label>
+        <input type="date" id="la-end" class="form-control" onchange="calcLeaveDays()">
+      </div>
+    </div>
+    <div id="la-days-display" style="font-size:.85rem;color:var(--navy);font-weight:600;margin:-.25rem 0 .75rem;min-height:1.2em"></div>
+    <div class="form-group">
+      <label data-rw="Impamvu" data-en="Reason">Reason</label>
+      <textarea id="la-reason" rows="3" placeholder="State the reason for leave..." class="form-control" style="resize:vertical"></textarea>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" onclick="closeLeaveApply()" data-rw="Reka" data-en="Cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitLeaveApply()" data-rw="Ohereza Ikibazo" data-en="Submit Request">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- === OFFICE: LEAVE DETAIL MODAL === -->
+<div class="modal-wrap" id="leave-detail-modal" style="display:none">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hdr">
+      <div class="modal-title" data-rw="Amakuru ya Congo" data-en="Leave Detail">Leave Detail</div>
+      <button class="modal-close" onclick="closeLeaveDetail()">&times;</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">
+      <span class="off-leave-type-chip" id="ld-type-chip">Annual Leave</span>
+      <span class="off-status-chip" id="ld-status-badge">pending</span>
+    </div>
+    <div class="fin-summary-card" style="margin-bottom:.75rem">
+      <div class="fin-summary-row"><span data-rw="Iminsi" data-en="Dates">Dates</span><span id="ld-dates"></span></div>
+      <div class="fin-summary-row"><span data-rw="Impamvu" data-en="Reason">Reason</span><span id="ld-reason" style="max-width:280px;text-align:right;word-break:break-word"></span></div>
+    </div>
+    <div id="ld-actions"></div>
   </div>
 </div>
 
@@ -11031,6 +11309,9 @@ go = function(page) {
   if(page === 'customer') {
     setTimeout(loadCustomerPortal, 150);
   }
+  if(page === 'office') {
+    setTimeout(loadOffice, 150);
+  }
 };
 
 </script>
@@ -11417,6 +11698,667 @@ go = function(page) {
       ? document.addEventListener('DOMContentLoaded', attachRealtimeListeners)
       : attachRealtimeListeners();
   } catch(e){ console.error('Sync error:',e); }
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHASE 10 — OFFICE MANAGEMENT
+     Tasks | Attendance | Leave Requests | Staff Schedule
+════════════════════════════════════════════════════════ -->
+<script>
+/* ── Phase 10 globals ── */
+var _tasks         = [];
+var _taskFilter    = { status: '', priority: '', q: '' };
+var _tdCurrentId   = null;
+var _attendanceList= [];
+var _todayAtt      = null;
+var _leavesAll     = [];
+var _ldCurrentId   = null;
+
+var TASK_STATUS = {
+  todo:        { label: 'To Do',       color: '#6366F1' },
+  in_progress: { label: 'In Progress', color: '#D97706' },
+  done:        { label: 'Done',        color: '#16A34A' },
+  cancelled:   { label: 'Cancelled',   color: '#64748B' }
+};
+
+var TASK_PRIORITY = {
+  low:    { label: 'Low',    color: '#64748B' },
+  medium: { label: 'Medium', color: '#1249B3' },
+  high:   { label: 'High',   color: '#D97706' },
+  urgent: { label: 'Urgent', color: '#DC2626' }
+};
+
+var LEAVE_TYPES = {
+  annual:    'Annual Leave',
+  sick:      'Sick Leave',
+  maternity: 'Maternity / Paternity',
+  emergency: 'Emergency Leave',
+  unpaid:    'Unpaid Leave'
+};
+
+var LEAVE_STATUS_COLOR = {
+  pending:   '#D97706',
+  approved:  '#16A34A',
+  rejected:  '#DC2626',
+  cancelled: '#64748B'
+};
+
+/* ── load entry point ── */
+function loadOffice() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+  var createBtn = g('off-task-create-btn');
+  if (createBtn) createBtn.style.display = isAdmin ? 'flex' : 'none';
+  var mi = g('off-att-month');
+  if (mi) {
+    var n = new Date();
+    mi.value = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0');
+  }
+  switchOfficeTab('tasks');
+  loadOfficeStats();
+}
+
+function loadOfficeStats() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+  var tq = isAdmin
+    ? db.collection('tasks').where('isActive', '==', true).limit(300)
+    : db.collection('tasks').where('assignedTo', '==', currentUser.uid).where('isActive', '==', true).limit(200);
+  tq.get().then(function(snap) {
+    var td = 0, ip = 0, dn = 0;
+    snap.forEach(function(d) {
+      var t = d.data();
+      if (t.status === 'todo') td++;
+      else if (t.status === 'in_progress') ip++;
+      else if (t.status === 'done') dn++;
+    });
+    if (g('off-stat-tasks-todo')) g('off-stat-tasks-todo').textContent = td;
+    if (g('off-stat-tasks-prog')) g('off-stat-tasks-prog').textContent = ip;
+    if (g('off-stat-tasks-done')) g('off-stat-tasks-done').textContent = dn;
+  }).catch(function(){});
+
+  var todayStr = new Date().toISOString().slice(0, 10);
+  db.collection('attendance')
+    .where('userId', '==', currentUser.uid)
+    .where('date', '==', todayStr)
+    .where('isActive', '==', true)
+    .limit(1).get().then(function(snap) {
+      if (!snap.empty) {
+        var a = snap.docs[0].data();
+        a.id = snap.docs[0].id;
+        _todayAtt = a;
+        var inT = a.checkInAt ? new Date(a.checkInAt.toDate()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '—';
+        if (g('off-stat-checkin')) g('off-stat-checkin').textContent = inT;
+        if (g('att-today-in'))    g('att-today-in').textContent = inT;
+        var outT = a.checkOutAt ? new Date(a.checkOutAt.toDate()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '—';
+        if (g('att-today-out'))   g('att-today-out').textContent = outT;
+        if (g('att-today-hours')) g('att-today-hours').textContent = a.hoursWorked ? a.hoursWorked.toFixed(1) + 'h' : '—';
+        if (g('att-today-late') && a.isLate) g('att-today-late').textContent = 'Late by ' + (a.lateMinutes || 0) + ' min';
+      } else {
+        _todayAtt = null;
+        if (g('off-stat-checkin')) g('off-stat-checkin').textContent = '—';
+      }
+    }).catch(function(){});
+
+  var lq = isAdmin
+    ? db.collection('leaves').where('status', '==', 'pending').where('isActive', '==', true).limit(100)
+    : db.collection('leaves').where('userId', '==', currentUser.uid).where('status', '==', 'pending').where('isActive', '==', true).limit(50);
+  lq.get().then(function(snap) {
+    if (g('off-stat-leave-pending')) g('off-stat-leave-pending').textContent = snap.size;
+  }).catch(function(){});
+}
+
+function switchOfficeTab(tab) {
+  ['tasks','attendance','leave','schedule'].forEach(function(t) {
+    var btn  = g('otab-btn-' + t);
+    var pane = g('otab-' + t);
+    if (btn)  btn.classList.toggle('active', t === tab);
+    if (pane) pane.style.display = (t === tab) ? '' : 'none';
+  });
+  if (tab === 'tasks')      loadTasks();
+  else if (tab === 'attendance') loadAttendance();
+  else if (tab === 'leave')      loadLeaves();
+  else if (tab === 'schedule')   loadSchedule();
+}
+
+/* ── TASKS ── */
+function loadTasks() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var el = g('off-tasks-list');
+  if (el) el.innerHTML = '<div class="off-loading">Loading tasks...</div>';
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+  var q = isAdmin
+    ? db.collection('tasks').where('isActive', '==', true).orderBy('createdAt', 'desc').limit(100)
+    : db.collection('tasks').where('assignedTo', '==', currentUser.uid).where('isActive', '==', true).orderBy('createdAt', 'desc').limit(100);
+  q.get().then(function(snap) {
+    _tasks = [];
+    snap.forEach(function(d) { var t = d.data(); t.id = d.id; _tasks.push(t); });
+    filterTasks();
+  }).catch(function() {
+    if (el) el.innerHTML = '<div class="off-empty">Unable to load tasks.</div>';
+  });
+}
+
+function filterTasks() {
+  var sf = (g('off-task-status-filter')   || {}).value || '';
+  var pf = (g('off-task-priority-filter') || {}).value || '';
+  var q  = ((g('off-task-search')         || {}).value || '').toLowerCase();
+  renderTasks(_tasks.filter(function(t) {
+    if (sf && t.status   !== sf) return false;
+    if (pf && t.priority !== pf) return false;
+    if (q && ((t.title || '').toLowerCase() + (t.description || '').toLowerCase()).indexOf(q) < 0) return false;
+    return true;
+  }));
+}
+
+function renderTasks(list) {
+  var el = g('off-tasks-list');
+  if (!el) return;
+  if (!list.length) {
+    el.innerHTML = '<div class="off-empty" data-rw="Nta mirimo ibonetse" data-en="No tasks found">No tasks found</div>';
+    if (typeof switchLang !== 'undefined') switchLang(currentLang);
+    return;
+  }
+  el.innerHTML = list.map(function(t) {
+    var st  = TASK_STATUS[t.status]   || { label: t.status,   color: '#64748B' };
+    var pr  = TASK_PRIORITY[t.priority] || { label: t.priority, color: '#64748B' };
+    var dueDate = t.dueAt ? (t.dueAt.toDate ? t.dueAt.toDate() : new Date(t.dueAt)) : null;
+    var due  = dueDate ? dueDate.toLocaleDateString() : 'No due date';
+    var over = dueDate && t.status !== 'done' && t.status !== 'cancelled' && dueDate < new Date();
+    return '<div class="off-task-card' + (over ? ' overdue' : '') + '" onclick="openTaskDetail(\'' + t.id + '\')">' +
+      '<div class="off-task-top">' +
+        '<span class="off-task-priority-dot" style="background:' + pr.color + '" title="' + pr.label + '"></span>' +
+        '<span class="off-task-title">' + (t.title || 'Untitled') + '</span>' +
+        '<span class="off-status-chip" style="background:' + st.color + '">' + st.label + '</span>' +
+      '</div>' +
+      '<div class="off-task-meta">' +
+        '<span>' + (t.department || 'General') + '</span>' +
+        '<span>' + (over ? '<span style="color:var(--error)">Overdue</span>' : 'Due: ' + due) + '</span>' +
+      '</div>' +
+      (t.description ? '<div class="off-task-desc">' + (t.description.length > 100 ? t.description.substring(0,100) + '&hellip;' : t.description) + '</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function openTaskCreate(editId) {
+  var m = g('task-create-modal');
+  if (!m) return;
+  g('tcm-title').value     = '';
+  g('tcm-desc').value      = '';
+  g('tcm-priority').value  = 'medium';
+  g('tcm-department').value= '';
+  g('tcm-due').value       = '';
+  g('tcm-assigned').value  = '';
+  g('tcm-edit-id').value   = '';
+  var hd = g('task-modal-heading');
+  if (hd) hd.textContent = 'New Task';
+  if (editId) {
+    var t = _tasks.find(function(x) { return x.id === editId; });
+    if (t) {
+      g('tcm-title').value      = t.title || '';
+      g('tcm-desc').value       = t.description || '';
+      g('tcm-priority').value   = t.priority || 'medium';
+      g('tcm-department').value = t.department || '';
+      g('tcm-due').value        = t.dueAt ? (t.dueAt.toDate ? t.dueAt.toDate().toISOString().slice(0,10) : t.dueAt) : '';
+      g('tcm-assigned').value   = t.assignedTo || '';
+      g('tcm-edit-id').value    = editId;
+      if (hd) hd.textContent = 'Edit Task';
+    }
+  }
+  openModal('task-create-modal');
+}
+function closeTaskCreate() { closeModal('task-create-modal'); }
+
+function submitTask() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var title = (g('tcm-title').value || '').trim();
+  if (!title) { showToast('Task title is required', 'error'); return; }
+  var editId  = g('tcm-edit-id').value;
+  var dueVal  = g('tcm-due').value;
+  var dueDate = dueVal ? new Date(dueVal) : null;
+  var data = {
+    title:       title,
+    description: (g('tcm-desc').value || '').trim(),
+    priority:    g('tcm-priority').value || 'medium',
+    department:  g('tcm-department').value || '',
+    assignedTo:  (g('tcm-assigned').value || '').trim(),
+    assignedBy:  currentUser.uid,
+    dueAt:       dueDate ? firebase.firestore.Timestamp.fromDate(dueDate) : null,
+    updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy:   currentUser.uid
+  };
+  var p;
+  if (editId) {
+    p = db.collection('tasks').doc(editId).update(data);
+  } else {
+    data.status    = 'todo';
+    data.isActive  = true;
+    data.comments  = [];
+    data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+    data.createdBy = currentUser.uid;
+    p = db.collection('tasks').add(data).then(function(ref) { return ref.update({ id: ref.id }); });
+  }
+  p.then(function() {
+    showToast(editId ? 'Task updated' : 'Task created', 'success');
+    closeTaskCreate();
+    loadTasks();
+    loadOfficeStats();
+    logAudit(editId ? 'task_updated' : 'task_created', 'tasks', editId || 'new', null, data);
+  }).catch(function() { showToast('Error saving task', 'error'); });
+}
+
+function openTaskDetail(id) {
+  _tdCurrentId = id;
+  var t = _tasks.find(function(x) { return x.id === id; });
+  if (!t) return;
+  var st = TASK_STATUS[t.status]   || { label: t.status,   color: '#64748B' };
+  var pr = TASK_PRIORITY[t.priority] || { label: t.priority, color: '#64748B' };
+  var dueDate  = t.dueAt    ? (t.dueAt.toDate    ? t.dueAt.toDate()    : new Date(t.dueAt))    : null;
+  var crtDate  = t.createdAt? (t.createdAt.toDate? t.createdAt.toDate(): new Date(t.createdAt)): null;
+  g('td-title').textContent      = t.title || 'Untitled';
+  g('td-status-badge').textContent = st.label; g('td-status-badge').style.background = st.color;
+  g('td-priority-badge').textContent = pr.label; g('td-priority-badge').style.background = pr.color;
+  g('td-desc').textContent       = t.description || '—';
+  g('td-dept').textContent       = t.department || 'General';
+  g('td-due').textContent        = dueDate ? dueDate.toLocaleDateString() : 'No due date';
+  g('td-created').textContent    = crtDate ? crtDate.toLocaleDateString() : '—';
+  g('td-assigned').textContent   = t.assignedTo || 'Unassigned';
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf((currentUser||{}).role) > -1;
+  var isOwner = currentUser && (currentUser.uid === t.createdBy || currentUser.uid === t.assignedTo);
+  var actEl   = g('td-actions');
+  if (actEl && (isAdmin || isOwner)) {
+    var html = '<div style="display:flex;gap:.5rem;flex-wrap:wrap">';
+    ['todo','in_progress','done','cancelled'].forEach(function(s) {
+      if (s !== t.status) {
+        var sc = TASK_STATUS[s] || {};
+        html += '<button class="btn" style="background:' + (sc.color||'#64748B') + ';color:#fff;border:none;font-size:.8rem" onclick="updateTaskStatus(\'' + id + '\',\'' + s + '\')">' + (sc.label||s) + '</button>';
+      }
+    });
+    html += '</div>';
+    if (isAdmin) html += '<button class="btn btn-outline" style="margin-top:.5rem;font-size:.8rem" onclick="closeTaskDetail();openTaskCreate(\'' + id + '\')">Edit Task</button>';
+    actEl.innerHTML = html;
+  } else if (actEl) { actEl.innerHTML = ''; }
+  renderTaskComments(t.comments || []);
+  openModal('task-detail-modal');
+}
+function closeTaskDetail() { closeModal('task-detail-modal'); }
+
+function renderTaskComments(comments) {
+  var el = g('td-comments-list');
+  if (!el) return;
+  if (!comments.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:.8rem;padding:.3rem 0">No comments yet.</div>';
+    return;
+  }
+  el.innerHTML = comments.map(function(c) {
+    var ts = c.at ? new Date(c.at.toDate ? c.at.toDate() : c.at).toLocaleString() : '';
+    return '<div class="off-comment"><div style="display:flex;justify-content:space-between;margin-bottom:.2rem"><span class="off-comment-author">' + (c.name||c.by||'Staff') + '</span><span class="off-comment-time">' + ts + '</span></div><div class="off-comment-text">' + (c.text||'') + '</div></div>';
+  }).join('');
+}
+
+function addTaskComment() {
+  if (!_tdCurrentId || typeof db === 'undefined' || !currentUser) return;
+  var inp  = g('td-comment-input');
+  var text = inp ? inp.value.trim() : '';
+  if (!text) return;
+  var comment = {
+    by:   currentUser.uid,
+    name: currentUser.displayName || currentUser.email || 'Staff',
+    text: text,
+    at:   firebase.firestore.Timestamp.fromDate(new Date())
+  };
+  db.collection('tasks').doc(_tdCurrentId).update({
+    comments:  firebase.firestore.FieldValue.arrayUnion(comment),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: currentUser.uid
+  }).then(function() {
+    if (inp) inp.value = '';
+    var t = _tasks.find(function(x) { return x.id === _tdCurrentId; });
+    if (t) { t.comments = (t.comments || []).concat([comment]); renderTaskComments(t.comments); }
+  }).catch(function() { showToast('Could not add comment', 'error'); });
+}
+
+function updateTaskStatus(id, newStatus) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var t = _tasks.find(function(x) { return x.id === id; });
+  var oldStatus = t ? t.status : '';
+  var upd = { status: newStatus, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid };
+  if (newStatus === 'done') upd.completedAt = firebase.firestore.FieldValue.serverTimestamp();
+  db.collection('tasks').doc(id).update(upd).then(function() {
+    showToast('Task status updated', 'success');
+    if (t) t.status = newStatus;
+    closeTaskDetail();
+    filterTasks();
+    loadOfficeStats();
+    logAudit('task_status_changed', 'tasks', id, { status: oldStatus }, { status: newStatus });
+  }).catch(function() { showToast('Error updating status', 'error'); });
+}
+
+/* ── ATTENDANCE ── */
+function loadAttendance() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var el = g('off-attendance-list');
+  if (el) el.innerHTML = '<div class="off-loading">Loading attendance...</div>';
+  var mi  = g('off-att-month');
+  var mv  = mi ? mi.value : '';
+  if (!mv) { var n = new Date(); mv = n.getFullYear() + '-' + String(n.getMonth()+1).padStart(2,'0'); }
+  var parts = mv.split('-');
+  var yr = parseInt(parts[0]), mo = parseInt(parts[1]);
+  var startDate = mv + '-01';
+  var endDate   = mv + '-' + String(new Date(yr, mo, 0).getDate()).padStart(2,'0');
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+  var q = isAdmin
+    ? db.collection('attendance').where('date','>=',startDate).where('date','<=',endDate).where('isActive','==',true).orderBy('date','desc').limit(300)
+    : db.collection('attendance').where('userId','==',currentUser.uid).where('date','>=',startDate).where('date','<=',endDate).where('isActive','==',true).orderBy('date','desc').limit(100);
+  q.get().then(function(snap) {
+    _attendanceList = [];
+    snap.forEach(function(d) { var a = d.data(); a.id = d.id; _attendanceList.push(a); });
+    renderAttendance(_attendanceList);
+  }).catch(function() {
+    if (el) el.innerHTML = '<div class="off-empty">Unable to load attendance records.</div>';
+  });
+}
+
+function renderAttendance(list) {
+  var el = g('off-attendance-list');
+  if (!el) return;
+  if (!list.length) { el.innerHTML = '<div class="off-empty">No attendance records for this period.</div>'; return; }
+  el.innerHTML = '<div class="off-att-table">' +
+    '<div class="off-att-head"><span data-rw="Itariki" data-en="Date">Date</span><span data-rw="Igihe Yinjiye" data-en="Check-in">Check-in</span><span data-rw="Igihe Yasohokye" data-en="Check-out">Check-out</span><span data-rw="Amasaha" data-en="Hours">Hours</span><span data-rw="Imiterere" data-en="Status">Status</span></div>' +
+    list.map(function(a) {
+      var inT  = a.checkInAt  ? new Date(a.checkInAt.toDate()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '—';
+      var outT = a.checkOutAt ? new Date(a.checkOutAt.toDate()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '—';
+      var hrs  = a.hoursWorked ? a.hoursWorked.toFixed(1)+'h' : '—';
+      var chip = a.isLate
+        ? '<span style="color:var(--error);font-size:.72rem">Late +' + (a.lateMinutes||0) + 'm</span>'
+        : '<span style="color:var(--success);font-size:.72rem">On Time</span>';
+      return '<div class="off-att-row"><span>' + a.date + '</span><span>' + inT + '</span><span>' + outT + '</span><span>' + hrs + '</span><span>' + chip + '</span></div>';
+    }).join('') + '</div>';
+  if (typeof switchLang !== 'undefined') switchLang(currentLang);
+}
+
+function openCheckin() {
+  if (!currentUser) return;
+  var m = g('checkin-modal');
+  if (!m) return;
+  var isIn   = _todayAtt && _todayAtt.checkInAt && !_todayAtt.checkOutAt;
+  var isDone = _todayAtt && _todayAtt.checkInAt && _todayAtt.checkOutAt;
+  var stHtml = '';
+  if (isDone) {
+    stHtml = '<div class="ci-done-msg" data-rw="Warinze no gusohoka uyu munsi" data-en="You have already checked in and out today.">You have already checked in and out today.</div>';
+  } else if (isIn) {
+    var inT = new Date(_todayAtt.checkInAt.toDate()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    stHtml = '<div class="ci-status ci-in">Checked in at ' + inT + '</div>';
+  } else {
+    stHtml = '<div class="ci-status ci-out" data-rw="Ntabwo warinze uyu munsi" data-en="Not yet checked in today">Not yet checked in today</div>';
+  }
+  g('ci-status-block').innerHTML = stHtml;
+  var ni = g('ci-note'); if (ni) ni.value = '';
+  var ab = g('ci-action-btn');
+  if (ab) {
+    if (isDone) { ab.style.display = 'none'; }
+    else if (isIn) { ab.textContent = 'Check Out Now'; ab.onclick = submitCheckout; ab.style.display = ''; ab.disabled = false; }
+    else { ab.textContent = 'Check In Now (GPS)'; ab.onclick = submitCheckin; ab.style.display = ''; ab.disabled = false; }
+  }
+  openModal('checkin-modal');
+}
+function closeCheckin() { closeModal('checkin-modal'); }
+
+function submitCheckin() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var ab = g('ci-action-btn'); if (ab) ab.disabled = true;
+  var note     = g('ci-note') ? g('ci-note').value : '';
+  var todayStr = new Date().toISOString().slice(0, 10);
+  var now      = new Date();
+  var isLate      = now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() > 15);
+  var lateMinutes = isLate ? Math.max(0, (now.getHours() - 8) * 60 + now.getMinutes() - 15) : 0;
+  function save(lat, lng) {
+    var doc = {
+      id:'', userId: currentUser.uid, date: todayStr,
+      checkInAt:  firebase.firestore.Timestamp.fromDate(now),
+      checkOutAt: null, checkInLat: lat||null, checkInLng: lng||null,
+      hoursWorked: 0, isLate: isLate, lateMinutes: lateMinutes, note: note,
+      approvedBy: null, status: 'active', isActive: true,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy: currentUser.uid, updatedBy: currentUser.uid
+    };
+    db.collection('attendance').add(doc).then(function(ref) { return ref.update({ id: ref.id }); })
+      .then(function() {
+        showToast(isLate ? 'Checked in — late by ' + lateMinutes + ' min' : 'Check-in recorded', isLate ? 'info' : 'success');
+        closeCheckin(); loadOfficeStats(); loadAttendance();
+        logAudit('attendance_checkin', 'attendance', 'new', null, { userId: currentUser.uid, date: todayStr, isLate: isLate });
+      }).catch(function() { showToast('Error recording check-in', 'error'); if (ab) ab.disabled = false; });
+  }
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(p) { save(p.coords.latitude, p.coords.longitude); },
+      function()  { save(null, null); },
+      { timeout: 5000 }
+    );
+  } else { save(null, null); }
+}
+
+function submitCheckout() {
+  if (typeof db === 'undefined' || !currentUser || !_todayAtt) return;
+  var ab = g('ci-action-btn'); if (ab) ab.disabled = true;
+  var now = new Date();
+  var inTime = _todayAtt.checkInAt ? _todayAtt.checkInAt.toDate() : now;
+  var hrs = (now - inTime) / 3600000;
+  db.collection('attendance').doc(_todayAtt.id).update({
+    checkOutAt:  firebase.firestore.Timestamp.fromDate(now),
+    hoursWorked: parseFloat(hrs.toFixed(2)),
+    updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy:   currentUser.uid
+  }).then(function() {
+    showToast('Check-out recorded — ' + hrs.toFixed(1) + 'h worked', 'success');
+    closeCheckin(); loadOfficeStats(); loadAttendance();
+    logAudit('attendance_checkout', 'attendance', _todayAtt.id, null, { userId: currentUser.uid, hoursWorked: hrs });
+  }).catch(function() { showToast('Error recording check-out', 'error'); if (ab) ab.disabled = false; });
+}
+
+/* ── LEAVES ── */
+function loadLeaves() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var el = g('off-leave-list'); if (el) el.innerHTML = '<div class="off-loading">Loading leave requests...</div>';
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+  var q = isAdmin
+    ? db.collection('leaves').where('isActive','==',true).orderBy('createdAt','desc').limit(100)
+    : db.collection('leaves').where('userId','==',currentUser.uid).where('isActive','==',true).orderBy('createdAt','desc').limit(50);
+  q.get().then(function(snap) {
+    _leavesAll = [];
+    var annualD = 0, sickD = 0, emergD = 0;
+    snap.forEach(function(d) {
+      var lv = d.data(); lv.id = d.id; _leavesAll.push(lv);
+      if (!isAdmin && lv.userId === currentUser.uid && lv.status === 'approved') {
+        if (lv.type === 'annual')    annualD += (lv.days||0);
+        else if (lv.type === 'sick') sickD  += (lv.days||0);
+        else if (lv.type === 'emergency') emergD += (lv.days||0);
+      }
+    });
+    if (!isAdmin) {
+      if (g('lb-annual'))    g('lb-annual').textContent    = annualD + 'd';
+      if (g('lb-sick'))      g('lb-sick').textContent      = sickD + 'd';
+      if (g('lb-emergency')) g('lb-emergency').textContent = emergD + 'd';
+    }
+    filterLeaves();
+  }).catch(function() { if (el) el.innerHTML = '<div class="off-empty">Unable to load leave requests.</div>'; });
+}
+
+function filterLeaves() {
+  var sf = (g('off-leave-status-filter')||{}).value || '';
+  renderLeaves(_leavesAll.filter(function(lv) { return !sf || lv.status === sf; }));
+}
+
+function renderLeaves(list) {
+  var el = g('off-leave-list');
+  if (!el) return;
+  if (!list.length) { el.innerHTML = '<div class="off-empty">No leave requests found.</div>'; return; }
+  el.innerHTML = list.map(function(lv) {
+    var color = LEAVE_STATUS_COLOR[lv.status] || '#64748B';
+    return '<div class="off-leave-card" onclick="openLeaveDetail(\'' + lv.id + '\')">' +
+      '<div class="off-leave-top">' +
+        '<span class="off-leave-type-chip">' + (LEAVE_TYPES[lv.type]||lv.type) + '</span>' +
+        '<span class="off-status-chip" style="background:' + color + '">' + (lv.status||'pending') + '</span>' +
+      '</div>' +
+      '<div class="off-leave-dates">' + (lv.startDate||'') + ' &rarr; ' + (lv.endDate||'') + ' <span class="off-leave-days">(' + (lv.days||0) + ' days)</span></div>' +
+      '<div class="off-leave-reason">' + (lv.reason||'') + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openLeaveApply() {
+  var m = g('leave-apply-modal'); if (!m) return;
+  g('la-type').value   = 'annual';
+  g('la-start').value  = '';
+  g('la-end').value    = '';
+  g('la-reason').value = '';
+  var dd = g('la-days-display'); if (dd) dd.textContent = '';
+  openModal('leave-apply-modal');
+}
+function closeLeaveApply() { closeModal('leave-apply-modal'); }
+
+function calcLeaveDays() {
+  var s = g('la-start').value, e = g('la-end').value;
+  var dd = g('la-days-display');
+  if (!dd) return;
+  if (s && e) {
+    var d1 = new Date(s), d2 = new Date(e);
+    if (d2 >= d1) dd.textContent = Math.round((d2-d1)/86400000)+1 + ' day(s)';
+    else dd.textContent = 'End date must be after start date';
+  } else { dd.textContent = ''; }
+}
+
+function submitLeaveApply() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var type   = g('la-type').value;
+  var start  = g('la-start').value;
+  var end    = g('la-end').value;
+  var reason = (g('la-reason').value||'').trim();
+  if (!start||!end) { showToast('Start and end dates are required', 'error'); return; }
+  var d1 = new Date(start), d2 = new Date(end);
+  if (d2 < d1) { showToast('End date must be after start date', 'error'); return; }
+  var days = Math.round((d2-d1)/86400000)+1;
+  var doc = {
+    id:'', userId: currentUser.uid, type: type,
+    startDate: start, endDate: end, days: days, reason: reason,
+    approvedBy: null, approvedAt: null, rejectedReason: null,
+    status: 'pending', isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: currentUser.uid, updatedBy: currentUser.uid
+  };
+  db.collection('leaves').add(doc).then(function(ref) { return ref.update({ id: ref.id }); })
+    .then(function() {
+      showToast('Leave request submitted', 'success');
+      closeLeaveApply(); loadLeaves(); loadOfficeStats();
+      logAudit('leave_requested', 'leaves', 'new', null, { userId: currentUser.uid, type: type, days: days });
+    }).catch(function() { showToast('Error submitting leave request', 'error'); });
+}
+
+function openLeaveDetail(id) {
+  _ldCurrentId = id;
+  var lv = _leavesAll.find(function(l) { return l.id === id; });
+  if (!lv) return;
+  var color = LEAVE_STATUS_COLOR[lv.status] || '#64748B';
+  g('ld-type-chip').textContent  = LEAVE_TYPES[lv.type] || lv.type;
+  g('ld-status-badge').textContent = lv.status || 'pending';
+  g('ld-status-badge').style.background = color;
+  g('ld-dates').textContent  = (lv.startDate||'') + ' to ' + (lv.endDate||'') + ' (' + (lv.days||0) + ' days)';
+  g('ld-reason').textContent = lv.reason || '—';
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf((currentUser||{}).role) > -1;
+  var actEl = g('ld-actions');
+  if (actEl) {
+    var html = '';
+    if (isAdmin && lv.status === 'pending') {
+      html = '<div style="display:flex;gap:.75rem;flex-wrap:wrap">' +
+        '<button class="btn" style="background:var(--success);color:#fff;border:none" onclick="processLeave(\'' + id + '\',\'approved\')">Approve</button>' +
+        '<button class="btn" style="background:var(--error);color:#fff;border:none"   onclick="processLeave(\'' + id + '\',\'rejected\')">Reject</button>' +
+        '</div>';
+    } else if (lv.status === 'pending' && currentUser && lv.userId === currentUser.uid) {
+      html = '<button class="btn btn-outline" onclick="processLeave(\'' + id + '\',\'cancelled\')" data-rw="Siba Ikibazo" data-en="Cancel Request">Cancel Request</button>';
+    } else if (lv.approvedBy) {
+      html = '<div style="font-size:.8rem;color:var(--muted)">Processed by admin</div>';
+    }
+    actEl.innerHTML = html;
+    if (typeof switchLang !== 'undefined') switchLang(currentLang);
+  }
+  openModal('leave-detail-modal');
+}
+function closeLeaveDetail() { closeModal('leave-detail-modal'); }
+
+function processLeave(id, newStatus) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var lv = _leavesAll.find(function(l) { return l.id === id; });
+  var oldStatus = lv ? lv.status : '';
+  var upd = { status: newStatus, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid };
+  if (newStatus === 'approved' || newStatus === 'rejected') {
+    upd.approvedBy = currentUser.uid;
+    upd.approvedAt = firebase.firestore.FieldValue.serverTimestamp();
+  }
+  db.collection('leaves').doc(id).update(upd).then(function() {
+    showToast('Leave request ' + newStatus, 'success');
+    if (lv) lv.status = newStatus;
+    closeLeaveDetail(); loadLeaves(); loadOfficeStats();
+    logAudit('leave_status_changed', 'leaves', id, { status: oldStatus }, { status: newStatus });
+  }).catch(function() { showToast('Error updating leave request', 'error'); });
+}
+
+/* ── SCHEDULE ── */
+function loadSchedule() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var el = g('off-schedule-grid');
+  if (!el) { return; }
+  var today  = new Date();
+  var days   = [];
+  for (var i = 0; i < 7; i++) { var d = new Date(today); d.setDate(today.getDate() + i); days.push(d); }
+  var startTs = firebase.firestore.Timestamp.fromDate(today);
+  var endD    = new Date(today); endD.setDate(today.getDate() + 7);
+  var endTs   = firebase.firestore.Timestamp.fromDate(endD);
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+  var q = isAdmin
+    ? db.collection('tasks').where('isActive','==',true).where('dueAt','>=',startTs).where('dueAt','<=',endTs).limit(100)
+    : db.collection('tasks').where('assignedTo','==',currentUser.uid).where('isActive','==',true).where('dueAt','>=',startTs).where('dueAt','<=',endTs).limit(100);
+  q.get().then(function(snap) {
+    var byDay = {};
+    days.forEach(function(d) { byDay[d.toISOString().slice(0,10)] = []; });
+    snap.forEach(function(doc) {
+      var t = doc.data(); t.id = doc.id;
+      if (t.dueAt) { var k = t.dueAt.toDate().toISOString().slice(0,10); if (byDay[k]) byDay[k].push(t); }
+    });
+    var DN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    var todayKey = today.toISOString().slice(0,10);
+    el.innerHTML = '<div class="off-week-grid">' + days.map(function(d) {
+      var k = d.toISOString().slice(0,10);
+      var ts = byDay[k]||[];
+      return '<div class="off-week-day' + (k===todayKey?' today':'') + '">' +
+        '<div class="off-week-day-hdr"><span class="off-week-dayname">' + DN[d.getDay()] + '</span><span class="off-week-date">' + d.getDate() + '</span></div>' +
+        '<div class="off-week-tasks">' + (ts.length
+          ? ts.map(function(t) {
+              var pc = (TASK_PRIORITY[t.priority]||{}).color||'#64748B';
+              return '<div class="off-week-task-item" style="border-left:3px solid ' + pc + '" onclick="openTaskDetail(\'' + t.id + '\')">' + (t.title||'Task') + '</div>';
+            }).join('')
+          : '<div class="off-week-empty">—</div>') +
+        '</div></div>';
+    }).join('') + '</div>';
+  }).catch(function() { el.innerHTML = '<div class="off-empty">Could not load schedule.</div>'; });
+}
+
+/* ── SIDEBAR BADGE ── */
+(function() {
+  var _offTimer = setInterval(function() {
+    if (typeof db === 'undefined' || !currentUser) return;
+    clearInterval(_offTimer);
+    var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+    var bq = isAdmin
+      ? db.collection('tasks').where('status','==','todo').where('isActive','==',true).limit(50)
+      : db.collection('tasks').where('assignedTo','==',currentUser.uid).where('status','==','todo').where('isActive','==',true).limit(50);
+    bq.get().then(function(snap) {
+      var el = g('office-sidebar-count');
+      if (el) el.textContent = snap.size > 0 ? snap.size : '';
+    }).catch(function(){});
+  }, 7000);
 })();
 </script>
 
