@@ -1945,3 +1945,48 @@ html,body{overscroll-behavior-x:none}
   .crm-wrap{padding:.8rem .7rem 3rem}
   .crm-card{padding:.75rem .85rem}
 }
+
+/* ═══════════════════════════════════════════════════════
+   PHASE 3 — DEAL MANAGEMENT
+   Viewings | Offers | Deals | Negotiation Pipeline
+════════════════════════════════════════════════════════ */
+
+/* Deals page — reuses crm-wrap, crm-header, crm-stats, crm-list, crm-filters */
+.deal-card{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:.9rem 1.1rem;cursor:pointer;transition:var(--tr);border-left:3px solid var(--gold)}
+.deal-card:hover{border-color:var(--navy);box-shadow:0 4px 16px rgba(13,59,140,.1);transform:translateY(-1px)}
+.deal-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.35rem;gap:.5rem}
+.deal-card-title{font-weight:700;font-size:.92rem;color:var(--navy);flex:1}
+.deal-badge{border-radius:20px;padding:.15rem .55rem;font-size:.6rem;font-weight:700;color:#fff;flex-shrink:0;white-space:nowrap;line-height:1.6}
+.deal-card-meta{font-size:.74rem;color:var(--muted);line-height:1.8}
+.deal-card-meta span{margin-right:.7rem}
+.deal-price{font-weight:800;color:var(--navy);font-size:1rem}
+
+/* Milestone checklist */
+.milestone-list{display:flex;flex-direction:column;gap:.3rem;margin-bottom:1rem}
+.milestone-item{display:flex;align-items:center;gap:.6rem;padding:.4rem .6rem;border-radius:7px;font-size:.82rem;background:var(--light)}
+.milestone-item.done{background:#d4edda;color:#155724}
+.milestone-item .mi-icon{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.6rem}
+.milestone-item.done .mi-icon{background:#16A34A;border-color:#16A34A;color:#fff}
+
+/* Offer timeline */
+.offer-timeline{display:flex;flex-direction:column;gap:.45rem;max-height:220px;overflow-y:auto;margin-bottom:1rem}
+.offer-entry{border-radius:8px;padding:.6rem .8rem;font-size:.8rem;border-left:3px solid var(--border)}
+.offer-entry.client{border-left-color:#3B82F6;background:#EFF6FF}
+.offer-entry.agent{border-left-color:var(--gold);background:#FFF9E6}
+.offer-accepted{border-left-color:#16A34A!important;background:#d4edda!important}
+.offer-rejected{border-left-color:#DC2626!important;background:#FEE2E2!important}
+.offer-amount{font-weight:800;font-size:.95rem;color:var(--navy)}
+.offer-meta{color:var(--muted);font-size:.68rem;margin-top:.15rem}
+
+/* Viewing report */
+.vr-field{margin-bottom:.75rem}
+.vr-field label{display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.05em;margin-bottom:.25rem}
+.interest-stars{display:flex;gap:.3rem;margin-top:.25rem}
+.interest-stars span{font-size:1.3rem;cursor:pointer;opacity:.35;transition:var(--tr)}
+.interest-stars span.active{opacity:1}
+
+/* Mobile — Deals */
+@media(max-width:480px){
+  .deal-card{padding:.75rem .85rem}
+  .deal-price{font-size:.88rem}
+}

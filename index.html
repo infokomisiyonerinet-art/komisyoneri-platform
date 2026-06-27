@@ -3335,6 +3335,10 @@ html,body{overscroll-behavior-x:none}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             <span data-rw="Gushyiraho Gahunda yo Gusura" data-en="Schedule a Visit">Gushyiraho Gahunda</span>
           </button>
+          <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="openOfferModal()">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            <span data-rw="Ohereza Offer" data-en="Submit Offer">Submit Offer</span>
+          </button>
           <button class="btn btn-navy" style="width:100%;justify-content:center;background:linear-gradient(135deg,#F5A623,#e6951f)" onclick="openLead()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
             <span data-rw="Saba Agent Wawe — Vuba!" data-en="Get an Agent — Fast!">Saba Agent Wawe</span>
@@ -3588,6 +3592,7 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="go('analytics')"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Analytics</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Abakiliya" data-en="Clients">Abakiliya</span><span class="ds-badge">5</span></div>
       <div class="dn" onclick="go('crm')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><span data-rw="CRM — Leads" data-en="CRM — Leads">CRM — Leads</span><span class="ds-badge" id="crm-sidebar-count">0</span></div>
+      <div class="dn" onclick="go('deals')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5a1 1 0 00-1-1H3a1 1 0 00-1 1v6c0 .552.448 1 1 1"/><path d="M3 12v6a1 1 0 001 1h16a1 1 0 001-1v-6"/></svg><span data-rw="Deals" data-en="Deals">Deals</span><span class="ds-badge" id="deals-sidebar-count">0</span></div>
       <div class="ds-section" data-rw="IMARI" data-en="FINANCE">IMARI</div>
       <div class="dn"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span data-rw="Komisiyoni" data-en="Commissions">Komisiyoni</span></div>
       <div class="dn"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-rw="Kwishyura" data-en="Payments">Kwishyura</span></div>
@@ -4064,6 +4069,72 @@ html,body{overscroll-behavior-x:none}
   </div>
 </div>
 
+<!-- ═══════════════════════════════════
+     PAGE: DEAL MANAGEMENT (Phase 3)
+════════════════════════════════════ -->
+<div class="page" id="page-deals">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">💼 Deals</div>
+      <h1 class="h1" data-rw="Gucunga Transactions" data-en="Deal Management">Deal Management</h1>
+      <p style="color:rgba(255,255,255,.82);font-size:.85rem" data-rw="Gukurikirana offers, amasezerano, na transactions zose" data-en="Track offers, negotiations, and all active transactions">Track offers, negotiations, and active transactions</p>
+    </div>
+  </div>
+  <div class="crm-wrap">
+    <div class="crm-header">
+      <div>
+        <p style="color:var(--muted);font-size:.82rem" data-rw="Kanda ku deal kugirango ubone ibirenzeho" data-en="Click any deal to view details and take action">Click any deal to view details</p>
+      </div>
+      <button class="btn btn-navy btn-sm" onclick="openCreateDeal()">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-rw="Deal Nshya" data-en="New Deal">New Deal</span>
+      </button>
+    </div>
+    <!-- Stats -->
+    <div class="crm-stats">
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="deal-stat-total">0</div>
+        <div class="crm-stat-l" data-rw="Deals Zose" data-en="Total Deals">Total</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="deal-stat-active" style="color:#F59E0B">0</div>
+        <div class="crm-stat-l" data-rw="Bikorwa" data-en="Active">Active</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="deal-stat-won" style="color:#16A34A">0</div>
+        <div class="crm-stat-l" data-rw="Zarangiye" data-en="Closed Won">Won</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="deal-stat-value" style="color:var(--gold);font-size:.95rem">0</div>
+        <div class="crm-stat-l" data-rw="Agaciro (RWF M)" data-en="Value (RWF M)">Value (M)</div>
+      </div>
+    </div>
+    <!-- Filters -->
+    <div class="crm-filters">
+      <select id="deal-filter-stage" onchange="filterDeals()">
+        <option value="">-- Ingamba Zose / All Stages --</option>
+        <option value="new" data-rw="Nshya" data-en="New">New</option>
+        <option value="offer_submitted">Offer Submitted</option>
+        <option value="negotiation">Negotiation</option>
+        <option value="due_diligence">Due Diligence</option>
+        <option value="financing">Financing</option>
+        <option value="contract">Contract</option>
+        <option value="closing">Closing</option>
+        <option value="closed_won">Closed Won</option>
+        <option value="closed_lost">Closed Lost</option>
+      </select>
+      <input type="text" id="deal-search" placeholder="Shakisha deal... / Search deals..." oninput="filterDeals()">
+    </div>
+    <!-- Deal List -->
+    <div class="crm-list" id="deal-list">
+      <div class="crm-empty">
+        <div class="crm-empty-icon">💼</div>
+        <div class="crm-empty-title" data-rw="Gutegura deals..." data-en="Loading deals...">Loading deals...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- === MY PROPERTIES MODAL === -->
 <div class="modal-wrap" id="my-props-modal" style="display:none">
   <div class="modal" style="max-width:500px;max-height:90vh;overflow-y:auto">
@@ -4494,6 +4565,182 @@ html,body{overscroll-behavior-x:none}
 
     <input type="hidden" id="ld-lead-id">
     <input type="hidden" id="ld-current-stage">
+  </div>
+</div>
+
+<!-- === OFFER SUBMISSION MODAL (Phase 3) === -->
+<div class="modal-wrap" id="offer-modal" style="display:none">
+  <div class="modal" style="max-width:460px;width:95%">
+    <button class="modal-x" onclick="closeOfferModal()" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:.25rem" data-rw="OHEREZA OFFER" data-en="SUBMIT OFFER">SUBMIT OFFER</div>
+      <h2 id="offer-prop-title" style="font-size:1.1rem;font-weight:800;color:var(--navy)">—</h2>
+      <div id="offer-asking-price" style="font-size:.82rem;color:var(--muted);margin-top:.2rem">—</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.7rem">
+      <div class="vr-field">
+        <label data-rw="Umubare w'Amafaranga Watanze (RWF)" data-en="Your Offer Amount (RWF)">Your Offer Amount (RWF)</label>
+        <input type="number" id="offer-amount" placeholder="e.g. 45000000" min="0" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Ubutumwa bwawe (Ntibisabwa)" data-en="Message to Seller (Optional)">Message to Seller (Optional)</label>
+        <textarea id="offer-message" rows="2" placeholder="Sobanura ibihe n'ibindi bishaka byihariye..." style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;resize:vertical;box-sizing:border-box;display:block"></textarea>
+      </div>
+      <div class="vr-field">
+        <label data-rw="Itariki Offer Irangirira" data-en="Offer Expiry Date">Offer Expiry Date</label>
+        <input type="date" id="offer-expiry" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <button id="offer-submit-btn" class="btn btn-gold" style="width:100%;justify-content:center" onclick="submitOffer()">
+        <span id="offer-submit-lbl" data-rw="Ohereza Offer" data-en="Submit Offer">Submit Offer</span>
+      </button>
+    </div>
+    <input type="hidden" id="offer-prop-id">
+    <input type="hidden" id="offer-agent-id">
+  </div>
+</div>
+
+<!-- === DEAL DETAIL MODAL (Phase 3) === -->
+<div class="modal-wrap" id="deal-detail-modal" style="display:none">
+  <div class="modal" style="max-width:540px;width:95%;max-height:92vh;overflow-y:auto">
+    <button class="modal-x" onclick="closeDealDetail()" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
+    <div style="margin-bottom:.8rem">
+      <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:.25rem" data-rw="TRANSACTION" data-en="TRANSACTION">TRANSACTION</div>
+      <h2 id="dd-prop-title" style="font-size:1.15rem;font-weight:800;color:var(--navy)">—</h2>
+      <div id="dd-stage-badge" style="display:inline-block;border-radius:20px;padding:.2rem .7rem;font-size:.65rem;font-weight:700;color:#fff;background:var(--navy);margin-top:.3rem">—</div>
+    </div>
+
+    <!-- Deal Meta -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem">
+      <div style="background:var(--light);border-radius:8px;padding:.6rem .7rem">
+        <div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.15rem" data-rw="Umukiliya" data-en="Client">Client</div>
+        <div id="dd-client" style="font-size:.84rem;font-weight:600;color:var(--navy)">—</div>
+      </div>
+      <div style="background:var(--light);border-radius:8px;padding:.6rem .7rem">
+        <div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.15rem" data-rw="Agent" data-en="Agent">Agent</div>
+        <div id="dd-agent" style="font-size:.84rem;font-weight:600;color:var(--navy)">—</div>
+      </div>
+      <div style="background:var(--light);border-radius:8px;padding:.6rem .7rem">
+        <div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.15rem" data-rw="Igiciro Kumvikanyeho" data-en="Agreed Price">Agreed Price</div>
+        <div id="dd-price" style="font-size:.84rem;font-weight:700;color:var(--gold)">—</div>
+      </div>
+      <div style="background:var(--light);border-radius:8px;padding:.6rem .7rem">
+        <div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.15rem" data-rw="Komisiyoni Yateganyijwe" data-en="Est. Commission">Est. Commission</div>
+        <div id="dd-commission" style="font-size:.84rem;font-weight:700;color:#16A34A">—</div>
+      </div>
+    </div>
+
+    <!-- Offer Timeline -->
+    <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;margin-bottom:.4rem" data-rw="AMATEKA Y'OFFERS" data-en="OFFER TIMELINE">OFFER TIMELINE</div>
+    <div class="offer-timeline" id="dd-offer-timeline">
+      <div style="text-align:center;color:var(--muted);font-size:.78rem;padding:.5rem" data-rw="Nta offers irahari" data-en="No offers yet">No offers yet</div>
+    </div>
+
+    <!-- Counter-offer input (for agents/staff) -->
+    <div id="dd-counter-section" style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.9rem;display:none">
+      <div style="font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:.5rem" data-rw="Ohereza Counter-Offer" data-en="Send Counter-Offer">Send Counter-Offer</div>
+      <input type="number" id="dd-counter-amount" placeholder="Igiciro gishya (RWF)" style="width:100%;padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.4rem">
+      <textarea id="dd-counter-msg" rows="2" placeholder="Ubutumwa..." style="width:100%;padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.82rem;resize:vertical;box-sizing:border-box;display:block;margin-bottom:.4rem"></textarea>
+      <button class="btn btn-navy" style="width:100%;justify-content:center;font-size:.82rem;padding:.5rem" onclick="submitCounterOffer()">
+        <span data-rw="Ohereza Counter" data-en="Send Counter-Offer">Send Counter-Offer</span>
+      </button>
+    </div>
+
+    <!-- Milestones -->
+    <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;margin-bottom:.5rem" data-rw="INTERA Z'ITERAMBERE" data-en="DEAL MILESTONES">DEAL MILESTONES</div>
+    <div class="milestone-list" id="dd-milestones"></div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn btn-navy" id="dd-advance-btn" style="flex:1;justify-content:center;font-size:.82rem" onclick="advanceDealStage()" data-rw="Jya Imbere" data-en="Advance Stage">Advance Stage</button>
+      <button class="btn btn-outline" style="flex-shrink:0;font-size:.82rem" onclick="closeDealDetail()" data-rw="Funga" data-en="Close">Close</button>
+    </div>
+
+    <input type="hidden" id="dd-deal-id">
+    <input type="hidden" id="dd-current-stage">
+    <input type="hidden" id="dd-pending-offer-id">
+  </div>
+</div>
+
+<!-- === VIEWING REPORT MODAL (Phase 3 — Agent) === -->
+<div class="modal-wrap" id="viewing-report-modal" style="display:none">
+  <div class="modal" style="max-width:460px;width:95%">
+    <button class="modal-x" onclick="closeViewingReport()" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:.25rem" data-rw="RAPORO Y'ISURA" data-en="VIEWING REPORT">VIEWING REPORT</div>
+      <h2 id="vr-prop-title" style="font-size:1.1rem;font-weight:800;color:var(--navy)">—</h2>
+      <div id="vr-client-name" style="font-size:.82rem;color:var(--muted)">—</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.6rem">
+      <div class="vr-field">
+        <label data-rw="Inyito y'Isura" data-en="Visit Outcome">Visit Outcome</label>
+        <select id="vr-outcome" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
+          <option value="interested" data-rw="Yishimye — ashaka gukomeza" data-en="Interested — wants to proceed">Interested</option>
+          <option value="offer_expected" data-rw="Offer izaza muri 48h" data-en="Offer expected within 48h">Offer Expected</option>
+          <option value="needs_info" data-rw="Asaba amakuru menshi" data-en="Needs more information">Needs More Info</option>
+          <option value="not_interested" data-rw="Ntabwo yishimye" data-en="Not interested">Not Interested</option>
+          <option value="no_show" data-rw="Ntabwo yaje" data-en="Client did not show">No Show</option>
+        </select>
+      </div>
+      <div class="vr-field">
+        <label data-rw="Inyungu z'Umukiliya (1-5)" data-en="Client Interest Level (1-5)">Client Interest (1–5)</label>
+        <div class="interest-stars" id="vr-stars">
+          <span onclick="setInterest(1)">⭐</span>
+          <span onclick="setInterest(2)">⭐</span>
+          <span onclick="setInterest(3)">⭐</span>
+          <span onclick="setInterest(4)">⭐</span>
+          <span onclick="setInterest(5)">⭐</span>
+        </div>
+        <input type="hidden" id="vr-interest-val" value="3">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Ibisobanuro by'Isura" data-en="Viewing Notes">Viewing Notes</label>
+        <textarea id="vr-notes" rows="3" placeholder="Ibyo batekereje ku mutungo, ibibazo byose..." style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;resize:vertical;box-sizing:border-box;display:block"></textarea>
+      </div>
+      <button id="vr-submit-btn" class="btn btn-navy" style="width:100%;justify-content:center" onclick="submitViewingReport()">
+        <span id="vr-submit-lbl" data-rw="Bika Raporo" data-en="Save Report">Save Report</span>
+      </button>
+    </div>
+    <input type="hidden" id="vr-viewing-id">
+    <input type="hidden" id="vr-lead-id">
+  </div>
+</div>
+
+<!-- === CREATE DEAL MODAL (Phase 3 — Agent/Staff) === -->
+<div class="modal-wrap" id="create-deal-modal" style="display:none">
+  <div class="modal" style="max-width:460px;width:95%">
+    <button class="modal-x" onclick="document.getElementById('create-deal-modal').style.display='none'" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:.25rem" data-rw="DEAL NSHYA" data-en="NEW DEAL">NEW DEAL</div>
+      <h2 style="font-size:1.1rem;font-weight:800;color:var(--navy)" data-rw="Fungura Transaction" data-en="Open Transaction">Open Transaction</h2>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.7rem">
+      <div class="vr-field">
+        <label data-rw="Izina ry'Imitungo" data-en="Property Name">Property Name</label>
+        <input type="text" id="cd-prop-title" placeholder="e.g. Villa Kimironko" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Amazina y'Umukiliya" data-en="Client Name">Client Name</label>
+        <input type="text" id="cd-client-name" placeholder="Amazina yuzuye" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Telefoni y'Umukiliya" data-en="Client Phone">Client Phone</label>
+        <input type="tel" id="cd-client-phone" placeholder="+250 7XX XXX XXX" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Ubwoko bwa Deal" data-en="Deal Type">Deal Type</label>
+        <select id="cd-deal-type" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
+          <option value="sale" data-rw="Kugurisha" data-en="Sale">Sale</option>
+          <option value="rental" data-rw="Gukodesha" data-en="Rental">Rental</option>
+        </select>
+      </div>
+      <div class="vr-field">
+        <label data-rw="Igiciro (RWF)" data-en="Target Price (RWF)">Target Price (RWF)</label>
+        <input type="number" id="cd-price" placeholder="e.g. 50000000" min="0" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <button id="cd-submit-btn" class="btn btn-navy" style="width:100%;justify-content:center" onclick="createNewDeal()">
+        <span id="cd-submit-lbl" data-rw="Fungura Deal" data-en="Open Deal">Open Deal</span>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -6812,6 +7059,43 @@ function submitBooking() {
   bookings.push(bk);
   try{localStorage.setItem('km_bookings',JSON.stringify(bookings));}catch(e){}
   if (bk.id) try { rtdb.ref('bookings/' + bk.id).set(bk); } catch(e){}
+
+  // Firestore — write to viewings collection (all 7 standard fields)
+  try {
+    if (typeof db !== 'undefined' && typeof firebase !== 'undefined') {
+      var _vUid = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.uid : '';
+      var _vAgentId = (cur && cur.agentId) ? cur.agentId : '';
+      db.collection('viewings').add({
+        id:             '',
+        propertyId:     cur.id || bk.propId || '',
+        propertyTitle:  bk.propTitle || '',
+        clientId:       _vUid,
+        clientName:     bk.name,
+        clientPhone:    bk.phone,
+        agentId:        _vAgentId,
+        agentName:      cur.agentName || '',
+        scheduledDate:  bk.date,
+        scheduledTime:  bk.time || '',
+        note:           bk.note || '',
+        leadId:         '',
+        status:         'scheduled',
+        report:         {},
+        status:         'scheduled',
+        isActive:       true,
+        createdAt:      firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy:      _vUid || 'anonymous',
+        updatedBy:      _vUid || 'anonymous'
+      }).then(function(vRef) {
+        vRef.update({ id: vRef.id });
+        if (typeof logAudit === 'function') {
+          logAudit('viewing.scheduled', 'viewings', vRef.id, null,
+            { clientName: bk.name, propertyId: cur.id || '', date: bk.date });
+        }
+      }).catch(function(vErr) { console.warn('[Viewing] Firestore save failed:', vErr); });
+    }
+  } catch(vE) { console.warn('[Viewing] error:', vE); }
+
   if(_bb){_bb.disabled=false;_bb.classList.remove('btn-loading');if(_bl)_bl.textContent='Emeza Gahunda';}
   closeBooking();
   kmTrack('booking_request',{property_id:String(bk.propId||''),district:bk.district||'',date:bk.date||''});
@@ -9341,7 +9625,7 @@ function markDealActive(idx) {
   }
 }
 
-// Load agents + CRM when navigating to those pages
+// Load agents, CRM, and Deals when navigating to those pages
 var _goOrigAgents = go;
 go = function(page) {
   _goOrigAgents(page);
@@ -9350,6 +9634,9 @@ go = function(page) {
   }
   if(page === 'crm') {
     setTimeout(loadCRM, 150);
+  }
+  if(page === 'deals') {
+    setTimeout(loadDeals, 150);
   }
 };
 
@@ -9738,6 +10025,652 @@ go = function(page) {
       : attachRealtimeListeners();
   } catch(e){ console.error('Sync error:',e); }
 })();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHASE 3 — DEAL MANAGEMENT
+     Viewings (Firestore) | Offers | Deals | Negotiation
+════════════════════════════════════════════════════════ -->
+<script>
+
+// ── Deal Stage colors (reuse CRM_STAGES) ─────────────
+// Deals use the same CRM_STAGES keys: 'new','offer_submitted','negotiation',...
+
+// ── Deal State ────────────────────────────────────────
+var _deals      = [];
+var _dealFilter = '';
+var _dealSearch = '';
+var _ddCurrentDeal = null;
+
+// ── MILESTONE DEFINITIONS ─────────────────────────────
+var DEAL_MILESTONES = [
+  { key:'viewingCompleted', labelRW:'Isura Irangiye',         labelEN:'Viewing Completed' },
+  { key:'offerAccepted',    labelRW:'Offer Yemejwe',          labelEN:'Offer Accepted'    },
+  { key:'dueDiligence',     labelRW:'Kugenzura Birangiye',    labelEN:'Due Diligence Done' },
+  { key:'contractSigned',   labelRW:'Amasezerano Ashyiriweho', labelEN:'Contract Signed'  },
+  { key:'paymentReceived',  labelRW:'Amafaranga Yarinzwe',    labelEN:'Payment Received'  },
+  { key:'titleTransferred', labelRW:'Ubutaka Bweguriwe',      labelEN:'Title Transferred' }
+];
+
+// ── Load Deals ────────────────────────────────────────
+function loadDeals() {
+  var list = document.getElementById('deal-list');
+  if (!list) return;
+
+  list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⏳</div>'
+    + '<div class="crm-empty-title">' + (curLang === 'rw' ? 'Gutegura deals...' : 'Loading deals...') + '</div></div>';
+
+  if (typeof db === 'undefined') { _loadDealsFallback(); return; }
+
+  var isAdminOrStaff = typeof currentUser !== 'undefined' && currentUser &&
+    (currentUser.role === 'admin' || currentUser.role === 'staff' ||
+     currentUser.role === 'ceo'   || currentUser.role === 'Admin' ||
+     currentUser.role === 'super_admin');
+
+  var query;
+  if (isAdminOrStaff) {
+    query = db.collection('deals').where('isActive','==',true).orderBy('createdAt','desc').limit(200);
+  } else if (typeof currentUser !== 'undefined' && currentUser) {
+    query = db.collection('deals').where('isActive','==',true)
+      .where('agentId','==',currentUser.uid).orderBy('createdAt','desc').limit(200);
+  } else {
+    _loadDealsFallback(); return;
+  }
+
+  query.get().then(function(snap) {
+    _deals = [];
+    snap.forEach(function(doc) {
+      var d = doc.data(); d._docId = doc.id; _deals.push(d);
+    });
+    renderDealList();
+    updateDealStats();
+  }).catch(function(err) {
+    console.warn('[Deals] Firestore failed, fallback:', err);
+    _loadDealsFallback();
+  });
+}
+
+function _loadDealsFallback() {
+  var stored = [];
+  try { stored = JSON.parse(localStorage.getItem('km_deals') || '[]'); } catch(e){}
+  _deals = stored.map(function(d) {
+    if (!d._docId) d._docId = d.id || '';
+    if (!d.pipelineStage) d.pipelineStage = d.status || 'new';
+    return d;
+  });
+  renderDealList();
+  updateDealStats();
+}
+
+function renderDealList() {
+  var list = document.getElementById('deal-list');
+  if (!list) return;
+
+  var filtered = _deals.filter(function(d) {
+    var matchStage = !_dealFilter || d.pipelineStage === _dealFilter;
+    var title  = (d.propertyTitle || '').toLowerCase();
+    var client = (d.clientName || '').toLowerCase();
+    var matchSearch = !_dealSearch ||
+      title.indexOf(_dealSearch.toLowerCase()) > -1 ||
+      client.indexOf(_dealSearch.toLowerCase()) > -1;
+    return matchStage && matchSearch;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="crm-empty">'
+      + '<div class="crm-empty-icon">💼</div>'
+      + '<div class="crm-empty-title">' + (curLang === 'rw' ? 'Nta deals zibonetse' : 'No deals found') + '</div>'
+      + '<div style="font-size:.78rem;color:var(--muted);margin-top:.3rem">'
+      + (curLang === 'rw' ? 'Fungura deal nshya hejuru' : 'Open a new deal above') + '</div>'
+      + '</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(function(deal) {
+    var stage = typeof getCrmStage === 'function' ? getCrmStage(deal.pipelineStage || 'new') : { labelEN: deal.pipelineStage || 'New', labelRW: deal.pipelineStage || 'Nshya', color: '#64748B' };
+    var stageLabel = curLang === 'rw' ? stage.labelRW : stage.labelEN;
+    var dealId     = deal._docId || deal.id || '';
+    var price      = deal.agreedPrice ? parseInt(deal.agreedPrice).toLocaleString() + ' RWF' : '—';
+    var commRate   = deal.commissionRate || 0.04;
+    var comm       = deal.agreedPrice ? Math.round(parseInt(deal.agreedPrice) * commRate).toLocaleString() + ' RWF' : '—';
+
+    return '<div class="deal-card" style="border-left-color:' + stage.color + '" onclick="openDealDetail(\'' + dealId + '\')">'
+      + '<div class="deal-card-header">'
+      +   '<div class="deal-card-title">' + (deal.propertyTitle || 'Imitungo') + '</div>'
+      +   '<span class="deal-badge" style="background:' + stage.color + '">' + stageLabel + '</span>'
+      + '</div>'
+      + '<div class="deal-price">' + price + '</div>'
+      + '<div class="deal-card-meta">'
+      +   '<span>👤 ' + (deal.clientName || '—') + '</span>'
+      +   '<span>👔 ' + (deal.agentName || '—') + '</span>'
+      +   '<span>💰 Comm: ' + comm + '</span>'
+      +   '<span>📋 ' + (curLang === 'rw' ? deal.dealType === 'rental' ? 'Gukodesha' : 'Kugurisha' : deal.dealType === 'rental' ? 'Rental' : 'Sale') + '</span>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function updateDealStats() {
+  var total  = _deals.length;
+  var active = _deals.filter(function(d){
+    var k = d.pipelineStage;
+    return k && k !== 'closed_won' && k !== 'closed_lost' && k !== 'new';
+  }).length;
+  var won    = _deals.filter(function(d){ return d.pipelineStage === 'closed_won'; }).length;
+  var totalVal = _deals.reduce(function(sum, d) {
+    return sum + (d.agreedPrice ? parseInt(d.agreedPrice) : 0);
+  }, 0);
+
+  var e = document.getElementById.bind(document);
+  if(e('deal-stat-total'))  e('deal-stat-total').textContent  = total;
+  if(e('deal-stat-active')) e('deal-stat-active').textContent = active;
+  if(e('deal-stat-won'))    e('deal-stat-won').textContent    = won;
+  if(e('deal-stat-value'))  e('deal-stat-value').textContent  = (totalVal / 1000000).toFixed(1) + 'M';
+  var badge = document.getElementById('deals-sidebar-count');
+  if (badge) badge.textContent = active;
+  if(e('dash-kpi-sales'))   e('dash-kpi-sales').textContent   = won;
+}
+
+function filterDeals() {
+  var sf = document.getElementById('deal-filter-stage');
+  var si = document.getElementById('deal-search');
+  _dealFilter = sf ? sf.value : '';
+  _dealSearch = si ? si.value : '';
+  renderDealList();
+}
+
+// ── Deal Detail Modal ─────────────────────────────────
+function openDealDetail(dealId) {
+  var deal = null;
+  for (var i = 0; i < _deals.length; i++) {
+    if ((_deals[i]._docId || _deals[i].id) === dealId) { deal = _deals[i]; break; }
+  }
+  if (deal) { _openDealDetailWithData(deal); return; }
+  if (typeof db !== 'undefined' && dealId) {
+    db.collection('deals').doc(dealId).get().then(function(doc) {
+      if (doc.exists) { var d = doc.data(); d._docId = doc.id; _openDealDetailWithData(d); }
+      else showToast(curLang === 'rw' ? 'Deal ntiyabonetse' : 'Deal not found', 'error');
+    });
+  }
+}
+
+function _openDealDetailWithData(deal) {
+  _ddCurrentDeal = deal;
+  var e = document.getElementById.bind(document);
+  var stage = typeof getCrmStage === 'function' ? getCrmStage(deal.pipelineStage || 'new') : { labelEN: 'New', color: '#64748B' };
+  var stageLabel = curLang === 'rw' ? stage.labelRW : stage.labelEN;
+
+  if(e('dd-prop-title'))  e('dd-prop-title').textContent  = deal.propertyTitle || 'Imitungo';
+  if(e('dd-stage-badge')) { e('dd-stage-badge').textContent = stageLabel; e('dd-stage-badge').style.background = stage.color; }
+  if(e('dd-client'))      e('dd-client').textContent      = (deal.clientName || '—') + (deal.clientPhone ? ' · ' + deal.clientPhone : '');
+  if(e('dd-agent'))       e('dd-agent').textContent       = deal.agentName || '—';
+
+  var price = deal.agreedPrice ? parseInt(deal.agreedPrice).toLocaleString() + ' RWF' : '—';
+  var commRate = deal.commissionRate || 0.04;
+  var comm = deal.agreedPrice ? Math.round(parseInt(deal.agreedPrice) * commRate).toLocaleString() + ' RWF' : '—';
+  if(e('dd-price'))      e('dd-price').textContent      = price;
+  if(e('dd-commission')) e('dd-commission').textContent = comm;
+
+  // Offer timeline
+  _loadDealOffers(deal._docId || deal.id || '');
+
+  // Milestones
+  var mlEl = e('dd-milestones');
+  if (mlEl) {
+    var ms = deal.milestones || {};
+    mlEl.innerHTML = DEAL_MILESTONES.map(function(m) {
+      var done = ms[m.key] === true;
+      return '<div class="milestone-item' + (done ? ' done' : '') + '">'
+        + '<div class="mi-icon">' + (done ? '✓' : '') + '</div>'
+        + '<span>' + (curLang === 'rw' ? m.labelRW : m.labelEN) + '</span>'
+        + '</div>';
+    }).join('');
+  }
+
+  // Show counter section for agents/staff
+  var isAgent = typeof currentUser !== 'undefined' && currentUser &&
+    (currentUser.role === 'agent' || currentUser.role === 'staff' ||
+     currentUser.role === 'admin' || currentUser.role === 'Admin');
+  var cs = e('dd-counter-section');
+  if (cs) cs.style.display = isAgent ? 'block' : 'none';
+
+  if(e('dd-deal-id'))       e('dd-deal-id').value       = deal._docId || deal.id || '';
+  if(e('dd-current-stage')) e('dd-current-stage').value = deal.pipelineStage || 'new';
+
+  var modal = document.getElementById('deal-detail-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function _loadDealOffers(dealId) {
+  var tl = document.getElementById('dd-offer-timeline');
+  if (!tl || !dealId) return;
+  tl.innerHTML = '<div style="color:var(--muted);font-size:.78rem;padding:.4rem">⏳ Gutegura...</div>';
+
+  if (typeof db === 'undefined') {
+    tl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.78rem;padding:.5rem" data-rw="Nta offers irahari" data-en="No offers yet">No offers yet</div>';
+    return;
+  }
+  db.collection('offers').where('dealId','==',dealId).orderBy('createdAt','asc').get()
+    .then(function(snap) {
+      if (snap.empty) {
+        tl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.78rem;padding:.5rem">'
+          + (curLang === 'rw' ? 'Nta offers irahari' : 'No offers yet') + '</div>';
+        return;
+      }
+      var html = '';
+      var pendingId = '';
+      snap.forEach(function(doc) {
+        var o = doc.data();
+        var cls = 'offer-entry ' + (o.fromRole === 'client' ? 'client' : 'agent');
+        if (o.status === 'accepted') cls += ' offer-accepted';
+        if (o.status === 'rejected') cls += ' offer-rejected';
+        var dateStr = o.createdAt && typeof o.createdAt.toDate === 'function'
+          ? o.createdAt.toDate().toLocaleDateString() : '';
+        var amtStr = o.amount ? parseInt(o.amount).toLocaleString() + ' RWF' : '—';
+        html += '<div class="' + cls + '">'
+          + '<div class="offer-amount">' + amtStr + '</div>'
+          + '<div class="offer-meta">' + (o.fromName || o.fromRole || '—') + ' · ' + (o.status || 'pending').toUpperCase() + (dateStr ? ' · ' + dateStr : '') + '</div>'
+          + (o.message ? '<div style="font-size:.75rem;color:var(--dark);margin-top:.15rem">' + o.message + '</div>' : '')
+          + '</div>';
+        if (o.status === 'pending') pendingId = doc.id;
+      });
+      tl.innerHTML = html;
+      var pi = document.getElementById('dd-pending-offer-id');
+      if (pi) pi.value = pendingId;
+    }).catch(function() {
+      tl.innerHTML = '<div style="color:var(--muted);font-size:.78rem;padding:.4rem">'
+        + (curLang === 'rw' ? 'Nta offers irahari' : 'No offers yet') + '</div>';
+    });
+}
+
+function closeDealDetail() {
+  var modal = document.getElementById('deal-detail-modal');
+  if (modal) modal.style.display = 'none';
+  _ddCurrentDeal = null;
+}
+
+function advanceDealStage() {
+  var dealIdEl = document.getElementById('dd-deal-id');
+  var stageEl  = document.getElementById('dd-current-stage');
+  var dealId   = dealIdEl ? dealIdEl.value : '';
+  var curKey   = stageEl  ? stageEl.value  : 'new';
+  var nextKey  = typeof getNextStageKey === 'function' ? getNextStageKey(curKey) : null;
+  if (!nextKey) { showToast(curLang === 'rw' ? 'Deal yageze ku ntambwe ya nyuma!' : 'Deal is at final stage!', 'info'); return; }
+
+  if (typeof db !== 'undefined' && dealId) {
+    var newStageObj = typeof getCrmStage === 'function' ? getCrmStage(nextKey) : { labelEN: nextKey, labelRW: nextKey };
+    var label = curLang === 'rw' ? newStageObj.labelRW : newStageObj.labelEN;
+    db.collection('deals').doc(dealId).update({
+      pipelineStage: nextKey,
+      status:        nextKey,
+      updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy:     typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system'
+    }).then(function() {
+      showToast((curLang === 'rw' ? 'Deal yafunguwe ku: ' : 'Deal moved to: ') + label, 'success');
+      logAudit('deal.stage.changed', 'deals', dealId, { pipelineStage: curKey }, { pipelineStage: nextKey });
+      if (_ddCurrentDeal) _ddCurrentDeal.pipelineStage = nextKey;
+      for (var i = 0; i < _deals.length; i++) {
+        if ((_deals[i]._docId || _deals[i].id) === dealId) { _deals[i].pipelineStage = nextKey; break; }
+      }
+      closeDealDetail();
+      renderDealList();
+      updateDealStats();
+    }).catch(function(err) {
+      showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error updating deal', 'error');
+      console.error('[Deal] Stage update error:', err);
+    });
+  }
+}
+
+// ── Counter-Offer ─────────────────────────────────────
+function submitCounterOffer() {
+  var dealId   = document.getElementById('dd-deal-id') ? document.getElementById('dd-deal-id').value : '';
+  var amountEl = document.getElementById('dd-counter-amount');
+  var msgEl    = document.getElementById('dd-counter-msg');
+  var amount   = amountEl ? amountEl.value.trim() : '';
+  var msg      = msgEl    ? msgEl.value.trim()    : '';
+
+  if (!dealId) return;
+  if (!amount) { showToast(curLang === 'rw' ? 'Shyira igiciro!' : 'Enter an amount!', 'error'); return; }
+
+  if (typeof db === 'undefined') { showToast('Firebase ntabwo ihuye', 'error'); return; }
+
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : '';
+  var agentName = typeof currentUser !== 'undefined' && currentUser
+    ? (currentUser.displayName || currentUser.name || currentUser.email || '') : '';
+  var pendingId = document.getElementById('dd-pending-offer-id') ? document.getElementById('dd-pending-offer-id').value : '';
+
+  db.collection('offers').add({
+    id:          '',
+    dealId:      dealId,
+    propertyId:  _ddCurrentDeal ? (_ddCurrentDeal.propertyId || '') : '',
+    fromUserId:  uid,
+    fromName:    agentName,
+    fromRole:    'agent',
+    amount:      parseInt(amount),
+    counterTo:   pendingId,
+    message:     msg,
+    expiresAt:   null,
+    status:      'pending',
+    isActive:    true,
+    createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:   uid,
+    updatedBy:   uid
+  }).then(function(ref) {
+    ref.update({ id: ref.id });
+    showToast(curLang === 'rw' ? 'Counter-offer yoherejwe!' : 'Counter-offer sent!', 'success');
+    logAudit('offer.counter.submitted', 'offers', ref.id, null, { dealId: dealId, amount: amount });
+    if (amountEl) amountEl.value = '';
+    if (msgEl) msgEl.value = '';
+    // Update deal stage to negotiation
+    db.collection('deals').doc(dealId).update({
+      pipelineStage: 'negotiation', status: 'negotiation',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy: uid
+    });
+    _loadDealOffers(dealId);
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error sending counter-offer', 'error');
+    console.error('[Offer] Counter error:', err);
+  });
+}
+
+// ── Create New Deal (manual) ──────────────────────────
+function openCreateDeal() {
+  var m = document.getElementById('create-deal-modal');
+  if (m) m.style.display = 'flex';
+  if (typeof currentUser !== 'undefined' && currentUser) {
+    var n = document.getElementById('cd-client-name');
+    if (n && !n.value) n.value = '';
+  }
+}
+
+function createNewDeal() {
+  var propEl   = document.getElementById('cd-prop-title');
+  var clientEl = document.getElementById('cd-client-name');
+  var phoneEl  = document.getElementById('cd-client-phone');
+  var typeEl   = document.getElementById('cd-deal-type');
+  var priceEl  = document.getElementById('cd-price');
+  var sbBtn    = document.getElementById('cd-submit-btn');
+  var sbLbl    = document.getElementById('cd-submit-lbl');
+
+  var propTitle   = propEl   ? propEl.value.trim()   : '';
+  var clientName  = clientEl ? clientEl.value.trim()  : '';
+  var clientPhone = phoneEl  ? phoneEl.value.trim()   : '';
+  var dealType    = typeEl   ? typeEl.value           : 'sale';
+  var price       = priceEl  ? parseInt(priceEl.value) || 0 : 0;
+
+  if (!propTitle)   { showToast(curLang === 'rw' ? 'Shyira izina ry\'imitungo!' : 'Enter property name!', 'error'); return; }
+  if (!clientName)  { showToast(curLang === 'rw' ? 'Shyira amazina y\'umukiliya!' : 'Enter client name!', 'error'); return; }
+  if (!clientPhone) { showToast(curLang === 'rw' ? 'Shyira telefoni!' : 'Enter client phone!', 'error'); return; }
+
+  if (sbBtn) { sbBtn.disabled = true; if(sbLbl) sbLbl.textContent = (curLang === 'rw' ? 'Tegereza...' : 'Saving...'); }
+
+  if (typeof db === 'undefined') { showToast('Firebase ntabwo ihuye', 'error'); return; }
+
+  var uid       = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : '';
+  var agentName = typeof currentUser !== 'undefined' && currentUser
+    ? (currentUser.displayName || currentUser.name || '') : '';
+
+  var defaultRate = dealType === 'rental' ? 0.0833 : 0.04;
+
+  db.collection('deals').add({
+    id:             '',
+    leadId:         '',
+    propertyId:     '',
+    propertyTitle:  propTitle,
+    clientId:       '',
+    clientName:     clientName,
+    clientPhone:    clientPhone,
+    sellerId:       '',
+    agentId:        uid,
+    agentName:      agentName,
+    dealType:       dealType,
+    agreedPrice:    price,
+    commissionRate: defaultRate,
+    pipelineStage:  'new',
+    offerId:        '',
+    notes:          '',
+    milestones:     {},
+    closedAt:       null,
+    isActive:       true,
+    status:         'new',
+    createdAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:      uid,
+    updatedBy:      uid
+  }).then(function(ref) {
+    ref.update({ id: ref.id });
+    logAudit('deal.created', 'deals', ref.id, null,
+      { propertyTitle: propTitle, clientName: clientName, dealType: dealType });
+    showToast(curLang === 'rw' ? 'Deal ifunguwe!' : 'Deal opened!', 'success');
+    document.getElementById('create-deal-modal').style.display = 'none';
+    if (sbBtn) { sbBtn.disabled = false; if(sbLbl) sbLbl.textContent = curLang === 'rw' ? 'Fungura Deal' : 'Open Deal'; }
+    // Clear form
+    [propEl, clientEl, phoneEl, priceEl].forEach(function(el) { if(el) el.value = ''; });
+    loadDeals();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error creating deal', 'error');
+    if (sbBtn) { sbBtn.disabled = false; if(sbLbl) sbLbl.textContent = curLang === 'rw' ? 'Fungura Deal' : 'Open Deal'; }
+    console.error('[Deal] Create error:', err);
+  });
+}
+
+// ── Offer Submission (client) ─────────────────────────
+function openOfferModal() {
+  var prop = window._currentProp || {};
+  var m = document.getElementById('offer-modal');
+  if (!m) return;
+  var titleEl    = document.getElementById('offer-prop-title');
+  var priceEl    = document.getElementById('offer-asking-price');
+  var propIdEl   = document.getElementById('offer-prop-id');
+  var agentIdEl  = document.getElementById('offer-agent-id');
+  var expiryEl   = document.getElementById('offer-expiry');
+
+  if (titleEl)   titleEl.textContent   = prop.title || prop.type || 'Imitungo';
+  if (priceEl)   priceEl.textContent   = prop.price ? 'Asking: ' + parseInt(prop.price).toLocaleString() + ' RWF' : '';
+  if (propIdEl)  propIdEl.value        = prop.id || '';
+  if (agentIdEl) agentIdEl.value       = prop.agentId || '';
+  if (expiryEl) {
+    var future = new Date(); future.setDate(future.getDate() + 7);
+    expiryEl.value = future.toISOString().slice(0, 10);
+    expiryEl.min   = new Date().toISOString().slice(0, 10);
+  }
+  m.style.display = 'flex';
+}
+
+function closeOfferModal() {
+  var m = document.getElementById('offer-modal');
+  if (m) m.style.display = 'none';
+}
+
+function submitOffer() {
+  var amountEl  = document.getElementById('offer-amount');
+  var msgEl     = document.getElementById('offer-message');
+  var expiryEl  = document.getElementById('offer-expiry');
+  var propIdEl  = document.getElementById('offer-prop-id');
+  var agentIdEl = document.getElementById('offer-agent-id');
+  var sbBtn     = document.getElementById('offer-submit-btn');
+  var sbLbl     = document.getElementById('offer-submit-lbl');
+
+  var amount  = amountEl  ? parseInt(amountEl.value)  : 0;
+  var msg     = msgEl     ? msgEl.value.trim()         : '';
+  var expiry  = expiryEl  ? expiryEl.value             : '';
+  var propId  = propIdEl  ? propIdEl.value             : '';
+  var agentId = agentIdEl ? agentIdEl.value            : '';
+
+  if (!amount || amount <= 0) { showToast(curLang === 'rw' ? 'Shyira igiciro!' : 'Enter a valid amount!', 'error'); return; }
+  if (!expiry)                { showToast(curLang === 'rw' ? 'Hitamo itariki y\'itukirwa!' : 'Select expiry date!', 'error'); return; }
+
+  if (typeof db === 'undefined') { showToast('Firebase ntabwo ihuye', 'error'); return; }
+
+  if (sbBtn) { sbBtn.disabled = true; if(sbLbl) sbLbl.textContent = (curLang === 'rw' ? 'Tegereza...' : 'Sending...'); }
+
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : '';
+  var prop = window._currentProp || {};
+
+  db.collection('offers').add({
+    id:          '',
+    propertyId:  propId,
+    dealId:      '',
+    fromUserId:  uid,
+    fromName:    typeof currentUser !== 'undefined' && currentUser
+      ? (currentUser.displayName || currentUser.name || currentUser.email || 'Client') : 'Anonymous',
+    fromRole:    'client',
+    amount:      amount,
+    counterTo:   '',
+    message:     msg,
+    expiresAt:   firebase.firestore.Timestamp.fromDate(new Date(expiry)),
+    status:      'pending',
+    isActive:    true,
+    createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:   uid,
+    updatedBy:   uid
+  }).then(function(ref) {
+    ref.update({ id: ref.id });
+    logAudit('offer.submitted', 'offers', ref.id, null,
+      { propertyId: propId, amount: amount, fromRole: 'client' });
+    showToast(curLang === 'rw' ? 'Offer yoherejwe! Agent azagaragaza vuba.' : 'Offer submitted! Agent will respond shortly.', 'success');
+    closeOfferModal();
+    if (amountEl) amountEl.value = '';
+    if (msgEl)    msgEl.value    = '';
+    if (sbBtn) { sbBtn.disabled = false; if(sbLbl) sbLbl.textContent = curLang === 'rw' ? 'Ohereza Offer' : 'Submit Offer'; }
+
+    // Also notify via WhatsApp
+    var prop = window._currentProp || {};
+    var waMsg = 'OFFER NSHYA — Imitungo: ' + (prop.title || propId)
+      + ' — Igiciro: ' + amount.toLocaleString() + ' RWF — Client: '
+      + (typeof currentUser !== 'undefined' && currentUser ? currentUser.email || '' : 'Anonymous');
+    if (agentId) {
+      // Could open WA to agent — skipping for now; notification via Firestore listener
+    }
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa — ongera ugerageze' : 'Error submitting offer', 'error');
+    if (sbBtn) { sbBtn.disabled = false; if(sbLbl) sbLbl.textContent = curLang === 'rw' ? 'Ohereza Offer' : 'Submit Offer'; }
+    console.error('[Offer] Submit error:', err);
+  });
+}
+
+// ── Viewing Report ────────────────────────────────────
+var _vrInterest = 3;
+
+function openViewingReport(viewingId, leadId) {
+  var m = document.getElementById('viewing-report-modal');
+  if (!m) return;
+  var vidEl  = document.getElementById('vr-viewing-id');
+  var lidEl  = document.getElementById('vr-lead-id');
+  var notesEl = document.getElementById('vr-notes');
+  if (vidEl)  vidEl.value  = viewingId || '';
+  if (lidEl)  lidEl.value  = leadId    || '';
+  if (notesEl) notesEl.value = '';
+  _vrInterest = 3;
+  setInterest(3);
+  var outcomeEl = document.getElementById('vr-outcome');
+  if (outcomeEl) outcomeEl.value = 'interested';
+  m.style.display = 'flex';
+}
+
+function closeViewingReport() {
+  var m = document.getElementById('viewing-report-modal');
+  if (m) m.style.display = 'none';
+}
+
+function setInterest(val) {
+  _vrInterest = val;
+  var stars = document.querySelectorAll('#vr-stars span');
+  for (var i = 0; i < stars.length; i++) {
+    stars[i].classList.toggle('active', i < val);
+  }
+  var hidden = document.getElementById('vr-interest-val');
+  if (hidden) hidden.value = val;
+}
+
+function submitViewingReport() {
+  var viewingId = document.getElementById('vr-viewing-id') ? document.getElementById('vr-viewing-id').value : '';
+  var leadId    = document.getElementById('vr-lead-id')    ? document.getElementById('vr-lead-id').value    : '';
+  var outcome   = document.getElementById('vr-outcome')    ? document.getElementById('vr-outcome').value    : 'interested';
+  var notes     = document.getElementById('vr-notes')      ? document.getElementById('vr-notes').value.trim() : '';
+  var interest  = _vrInterest || 3;
+  var sbBtn     = document.getElementById('vr-submit-btn');
+  var sbLbl     = document.getElementById('vr-submit-lbl');
+
+  if (!notes) { showToast(curLang === 'rw' ? 'Andika ibisobanuro by\'isura!' : 'Enter viewing notes!', 'error'); return; }
+  if (typeof db === 'undefined') { showToast('Firebase ntabwo ihuye', 'error'); return; }
+
+  if (sbBtn) { sbBtn.disabled = true; if(sbLbl) sbLbl.textContent = curLang === 'rw' ? 'Tegereza...' : 'Saving...'; }
+
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : '';
+  var report = {
+    outcome:       outcome,
+    feedback:      notes,
+    clientInterest: interest,
+    agentNotes:    notes,
+    completedAt:   new Date().toISOString()
+  };
+
+  var updates = [];
+
+  // Update viewings document
+  if (viewingId) {
+    updates.push(
+      db.collection('viewings').doc(viewingId).update({
+        status:    'completed',
+        report:    report,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedBy: uid
+      })
+    );
+  }
+
+  // Update lead stage to viewing_completed
+  if (leadId) {
+    updates.push(
+      db.collection('leads').doc(leadId).update({
+        pipelineStage: 'viewing_completed',
+        status:        'viewing_completed',
+        updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+        updatedBy:     uid
+      })
+    );
+  }
+
+  Promise.all(updates).then(function() {
+    logAudit('viewing.completed', 'viewings', viewingId, { status: 'scheduled' }, { status: 'completed', outcome: outcome });
+    showToast(curLang === 'rw' ? 'Raporo y\'isura yabitswe!' : 'Viewing report saved!', 'success');
+    closeViewingReport();
+    if (sbBtn) { sbBtn.disabled = false; if(sbLbl) sbLbl.textContent = curLang === 'rw' ? 'Bika Raporo' : 'Save Report'; }
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error saving report', 'error');
+    if (sbBtn) { sbBtn.disabled = false; if(sbLbl) sbLbl.textContent = curLang === 'rw' ? 'Bika Raporo' : 'Save Report'; }
+    console.error('[ViewingReport] error:', err);
+  });
+}
+
+// Auto-load deal sidebar badge on dashboard load
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      if (typeof db !== 'undefined' && typeof currentUser !== 'undefined' && currentUser) {
+        var q = db.collection('deals').where('isActive','==',true)
+          .where('agentId','==',currentUser.uid);
+        q.get().then(function(snap) {
+          var active = 0;
+          snap.forEach(function(doc) {
+            var d = doc.data();
+            if (d.pipelineStage !== 'closed_won' && d.pipelineStage !== 'closed_lost') active++;
+          });
+          var badge = document.getElementById('deals-sidebar-count');
+          if (badge) badge.textContent = active;
+          var kpi = document.getElementById('dash-kpi-sales');
+          if (kpi) kpi.textContent = active;
+        }).catch(function(){});
+      }
+    }, 3000);
+  });
+})();
+
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
