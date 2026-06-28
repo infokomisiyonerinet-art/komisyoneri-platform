@@ -9327,7 +9327,7 @@ function renderQsSuggestions(query, boxId) {
     .filter(function(x){ return x.s >= 30; })
     .sort(function(a,b){ return b.s-a.s; }).slice(0,5);
   if (!scored.length) {
-    box.innerHTML='<div class="qs-no-results">Nta mituringo ihuye na "'+query.replace(/</g,'&lt;')+'"</div>';
+    box.innerHTML='<div class="qs-no-results">Nta mituringo ihuye na "'+escapeHtml(query)+'"</div>';
     box.style.display='block'; return;
   }
   var html = scored.map(function(x){
@@ -11638,8 +11638,11 @@ function openPropDetail(propId) {
   var tab3d = document.getElementById('tab-3d');
   if(tab3d) {
     if(prop.video) {
-      tab3d.innerHTML = '<div style="border-radius:12px;overflow:hidden;margin-bottom:1rem"><iframe src="'+prop.video+'" width="100%" height="260" style="border:0;display:block" allowfullscreen loading="lazy"></iframe></div>'
-        + '<p style="font-size:.82rem;color:var(--muted);text-align:center">'+prop.type+' — '+prop.district+'</p>';
+      var safeVideoUrl = /^https?:\/\//i.test(prop.video) ? prop.video : '';
+      tab3d.innerHTML = safeVideoUrl
+        ? '<div style="border-radius:12px;overflow:hidden;margin-bottom:1rem"><iframe src="'+escapeHtml(safeVideoUrl)+'" width="100%" height="260" style="border:0;display:block" allowfullscreen loading="lazy"></iframe></div>'
+          + '<p style="font-size:.82rem;color:var(--muted);text-align:center">'+escapeHtml(prop.type||'')+'</p>'
+        : '<div style="text-align:center;padding:2rem;color:var(--muted)"><div style="font-size:2rem;margin-bottom:.5rem">📹</div><div style="font-weight:600;color:var(--navy)">'+(curLang==='rw'?'Nta video irashyizweho':'No video available')+'</div></div>';
     } else {
       tab3d.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">'
         + '<div style="font-size:2rem;margin-bottom:.5rem">📹</div>'
@@ -12028,16 +12031,18 @@ function renderAgentsGrid(agents) {
     var isPending = agent.status === 'Pending Verification';
     var stars = agent.rating ? '★'.repeat(Math.round(agent.rating)) + ' ' + agent.rating : '—';
     var initials = (agent.name||'A').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
-    var langs = (agent.languages||[]).join(' · ');
+    var langs = escapeHtml((agent.languages||[]).join(' · '));
     var transport = agent.transport === 'car' ? '🚗 Imodoka' : agent.transport === 'boda' ? '🏍️ Boda' : '—';
+    var safePhone = (agent.phone||'').replace(/[^0-9+\-() ]/g,'');
+    var safePhoneDigits = safePhone.replace(/[^0-9]/g,'');
 
     return '<div style="background:#fff;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)">'
       // Header
       + '<div style="background:linear-gradient(135deg,var(--navy),var(--blue));padding:1rem;display:flex;align-items:center;gap:.8rem">'
-      +   '<div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0;border:2px solid var(--gold)">' + initials + '</div>'
+      +   '<div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0;border:2px solid var(--gold)">' + escapeHtml(initials) + '</div>'
       +   '<div style="flex:1;min-width:0">'
-      +     '<div style="font-weight:700;color:#fff;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (agent.name||'Agent') + '</div>'
-      +     '<div style="font-size:.72rem;color:rgba(255,255,255,.75);margin-top:.1rem">📍 ' + (agent.zone||'—') + '</div>'
+      +     '<div style="font-weight:700;color:#fff;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(agent.name||'Agent') + '</div>'
+      +     '<div style="font-size:.72rem;color:rgba(255,255,255,.75);margin-top:.1rem">📍 ' + escapeHtml(agent.zone||'—') + '</div>'
       +   '</div>'
       +   '<div style="flex-shrink:0">'
       +     '<span style="background:' + (isActive?'#27A84A':isPending?'#F5A623':'#718096') + ';color:#fff;border-radius:20px;padding:.15rem .55rem;font-size:.62rem;font-weight:700">'
@@ -12047,14 +12052,14 @@ function renderAgentsGrid(agents) {
       // Body
       + '<div style="padding:.9rem">'
       +   '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.7rem">'
-      +     '<div style="background:var(--light);border-radius:8px;padding:.5rem;text-align:center"><div style="font-size:1.1rem;font-weight:700;color:var(--navy)">' + (agent.deals||0) + '</div><div style="font-size:.65rem;color:var(--muted)">Deals</div></div>'
-      +     '<div style="background:var(--light);border-radius:8px;padding:.5rem;text-align:center"><div style="font-size:.9rem;font-weight:700;color:var(--gold)">' + stars + '</div><div style="font-size:.65rem;color:var(--muted)">Rating</div></div>'
+      +     '<div style="background:var(--light);border-radius:8px;padding:.5rem;text-align:center"><div style="font-size:1.1rem;font-weight:700;color:var(--navy)">' + (parseInt(agent.deals)||0) + '</div><div style="font-size:.65rem;color:var(--muted)">Deals</div></div>'
+      +     '<div style="background:var(--light);border-radius:8px;padding:.5rem;text-align:center"><div style="font-size:.9rem;font-weight:700;color:var(--gold)">' + escapeHtml(stars) + '</div><div style="font-size:.65rem;color:var(--muted)">Rating</div></div>'
       +   '</div>'
       +   '<div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">🌐 ' + (langs||'Kinyarwanda') + '</div>'
-      +   '<div style="font-size:.75rem;color:var(--muted);margin-bottom:.7rem">' + transport + ' · Uburambe: ' + (agent.experience==='0'?'Mushya':agent.experience+'yr+') + '</div>'
+      +   '<div style="font-size:.75rem;color:var(--muted);margin-bottom:.7rem">' + transport + ' · Uburambe: ' + (agent.experience==='0'?'Mushya':escapeHtml(agent.experience||'')+'yr+') + '</div>'
       +   '<div style="display:flex;gap:.4rem">'
-      +     '<a href="tel:' + (agent.phone||'') + '" style="flex:1;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">📞 Hamagara</a>'
-      +     '<a href="https://wa.me/' + (agent.phone||'').replace(/[^0-9]/g,'') + '?text=' + encodeURIComponent('Muraho! Ndabona kuri KOMISIYONERI ndashaka agent. Ni wowe '+agent.name+'?') + '" target="_blank" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">💬 WhatsApp</a>'
+      +     '<a href="tel:' + safePhone + '" style="flex:1;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">📞 Hamagara</a>'
+      +     '<a href="https://wa.me/' + safePhoneDigits + '?text=' + encodeURIComponent('Muraho! Ndabona kuri KOMISIYONERI ndashaka agent. Ni wowe '+(agent.name||'')+'?') + '" target="_blank" rel="noopener noreferrer" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">💬 WhatsApp</a>'
       +   '</div>'
       + '</div>'
       + '</div>';
@@ -12371,15 +12376,16 @@ function _renderAdminAgentsList() {
     var isPending = agent.status === 'Pending Verification';
     var statusColor = isActive ? '#27A84A' : isPending ? '#F5A623' : '#718096';
 
+    var safeAgentPhone = (agent.phone||'').replace(/[^0-9+\-() ]/g,'');
     return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.6rem;background:#fff">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">'
       +   '<div style="flex:1">'
-      +     '<div style="font-weight:700;font-size:.88rem;color:var(--navy)">' + (agent.name||'—') + '</div>'
-      +     '<div style="font-size:.75rem;color:var(--muted)">📍 ' + (agent.zone||'—') + ' | 📞 ' + (agent.phone||'—') + '</div>'
-      +     '<div style="font-size:.73rem;color:var(--muted)">📧 ' + (agent.email||'—') + '</div>'
-      +     '<div style="font-size:.73rem;color:var(--muted);margin-top:.2rem">🌐 ' + (agent.languages||[]).join(', ') + ' | ' + (agent.transport==='car'?'🚗':'🏍️') + ' | Deals: ' + (agent.deals||0) + '</div>'
+      +     '<div style="font-weight:700;font-size:.88rem;color:var(--navy)">' + escapeHtml(agent.name||'—') + '</div>'
+      +     '<div style="font-size:.75rem;color:var(--muted)">📍 ' + escapeHtml(agent.zone||'—') + ' | 📞 ' + escapeHtml(safeAgentPhone||'—') + '</div>'
+      +     '<div style="font-size:.73rem;color:var(--muted)">📧 ' + escapeHtml(agent.email||'—') + '</div>'
+      +     '<div style="font-size:.73rem;color:var(--muted);margin-top:.2rem">🌐 ' + escapeHtml((agent.languages||[]).join(', ')) + ' | ' + (agent.transport==='car'?'🚗':'🏍️') + ' | Deals: ' + (parseInt(agent.deals)||0) + '</div>'
       +   '</div>'
-      +   '<span style="background:'+statusColor+';color:#fff;border-radius:20px;padding:.15rem .55rem;font-size:.62rem;font-weight:700;flex-shrink:0">' + agent.status + '</span>'
+      +   '<span style="background:'+statusColor+';color:#fff;border-radius:20px;padding:.15rem .55rem;font-size:.62rem;font-weight:700;flex-shrink:0">' + escapeHtml(agent.status||'—') + '</span>'
       + '</div>'
       + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;margin-top:.6rem">'
       +   '<button onclick="adminAgentApprove('+idx+')" style="background:#27A84A;color:#fff;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:700">✅ Emeza</button>'
@@ -13275,22 +13281,23 @@ function openBranchDetail(branchId) {
   var isAdm = cu && ['super_admin','admin','ceo'].indexOf(cu.role) > -1;
   var color = BR_STATUS_COLOR[b.status] || '#64748B';
   var covDistricts = (b.districtsCovered || [b.district]).filter(Boolean);
+  var safeBPhone = (b.phone||'').replace(/[^0-9+\-() ]/g,'');
   body.innerHTML =
     '<div class="br-detail-head">' +
       '<div class="br-detail-info">' +
-        '<div class="br-detail-code">' + (b.code || 'N/A') + '</div>' +
-        '<span class="br-status-chip" style="background:' + color + '20;color:' + color + '">' + (b.status||'active') + '</span>' +
+        '<div class="br-detail-code">' + escapeHtml(b.code || 'N/A') + '</div>' +
+        '<span class="br-status-chip" style="background:' + color + '20;color:' + color + '">' + escapeHtml(b.status||'active') + '</span>' +
       '</div>' +
       (isAdm ? '<button class="btn btn-outline btn-sm" onclick="closeBranchDetail();openBranchCreate(\'' + b.id + '\')" data-rw="Hindura" data-en="Edit">Edit</button>' : '') +
     '</div>' +
     '<div class="br-detail-grid">' +
-      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Akarere" data-en="District">District</span><span class="br-detail-val">' + (b.district||'—') + '</span></div>' +
-      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Aderesi" data-en="Address">Address</span><span class="br-detail-val">' + (b.address||'—') + '</span></div>' +
-      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Telefoni" data-en="Phone">Phone</span><span class="br-detail-val">' + (b.phone ? '<a href="tel:' + b.phone + '" style="color:var(--navy)">' + b.phone + '</a>' : '—') + '</span></div>' +
-      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Imeyili" data-en="Email">Email</span><span class="br-detail-val">' + (b.email ? '<a href="mailto:' + b.email + '" style="color:var(--navy)">' + b.email + '</a>' : '—') + '</span></div>' +
+      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Akarere" data-en="District">District</span><span class="br-detail-val">' + escapeHtml(b.district||'—') + '</span></div>' +
+      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Aderesi" data-en="Address">Address</span><span class="br-detail-val">' + escapeHtml(b.address||'—') + '</span></div>' +
+      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Telefoni" data-en="Phone">Phone</span><span class="br-detail-val">' + (safeBPhone ? '<a href="tel:' + safeBPhone + '" style="color:var(--navy)">' + escapeHtml(safeBPhone) + '</a>' : '—') + '</span></div>' +
+      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Imeyili" data-en="Email">Email</span><span class="br-detail-val">' + (b.email ? '<a href="mailto:' + escapeHtml(b.email) + '" style="color:var(--navy)">' + escapeHtml(b.email) + '</a>' : '—') + '</span></div>' +
     '</div>' +
     '<div class="br-detail-section" data-rw="Akarere Afite" data-en="Districts Covered">Districts Covered</div>' +
-    '<div class="br-detail-chips">' + covDistricts.map(function(d){ return '<span class="br-dist-chip br-dist-chip-lg">' + d + '</span>'; }).join('') + '</div>' +
+    '<div class="br-detail-chips">' + covDistricts.map(function(d){ return '<span class="br-dist-chip br-dist-chip-lg">' + escapeHtml(d) + '</span>'; }).join('') + '</div>' +
     '<div class="br-detail-section" data-rw="Imibare" data-en="Live Stats">Live Stats</div>' +
     '<div class="br-detail-stats" id="br-detail-stats-' + b.id + '"><div class="exec-loading">Loading...</div></div>';
 
@@ -13344,7 +13351,7 @@ function loadBranchStaff() {
       var brName = data.branchId ? (branchMap[data.branchId] || data.branchId) : '<span style="color:var(--muted)">Unassigned</span>';
       var cu = currentUser;
       var isAdm = cu && ['super_admin','admin'].indexOf(cu.role) > -1;
-      html += '<tr><td><strong>' + (data.displayName||data.email||d.id) + '</strong></td><td><span class="hr-role-chip">' + (data.role||'—') + '</span></td><td>' + brName + '</td><td style="font-size:.75rem;color:var(--muted)">' + (data.email||'—') + '</td><td>' + (isAdm ? '<button class="btn btn-outline btn-sm" onclick="openAssignBranch(\'' + d.id + '\',\'' + (data.branchId||'') + '\')" data-rw="Gera" data-en="Assign">Assign</button>' : '') + '</td></tr>';
+      html += '<tr><td><strong>' + escapeHtml(data.displayName||data.email||d.id) + '</strong></td><td><span class="hr-role-chip">' + escapeHtml(data.role||'—') + '</span></td><td>' + escapeHtml(brName) + '</td><td style="font-size:.75rem;color:var(--muted)">' + escapeHtml(data.email||'—') + '</td><td>' + (isAdm ? '<button class="btn btn-outline btn-sm" onclick="openAssignBranch(\'' + d.id + '\',\'' + escapeHtml(data.branchId||'') + '\')" data-rw="Gera" data-en="Assign">Assign</button>' : '') + '</td></tr>';
     });
     html += '</tbody></table>';
     el.innerHTML = html;
@@ -13619,7 +13626,7 @@ function biDistrictChart() {
     var max = sorted[0] ? sorted[0][1] : 1;
     el.innerHTML = sorted.map(function(row) {
       var pct = Math.round(row[1]/max*100);
-      return '<div class="bi-hbar-row"><div class="bi-hbar-lbl">' + row[0] + '</div><div class="bi-hbar-wrap"><div class="bi-hbar-fill bi-hbar-navy" style="width:'+pct+'%"></div></div><div class="bi-hbar-val">'+row[1]+'</div></div>';
+      return '<div class="bi-hbar-row"><div class="bi-hbar-lbl">' + escapeHtml(row[0]) + '</div><div class="bi-hbar-wrap"><div class="bi-hbar-fill bi-hbar-navy" style="width:'+pct+'%"></div></div><div class="bi-hbar-val">'+row[1]+'</div></div>';
     }).join('') || '<div class="exec-empty">No data</div>';
   }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
 }
@@ -13636,7 +13643,7 @@ function biTypeChart() {
     el.innerHTML = '<div class="bi-donut-wrap">' + sorted.map(function(row, i) {
       var pct = Math.round(row[1]/total*100);
       var color = colors[i % colors.length];
-      return '<div class="bi-donut-row"><span class="bi-donut-dot" style="background:'+color+'"></span><span class="bi-donut-lbl">'+(BI_PROP_TYPES[row[0]]||row[0])+'</span><span class="bi-donut-pct">'+pct+'%</span><span class="bi-donut-cnt">('+row[1]+')</span></div>';
+      return '<div class="bi-donut-row"><span class="bi-donut-dot" style="background:'+color+'"></span><span class="bi-donut-lbl">'+escapeHtml(BI_PROP_TYPES[row[0]]||row[0])+'</span><span class="bi-donut-pct">'+pct+'%</span><span class="bi-donut-cnt">('+row[1]+')</span></div>';
     }).join('') + '</div>' || '<div class="exec-empty">No data</div>';
   }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
 }
@@ -13658,7 +13665,7 @@ function biPriceByDistrict() {
     el.innerHTML = '<div style="overflow-x:auto"><table class="bi-price-table"><thead><tr><th>District</th><th>Avg Price</th><th>Listings</th><th style="min-width:120px">Bar</th></tr></thead><tbody>' +
       rows.map(function(r) {
         var pct = Math.round(r.avg/max*100);
-        return '<tr><td>'+r.name+'</td><td style="font-weight:700;color:var(--navy)">'+fmtRWF(r.avg)+'</td><td>'+r.cnt+'</td><td><div class="bi-hbar-wrap" style="height:10px;min-width:80px"><div class="bi-hbar-fill bi-hbar-gold" style="width:'+pct+'%;height:10px"></div></div></td></tr>';
+        return '<tr><td>'+escapeHtml(r.name)+'</td><td style="font-weight:700;color:var(--navy)">'+fmtRWF(r.avg)+'</td><td>'+r.cnt+'</td><td><div class="bi-hbar-wrap" style="height:10px;min-width:80px"><div class="bi-hbar-fill bi-hbar-gold" style="width:'+pct+'%;height:10px"></div></div></td></tr>';
       }).join('') + '</tbody></table></div>' || '<div class="exec-empty">No data</div>';
   }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
 }
