@@ -8337,6 +8337,16 @@ function showToast(msg, type) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 5000);
 }
 
+// ── MODAL HELPERS
+function openModal(id) {
+  var m = document.getElementById(id);
+  if (m) { m.classList.add('open'); document.body.style.overflow = 'hidden'; }
+}
+function closeModal(id) {
+  var m = document.getElementById(id);
+  if (m) { m.classList.remove('open'); document.body.style.overflow = ''; }
+}
+
 // ── STAB (search type) active
 document.querySelectorAll('.s-tab').forEach(s => {
   s.addEventListener('click', () => {
@@ -9980,7 +9990,6 @@ function submitBooking() {
         leadId:         '',
         status:         'scheduled',
         report:         {},
-        status:         'scheduled',
         isActive:       true,
         createdAt:      firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
@@ -20266,8 +20275,9 @@ function submitPlotReservation() {
       });
     }).then(function(res) {
       // Create enquiry record
-      return db.collection('site_enquiries').add({
+      return db.collection('leads').add({
         id:               '',
+        type:             'site_enquiry',
         siteId:           res.siteId,
         plotId:           plotId,
         clientId:         uid,
