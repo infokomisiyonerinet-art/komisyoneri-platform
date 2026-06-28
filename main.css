@@ -497,7 +497,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 @keyframes mIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
 .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
 .modal-title{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:700}
-.modal-x{background:var(--light);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.modal-x{background:var(--light);border:none;width:44px;height:44px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr);flex-shrink:0}
 .modal-x:hover{background:var(--border)}
 .modal-x svg{width:15px;height:15px;fill:none;stroke:var(--muted);stroke-width:2}
 .pay-progress{display:flex;gap:0;margin-bottom:1.8rem}
@@ -853,6 +853,9 @@ footer{background:var(--dark);color:rgba(255,255,255,.5);padding:3.8rem 4% calc(
   .filters{display:none}
   .ft-grid{grid-template-columns:1fr 1fr}
 }
+@media(max-width:768px){
+  .section{padding:4.5rem 0}
+}
 @media(max-width:660px){
   .topnav-logo img{height:36px!important;width:auto!important}
   .logo-text strong{font-size:.9rem}
@@ -971,7 +974,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .sm-hdr-ic svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2}
 .sm-hdr-title{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:700;color:#fff}
 .sm-hdr-sub{font-size:.7rem;color:rgba(255,255,255,.6);margin-top:.1rem}
-.sm-close{background:rgba(255,255,255,.14);border:none;width:34px;height:34px;border-radius:50%;
+.sm-close{background:rgba(255,255,255,.14);border:none;width:44px;height:44px;border-radius:50%;
   cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr);flex-shrink:0}
 .sm-close:hover{background:rgba(255,255,255,.28)}
 .sm-close svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2.2}
@@ -2426,7 +2429,7 @@ html,body{overscroll-behavior-x:none}
   .cust-hero{padding:1.1rem .9rem}
   .cust-avatar{width:48px;height:48px;font-size:1.1rem}
   .cust-hero-name{font-size:.95rem}
-  .cust-stats{grid-template-columns:repeat(4,1fr);gap:.35rem}
+  .cust-stats{grid-template-columns:repeat(2,1fr);gap:.35rem}
   .cust-stat-val{font-size:1.1rem}
   .cust-stat-lbl{font-size:.58rem}
   .cust-wrap{padding:.75rem .75rem 1.5rem}
@@ -3305,4 +3308,157 @@ html,body{overscroll-behavior-x:none}
   .br-kpi-strip { grid-template-columns: repeat(2, 1fr); }
   .br-grid { grid-template-columns: 1fr; }
   .br-district-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ════════════════════════════════════════════════════════════
+   MOBILE OPTIMIZATION v2 — Comprehensive 320px–480px Fixes
+   Zero business-logic changes · CSS-only · Additive only
+════════════════════════════════════════════════════════════ */
+
+/* ── Toast: center on narrow screens, prevent right-side clipping ── */
+@media(max-width:480px){
+  .toast{
+    left:1rem;right:1rem;max-width:none;
+    top:70px;
+    transform:translateY(-120%);
+  }
+  .toast.show{transform:translateY(0)}
+}
+
+/* ── Dashboard content: reduce padding on 320px ── */
+@media(max-width:414px){
+  .dash-content{padding:1.2rem 1rem}
+}
+@media(max-width:360px){
+  .dash-content{padding:1rem .75rem}
+}
+
+/* ── KPI values: prevent overflow on very narrow cards ── */
+@media(max-width:360px){
+  .kpi-v{font-size:1.4rem}
+  .an-kpi-v{font-size:1.5rem}
+  .kpis{gap:.6rem}
+  .an-kpis{gap:.6rem}
+}
+@media(max-width:320px){
+  .kpi-v{font-size:1.25rem}
+  .an-kpi-v{font-size:1.3rem}
+  .kpi{padding:1rem .75rem}
+  .an-kpi{padding:1rem .75rem}
+}
+
+/* ── Quick search suggestions: constrain within viewport on mobile ── */
+@media(max-width:540px){
+  .qs-wrap{max-width:100%}
+  .qs-suggestions{left:0;right:0;width:auto}
+}
+
+/* ── Accounting & BI tables: enable horizontal scroll on mobile ── */
+@media(max-width:660px){
+  .ac-monthly-table,.ac-li-table,.bi-targets-table,.exec-perf-table{
+    display:block;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    white-space:nowrap;
+  }
+  .ac-monthly-table td,.ac-li-table td,.bi-targets-table td,.exec-perf-table td,
+  .ac-monthly-table th,.ac-li-table th,.bi-targets-table th,.exec-perf-table th{
+    white-space:nowrap;
+  }
+}
+
+/* ── Office stats: ensure 3-col fits at 480px, not just 660px ── */
+@media(max-width:480px){
+  .off-stats{grid-template-columns:repeat(3,1fr)}
+}
+
+/* ── CRM stats: 2-col on 320px ── */
+@media(max-width:320px){
+  .crm-stats{grid-template-columns:1fr}
+  .crm-stat-v{font-size:1rem}
+}
+
+/* ── Modal: ensure header row stays on one line on small screens ── */
+@media(max-width:360px){
+  .modal-hdr{flex-wrap:nowrap;gap:.5rem}
+  .modal-title{font-size:1.1rem}
+  .modal-x{width:40px;height:40px}
+}
+
+/* ── Property detail page: tighten stat bars on 320px ── */
+@media(max-width:360px){
+  .det-stats{gap:.55rem}
+  .det-stat-v{font-size:1rem}
+  .det-price{font-size:2rem}
+}
+
+/* ── Hero search bar: full width on all mobile ── */
+@media(max-width:480px){
+  .s-card{padding:1.1rem .9rem}
+  .s-2col{grid-template-columns:1fr}
+}
+
+/* ── Exec KPI strip: single row at 320px ── */
+@media(max-width:320px){
+  .exec-kpi-strip{grid-template-columns:1fr 1fr}
+  .exec-kpi-val{font-size:.95rem}
+}
+
+/* ── Partner / service cards: full width on 320px ── */
+@media(max-width:360px){
+  .roles{grid-template-columns:1fr}
+}
+
+/* ── Prevent any hidden horizontal scroll on all pages ── */
+.page{overflow-x:hidden}
+
+/* ── Landscape phone: ensure top nav doesn't block content ── */
+@media(max-height:500px) and (orientation:landscape){
+  .page{padding-top:56px}
+  .topnav{height:56px}
+  .dash-wrap{min-height:calc(100vh - 56px)}
+  .dash-sidebar{top:56px;height:calc(100vh - 56px)}
+}
+
+/* ── Touch feedback: active states for touch devices ── */
+@media(hover:none){
+  .btn:active{transform:scale(.97);opacity:.88}
+  .card-hover:active{transform:translateY(-2px)}
+  .p-btn-detail:active,.p-btn-wa:active{opacity:.8}
+  .dn:active{background:rgba(255,255,255,.14)}
+}
+
+/* ── Image lazy loading: hide broken images gracefully ── */
+img[loading="lazy"]{transition:opacity .3s ease}
+img[loading="lazy"]:not([src]){opacity:0}
+
+/* ── Forms: tap-friendly select dropdowns on mobile ── */
+@media(max-width:768px){
+  .field select,.sm-field select{
+    min-height:44px;
+    background-image:none;
+  }
+  .field input,.sm-field input{min-height:44px}
+  /* Ensure textarea is usable */
+  .field textarea{min-height:80px}
+}
+
+/* ── Search modal: correct bottom-sheet radius on iPhone notch ── */
+@media(max-width:640px){
+  .sm-box{
+    padding-bottom:env(safe-area-inset-bottom);
+    border-radius:24px 24px 0 0;
+  }
+}
+
+/* ── Reduce animation on low-end devices (prefers-reduced-motion) ── */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+  }
+  html{scroll-behavior:auto}
+  .ticker-track{animation:none}
+  .h-pulse,.ai-rec-dot{animation:none}
 }
