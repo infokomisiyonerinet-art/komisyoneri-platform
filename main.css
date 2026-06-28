@@ -3398,6 +3398,68 @@ html,body{overscroll-behavior-x:none}
 }
 
 /* ════════════════════════════════════════════════════════════
+   JOURNEY OPTIMIZATION — One Clear Next Step
+   All elements are additive; no existing styles removed
+════════════════════════════════════════════════════════════ */
+
+/* ── Topnav CTA group (guests only, desktop) ── */
+.topnav-cta-group{display:flex;align-items:center;gap:.4rem}
+.topnav-cta-group .btn-nav-list{background:none;border:1.5px solid var(--border);color:var(--navy);border-radius:8px;padding:.4rem .85rem;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:var(--tr);white-space:nowrap}
+.topnav-cta-group .btn-nav-list:hover{border-color:var(--navy);background:var(--light)}
+.topnav-cta-group .btn-nav-reg{background:var(--navy);color:#fff;border:1.5px solid var(--navy);border-radius:8px;padding:.4rem .85rem;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;transition:var(--tr);white-space:nowrap}
+.topnav-cta-group .btn-nav-reg:hover{background:var(--blue)}
+@media(max-width:1024px){.topnav-cta-group{display:none!important}}
+
+/* ── Intent Strip (What do you want to do?) ── */
+.intent-strip{background:var(--navy);padding:1.5rem 0}
+.intent-strip-hdr{text-align:center;margin-bottom:1.1rem}
+.intent-strip-hdr h2{color:#fff;font-size:1.1rem;font-weight:700;font-family:'DM Sans',sans-serif;letter-spacing:.01em}
+.intent-strip-hdr p{color:rgba(255,255,255,.62);font-size:.8rem;margin-top:.25rem}
+.intent-grid{display:flex;gap:.65rem;flex-wrap:wrap;justify-content:center}
+.intent-btn{display:flex;flex-direction:column;align-items:center;gap:.4rem;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.18);border-radius:14px;padding:.9rem .8rem;cursor:pointer;transition:var(--tr);min-width:92px;color:#fff;font-size:.78rem;font-weight:600;text-align:center;font-family:'DM Sans',sans-serif;line-height:1.35;flex-shrink:0}
+.intent-btn:hover,.intent-btn:focus{background:rgba(255,255,255,.18);border-color:var(--gold);transform:translateY(-2px)}
+.intent-btn:active{transform:translateY(0)}
+.intent-icon{font-size:1.65rem;line-height:1;display:block}
+@media(max-width:660px){.intent-grid{gap:.5rem;padding:0 .5rem}.intent-btn{min-width:80px;padding:.8rem .6rem;font-size:.74rem}.intent-icon{font-size:1.45rem}}
+@media(max-width:480px){.intent-btn{min-width:73px;padding:.7rem .5rem;font-size:.71rem;border-radius:11px}.intent-icon{font-size:1.3rem}.intent-strip{padding:1.15rem 0}.intent-strip-hdr h2{font-size:1rem}}
+@media(max-width:360px){.intent-btn{min-width:66px;padding:.65rem .4rem;font-size:.68rem}}
+
+/* ── Step CTA buttons (How It Works) ── */
+.step-cta{display:inline-flex;align-items:center;gap:.35rem;margin-top:.65rem;font-size:.79rem;font-weight:700;color:var(--blue);background:none;border:1.5px solid var(--blue);border-radius:8px;padding:.38rem .85rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:var(--tr);line-height:1.2}
+.step-cta:hover{background:var(--blue);color:#fff}
+.step-cta svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.5;flex-shrink:0}
+
+/* ── Property Detail: Contact Options Toggle ── */
+.contact-toggle-wrap{margin:.15rem 0}
+.contact-toggle-btn{width:100%;background:var(--light);border:1.5px solid var(--border);border-radius:8px;padding:.58rem .9rem;font-family:'DM Sans',sans-serif;font-size:.82rem;color:var(--navy);cursor:pointer;font-weight:600;text-align:left;display:flex;justify-content:space-between;align-items:center;transition:var(--tr)}
+.contact-toggle-btn:hover{border-color:var(--navy);background:#eaf0fb}
+.contact-toggle-btn.open{border-color:var(--blue);border-bottom-color:transparent;border-radius:8px 8px 0 0}
+.contact-toggle-arrow{width:16px;height:16px;fill:none;stroke:var(--muted);stroke-width:2;transition:transform .25s ease;flex-shrink:0}
+.contact-toggle-btn.open .contact-toggle-arrow{transform:rotate(180deg);stroke:var(--blue)}
+.contact-options{display:none;padding:.4rem .5rem .5rem;background:var(--light);border:1.5px solid var(--blue);border-top:none;border-radius:0 0 8px 8px;gap:.4rem;flex-direction:column}
+.contact-options.open{display:flex}
+.contact-opt-btn{width:100%;background:#fff;border:1.5px solid var(--border);border-radius:7px;padding:.5rem .8rem;font-size:.81rem;font-family:'DM Sans',sans-serif;cursor:pointer;text-align:left;display:flex;align-items:center;gap:.55rem;transition:var(--tr);color:var(--dark);font-weight:500}
+.contact-opt-btn:hover{border-color:var(--navy);background:var(--light)}
+
+/* ── Listings orientation bar ── */
+.list-orient-bar{background:linear-gradient(90deg,rgba(13,59,140,.05),rgba(22,87,204,.03));border-bottom:1.5px solid var(--border);padding:.7rem 4%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem}
+.lob-msg{display:flex;align-items:center;gap:.55rem;font-size:.86rem;color:var(--dark);font-weight:500}
+.lob-msg span:first-child{font-size:1.1rem;flex-shrink:0}
+.lob-actions{display:flex;gap:.45rem;flex-wrap:wrap}
+.lob-btn{background:none;border:1.5px solid var(--border);border-radius:7px;padding:.38rem .8rem;font-size:.78rem;font-weight:600;color:var(--navy);cursor:pointer;font-family:'DM Sans',sans-serif;transition:var(--tr)}
+.lob-btn:hover{border-color:var(--navy);background:var(--light)}
+.lob-btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+.lob-btn.primary:hover{background:var(--blue);border-color:var(--blue)}
+@media(max-width:660px){.list-orient-bar{padding:.6rem 4%}.lob-msg{font-size:.81rem}}
+@media(max-width:480px){.lob-btn{padding:.32rem .65rem;font-size:.74rem}}
+
+/* ── Auth page: "New here?" welcome bar ── */
+.auth-new-bar{background:linear-gradient(90deg,rgba(22,87,204,.07),rgba(39,168,74,.05));border:1.5px solid rgba(22,87,204,.22);border-radius:10px;padding:.7rem 1rem;font-size:.83rem;color:var(--navy);display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem;flex-wrap:wrap;gap:.5rem}
+.auth-new-bar span{font-weight:500}
+.auth-new-btn{background:var(--navy);color:#fff;border:none;border-radius:7px;padding:.38rem .85rem;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:var(--tr);white-space:nowrap}
+.auth-new-btn:hover{background:var(--blue)}
+
+/* ══════════════════════════════════════════════════════════════
    MOBILE OPTIMIZATION v2 — Comprehensive 320px–480px Fixes
    Zero business-logic changes · CSS-only · Additive only
 ════════════════════════════════════════════════════════════ */

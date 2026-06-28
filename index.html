@@ -2362,6 +2362,11 @@ html,body{overscroll-behavior-x:none}
         <button onclick="closeNotifPanel();requestNotifPermission();" id="notif-enable-btn" style="font-size:.72rem;background:none;border:none;color:var(--blue);cursor:pointer;font-weight:600">⚙️ Enable / Manage Notifications</button>
       </div>
     </div>
+    <!-- Guest CTA group (hidden when logged in by updateNavForUser) -->
+    <div class="topnav-cta-group" id="nav-cta-guest">
+      <button class="btn-nav-list" onclick="openAddProperty()" data-rw="+ Andika Imitungo" data-en="+ List Property">+ Andika Imitungo</button>
+      <button class="btn-nav-reg" onclick="go('auth')" data-rw="Iyandikishe Ubuntu" data-en="Register Free">Iyandikishe Ubuntu</button>
+    </div>
     <button onclick="toggleHamburger()" id="hamburger-btn" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:.38rem .5rem;cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;width:38px;height:38px" aria-label="Menu">
       <span id="hb1" style="display:block;width:18px;height:2px;background:var(--navy);border-radius:2px;transition:.3s"></span>
       <span id="hb2" style="display:block;width:18px;height:2px;background:var(--navy);border-radius:2px;transition:.3s"></span>
@@ -2959,6 +2964,46 @@ html,body{overscroll-behavior-x:none}
     </div>
   </section>
 
+  <!-- WHAT DO YOU WANT TO DO? — Intent Strip -->
+  <section class="intent-strip">
+    <div class="wrap">
+      <div class="intent-strip-hdr">
+        <h2 data-rw="Ushaka Gukora Iki?" data-en="What Would You Like to Do?">Ushaka Gukora Iki?</h2>
+        <p data-rw="Hitamo inzira yawe — tuzagufasha kuva aho utangira kugeza ku iherezo." data-en="Choose your path — we will guide you from start to finish.">Hitamo inzira yawe — tuzagufasha kuva aho utangira kugeza ku iherezo.</p>
+      </div>
+      <div class="intent-grid">
+        <button class="intent-btn" onclick="openSearch({tab:'buy'})">
+          <span class="intent-icon">🏠</span>
+          <span data-rw="Kugura Inzu" data-en="Buy Property">Kugura Inzu</span>
+        </button>
+        <button class="intent-btn" onclick="openSearch({tab:'rent'})">
+          <span class="intent-icon">🔑</span>
+          <span data-rw="Gukodesha" data-en="Rent Property">Gukodesha</span>
+        </button>
+        <button class="intent-btn" onclick="openAddProperty()">
+          <span class="intent-icon">📝</span>
+          <span data-rw="Gugurishia Imitungo" data-en="Sell / List Property">Gugurishia Imitungo</span>
+        </button>
+        <button class="intent-btn" onclick="go('agents')">
+          <span class="intent-icon">👔</span>
+          <span data-rw="Shakisha Agent" data-en="Find an Agent">Shakisha Agent</span>
+        </button>
+        <button class="intent-btn" onclick="go('verification')">
+          <span class="intent-icon">🔍</span>
+          <span data-rw="Isuzuma ry'Imitungo" data-en="Property Valuation">Isuzuma ry'Imitungo</span>
+        </button>
+        <button class="intent-btn" onclick="go('financing')">
+          <span class="intent-icon">🏦</span>
+          <span data-rw="Inguzanyo y'Inzu" data-en="Mortgage / Loan">Inguzanyo y'Inzu</span>
+        </button>
+        <button class="intent-btn" onclick="window.open('https://wa.me/250783177254?text=Muraho!%20Ndashaka%20amakuru%20y%27imitungo.','_blank')">
+          <span class="intent-icon">💬</span>
+          <span data-rw="Twandikire" data-en="Contact Us">Twandikire</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
   <!-- FEATURED LISTINGS -->
   <section class="section">
     <div class="wrap">
@@ -3129,10 +3174,10 @@ html,body{overscroll-behavior-x:none}
       <h2 class="h2" style="margin-top:.35rem" data-rw="Intambwe 4 Gusa" data-en="Only 4 Steps">Intambwe 4 Gusa</h2>
     </div>
     <div class="wrap"><div class="steps">
-      <div class="step"><div class="step-n">1</div><h4 data-rw="Iyandikishe Ubuntu" data-en="Register Free">Iyandikishe Ubuntu</h4><p data-rw="Fungura konti yawe mu masegonda — nta mafaranga asabwa gutangira." data-en="Open your account in seconds — no payment required to start.">Fungura konti yawe mu masegonda — nta mafaranga asabwa gutangira.</p></div>
-      <div class="step"><div class="step-n">2</div><h4 data-rw="Shakisha Imitungo" data-en="Search Properties">Shakisha Imitungo</h4><p data-rw="Shakisha mu mitungo irenga 1,240 ukoresha filters, AI, cyangwa agent." data-en="Search 1,240+ listings using filters, AI recommendations, or an agent.">Shakisha mu mitungo irenga 1,240 ukoresha filters, AI, cyangwa agent.</p></div>
-      <div class="step"><div class="step-n">3</div><h4 data-rw="Huza n'Agent" data-en="Connect with Agent">Huza n'Agent</h4><p data-rw="Umukomisiyoneri wacu wawe azagufasha mu biganiro no kugenzura imitungo." data-en="Your verified agent helps with viewings, visits and negotiations.">Umukomisiyoneri wacu azagufasha mu biganiro no kugenzura imitungo.</p></div>
-      <div class="step"><div class="step-n">4</div><h4 data-rw="Soza Amasezerano" data-en="Close the Deal">Soza Amasezerano</h4><p data-rw="Soza igurishwa ukoresha e-contract no kwishyura bwizewe kuri platform." data-en="Complete with e-contract and secure payment directly on the platform.">Soza igurishwa ukoresha e-contract no kwishyura bwizewe kuri platform.</p></div>
+      <div class="step"><div class="step-n">1</div><h4 data-rw="Iyandikishe Ubuntu" data-en="Register Free">Iyandikishe Ubuntu</h4><p data-rw="Fungura konti yawe mu masegonda — nta mafaranga asabwa gutangira." data-en="Open your account in seconds — no payment required to start.">Fungura konti yawe mu masegonda — nta mafaranga asabwa gutangira.</p><button class="step-cta" onclick="go('auth')"><span data-rw="Iyandikishe Ubu" data-en="Register Now">Iyandikishe Ubu</span><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
+      <div class="step"><div class="step-n">2</div><h4 data-rw="Shakisha Imitungo" data-en="Search Properties">Shakisha Imitungo</h4><p data-rw="Shakisha mu mitungo irenga 1,240 ukoresha filters, AI, cyangwa agent." data-en="Search 1,240+ listings using filters, AI recommendations, or an agent.">Shakisha mu mitungo irenga 1,240 ukoresha filters, AI, cyangwa agent.</p><button class="step-cta" onclick="openSearch()"><span data-rw="Shakisha Ubu" data-en="Search Now">Shakisha Ubu</span><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
+      <div class="step"><div class="step-n">3</div><h4 data-rw="Huza n'Agent" data-en="Connect with Agent">Huza n'Agent</h4><p data-rw="Umukomisiyoneri wacu wawe azagufasha mu biganiro no kugenzura imitungo." data-en="Your verified agent helps with viewings, visits and negotiations.">Umukomisiyoneri wacu azagufasha mu biganiro no kugenzura imitungo.</p><button class="step-cta" onclick="go('agents')"><span data-rw="Shakisha Agent" data-en="Find Agent">Shakisha Agent</span><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
+      <div class="step"><div class="step-n">4</div><h4 data-rw="Soza Amasezerano" data-en="Close the Deal">Soza Amasezerano</h4><p data-rw="Soza igurishwa ukoresha e-contract no kwishyura bwizewe kuri platform." data-en="Complete with e-contract and secure payment directly on the platform.">Soza igurishwa ukoresha e-contract no kwishyura bwizewe kuri platform.</p><button class="step-cta" onclick="go('auth')"><span data-rw="Tangira Ubu" data-en="Get Started">Tangira Ubu</span><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
     </div></div>
   </section>
 
@@ -3564,6 +3609,17 @@ html,body{overscroll-behavior-x:none}
   <div class="list-hdr">
     <div class="wrap"><h1 data-rw="Imitungo Yose" data-en="All Properties">Imitungo Yose</h1><p data-rw="Imitungo irenga 1,240 iraboneka mu Rwanda — Shakisha, Banya, Gura." data-en="1,240+ properties across Rwanda — Search, Filter, Buy or Rent.">Imitungo irenga 1,240 iraboneka mu Rwanda — Shakisha, Banya, Gura.</p></div>
   </div>
+  <!-- Listings orientation bar -->
+  <div class="list-orient-bar">
+    <div class="lob-msg">
+      <span>🏠</span>
+      <span data-rw="Shakisha ugurishwa n'ugukodeshwa — imitungo irenga 1,240 mu Rwanda" data-en="Browse for sale and rent — 1,240+ properties across Rwanda">Shakisha ugurishwa n'ugukodeshwa — imitungo irenga 1,240 mu Rwanda</span>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="lob-btn primary" onclick="openAddProperty()" data-rw="+ Andika Imitungo Yawe" data-en="+ List Your Property">+ Andika Imitungo Yawe</button>
+      <button class="lob-btn" onclick="go('agents')" data-rw="Shakisha Agent" data-en="Find an Agent">Shakisha Agent</button>
+    </div>
+  </div>
   <div class="list-body">
     <aside class="filters">
       <div class="filt-card">
@@ -3774,35 +3830,48 @@ html,body{overscroll-behavior-x:none}
           <div class="ag-stat"><span class="ag-stat-v">98%</span><span class="ag-stat-l" data-rw="Igihe" data-en="Response">Igihe</span></div>
         </div>
         <div class="ag-acts">
-          <button class="btn btn-navy" style="width:100%;justify-content:center" onclick="toggleChat()">
-            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            <span data-rw="Ganira na Agent" data-en="Chat with Agent">Ganira na Agent</span>
-          </button>
-          <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="window.location.href='tel:+250783177254'">
-            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.13a16 16 0 006.73 6.73l1.35-1.35a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-            <span data-rw="Hamagara Agent" data-en="Call Agent">Hamagara Agent</span>
-          </button>
-          <button class="btn btn-outline" style="width:100%;justify-content:center;border-color:#25D366;color:#25D366" onclick="window.open('https://wa.me/250783177254?text=Ndashaka amakuru y%27imitungo muri KOMISIYONERI','_blank')">
-            <svg viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-            <span>WhatsApp Agent</span>
-          </button>
-          <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="openBooking()">
+          <!-- ① PRIMARY — Most natural first step for any visitor -->
+          <button class="btn btn-gold" style="width:100%;justify-content:center;padding:.85rem 1rem;font-size:.95rem" onclick="openBooking()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <span data-rw="Gushyiraho Gahunda yo Gusura" data-en="Schedule a Visit">Gushyiraho Gahunda</span>
+            <span data-rw="Shyiraho Gahunda yo Gusura" data-en="Schedule a Visit">Shyiraho Gahunda yo Gusura</span>
           </button>
-          <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="openOfferModal()">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            <span data-rw="Ohereza Offer" data-en="Submit Offer">Submit Offer</span>
-          </button>
-          <button class="btn btn-navy" style="width:100%;justify-content:center;background:linear-gradient(135deg,#F5A623,#e6951f)" onclick="openLead()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-            <span data-rw="Saba Agent Wawe — Vuba!" data-en="Get an Agent — Fast!">Saba Agent Wawe</span>
-          </button>
-          <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="openMessageOwner()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            <span data-rw="Kohereza Message" data-en="Send Message">Kohereza Message</span>
-          </button>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem">
+          <!-- ② SECONDARY — Chat + Offer side by side -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+            <button class="btn btn-navy" style="justify-content:center" onclick="toggleChat()">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              <span data-rw="Ganira" data-en="Chat">Ganira</span>
+            </button>
+            <button class="btn btn-outline" style="justify-content:center" onclick="openOfferModal()">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              <span data-rw="Ohereza Offer" data-en="Submit Offer">Ohereza Offer</span>
+            </button>
+          </div>
+          <!-- ③ CONTACT OPTIONS — Expandable (all contact methods in one place) -->
+          <div class="contact-toggle-wrap">
+            <button class="contact-toggle-btn" onclick="toggleContactOptions(this)" data-rw="📞 Inzira zo Gutumanahana" data-en="📞 More Contact Options">📞 Inzira zo Gutumanahana
+              <svg class="contact-toggle-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="contact-options">
+              <button class="contact-opt-btn" onclick="window.location.href='tel:+250783177254'">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.13a16 16 0 006.73 6.73l1.35-1.35a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                <span data-rw="Hamagara Agent" data-en="Call Agent">Hamagara Agent</span>
+              </button>
+              <button class="contact-opt-btn" style="color:#25D366" onclick="window.open('https://wa.me/250783177254?text=Ndashaka amakuru y%27imitungo muri KOMISIYONERI','_blank')">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                <span>WhatsApp Agent</span>
+              </button>
+              <button class="contact-opt-btn" onclick="openMessageOwner()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                <span data-rw="Kohereza Message" data-en="Send Message">Kohereza Message</span>
+              </button>
+              <button class="contact-opt-btn" onclick="openLead()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                <span data-rw="Saba Agent Wawe" data-en="Get an Agent — Fast">Saba Agent Wawe</span>
+              </button>
+            </div>
+          </div>
+          <!-- ④ TOOLS — Mortgage calculator + Compare -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
             <button class="btn btn-sm" style="justify-content:center;border:1.5px solid var(--navy);color:var(--navy);font-size:.75rem" onclick="openMortgage()">
               🏦 Mortgage Calc
             </button>
@@ -3810,8 +3879,9 @@ html,body{overscroll-behavior-x:none}
               ⚖️ Gusuzuma 2
             </button>
           </div>
-          <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="openDepositPay()">
-            <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+          <!-- ⑤ ADVANCED — Only for committed buyers ready to transact -->
+          <button class="btn btn-outline" style="width:100%;justify-content:center;border-color:var(--gold);color:#7A5500;font-size:.85rem" onclick="openDepositPay()">
+            <svg viewBox="0 0 24 24" width="15" height="15"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
             <span data-rw="Ishyura Deposit / Tangira" data-en="Pay Deposit / Start">Ishyura Deposit</span>
           </button>
         </div>
@@ -4175,6 +4245,11 @@ html,body{overscroll-behavior-x:none}
     </div>
     <div class="auth-right">
       <div class="auth-box">
+        <!-- New-user welcome bar — hidden when register tab is active -->
+        <div class="auth-new-bar" id="auth-new-bar">
+          <span data-rw="Nshya kuri KOMISIYONERI?" data-en="New to KOMISIYONERI?">Nshya kuri KOMISIYONERI?</span>
+          <button class="auth-new-btn" onclick="if(typeof authMode!=='undefined'&&authMode!=='register')toggleAuthMode()" data-rw="Iyandikishe Ubuntu →" data-en="Register Free →">Iyandikishe Ubuntu →</button>
+        </div>
         <h2 class="auth-title" id="auth-title" data-rw="Injira mu Konti" data-en="Sign In">Injira mu Konti</h2>
         <p class="auth-sub" id="auth-sub" data-rw="Uzuza amakuru yawe hasi kugira ngo winjire" data-en="Enter your details below to sign in">Uzuza amakuru yawe hasi kugira ngo winjire</p>
         <!-- Role tabs -->
@@ -8682,6 +8757,14 @@ function toggleFaq(btn) {
   if (!isOpen) item.classList.add('open');
 }
 
+// ── CONTACT OPTIONS ACCORDION (property detail sidebar)
+function toggleContactOptions(btn) {
+  var isOpen = btn.classList.contains('open');
+  var opts = btn.nextElementSibling;
+  btn.classList.toggle('open', !isOpen);
+  if (opts) opts.classList.toggle('open', !isOpen);
+}
+
 // ── STAB (search type) active
 document.querySelectorAll('.s-tab').forEach(s => {
   s.addEventListener('click', () => {
@@ -8740,13 +8823,16 @@ function updateNavForUser(user) {
   var guest = document.getElementById('nav-guest');
   var userArea = document.getElementById('nav-user');
   var avatar = document.getElementById('nav-avatar');
+  var navCta = document.getElementById('nav-cta-guest');
   if (!user) {
     if(guest) guest.style.display='flex';
     if(userArea) userArea.style.display='none';
+    if(navCta) navCta.style.display='flex';
     return;
   }
   if(guest) guest.style.display='none';
   if(userArea) userArea.style.display='flex';
+  if(navCta) navCta.style.display='none';
   var ini = (user.name||'U').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
   if (avatar) {
     if (user.photo) {
@@ -9448,6 +9534,7 @@ function toggleAuthMode() {
   const txt = document.getElementById('auth-switch-txt');
   const formLogin = document.getElementById('form-login');
   const formReg = document.getElementById('form-register');
+  var newBar = document.getElementById('auth-new-bar');
   if (authMode === 'register') {
     if(formLogin) formLogin.style.display = 'none';
     if(formReg) formReg.style.display = 'flex';
@@ -9455,6 +9542,7 @@ function toggleAuthMode() {
     if(s) s.textContent = curLang==='rw' ? 'Uzuza amakuru yawe kugira ngo wishyurishe' : 'Fill in your details to register';
     if(btn) btn.textContent = curLang==='rw' ? 'Injira mu konti ufite' : 'Sign in instead';
     if(txt) txt.textContent = curLang==='rw' ? 'Ufite konti?' : 'Already have an account?';
+    if(newBar) newBar.style.display = 'none';
   } else {
     if(formLogin) formLogin.style.display = 'block';
     if(formReg) formReg.style.display = 'none';
@@ -9462,6 +9550,7 @@ function toggleAuthMode() {
     if(s) s.textContent = curLang==='rw' ? 'Uzuza amakuru yawe hasi kugira ngo winjire' : 'Enter your details below to sign in';
     if(btn) btn.textContent = curLang==='rw' ? 'Iyandikishe hano' : 'Register here';
     if(txt) txt.textContent = curLang==='rw' ? 'Nta konti ufite?' : "Don't have an account?";
+    if(newBar) newBar.style.display = 'flex';
   }
 }
 
