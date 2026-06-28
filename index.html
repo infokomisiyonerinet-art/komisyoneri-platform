@@ -9211,6 +9211,11 @@ function go(name) {
   if (name === 'analytics' || name === 'dashboard') {
     setTimeout(animateKPIs, 80);
   }
+
+  // SPA back-button support — push a history entry for each page visit
+  if (window.history && window.history.pushState) {
+    window.history.pushState({ page: name }, '', '#' + name);
+  }
 }
 
 
@@ -11690,6 +11695,32 @@ function checkUrlHash() {
 }
 
 window.addEventListener('load', checkUrlHash);
+
+// SPA back-button: restore page when browser navigates back/forward
+window.addEventListener('popstate', function(event) {
+  var page = (event.state && event.state.page) ? event.state.page : 'home';
+  go(page);
+});
+
+// SPA initial load: read hash and set the first history entry
+window.addEventListener('DOMContentLoaded', function() {
+  var hash = window.location.hash.replace('#', '');
+  // Let checkUrlHash() handle property deep-links (#prop=...)
+  if (hash.indexOf('prop=') === 0) return;
+  var validPages = [
+    'home','listings','detail','analytics',
+    'sites','site','crm','deals','commissions',
+    'verification','documents','financing','partners',
+    'customer','office','hr','accounting',
+    'exec','bi','branches','agents',
+    'dashboard','auth','about','privacy','terms'
+  ];
+  var page = validPages.indexOf(hash) > -1 ? hash : 'home';
+  if (window.history && window.history.replaceState) {
+    window.history.replaceState({ page: page }, '', '#' + page);
+  }
+  go(page);
+});
 
 
 // ═══════════════════════════════════════════
