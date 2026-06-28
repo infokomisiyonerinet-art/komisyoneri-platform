@@ -362,7 +362,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .hero::before{content:'';position:absolute;inset:0;
   background:linear-gradient(142deg,rgba(13,59,140,.82) 0%,rgba(18,73,179,.72) 50%,rgba(21,96,200,.65) 100%);
 }
-.hero-inner{max-width:1240px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 420px;gap:4rem;align-items:start;position:relative;z-index:1}
+.hero-inner{max-width:1240px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr;align-items:start;position:relative;z-index:1}
 .hero-pill{display:inline-flex;align-items:center;gap:.55rem;background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.2);border-radius:100px;padding:.3rem 1rem .3rem .45rem;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.85);margin-bottom:1.35rem}
 .h-pulse{width:8px;height:8px;border-radius:50%;background:var(--gold);animation:pulse 2.2s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.75)}}
@@ -2810,133 +2810,6 @@ html,body{overscroll-behavior-x:none}
           <div><span class="hero-stat-val">30</span><span class="hero-stat-lbl" data-rw="Akarere ka Rwanda" data-en="Districts in Rwanda">Akarere ka Rwanda</span></div>
         </div>
       </div>
-      <!-- Search card -->
-      <div class="s-card">
-
-  <div class="s-card-title" data-rw="Shakisha Imitungo" data-en="Find Your Property">Shakisha Imitungo</div>
-
-  <!-- Tabs -->
-  <div class="s-tabs">
-    <button class="s-tab active" data-rw="Kugura" data-en="Buy">Kugura</button>
-    <button class="s-tab" data-rw="Kugurisha" data-en="Sell">Kugurisha</button>
-    <button class="s-tab" data-rw="Gukodesha" data-en="Gukodesha">Gukodesha</button>
-  </div>
-
-  <!-- AHANTU -->
-  <div class="s-row">
-    <label data-rw="AHANTU" data-en="LOCATION">AHANTU</label>
-    <select>
-      <option>Kigali — Gasabo</option>
-      <option>Kigali — Kicukiro</option>
-      <option>Kigali — Nyarugenge</option>
-      <option>Musanze</option>
-      <option>Huye</option>
-      <option>Rubavu</option>
-      <option>Nyagatare</option>
-      <option>Rwamagana</option>
-      <option>Muhanga</option>
-      <option>Karongi</option>
-      <option data-rw="Akarere Kose" data-en="All Districts">Akarere Kose</option>
-    </select>
-  </div>
-
-  <!-- UBWOKO + IBYUMBA -->
-  <div class="s-2col">
-    <div class="s-row">
-      <label data-rw="UBWOKO" data-en="TYPE">UBWOKO</label>
-      <select>
-        <option data-rw="Yose" data-en="All">Yose</option>
-        <option>Villa</option>
-        <option data-rw="Apartimanı" data-en="Apartment">Apartimanı</option>
-        <option data-rw="Inyubako" data-en="Commercial">Inyubako</option>
-        <option data-rw="Ubutaka" data-en="Land">Ubutaka</option>
-        <option>Duplex</option>
-        <option>Penthouse</option>
-      </select>
-    </div>
-    <div class="s-row">
-      <label data-rw="IBYUMBA" data-en="BEDROOMS">IBYUMBA</label>
-      <select>
-        <option data-rw="Yose" data-en="Any">Yose</option>
-        <option>1+</option>
-        <option>2+</option>
-        <option>3+</option>
-        <option>4+</option>
-        <option>5+</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- AMAFARANGA + AMAGOROFA -->
-  <div class="s-2col">
-    <div class="s-row">
-      <label data-rw="INGANO Y'AMAFARANGA" data-en="BUDGET">INGANO Y'AMAFARANGA</label>
-      <select>
-        <option data-rw="Yose" data-en="Any">Yose</option>
-        <option>&lt; 30M RWF</option>
-        <option>30M – 80M</option>
-        <option>80M – 150M</option>
-        <option>150M – 300M</option>
-        <option>&gt; 300M RWF</option>
-      </select>
-    </div>
-    <div class="s-row">
-      <label data-rw="AMAGOROFA" data-en="FLOORS">AMAGOROFA</label>
-      <select>
-        <option data-rw="Yose" data-en="Any">Yose</option>
-        <option>1</option>
-        <option>2</option>
-        <option>3</option>
-        <option>4+</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- UBUSO + IGIHE -->
-  <div class="s-2col">
-    <div class="s-row">
-      <label data-rw="UBUSO (M²)" data-en="SIZE (M²)">UBUSO (M²)</label>
-      <select>
-        <option data-rw="Yose" data-en="Any">Yose</option>
-        <option>&lt; 50m²</option>
-        <option>50 – 100m²</option>
-        <option>100 – 250m²</option>
-        <option>250 – 500m²</option>
-        <option>&gt; 500m²</option>
-      </select>
-    </div>
-    <div class="s-row">
-      <label data-rw="STATUS" data-en="STATUS">STATUS</label>
-      <select>
-        <option data-rw="Yose" data-en="All">Yose</option>
-        <option data-rw="Iboneka Ubu" data-en="Available Now">Iboneka Ubu</option>
-        <option data-rw="Rishya" data-en="New Build">Rishya</option>
-        <option data-rw="Isubiwemo" data-en="Renovated">Isubiwemo</option>
-        <option data-rw="Ifite 3D Tour" data-en="Has 3D Tour">Ifite 3D Tour</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- SERIVISI ZIHARIYE chips -->
-  <div class="s-row">
-    <label data-rw="SERIVISI ZIHARIYE" data-en="FEATURES">SERIVISI ZIHARIYE</label>
-    <div style="display:flex;gap:.38rem;flex-wrap:wrap;margin-top:.15rem">
-      <button class="chip" onclick="this.classList.toggle('on')" data-rw="Garage" data-en="Garage">Garage</button>
-      <button class="chip" onclick="this.classList.toggle('on')" data-rw="Pool" data-en="Pool">Pool</button>
-      <button class="chip" onclick="this.classList.toggle('on')" data-rw="Umurima" data-en="Garden">Umurima</button>
-      <button class="chip" onclick="this.classList.toggle('on')" data-rw="Fibre" data-en="Fibre">Fibre</button>
-      <button class="chip" onclick="this.classList.toggle('on')" data-rw="Solar" data-en="Solar">Solar</button>
-      <button class="chip" onclick="this.classList.toggle('on')" data-rw="Guarded" data-en="Guarded">Guarded</button>
-    </div>
-  </div>
-
-  <!-- SEARCH BUTTON -->
-  <button class="s-btn" onclick="openSearch()">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <span data-rw="Shakisha Imitungo" data-en="Search Properties">Shakisha Imitungo</span>
-  </button>
-
-</div>
     </div>
   </section>
 
