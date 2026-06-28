@@ -18,6 +18,27 @@
       }
     },
     {
+      "src": "/manifest.json",
+      "dest": "/manifest.json",
+      "headers": {
+        "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400"
+      }
+    },
+    {
+      "src": "/(icon-[^/]+\\.svg|icon-[^/]+\\.png)",
+      "dest": "/$1",
+      "headers": {
+        "Cache-Control": "public, max-age=2592000, immutable"
+      }
+    },
+    {
+      "src": "/main\\.css",
+      "dest": "/main.css",
+      "headers": {
+        "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800"
+      }
+    },
+    {
       "src": "/static/(.*)",
       "dest": "/static/$1",
       "headers": {
@@ -28,7 +49,7 @@
       "src": "/images/(.*)",
       "dest": "/images/$1",
       "headers": {
-        "Cache-Control": "public, max-age=86400"
+        "Cache-Control": "public, max-age=604800, stale-while-revalidate=2592000"
       }
     },
     {
@@ -66,6 +87,15 @@
         {
           "key": "Permissions-Policy",
           "value": "camera=(), microphone=(), geolocation=(self), payment=(self), usb=(), magnetometer=(), accelerometer=()"
+        }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400"
         }
       ]
     }
