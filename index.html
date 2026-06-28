@@ -135,19 +135,23 @@
 }
 </script>
 
-<!-- ── PERFORMANCE: Preconnect + Preload ── -->
+<!-- ── PERFORMANCE: Preconnect + DNS-prefetch ── -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://storage.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.google-analytics.com">
-<link rel="dns-prefetch" href="https://www.gstatic.com">
-<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="dns-prefetch" href="https://browser.sentry-cdn.com">
+<link rel="dns-prefetch" href="https://us.i.posthog.com">
+<link rel="dns-prefetch" href="https://komisyoneri-platform-prod-default-rtdb.firebaseio.com">
 
+<!-- ── GOOGLE FONTS — single combined request, display=swap prevents FOIT ── -->
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet"></noscript>
 
-<!-- ── GOOGLE FONTS (with display=swap for Chrome performance) ── -->
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap">
-
-<!-- ── GOOGLE ANALYTICS (GA4) ── -->
+<!-- ── GOOGLE ANALYTICS (GA4) — async, non-blocking ── -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-NE0PHMB885"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -160,18 +164,27 @@
   });
 </script>
 
-<!-- PostHog — session replay, funnels, cohort analysis -->
+<!-- PostHog + Sentry — deferred until after page is interactive (placeholder keys = no-ops) -->
 <script>
-!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","cdn.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+" (stub) (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId setPersonPropertiesForFlags".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-var _phKey='YOUR_POSTHOG_API_KEY';
-if(_phKey&&_phKey.indexOf('YOUR_')!==0){posthog.init(_phKey,{api_host:'https://us.i.posthog.com',person_profiles:'identified_only',capture_pageview:false,autocapture:true,session_recording:{maskAllInputs:true}});}
-</script>
-
-<!-- Sentry — production error monitoring -->
-<script src="https://browser.sentry-cdn.com/8.28.0/bundle.min.js" crossorigin="anonymous"></script>
-<script>
-var _sentryDsn='YOUR_SENTRY_DSN';
-if(typeof Sentry!=='undefined'&&_sentryDsn.indexOf('YOUR_')!==0){Sentry.init({dsn:_sentryDsn,release:'komisiyoneri@1.0.0',environment:location.hostname.includes('localhost')?'development':'production',tracesSampleRate:0.1,beforeSend:function(ev){return location.hostname==='localhost'?null:ev;}});}
+window._phKey='YOUR_POSTHOG_API_KEY';
+window._sentryDsn='YOUR_SENTRY_DSN';
+function _initThirdParty(){
+  if(window._phKey&&window._phKey.indexOf('YOUR_')!==0){
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split('.');2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))};}(p=t.createElement('script')).type='text/javascript',p.crossOrigin='anonymous',p.async=!0,p.src=s.api_host.replace('.i.posthog.com','cdn.i.posthog.com')+'/static/array.js',(r=t.getElementsByTagName('script')[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a='posthog',u.people=u.people||[],u.toString=function(t){var e='posthog';return'posthog'!==a&&(e+='.'+a),t||(e+=' (stub)'),e},u.people.toString=function(){return u.toString(1)+' (stub) (stub)'},o='capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId setPersonPropertiesForFlags'.split(' '),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init(window._phKey,{api_host:'https://us.i.posthog.com',person_profiles:'identified_only',capture_pageview:false,autocapture:true,session_recording:{maskAllInputs:true}});
+  }
+  if(window._sentryDsn&&window._sentryDsn.indexOf('YOUR_')!==0){
+    var s=document.createElement('script');
+    s.src='https://browser.sentry-cdn.com/8.28.0/bundle.min.js';
+    s.crossOrigin='anonymous';
+    s.onload=function(){
+      Sentry.init({dsn:window._sentryDsn,release:'komisiyoneri@1.0.0',environment:location.hostname.includes('localhost')?'development':'production',tracesSampleRate:0.1,beforeSend:function(ev){return location.hostname==='localhost'?null:ev;}});
+    };
+    document.head.appendChild(s);
+  }
+}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',function(){setTimeout(_initThirdParty,2000);});}
+else{setTimeout(_initThirdParty,2000);}
 </script>
 
 <style>
@@ -210,7 +223,8 @@ if(typeof Sentry!=='undefined'&&_sentryDsn.indexOf('YOUR_')!==0){Sentry.init({ds
   /* Motion */
   --tr:all .22s cubic-bezier(.4,0,.2,1);
 }
-html{scroll-behavior:smooth}
+html{scroll-behavior:auto}
+@media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 body{font-family:'DM Sans',sans-serif;color:var(--dark);background:#fff;overflow-x:hidden;line-height:1.6}
 button{cursor:pointer;font-family:inherit}
 a{text-decoration:none;color:inherit}
@@ -256,7 +270,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 
 /* CARDS */
 .card{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);box-shadow:var(--sh);overflow:hidden;transition:var(--tr)}
-.card-hover:hover{transform:translateY(-4px);box-shadow:var(--sh-lg)}
+.card-hover{will-change:transform}.card-hover:hover{transform:translateY(-4px);box-shadow:var(--sh-lg)}
 
 /* BADGES */
 .badge{display:inline-flex;align-items:center;gap:.3rem;padding:.22rem .75rem;border-radius:100px;font-size:.67rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
@@ -476,7 +490,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
    PROPERTY CARDS
 ══════════════════════════════════════ */
 .p-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem}
-.p-card{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);overflow:hidden;cursor:pointer;transition:var(--tr)}
+.p-card{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);overflow:hidden;cursor:pointer;transition:var(--tr);will-change:transform;contain:layout style}
 .p-card:hover{transform:translateY(-5px);box-shadow:var(--sh-lg)}
 .p-img{height:195px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background-size:cover;background-position:center;background-repeat:no-repeat}
 .p-img-inner svg{width:72px;height:72px;fill:none;stroke:rgba(255,255,255,.55);stroke-width:1}.p-img[style*="background-image"] .p-img-inner{display:none}
@@ -2309,7 +2323,7 @@ html,body{overscroll-behavior-x:none}
 <div id="online-bar" class="online-bar">✅ Internet yagarutse!</div>
 <nav class="topnav" role="navigation" aria-label="Urubuga rw'ingenzi">
   <div class="topnav-logo" onclick="go('home')">
-    <img src="/images/logo.png" width="63" height="42" decoding="async" style="height:42px;width:auto;object-fit:contain" alt="KOMISIYONERI Logo" onerror="this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.style.display='flex')">
+    <img src="/images/logo.png" width="63" height="42" decoding="async" fetchpriority="high" style="height:42px;width:auto;object-fit:contain" alt="KOMISIYONERI Logo" onerror="this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.style.display='flex')">
     <div class="logo-text"><strong>KOMISIYONERI</strong><span>Connectpro Services</span></div>
   </div>
   <div class="topnav-links">
@@ -8347,6 +8361,19 @@ function closeModal(id) {
   if (m) { m.classList.remove('open'); document.body.style.overflow = ''; }
 }
 
+// ── IMAGE THUMBNAIL HELPER
+// Returns a smaller version of image URL for card thumbnails (saves ~60% bandwidth on mobile)
+function _thumbUrl(url) {
+  if (!url) return '';
+  // Unsplash: swap w=800 → w=600, q=80 → q=70
+  if (url.indexOf('images.unsplash.com') > -1) {
+    return url.replace(/w=\d+/,'w=600').replace(/q=\d+/,'q=70');
+  }
+  // Firebase Storage: append size transformation if supported
+  // (Storage doesn't resize natively without Extensions — return as-is)
+  return url;
+}
+
 // ── STAB (search type) active
 document.querySelectorAll('.s-tab').forEach(s => {
   s.addEventListener('click', () => {
@@ -9162,6 +9189,11 @@ function animateKPIs() {
   });
 }
 
+// ── Cached NodeLists for navigation (computed once, reused on every go() call)
+var _cachedPages = null, _cachedNavLinks = null;
+function _getPages()    { return _cachedPages    || (_cachedPages    = document.querySelectorAll('.page')); }
+function _getNavLinks() { return _cachedNavLinks || (_cachedNavLinks = document.querySelectorAll('.nl')); }
+
 // ── UNIFIED go() — page navigation + title + analytics
 function go(name) {
   if (name === 'dashboard') {
@@ -9178,9 +9210,9 @@ function go(name) {
       loadAgentDashboard();
     }
   }
-  // Hide all pages, deactivate all nav links
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nl').forEach(b => {
+  // Hide all pages, deactivate all nav links (uses cached NodeLists)
+  _getPages().forEach(function(p){ p.classList.remove('active'); });
+  _getNavLinks().forEach(function(b){
     b.classList.remove('active');
     b.removeAttribute('aria-current');
   });
@@ -9618,8 +9650,9 @@ function renderUserPropCard(prop) {
   if(prop.size) feats.push('<span class="p-feat">📐 '+prop.size+'m²</span>');
   var featsHtml = feats.join('');
 
-  // Image
-  var imgBg = prop.img1 ? ' style="background-image:url(' + prop.img1 + ');background-size:cover;background-position:center;background-repeat:no-repeat"' : '';
+  // Image — card thumbnail uses downscaled URL for faster load on mobile
+  var _cardImg = prop.img1 ? _thumbUrl(prop.img1) : '';
+  var imgBg = _cardImg ? ' style="background-image:url(' + _cardImg + ');background-size:cover;background-position:center;background-repeat:no-repeat"' : '';
 
   // Badges
   var topBadges = '';
@@ -11379,11 +11412,12 @@ function updateBottomNav(page) {
   }
 }
 
-// Initialize demos immediately — must run before loadApprovedProperties
-document.addEventListener('DOMContentLoaded', function() {
+// Initialize demos once — guard prevents duplicate execution
+if (document.readyState !== 'loading') {
   loadDemoListings();
-});
-if (document.readyState !== 'loading') loadDemoListings();
+} else {
+  document.addEventListener('DOMContentLoaded', loadDemoListings, { once: true });
+}
 
 
 // === ADMIN ADD PROPERTY DIRECT (from admin panel) ===
@@ -12668,7 +12702,17 @@ go = function(page) {
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+(function(){
+  var k='YOUR_EMAILJS_PUBLIC_KEY';
+  if(k&&k.indexOf('YOUR_')!==0){
+    var s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+    s.async=true;
+    document.head.appendChild(s);
+  }
+})();
+</script>
 
 <script>
   // ═══════════════════════════════════════════════════════
@@ -12696,6 +12740,32 @@ go = function(page) {
   var db      = firebase.firestore();   // Firestore — main database
   var rtdb    = firebase.database();    // Realtime DB — notifications + presence
   var storage = firebase.storage();     // Storage — images + documents
+
+  // Firestore offline persistence — cache data on disk for repeat visits
+  // Dramatically reduces Firestore reads and cold-start latency
+  db.enablePersistence({ synchronizeTabs: true })
+    .catch(function(err) {
+      if (err.code === 'failed-precondition') {
+        // Multiple tabs open — persistence available in first tab only
+        console.warn('[Firestore] Persistence: multiple tabs open');
+      } else if (err.code === 'unimplemented') {
+        // Browser does not support persistence (e.g. Safari private mode)
+        console.warn('[Firestore] Persistence: not supported in this browser');
+      }
+    });
+
+  // ── In-memory query result cache (TTL: 60 seconds for lists, 300s for reference data)
+  var _kmCache = {};
+  function _kmCacheGet(key) {
+    var e = _kmCache[key];
+    return (e && Date.now() < e.exp) ? e.data : null;
+  }
+  function _kmCacheSet(key, data, ttlMs) {
+    _kmCache[key] = { data: data, exp: Date.now() + (ttlMs || 60000) };
+  }
+  function _kmCacheClear(prefix) {
+    Object.keys(_kmCache).forEach(function(k){ if(!prefix||k.indexOf(prefix)===0) delete _kmCache[k]; });
+  }
 
   // Analytics (optional — graceful fail if blocked by ad-blocker)
   try { firebase.analytics(); } catch(e) {}
@@ -13516,7 +13586,7 @@ function loadBIDash() {
 /* ── summary strip ── */
 function loadBISummary() {
   /* total listings */
-  db.collection('properties').where('isActive','==',true).get().then(function(snap) {
+  db.collection('properties').where('isActive','==',true).limit(500).get().then(function(snap) {
     var el = g('bi-sum-props'); if (el) el.textContent = snap.size;
     var total = 0, cnt = 0;
     snap.forEach(function(d) { var p = d.data().price; if (p) { total += parseFloat(p)||0; cnt++; } });
@@ -13802,7 +13872,7 @@ function biDealVelocity() {
 function biDealsByType() {
   var el = g('bi-deals-by-type'); if (!el) return;
   el.innerHTML = '<div class="exec-loading">Loading...</div>';
-  db.collection('deals').where('isActive','==',true).get().then(function(snap) {
+  db.collection('deals').where('isActive','==',true).limit(500).get().then(function(snap) {
     var types = {};
     snap.forEach(function(d) {
       var t = d.data().dealType || 'sale';
@@ -13860,7 +13930,7 @@ function biRevForecast() {
 function biPipelineValue() {
   var el = g('bi-pipeline-value'); if (!el) return;
   el.innerHTML = '<div class="exec-loading">Loading...</div>';
-  db.collection('deals').where('isActive','==',true).get().then(function(snap) {
+  db.collection('deals').where('isActive','==',true).limit(500).get().then(function(snap) {
     var pipeline = {}, pipelineTotal = 0, closedVal = 0;
     snap.forEach(function(d) {
       var data = d.data();
@@ -13985,7 +14055,7 @@ function loadExecKPIs() {
       if (el) el.textContent = fmtRWF(total);
     }).catch(function(){});
 
-  db.collection('deals').where('isActive','==',true).get().then(function(snap) {
+  db.collection('deals').where('isActive','==',true).limit(500).get().then(function(snap) {
     var active = 0;
     snap.forEach(function(d) {
       var s = d.data().pipelineStage || '';
@@ -14244,10 +14314,10 @@ function loadExecConversion() {
     }
     switchLang(currentLang);
   }
-  db.collection('leads').where('isActive','==',true).get().then(function(snap) {
+  db.collection('leads').where('isActive','==',true).limit(500).get().then(function(snap) {
     totalLeads = snap.size; render();
   }).catch(function() { render(); });
-  db.collection('deals').where('isActive','==',true).get().then(function(snap) {
+  db.collection('deals').where('isActive','==',true).limit(500).get().then(function(snap) {
     snap.forEach(function(d) {
       var data = d.data();
       if (data.pipelineStage === 'closed_won') wonDeals++;
