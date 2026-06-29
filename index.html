@@ -22748,8 +22748,13 @@ function renderMyViewings() {
       + '</div>'
       + '<div style="flex-shrink:0;display:flex;flex-direction:column;gap:.3rem;align-items:flex-end">'
       + '<span style="font-size:.65rem;font-weight:700;background:' + statusColor + '1a;color:' + statusColor + ';padding:.2rem .5rem;border-radius:20px;white-space:nowrap">' + statusLabel + '</span>'
-      + (v.status !== 'completed' && vid ? '<button onclick="markViewingComplete(\'' + vid + '\')" style="background:var(--success);color:#fff;border:none;border-radius:6px;padding:.25rem .55rem;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap">&#9989; Done</button>' : '')
-      + (vid && v.leadId ? '<button onclick="openViewingReport(\'' + vid + '\',\'' + (v.leadId||'') + '\')" style="background:none;border:1.5px solid var(--border);color:var(--navy);border-radius:6px;padding:.25rem .55rem;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap">&#128196; Report</button>' : '')
+      + (v.status !== 'completed' && vid
+          ? (v.agentCheckIn
+              ? '<span style="font-size:.65rem;font-weight:700;background:#16A34A1a;color:#16A34A;padding:.2rem .5rem;border-radius:20px;white-space:nowrap">&#128205; ' + (curLang==='rw'?'Wageze':'Checked In') + '</span>'
+              : '<button onclick="checkInViewingGPS(\'' + vid + '\')" style="background:var(--navy);color:#fff;border:none;border-radius:6px;padding:.25rem .55rem;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap">&#128205; ' + (curLang==='rw'?'Wageze':'Arrived') + '</button>')
+          : '')
+      + (v.status !== 'completed' && vid ? '<button onclick="markViewingComplete(\'' + vid + '\')" style="background:var(--success);color:#fff;border:none;border-radius:6px;padding:.25rem .55rem;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap">&#9989; ' + (curLang==='rw'?'Byarangiye':'Done') + '</button>' : '')
+      + (vid && v.leadId ? '<button onclick="openViewingReport(\'' + vid + '\',\'' + (v.leadId||'') + '\')" style="background:none;border:1.5px solid var(--border);color:var(--navy);border-radius:6px;padding:.25rem .55rem;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap">&#128196; ' + (curLang==='rw'?'Raporo':'Report') + '</button>' : '')
       + '</div>'
       + '</div>';
   }).join('');
@@ -22773,6 +22778,53 @@ function markViewingComplete(viewingId) {
     showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error updating viewing', 'error');
     console.error('[Viewing] complete error:', err);
   });
+}
+
+function checkInViewingGPS(viewingId) {
+  if (!viewingId || typeof db === 'undefined') return;
+  if (!navigator.geolocation) {
+    showToast(curLang === 'rw' ? 'GPS ntiboneka kuri iyi telefoni' : 'GPS not available on this device', 'error');
+    return;
+  }
+  showToast(curLang === 'rw' ? 'GPS irashakwa...' : 'Getting your GPS location...', 'info');
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      var lat = pos.coords.latitude;
+      var lng = pos.coords.longitude;
+      var acc = Math.round(pos.coords.accuracy);
+      var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : '';
+      db.collection('viewings').doc(viewingId).update({
+        agentCheckIn: firebase.firestore.FieldValue.serverTimestamp(),
+        agentGPS:     { lat: lat, lng: lng, accuracy: acc },
+        updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+        updatedBy:    uid
+      }).then(function() {
+        showToast(
+          (curLang === 'rw' ? 'Wageze wanditse! Accuracy: ' : 'Check-in recorded! Accuracy: ') + acc + 'm',
+          'success'
+        );
+        for (var i = 0; i < _myViewings.length; i++) {
+          if (_myViewings[i]._docId === viewingId) {
+            _myViewings[i].agentCheckIn = new Date().toISOString();
+            _myViewings[i].agentGPS = { lat: lat, lng: lng, accuracy: acc };
+            break;
+          }
+        }
+        renderMyViewings();
+        logAudit('viewing.gps.checkin', 'viewings', viewingId, null, { lat: lat, lng: lng, accuracy: acc });
+      }).catch(function(err) {
+        showToast(curLang === 'rw' ? 'Habaye ikosa mu kubika GPS' : 'Error saving GPS check-in', 'error');
+        console.error('[Viewing GPS]', err);
+      });
+    },
+    function(gpsErr) {
+      var msg = gpsErr.code === 1
+        ? (curLang === 'rw' ? 'GPS ntiyemewe — fungura location settings' : 'Location permission denied — enable in settings')
+        : (curLang === 'rw' ? 'GPS ntiyabonetse — ongera ugerageze' : 'Could not get GPS — please try again');
+      showToast(msg, 'error');
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
 }
 
 /* ── Inject "My Viewings" section below #crm-lead-list ── */
