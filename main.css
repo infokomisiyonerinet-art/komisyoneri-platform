@@ -2008,6 +2008,23 @@ html,body{overscroll-behavior-x:none}
    Viewings | Offers | Deals | Negotiation Pipeline
 ════════════════════════════════════════════════════════ */
 
+/* ── Deal Phase 3 — Progress Bar on Cards ───────────── */
+.deal-progress-wrap{display:flex;align-items:center;gap:.5rem;margin-top:.45rem}
+.deal-progress-track{flex:1;height:4px;background:var(--border);border-radius:4px;overflow:hidden}
+.deal-progress-fill{height:100%;background:var(--navy);border-radius:4px;transition:width .4s ease}
+.deal-progress-label{font-size:.6rem;color:var(--muted);flex-shrink:0;white-space:nowrap}
+
+/* ── Deal Phase 3 — Interactive Milestones ──────────── */
+.mi-toggle{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);background:#fff;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.65rem;cursor:pointer;transition:var(--tr);font-weight:700;color:#fff;padding:0;line-height:1}
+.milestone-item.done .mi-toggle{background:#16A34A;border-color:#16A34A}
+.milestone-item:not(.done) .mi-toggle:hover{border-color:var(--navy)}
+
+/* ── Deal Phase 3 — Commission Breakdown ────────────── */
+.deal-comm-bar{border-radius:6px;overflow:hidden;margin-bottom:.3rem;height:28px;display:flex}
+.deal-comm-segment{display:flex;align-items:center;justify-content:center;flex-direction:column;padding:0 .4rem}
+.deal-comm-segment-lbl{font-size:.55rem;color:rgba(255,255,255,.85);font-weight:700;white-space:nowrap}
+.deal-comm-segment-val{font-size:.7rem;color:#fff;font-weight:800;white-space:nowrap}
+
 /* Deals page — reuses crm-wrap, crm-header, crm-stats, crm-list, crm-filters */
 .deal-card{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:.9rem 1.1rem;cursor:pointer;transition:var(--tr);border-left:3px solid var(--gold)}
 .deal-card:hover{border-color:var(--navy);box-shadow:0 4px 16px rgba(13,59,140,.1);transform:translateY(-1px)}
