@@ -24319,6 +24319,111 @@ function openSearchFromHeroCard() {
 })();
 
 /* ══════════════════════════════════════════════════════════
+   AUTO LEAD CREATION — property inquiries & bookings → CRM leads
+   Patches submitBooking() and submitMessage() to also write to
+   the leads collection so agents see every inquiry immediately.
+══════════════════════════════════════════════════════════ */
+
+function _autoCreateLead(opts) {
+  if (typeof db === 'undefined') return;
+  var uid   = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : '';
+  var prop  = window._currentProp || {};
+  var lead = {
+    id:           '',
+    clientName:   opts.clientName  || 'Ntazwi',
+    clientPhone:  opts.clientPhone || '',
+    clientEmail:  opts.clientEmail || '',
+    clientId:     opts.clientId    || uid || '',
+    propertyId:   prop.id          || opts.propertyId || '',
+    propertyTitle:prop.title       || opts.propertyTitle || '',
+    agentId:      prop.agentId     || opts.agentId || '',
+    agentName:    prop.agentName   || opts.agentName || '',
+    zone:         prop.district    || opts.zone || '',
+    source:       opts.source      || 'website',
+    action:       prop.service     || opts.action || '',
+    budgetMin:    opts.budgetMin   || (prop.price ? Math.round(prop.price * 0.8) : 0),
+    budgetMax:    opts.budgetMax   || (prop.price ? Math.round(prop.price * 1.1) : 0),
+    notes:        opts.notes       || '',
+    priority:     'warm',
+    pipelineStage:opts.stage       || 'new',
+    contactLog:   opts.contactLog  || [],
+    nextFollowUp: null,
+    status:       opts.stage       || 'new',
+    isActive:     true,
+    createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:    uid || 'system',
+    updatedBy:    uid || 'system'
+  };
+  db.collection('leads').add(lead).then(function(ref) {
+    ref.update({ id: ref.id });
+    logAudit('lead.auto.created', 'leads', ref.id, null, { source: lead.source, clientName: lead.clientName });
+    if (typeof updateCrmSidebarBadge === 'function') updateCrmSidebarBadge();
+  }).catch(function(err) {
+    console.warn('[AutoLead] Failed to create lead:', err);
+  });
+}
+
+/* Patch submitBooking: also create a lead at viewing_scheduled stage */
+(function() {
+  var _origSubmitBooking = submitBooking;
+  submitBooking = function() {
+    var nameEl  = document.getElementById('book-name');
+    var phoneEl = document.getElementById('book-phone');
+    var noteEl  = document.getElementById('book-note');
+    var dateEl  = document.getElementById('book-date');
+    var clientName  = nameEl  ? nameEl.value.trim()  : '';
+    var clientPhone = phoneEl ? phoneEl.value.trim() : '';
+    var noteText    = noteEl  ? noteEl.value.trim()  : '';
+    var bookDate    = dateEl  ? dateEl.value          : '';
+    _origSubmitBooking();
+    if (clientName || clientPhone) {
+      var logEntry = bookDate
+        ? [{ type:'viewing', note: 'Viewing booked for ' + bookDate + (noteText ? '. Note: ' + noteText : ''), loggedAt: new Date().toISOString(), agentName: '' }]
+        : [];
+      _autoCreateLead({
+        clientName:  clientName,
+        clientPhone: clientPhone,
+        notes:       noteText,
+        source:      'viewing_booking',
+        stage:       'viewing_scheduled',
+        contactLog:  logEntry
+      });
+    }
+  };
+})();
+
+/* Patch submitMessage: create a lead at new (property inquiry) stage */
+(function() {
+  var _origSubmitMessage = submitMessage;
+  submitMessage = function() {
+    var nameEl  = document.getElementById('msg-name');
+    var phoneEl = document.getElementById('msg-phone');
+    var emailEl = document.getElementById('msg-email');
+    var textEl  = document.getElementById('msg-text');
+    var clientName  = nameEl  ? nameEl.value.trim()  : '';
+    var clientPhone = phoneEl ? phoneEl.value.trim() : '';
+    var clientEmail = emailEl ? emailEl.value.trim() : '';
+    var msgText     = textEl  ? textEl.value.trim()  : '';
+    _origSubmitMessage();
+    if (clientName || clientPhone) {
+      var logEntry = msgText
+        ? [{ type:'note', note: 'Inquiry: ' + msgText.substring(0, 200), loggedAt: new Date().toISOString(), agentName: '' }]
+        : [];
+      _autoCreateLead({
+        clientName:  clientName,
+        clientPhone: clientPhone,
+        clientEmail: clientEmail,
+        notes:       msgText,
+        source:      'property_inquiry',
+        stage:       'new',
+        contactLog:  logEntry
+      });
+    }
+  };
+})();
+
+/* ══════════════════════════════════════════════════════════
    COMMUNICATION HUB — Internal Messaging System
    Module 20: Messages stored in Firestore 'messages' collection
    RTDB /inbox/{uid}/unread for real-time badge counts
