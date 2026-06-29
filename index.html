@@ -22389,6 +22389,279 @@ function filterAgentsPage() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
+   PHASE 11 — Viewing Scheduler & Agent Viewing Manager
+   Intercepts CRM stage → viewing_scheduled to create a Firestore
+   viewings doc. Adds "My Viewings" section below the CRM lead list.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Viewing Scheduler Modal (created dynamically) ── */
+var _vsLeadId   = null;
+var _vsLeadData = null;
+
+function _ensureViewingSchedulerModal() {
+  if (document.getElementById('vs-modal')) return;
+  var div = document.createElement('div');
+  div.className = 'modal-wrap';
+  div.id = 'vs-modal';
+  div.style.display = 'none';
+  div.innerHTML = '<div class="modal" style="max-width:420px;width:94%">'
+    + '<button class="modal-x" onclick="closeViewingScheduler()" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">&#10005;</button>'
+    + '<div class="eyebrow tag-green" style="font-size:.65rem;margin-bottom:.5rem">&#128197; SCHEDULE VIEWING</div>'
+    + '<h3 id="vs-client-name" style="font-size:1.1rem;font-weight:800;color:var(--navy);margin-bottom:1rem">Client</h3>'
+    + '<label style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.3rem">Date &amp; Time</label>'
+    + '<input type="datetime-local" id="vs-datetime" style="width:100%;padding:.55rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:\'DM Sans\',sans-serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.8rem">'
+    + '<label style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.3rem">Property</label>'
+    + '<input type="text" id="vs-prop-title" placeholder="Property title / address..." style="width:100%;padding:.55rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:\'DM Sans\',sans-serif;font-size:.88rem;box-sizing:border-box;margin-bottom:.8rem">'
+    + '<label style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.3rem">Notes</label>'
+    + '<textarea id="vs-notes" rows="2" placeholder="Meeting point, gate code, special instructions..." style="width:100%;padding:.55rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:\'DM Sans\',sans-serif;font-size:.85rem;resize:vertical;box-sizing:border-box;display:block;margin-bottom:1rem"></textarea>'
+    + '<div style="display:flex;gap:.6rem">'
+    + '<button class="btn btn-navy" id="vs-save-btn" style="flex:1;justify-content:center" onclick="saveScheduledViewing()">'
+    + '&#128197; <span id="vs-save-lbl">Schedule Viewing</span></button>'
+    + '<button class="btn btn-outline" style="flex-shrink:0" onclick="closeViewingScheduler()">Skip</button>'
+    + '</div>'
+    + '</div>';
+  document.body.appendChild(div);
+}
+
+function openViewingScheduler(leadId) {
+  _vsLeadId = leadId;
+  _vsLeadData = null;
+  for (var i = 0; i < _crmLeads.length; i++) {
+    if ((_crmLeads[i]._docId || _crmLeads[i].id) === leadId) { _vsLeadData = _crmLeads[i]; break; }
+  }
+  _ensureViewingSchedulerModal();
+  var nameEl = document.getElementById('vs-client-name');
+  if (nameEl) nameEl.textContent = (_vsLeadData ? (_vsLeadData.clientName || _vsLeadData.name || 'Client') : 'Client');
+  var propEl = document.getElementById('vs-prop-title');
+  if (propEl) propEl.value = (_vsLeadData ? (_vsLeadData.propertyTitle || _vsLeadData.zone || '') : '');
+  var dtEl = document.getElementById('vs-datetime');
+  if (dtEl) {
+    var tomorrow = new Date(Date.now() + 86400000);
+    tomorrow.setHours(10, 0, 0, 0);
+    dtEl.value = tomorrow.toISOString().slice(0, 16);
+  }
+  var noteEl = document.getElementById('vs-notes'); if (noteEl) noteEl.value = '';
+  var m = document.getElementById('vs-modal'); if (m) m.style.display = 'flex';
+}
+
+function closeViewingScheduler() {
+  var m = document.getElementById('vs-modal'); if (m) m.style.display = 'none';
+  _vsLeadId   = null;
+  _vsLeadData = null;
+}
+
+function saveScheduledViewing() {
+  var dtEl   = document.getElementById('vs-datetime');
+  var propEl = document.getElementById('vs-prop-title');
+  var noteEl = document.getElementById('vs-notes');
+  var saveBtn = document.getElementById('vs-save-btn');
+  var saveLbl = document.getElementById('vs-save-lbl');
+
+  if (!dtEl || !dtEl.value) {
+    showToast(curLang === 'rw' ? 'Hitamo itariki n\'isaha!' : 'Select date and time!', 'error');
+    return;
+  }
+  var scheduledAt = new Date(dtEl.value);
+  if (isNaN(scheduledAt.getTime())) {
+    showToast(curLang === 'rw' ? 'Itariki si nziza' : 'Invalid date', 'error');
+    return;
+  }
+
+  if (saveBtn) { saveBtn.disabled = true; if (saveLbl) saveLbl.textContent = 'Saving...'; }
+
+  var uid       = currentUser ? currentUser.uid : '';
+  var agentName = currentUser ? (currentUser.displayName || currentUser.name || currentUser.email || '') : '';
+  var lead      = _vsLeadData || {};
+  var propTitle = propEl ? propEl.value.trim() : '';
+  var notes     = noteEl ? noteEl.value.trim() : '';
+
+  var viewingDoc = {
+    id:            '',
+    leadId:        _vsLeadId || '',
+    propertyId:    lead.propertyId    || '',
+    propertyTitle: propTitle          || lead.propertyTitle || (lead.zone || lead.district || ''),
+    clientId:      lead.clientId      || '',
+    clientName:    lead.clientName    || lead.name  || '',
+    clientPhone:   lead.clientPhone   || lead.phone || '',
+    agentId:       uid,
+    agentName:     agentName,
+    scheduledAt:   firebase.firestore.Timestamp.fromDate(scheduledAt),
+    notes:         notes,
+    status:        'scheduled',
+    agentCheckIn:  null,
+    agentGPS:      null,
+    photos:        [],
+    report:        {},
+    isActive:      true,
+    createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:     uid,
+    updatedBy:     uid
+  };
+
+  if (typeof db === 'undefined') {
+    showToast(curLang === 'rw' ? 'Firebase ntabwo ihuye' : 'Firebase not connected', 'error');
+    if (saveBtn) { saveBtn.disabled = false; if (saveLbl) saveLbl.textContent = 'Schedule Viewing'; }
+    return;
+  }
+
+  db.collection('viewings').add(viewingDoc).then(function(ref) {
+    ref.update({ id: ref.id });
+    logAudit('viewing.scheduled', 'viewings', ref.id, null,
+      { leadId: _vsLeadId, scheduledAt: scheduledAt.toISOString(), clientName: viewingDoc.clientName });
+    showToast(curLang === 'rw' ? '&#128197; Gutekereza kwabitswe!' : '&#128197; Viewing scheduled!', 'success');
+    closeViewingScheduler();
+    if (saveBtn) { saveBtn.disabled = false; if (saveLbl) saveLbl.textContent = 'Schedule Viewing'; }
+    loadMyViewings();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa — ongera ugerageze' : 'Error saving viewing', 'error');
+    console.error('[Viewing] schedule error:', err);
+    if (saveBtn) { saveBtn.disabled = false; if (saveLbl) saveLbl.textContent = 'Schedule Viewing'; }
+  });
+}
+
+/* ── Override updateLeadStage — intercept viewing_scheduled ── */
+(function() {
+  var _origUpdateLeadStage = updateLeadStage;
+  updateLeadStage = function(leadId, newStageKey) {
+    if (newStageKey === 'viewing_scheduled') {
+      _origUpdateLeadStage(leadId, newStageKey);
+      setTimeout(function() { openViewingScheduler(leadId); }, 400);
+    } else {
+      _origUpdateLeadStage(leadId, newStageKey);
+    }
+  };
+})();
+
+/* ── My Viewings — agent's viewing list in CRM page ── */
+var _myViewings = [];
+
+function loadMyViewings() {
+  var container = document.getElementById('my-viewings-list');
+  if (!container) return;
+  if (!currentUser || typeof db === 'undefined') return;
+
+  container.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.82rem">'
+    + (curLang === 'rw' ? 'Gutegura...' : 'Loading...') + '</div>';
+
+  var now = new Date();
+  var past = firebase.firestore.Timestamp.fromDate(new Date(now.getTime() - 7 * 86400000));
+
+  db.collection('viewings')
+    .where('agentId', '==', currentUser.uid)
+    .where('isActive', '==', true)
+    .where('scheduledAt', '>=', past)
+    .orderBy('scheduledAt', 'asc')
+    .limit(20)
+    .get().then(function(snap) {
+      _myViewings = [];
+      snap.forEach(function(doc) {
+        var d = doc.data();
+        d._docId = doc.id;
+        _myViewings.push(d);
+      });
+      renderMyViewings();
+    }).catch(function(err) {
+      console.warn('[MyViewings] Firestore error:', err);
+      container.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:.82rem">'
+        + (curLang === 'rw' ? 'Habaye ikosa' : 'Error loading viewings') + '</div>';
+    });
+}
+
+function renderMyViewings() {
+  var container = document.getElementById('my-viewings-list');
+  if (!container) return;
+  if (_myViewings.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">'
+      + '<div style="font-size:2rem;margin-bottom:.5rem">&#128197;</div>'
+      + '<div style="font-size:.82rem">'
+      + (curLang === 'rw' ? 'Nta gutekereza gushyizweho' : 'No viewings scheduled') + '</div></div>';
+    return;
+  }
+  var now = Date.now();
+  container.innerHTML = _myViewings.map(function(v) {
+    var dt = v.scheduledAt ? (v.scheduledAt.toDate ? v.scheduledAt.toDate() : new Date(v.scheduledAt)) : null;
+    var isPast = dt && dt.getTime() < now;
+    var isToday = dt && Math.abs(dt.getTime() - now) < 86400000;
+    var dateStr = dt ? dt.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'}) : '—';
+    var timeStr = dt ? dt.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'}) : '';
+    var statusColor = isPast ? (v.status === 'completed' ? '#16A34A' : '#EA580C') : '#3B82F6';
+    var statusLabel = v.status === 'completed' ? (curLang === 'rw' ? 'Byarangiye' : 'Done')
+      : isPast ? (curLang === 'rw' ? 'Byarenze' : 'Overdue')
+      : isToday ? (curLang === 'rw' ? 'Uyu munsi' : 'Today')
+      : (curLang === 'rw' ? 'Gutegerezwa' : 'Upcoming');
+    var vid = v._docId || v.id || '';
+    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.6rem;display:flex;gap:.8rem;align-items:flex-start">'
+      + '<div style="text-align:center;min-width:52px;flex-shrink:0">'
+      + '<div style="font-size:.75rem;font-weight:700;color:var(--muted);line-height:1.1">' + dateStr.split(' ')[0] + '</div>'
+      + '<div style="font-size:1.1rem;font-weight:800;color:var(--navy);line-height:1">' + (dt ? dt.getDate() : '—') + '</div>'
+      + '<div style="font-size:.7rem;color:var(--muted)">' + timeStr + '</div>'
+      + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-weight:700;color:var(--navy);font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(v.clientName || '—') + '</div>'
+      + '<div style="font-size:.78rem;color:var(--muted);margin:.1rem 0">' + escapeHtml(v.propertyTitle || '—') + '</div>'
+      + (v.notes ? '<div style="font-size:.72rem;color:#555;font-style:italic">' + escapeHtml(v.notes.substring(0, 60)) + '</div>' : '')
+      + '</div>'
+      + '<div style="flex-shrink:0;display:flex;flex-direction:column;gap:.3rem;align-items:flex-end">'
+      + '<span style="font-size:.65rem;font-weight:700;background:' + statusColor + '1a;color:' + statusColor + ';padding:.2rem .5rem;border-radius:20px;white-space:nowrap">' + statusLabel + '</span>'
+      + (v.status !== 'completed' && vid ? '<button onclick="markViewingComplete(\'' + vid + '\')" style="background:var(--success);color:#fff;border:none;border-radius:6px;padding:.25rem .55rem;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap">&#9989; Done</button>' : '')
+      + (vid && v.leadId ? '<button onclick="openViewingReport(\'' + vid + '\',\'' + (v.leadId||'') + '\')" style="background:none;border:1.5px solid var(--border);color:var(--navy);border-radius:6px;padding:.25rem .55rem;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap">&#128196; Report</button>' : '')
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function markViewingComplete(viewingId) {
+  if (!viewingId || typeof db === 'undefined') return;
+  var uid = currentUser ? currentUser.uid : '';
+  db.collection('viewings').doc(viewingId).update({
+    status:    'completed',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: uid
+  }).then(function() {
+    showToast(curLang === 'rw' ? 'Gutekereza kwangiye!' : 'Viewing marked complete!', 'success');
+    for (var i = 0; i < _myViewings.length; i++) {
+      if (_myViewings[i]._docId === viewingId) { _myViewings[i].status = 'completed'; break; }
+    }
+    renderMyViewings();
+    logAudit('viewing.completed', 'viewings', viewingId, { status: 'scheduled' }, { status: 'completed' });
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error updating viewing', 'error');
+    console.error('[Viewing] complete error:', err);
+  });
+}
+
+/* ── Inject "My Viewings" section below #crm-lead-list ── */
+(function() {
+  var _goP11 = go;
+  go = function(name) {
+    _goP11(name);
+    if (name === 'crm') {
+      setTimeout(function() {
+        var crmWrap = document.querySelector('#page-crm .crm-wrap');
+        if (!crmWrap) return;
+        if (document.getElementById('my-viewings-section')) { loadMyViewings(); return; }
+        if (!currentUser || (currentUser.role !== 'agent' && currentUser.role !== 'Agent'
+          && currentUser.role !== 'admin' && currentUser.role !== 'Admin'
+          && currentUser.role !== 'super_admin' && currentUser.role !== 'staff')) return;
+        var section = document.createElement('div');
+        section.id = 'my-viewings-section';
+        section.style.cssText = 'margin-top:1.5rem;border-top:2px solid var(--border);padding-top:1rem';
+        section.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem">'
+          + '<div>'
+          + '<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.08em">&#128197; MY VIEWINGS</div>'
+          + '<div style="font-size:.72rem;color:var(--muted);margin-top:.1rem">' + (curLang === 'rw' ? 'Gutekereza gw\'icyumweru cy\'ubu + cy\'iruhande' : 'Past 7 days + upcoming') + '</div>'
+          + '</div>'
+          + '</div>'
+          + '<div id="my-viewings-list"></div>';
+        crmWrap.appendChild(section);
+        loadMyViewings();
+      }, 300);
+    }
+  };
+})();
+
+/* ══════════════════════════════════════════════════════════════════════
    PHASE 10 — Bug Fixes + Lead-to-Deal Conversion
    1. Fix loadLiveHomeStats composite index
    2. Override openMyProps → Firestore-backed
