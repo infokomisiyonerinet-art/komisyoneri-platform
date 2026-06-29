@@ -2479,6 +2479,7 @@ html,body{overscroll-behavior-x:none}
           Hindura
         </button>
         <button id="profile-add-prop-btn" class="btn" style="flex:1;justify-content:center;border:1.5px solid var(--border)" onclick="closeProfile();openAddProperty()">+ Imitungo</button>
+        <button class="btn" style="flex:1;justify-content:center;border:1.5px solid var(--gold);color:var(--gold)" onclick="closeProfile();openReferralPanel()" title="Referral Program">🔗 Invite</button>
         <button class="btn" style="justify-content:center;border:1.5px solid var(--border);padding:.5rem .7rem" onclick="logoutUser()">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
@@ -22955,5 +22956,325 @@ function convertLeadToDeal(leadId) {
   });
 }
 
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     MODULE 06 — REFERRAL SYSTEM
+     Referral Codes | Link Capture | Tracking | Rewards UI
+════════════════════════════════════════════════════════ -->
+<script>
+/* ── Referral System globals ── */
+var _refCode   = null;   // current user's referral code
+var _refStats  = null;   // { total, registered, qualified, rewarded }
+
+/* Generate a unique referral code from uid + random suffix */
+function _genRefCode(uid) {
+  var chars  = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var suffix = '';
+  for (var i = 0; i < 5; i++) {
+    suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  var prefix = (uid || '').slice(0, 4).toUpperCase().replace(/[^A-Z0-9]/g, 'X');
+  return 'KM' + prefix + suffix;
+}
+
+/* On page load — capture ?ref=CODE and store for use at registration */
+(function captureRefParam() {
+  var params = new URLSearchParams(window.location.search);
+  var code   = params.get('ref') || params.get('referral');
+  if (code) {
+    try { localStorage.setItem('km_ref_code', code.toUpperCase()); } catch(e){}
+  }
+})();
+
+/* Ensure user has a referral code in Firestore; create one if missing */
+function ensureReferralCode(uid) {
+  if (!uid || typeof db === 'undefined') return;
+  db.collection('users').doc(uid).get().then(function(snap) {
+    if (!snap.exists) return;
+    var data = snap.data();
+    if (data.referralCode) {
+      _refCode = data.referralCode;
+      _updateRefUI();
+      return;
+    }
+    var code = _genRefCode(uid);
+    db.collection('users').doc(uid).update({
+      referralCode: code,
+      updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy:    uid
+    }).then(function() {
+      _refCode = code;
+      _updateRefUI();
+    }).catch(function(){});
+  }).catch(function(){});
+}
+
+/* After registration — link the new user to the referrer */
+function linkReferralOnRegister(newUid, newEmail) {
+  var refCode = '';
+  try { refCode = localStorage.getItem('km_ref_code') || ''; } catch(e){}
+  if (!refCode || typeof db === 'undefined') return;
+
+  /* Look up the referrer by code */
+  db.collection('users').where('referralCode','==',refCode).where('isActive','==',true).limit(1).get()
+    .then(function(snap) {
+      if (snap.empty) return;
+      var referrerDoc = snap.docs[0];
+      var referrerId  = referrerDoc.id;
+      if (referrerId === newUid) return; /* can't self-refer */
+
+      return db.collection('referrals').add({
+        id:             '',
+        referrerId:     referrerId,
+        referrerCode:   refCode,
+        referredUserId: newUid,
+        referredEmail:  newEmail,
+        source:         'link',
+        status:         'registered',
+        rewardAmount:   0,
+        rewardPaid:     false,
+        isActive:       true,
+        createdAt:      firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy:      newUid,
+        updatedBy:      newUid
+      });
+    })
+    .then(function(ref) {
+      if (ref) {
+        ref.update({ id: ref.id });
+        logAudit('referral.registered', 'referrals', ref.id, null, { referredEmail: newEmail, referralCode: refCode });
+        try { localStorage.removeItem('km_ref_code'); } catch(e){}
+      }
+    })
+    .catch(function(e){ console.warn('[Referral] link error:', e); });
+}
+
+/* Load referral stats for current user */
+function loadReferralStats() {
+  if (!currentUser || !currentUser.uid || typeof db === 'undefined') return;
+  var uid = currentUser.uid;
+
+  /* First ensure this user has a referral code */
+  if (!_refCode) ensureReferralCode(uid);
+
+  db.collection('referrals').where('referrerId','==',uid).where('isActive','==',true).get()
+    .then(function(snap) {
+      var total = snap.size;
+      var registered = 0, qualified = 0, rewarded = 0;
+      snap.forEach(function(d) {
+        var s = d.data().status;
+        if (s === 'registered')  registered++;
+        if (s === 'qualified')   qualified++;
+        if (s === 'rewarded')    rewarded++;
+      });
+      _refStats = { total: total, registered: registered, qualified: qualified, rewarded: rewarded };
+      _updateRefUI();
+    }).catch(function(){});
+}
+
+/* Update referral UI elements wherever they appear */
+function _updateRefUI() {
+  var code = _refCode || '';
+  var baseUrl = window.location.origin + '/';
+  var link    = code ? baseUrl + '?ref=' + code : '';
+
+  /* Profile modal referral section */
+  var codeEl = document.getElementById('ref-code-display');
+  var linkEl = document.getElementById('ref-link-display');
+  if (codeEl) codeEl.textContent = code || '—';
+  if (linkEl) linkEl.value       = link;
+
+  /* Dashboard referral card */
+  var dashCode = document.getElementById('dash-ref-code');
+  var dashLink = document.getElementById('dash-ref-link');
+  var dashStat = document.getElementById('dash-ref-total');
+  if (dashCode) dashCode.textContent = code || '—';
+  if (dashLink) dashLink.value       = link;
+  if (dashStat && _refStats) dashStat.textContent = _refStats.total;
+
+  /* Stat counters */
+  if (_refStats) {
+    var elReg  = document.getElementById('ref-stat-registered');
+    var elQual = document.getElementById('ref-stat-qualified');
+    var elRwd  = document.getElementById('ref-stat-rewarded');
+    if (elReg)  elReg.textContent  = _refStats.registered;
+    if (elQual) elQual.textContent = _refStats.qualified;
+    if (elRwd)  elRwd.textContent  = _refStats.rewarded;
+  }
+}
+
+/* Copy referral link to clipboard */
+function copyRefLink(sourceId) {
+  var el = document.getElementById(sourceId || 'ref-link-display');
+  if (!el) return;
+  var link = el.value || el.textContent || '';
+  if (!link) { showToast(curLang === 'rw' ? 'Nta link ibonetse' : 'No link available', 'warn'); return; }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(link).then(function() {
+      showToast(curLang === 'rw' ? 'Link yakopiwe!' : 'Referral link copied!', 'success');
+    }).catch(function(){
+      _fallbackCopy(link);
+    });
+  } else {
+    _fallbackCopy(link);
+  }
+}
+
+function _fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;left:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); showToast(curLang === 'rw' ? 'Link yakopiwe!' : 'Copied!', 'success'); } catch(e){}
+  document.body.removeChild(ta);
+}
+
+/* Open referral panel modal */
+function openReferralPanel() {
+  _ensureReferralModal();
+  loadReferralStats();
+  document.getElementById('ref-panel-modal').style.display = 'flex';
+}
+
+function closeReferralPanel() {
+  var m = document.getElementById('ref-panel-modal');
+  if (m) m.style.display = 'none';
+}
+
+/* Dynamically create the referral modal (lazy init) */
+function _ensureReferralModal() {
+  if (document.getElementById('ref-panel-modal')) return;
+  var m = document.createElement('div');
+  m.className     = 'modal-wrap';
+  m.id            = 'ref-panel-modal';
+  m.style.display = 'none';
+  m.innerHTML = '<div class="modal" style="max-width:480px;width:95vw">'
+    + '<div class="modal-hdr">'
+    + '<div><div class="modal-title" data-rw="Porogaramu yo Gutumiza Inshuti" data-en="Referral Program">Referral Program</div>'
+    + '<div class="modal-sub" data-rw="Tumiza inshuti, uzahabwa inguzanyo!" data-en="Invite friends and earn rewards!">Invite friends and earn rewards!</div></div>'
+    + '<button class="modal-x" onclick="closeReferralPanel()">✕</button>'
+    + '</div>'
+    + '<div class="modal-body">'
+    /* Referral code display */
+    + '<div style="background:var(--light);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1rem">'
+    + '<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.5rem" data-rw="Kode Yawe yo Gutumiza" data-en="Your Referral Code">YOUR REFERRAL CODE</div>'
+    + '<div id="ref-code-display" style="font-size:1.6rem;font-weight:800;letter-spacing:.12em;color:var(--navy);font-family:monospace">—</div>'
+    + '</div>'
+    /* Referral link + copy */
+    + '<div style="margin-bottom:1rem">'
+    + '<div style="font-size:.72rem;font-weight:600;color:var(--muted);margin-bottom:.4rem" data-rw="Link Yawe yo Gutumiza" data-en="Your Referral Link">YOUR INVITE LINK</div>'
+    + '<div style="display:flex;gap:.5rem;align-items:center">'
+    + '<input type="text" id="ref-link-display" readonly style="flex:1;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-size:.78rem;background:var(--light);color:var(--navy);font-family:monospace" value="">'
+    + '<button class="btn btn-navy btn-sm" onclick="copyRefLink(\'ref-link-display\')" style="white-space:nowrap" data-rw="Kopi" data-en="Copy">Copy Link</button>'
+    + '</div>'
+    + '</div>'
+    /* Stats */
+    + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1rem">'
+    + '<div style="background:var(--light);border-radius:9px;padding:.7rem;text-align:center"><div id="ref-stat-registered" style="font-size:1.4rem;font-weight:800;color:var(--navy)">0</div><div style="font-size:.68rem;color:var(--muted)" data-rw="Byiyandikishije" data-en="Registered">Registered</div></div>'
+    + '<div style="background:var(--light);border-radius:9px;padding:.7rem;text-align:center"><div id="ref-stat-qualified" style="font-size:1.4rem;font-weight:800;color:#16A34A">0</div><div style="font-size:.68rem;color:var(--muted)" data-rw="Yemejwe" data-en="Qualified">Qualified</div></div>'
+    + '<div style="background:var(--light);border-radius:9px;padding:.7rem;text-align:center"><div id="ref-stat-rewarded" style="font-size:1.4rem;font-weight:800;color:var(--gold)">0</div><div style="font-size:.68rem;color:var(--muted)" data-rw="Yahawe Igihembo" data-en="Rewarded">Rewarded</div></div>'
+    + '</div>'
+    /* Share via WhatsApp */
+    + '<div style="display:flex;gap:.6rem;flex-wrap:wrap">'
+    + '<button class="btn btn-outline btn-sm" onclick="shareRefWhatsApp()" style="flex:1" data-rw="Sangira kuri WhatsApp" data-en="Share on WhatsApp">📱 WhatsApp</button>'
+    + '<button class="btn btn-outline btn-sm" onclick="copyRefLink(\'ref-link-display\')" style="flex:1" data-rw="Kopi Link" data-en="Copy Link">🔗 Copy Link</button>'
+    + '</div>'
+    + '<div style="margin-top:1rem;padding:.75rem 1rem;background:#EFF6FF;border-radius:9px;border:1px solid #BFDBFE;font-size:.75rem;color:#1E40AF">'
+    + '<strong data-rw="Uburyo bwo gutuza:" data-en="How it works:">How it works:</strong><br>'
+    + '<span data-rw="1. Sangira link yawe na bagenzi bawe · 2. Bakiyandikisha barimo iyo link · 3. Uzahabwa inguzanyo iyo bagerageje gutumanahana" data-en="1. Share your link with friends · 2. They register using your link · 3. You earn rewards when they complete a transaction">1. Share your link · 2. Friends register · 3. Earn rewards when they transact</span>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+  document.body.appendChild(m);
+  m.addEventListener('click', function(e){ if (e.target === m) closeReferralPanel(); });
+}
+
+/* Share via WhatsApp */
+function shareRefWhatsApp() {
+  var link = (document.getElementById('ref-link-display') || {}).value || '';
+  if (!link) return;
+  var msg = curLang === 'rw'
+    ? encodeURIComponent('Murakaza neza kuri KOMISIYONERI — Platform nziza y\'imitungo mu Rwanda! Iyandikishe ukoresheje link yanjye: ' + link)
+    : encodeURIComponent('Join KOMISIYONERI — Rwanda\'s #1 Real Estate Platform! Register using my referral link: ' + link);
+  window.open('https://wa.me/?text=' + msg, '_blank');
+}
+
+/* Inject referral card into dashboard on navigation */
+(function() {
+  var _goRef = go;
+  go = function(name) {
+    _goRef(name);
+    if (name === 'dashboard') {
+      setTimeout(function() {
+        if (!currentUser) return;
+        var dashContent = document.querySelector('.dash-content');
+        if (!dashContent) return;
+        if (document.getElementById('dash-ref-card')) { loadReferralStats(); return; }
+        var card = document.createElement('div');
+        card.id        = 'dash-ref-card';
+        card.className = 'dc';
+        card.style.cssText = 'margin-top:1.4rem;cursor:pointer';
+        card.onclick   = openReferralPanel;
+        card.innerHTML = '<div class="dc-hdr">'
+          + '<span class="dc-title" data-rw="Porogaramu yo Gutumiza" data-en="Referral Program">Referral Program</span>'
+          + '<button class="dc-action" onclick="event.stopPropagation();openReferralPanel()" data-rw="Reba" data-en="View">View</button>'
+          + '</div>'
+          + '<div style="padding:1rem 1.4rem;display:flex;align-items:center;gap:1.2rem">'
+          + '<div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--navy),var(--blue));display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+          + '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>'
+          + '</div>'
+          + '<div style="flex:1">'
+          + '<div style="font-size:.82rem;font-weight:600;color:var(--dark)" data-rw="Itumizwa Ryawe" data-en="Your Referral Code">Your Referral Code</div>'
+          + '<div id="dash-ref-code" style="font-size:1rem;font-weight:800;letter-spacing:.08em;color:var(--navy);font-family:monospace">—</div>'
+          + '<div style="font-size:.72rem;color:var(--muted);margin-top:.2rem"><span id="dash-ref-total" style="color:var(--navy);font-weight:700">0</span> <span data-rw="inshuti zitumijwe" data-en="friends referred">friends referred</span></div>'
+          + '</div>'
+          + '<div style="display:flex;gap:.4rem;flex-direction:column;align-items:flex-end">'
+          + '<input type="text" id="dash-ref-link" readonly style="width:1px;height:1px;opacity:0;position:absolute" value="">'
+          + '<button class="btn btn-navy btn-sm" onclick="event.stopPropagation();copyRefLink(\'dash-ref-link\')" data-rw="Kopi Link" data-en="Copy Link">Copy Link</button>'
+          + '</div>'
+          + '</div>';
+        dashContent.appendChild(card);
+        loadReferralStats();
+      }, 200);
+    }
+  };
+})();
+
+/* Hook into handleRegister to link referrals after successful signup */
+(function() {
+  if (typeof handleRegister !== 'function') return;
+  var _origHandleRegister = handleRegister;
+  handleRegister = async function() {
+    /* Call original — it handles auth + Firestore user creation */
+    var refCode = '';
+    try { refCode = localStorage.getItem('km_ref_code') || ''; } catch(e){}
+    await _origHandleRegister.apply(this, arguments);
+    /* After register: link referral if code was stored */
+    if (refCode && typeof currentUser !== 'undefined' && currentUser && currentUser.uid) {
+      linkReferralOnRegister(currentUser.uid, currentUser.email || '');
+    }
+  };
+})();
+
+/* Hook into auth state change to ensure referral code exists */
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      if (typeof firebaseAuth !== 'undefined' && firebaseAuth) {
+        firebaseAuth.onAuthStateChanged(function(fbUser) {
+          if (fbUser) {
+            setTimeout(function() { ensureReferralCode(fbUser.uid); }, 1000);
+          } else {
+            _refCode  = null;
+            _refStats = null;
+          }
+        });
+      }
+    }, 500);
+  });
+})();
 </script>
 </body></html>
