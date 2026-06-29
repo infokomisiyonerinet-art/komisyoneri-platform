@@ -12908,13 +12908,14 @@ go = function(page) {
         if (adminModal && adminModal.style.display !== 'none' && adminCurrentTab === 'deals') {
           if (typeof renderAdminDeals === 'function') renderAdminDeals();
         }
-        if (currentUser && currentUser.role === 'Agent' && currentUser.email) {
+        if (currentUser && ['agent','Agent'].indexOf(currentUser.role) !== -1 && currentUser.email) {
           items.forEach(function(lead) {
-            if (lead.agentEmail === currentUser.email && lead.id && !_kmSeenLeads.has(lead.id)) {
+            var isMyLead = (lead.agentEmail === currentUser.email) || (lead.agentId === currentUser.uid);
+            if (isMyLead && lead.id && !_kmSeenLeads.has(lead.id)) {
               _kmSeenLeads.add(lead.id);
               kmNotify(
                 curLang==='rw' ? 'Lead Nshya! 🏠' : 'New Lead! 🏠',
-                (lead.clientName||'') + ' — ' + (lead.zone||''),
+                (lead.clientName||'') + ' — ' + (lead.zone||lead.district||''),
                 'lead-' + lead.id
               );
             }
@@ -12939,13 +12940,15 @@ go = function(page) {
         s.forEach(function(c){ items.push(c.val()); });
         if (!items.length) return;
         _set('km_bookings', JSON.stringify(items));
-        if (currentUser && currentUser.role === 'Agent' && currentUser.email) {
+        if (currentUser && ['agent','Agent','admin','Admin','staff'].indexOf(currentUser.role) !== -1 && currentUser.email) {
+          var isAgentOnly = ['agent','Agent'].indexOf(currentUser.role) !== -1;
           items.forEach(function(bk) {
-            if (bk.agentEmail === currentUser.email && bk.id && !_kmSeenBookings.has(bk.id)) {
+            var isMyBooking = !isAgentOnly || bk.agentEmail === currentUser.email;
+            if (isMyBooking && bk.id && !_kmSeenBookings.has(bk.id)) {
               _kmSeenBookings.add(bk.id);
               kmNotify(
                 curLang==='rw' ? 'Gahunda Nshya! 📅' : 'New Booking! 📅',
-                (bk.name||'') + ' — ' + (bk.propTitle||'') + ' ' + (bk.date||''),
+                (bk.name||'') + ' — ' + (bk.propTitle||'') + (bk.date ? ' · ' + bk.date : ''),
                 'booking-' + bk.id
               );
             }
@@ -13046,6 +13049,51 @@ go = function(page) {
     window.openNotifPanel         = openNotifPanel;
     window.kmNotify               = kmNotify;
     window._kmBadge               = function(d) { _kmBadge(d); };
+
+    /* Firestore real-time lead listener — fires even when localStorage is bypassed */
+    var _fsLeadUnsub = null;
+    function _attachFsLeadListener() {
+      if (_fsLeadUnsub) { _fsLeadUnsub(); _fsLeadUnsub = null; }
+      if (typeof db === 'undefined' || !currentUser) return;
+      var role = (currentUser.role || '').toLowerCase();
+      var query;
+      if (role === 'agent') {
+        query = db.collection('leads').where('agentId','==',currentUser.uid).where('isActive','==',true);
+      } else if (['admin','staff','ceo','super_admin'].indexOf(role) !== -1) {
+        query = db.collection('leads').where('isActive','==',true);
+      } else { return; }
+      var _fsSeenLeads = new Set(JSON.parse(localStorage.getItem('km_fs_seen_leads')||'[]'));
+      _fsLeadUnsub = query.onSnapshot(function(snap) {
+        snap.docChanges().forEach(function(change) {
+          if (change.type !== 'added') return;
+          var lead = change.doc.data();
+          var lid  = change.doc.id;
+          if (!_fsSeenLeads.has(lid)) {
+            _fsSeenLeads.add(lid);
+            kmNotify(
+              curLang==='rw' ? 'Lead Nshya kuri Firestore! 🏠' : 'New Lead! 🏠',
+              (lead.clientName||'') + ' — ' + (lead.district||lead.zone||'') + ' · ' + (lead.action||''),
+              'fslead-' + lid
+            );
+            /* Refresh CRM badge */
+            var badge = document.getElementById('crm-sidebar-count');
+            if (badge) badge.textContent = parseInt(badge.textContent||0) + 1;
+          }
+        });
+        try { localStorage.setItem('km_fs_seen_leads', JSON.stringify(Array.from(_fsSeenLeads))); } catch(e){}
+      }, function(err){ console.warn('[FS Lead Listener]', err); });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        if (typeof currentUser !== 'undefined' && currentUser) _attachFsLeadListener();
+        if (typeof firebaseAuth !== 'undefined' && firebaseAuth) {
+          firebaseAuth.onAuthStateChanged(function(u) {
+            if (u) { setTimeout(_attachFsLeadListener, 800); }
+            else { if (_fsLeadUnsub) { _fsLeadUnsub(); _fsLeadUnsub = null; } }
+          });
+        }
+      }, 1500);
+    });
   } catch(e){ console.error('Sync error:',e); }
 })();
 </script>
