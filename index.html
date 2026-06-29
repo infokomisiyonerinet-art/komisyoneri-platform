@@ -13036,6 +13036,11 @@ go = function(page) {
     document.readyState==='loading'
       ? document.addEventListener('DOMContentLoaded', attachRealtimeListeners)
       : attachRealtimeListeners();
+    window.requestNotifPermission = requestNotifPermission;
+    window.closeNotifPanel        = closeNotifPanel;
+    window.openNotifPanel         = openNotifPanel;
+    window.kmNotify               = kmNotify;
+    window._kmBadge               = function(d) { _kmBadge(d); };
   } catch(e){ console.error('Sync error:',e); }
 })();
 </script>
