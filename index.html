@@ -2804,9 +2804,9 @@ html,body{overscroll-behavior-x:none}
         </div>
 
         <div class="hero-stats">
-          <div><span class="hero-stat-val">1,240+</span><span class="hero-stat-lbl" data-rw="Imitungo Yanditswe" data-en="Listed Properties">Imitungo Yanditswe</span></div>
-          <div><span class="hero-stat-val">850+</span><span class="hero-stat-lbl" data-rw="Abakiliya Bashimye" data-en="Happy Clients">Abakiliya Bashimye</span></div>
-          <div><span class="hero-stat-val">100+</span><span class="hero-stat-lbl" data-rw="Agents Bemewe" data-en="Verified Agents">Agents Bemewe</span></div>
+          <div><span class="hero-stat-val" id="hero-stat-listings">1,240+</span><span class="hero-stat-lbl" data-rw="Imitungo Yanditswe" data-en="Listed Properties">Imitungo Yanditswe</span></div>
+          <div><span class="hero-stat-val" id="hero-stat-clients">850+</span><span class="hero-stat-lbl" data-rw="Abakiliya Bashimye" data-en="Happy Clients">Abakiliya Bashimye</span></div>
+          <div><span class="hero-stat-val" id="hero-stat-agents">100+</span><span class="hero-stat-lbl" data-rw="Agents Bemewe" data-en="Verified Agents">Agents Bemewe</span></div>
           <div><span class="hero-stat-val">30</span><span class="hero-stat-lbl" data-rw="Akarere ka Rwanda" data-en="Districts in Rwanda">Akarere ka Rwanda</span></div>
         </div>
       </div>
@@ -3279,24 +3279,23 @@ html,body{overscroll-behavior-x:none}
         </div>
         <div class="filt-sec">
           <div class="filt-title" data-rw="Igiciro" data-en="Price Range">Igiciro</div>
-          <input type="range" class="range-sl" min="0" max="500" value="200">
-          <div class="range-lbl"><span>0</span><span id="range-val">200M RWF</span><span>500M+</span></div>
+          <input type="range" class="range-sl" id="filt-price" min="0" max="500" value="500" oninput="updatePriceLabel(this.value)">
+          <div class="range-lbl"><span>0</span><span id="range-val" data-rw="Byose" data-en="All">Byose</span><span>500M+</span></div>
         </div>
         <div class="filt-sec">
           <div class="filt-title" data-rw="Ibyumba" data-en="Bedrooms">Ibyumba</div>
-          <div class="chips-row">
-            <button class="chip on">1+</button><button class="chip">2+</button><button class="chip">3+</button><button class="chip">4+</button><button class="chip">5+</button>
+          <div class="chips-row" id="filt-beds-row">
+            <button class="chip on" onclick="toggleBedChip(this,0)" data-rw="Zose" data-en="All">Zose</button><button class="chip" onclick="toggleBedChip(this,1)">1+</button><button class="chip" onclick="toggleBedChip(this,2)">2+</button><button class="chip" onclick="toggleBedChip(this,3)">3+</button><button class="chip" onclick="toggleBedChip(this,4)">4+</button>
           </div>
         </div>
         <div class="filt-sec">
-          <div class="filt-title" data-rw="Serivisi Zihariye" data-en="Special">Serivisi Zihariye</div>
+          <div class="filt-title" data-rw="Serivisi Zihariye" data-en="Special Features">Serivisi Zihariye</div>
           <div class="filt-opts">
-            <label class="filt-opt"><input type="checkbox"> <span>3D Virtual Tour</span></label>
-            <label class="filt-opt"><input type="checkbox"> <span>AI Valuation</span></label>
-            <label class="filt-opt"><input type="checkbox"> <span data-rw="Agent Wemwe" data-en="Verified Agent">Agent Wemwe</span></label>
+            <label class="filt-opt"><input type="checkbox" id="filt-3d"> <span>3D Virtual Tour</span></label>
+            <label class="filt-opt"><input type="checkbox" id="filt-verified"> <span data-rw="Agent Wemwe" data-en="Verified Agent">Agent Wemwe</span></label>
           </div>
         </div>
-        <button class="btn btn-navy" style="width:100%;justify-content:center;margin-top:.3rem">
+        <button class="btn btn-navy" id="filt-apply-btn" onclick="applySidebarFilters()" style="width:100%;justify-content:center;margin-top:.3rem">
           <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
           <span data-rw="Shyira Filters" data-en="Apply Filters">Shyira Filters</span>
         </button>
@@ -3306,15 +3305,15 @@ html,body{overscroll-behavior-x:none}
       <div class="list-main-bar">
         <p class="res-count"><strong id="listings-count">0</strong> <span data-rw="imitungo yabonetse" data-en="properties found">imitungo yabonetse</span></p>
         <div class="bar-right">
-          <select class="sort-sel">
-            <option data-rw="Ishimishije" data-en="Featured">Ishimishije</option>
-            <option data-rw="Igiciro: Hasi → Hejuru" data-en="Price: Low → High">Igiciro: Hasi → Hejuru</option>
-            <option data-rw="Igiciro: Hejuru → Hasi" data-en="Price: High → Low">Igiciro: Hejuru → Hasi</option>
-            <option data-rw="Rishya Hambere" data-en="Newest First">Rishya Hambere</option>
+          <select class="sort-sel" id="filt-sort" onchange="sortListings(this.value)">
+            <option value="featured" data-rw="Ishimishije" data-en="Featured">Ishimishije</option>
+            <option value="price-asc" data-rw="Igiciro: Hasi → Hejuru" data-en="Price: Low → High">Igiciro: Hasi → Hejuru</option>
+            <option value="price-desc" data-rw="Igiciro: Hejuru → Hasi" data-en="Price: High → Low">Igiciro: Hejuru → Hasi</option>
+            <option value="newest" data-rw="Rishya Hambere" data-en="Newest First">Rishya Hambere</option>
           </select>
           <div class="v-btns">
-            <button class="v-btn active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button>
-            <button class="v-btn"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1.5" style="fill:currentColor;stroke:none"/><circle cx="3" cy="12" r="1.5" style="fill:currentColor;stroke:none"/><circle cx="3" cy="18" r="1.5" style="fill:currentColor;stroke:none"/></svg></button>
+            <button class="v-btn active" id="vbtn-grid" onclick="setListingView('grid')" title="Grid view"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button>
+            <button class="v-btn" id="vbtn-list" onclick="setListingView('list')" title="List view"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1.5" style="fill:currentColor;stroke:none"/><circle cx="3" cy="12" r="1.5" style="fill:currentColor;stroke:none"/><circle cx="3" cy="18" r="1.5" style="fill:currentColor;stroke:none"/></svg></button>
           </div>
         </div>
       </div>
@@ -21607,6 +21606,218 @@ function loadApprovedProperties() {
       _renderApprovedGrids();
     });
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   PHASE 7 — Listings Sidebar Filters, Sort, View Toggle & Live Stats
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Update price range display label */
+function updatePriceLabel(val) {
+  var el = document.getElementById('range-val');
+  if (!el) return;
+  var v = parseInt(val);
+  el.textContent = v >= 500 ? (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Byose' : 'All') : v + 'M RWF';
+}
+
+/* Toggle bedroom filter chip (mutually exclusive) */
+function toggleBedChip(btn, minBeds) {
+  var row = document.getElementById('filt-beds-row');
+  if (row) row.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('on'); });
+  btn.classList.add('on');
+  btn._minBeds = minBeds;
+}
+
+/* Switch listings grid/list view */
+function setListingView(view) {
+  var grid = document.getElementById('p-grid-main');
+  if (!grid) return;
+  if (view === 'list') {
+    grid.classList.add('p-list-view');
+    var g = document.getElementById('vbtn-grid'); if (g) g.classList.remove('active');
+    var l = document.getElementById('vbtn-list'); if (l) l.classList.add('active');
+  } else {
+    grid.classList.remove('p-list-view');
+    var g2 = document.getElementById('vbtn-grid'); if (g2) g2.classList.add('active');
+    var l2 = document.getElementById('vbtn-list'); if (l2) l2.classList.remove('active');
+  }
+}
+
+/* Sort currently rendered property cards */
+function sortListings(value) {
+  var grids = document.querySelectorAll('#p-grid-main');
+  grids.forEach(function(grid) {
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.user-prop-card'));
+    if (cards.length < 2) return;
+    var approved = getApprovedProps();
+    var propMap = {};
+    approved.forEach(function(p) { propMap[String(p.id)] = p; });
+    cards.sort(function(a, b) {
+      var pa = propMap[a.getAttribute('data-pid')] || {};
+      var pb = propMap[b.getAttribute('data-pid')] || {};
+      if (value === 'price-asc')  return (parseInt(pa.price)||0) - (parseInt(pb.price)||0);
+      if (value === 'price-desc') return (parseInt(pb.price)||0) - (parseInt(pa.price)||0);
+      if (value === 'featured')   return (pb.featured ? 1 : 0) - (pa.featured ? 1 : 0);
+      return 0; /* newest: Firestore already ordered */
+    });
+    cards.forEach(function(c) { grid.appendChild(c); });
+  });
+}
+
+/* Apply sidebar filters to the listings grid */
+function applySidebarFilters() {
+  var fBtn = document.getElementById('filt-apply-btn');
+  if (fBtn) { fBtn.disabled = true; fBtn.textContent = '...'; }
+
+  var approved = getApprovedProps();
+
+  /* Collect checked property types */
+  var secs = document.querySelectorAll('.filters .filt-sec');
+  var checkedTypes = [], checkedLocs = [], priceMax = 500, minBeds = 0, need3d = false, needVerified = false;
+
+  if (secs[0]) {
+    secs[0].querySelectorAll('input[type=checkbox]:checked').forEach(function(cb) {
+      checkedTypes.push((cb.nextElementSibling.textContent || '').trim().toLowerCase());
+    });
+  }
+  if (secs[1]) {
+    secs[1].querySelectorAll('input[type=checkbox]:checked').forEach(function(cb) {
+      checkedLocs.push((cb.nextElementSibling.textContent || '').trim().toLowerCase());
+    });
+  }
+  var rangeEl = document.getElementById('filt-price');
+  if (rangeEl) priceMax = parseInt(rangeEl.value) || 500;
+
+  var activeBed = document.querySelector('#filt-beds-row .chip.on');
+  if (activeBed) minBeds = activeBed._minBeds || 0;
+
+  var cb3d  = document.getElementById('filt-3d');       if (cb3d)  need3d       = cb3d.checked;
+  var cbVer = document.getElementById('filt-verified'); if (cbVer) needVerified = cbVer.checked;
+
+  var filtered = approved.filter(function(prop) {
+    /* Type */
+    if (checkedTypes.length > 0) {
+      var pt = (prop.type || '').toLowerCase();
+      var ok = checkedTypes.some(function(t) {
+        if (t.includes('villa') && pt.includes('villa')) return true;
+        if ((t.includes('apart') || t.includes('aparti')) && pt.includes('apart')) return true;
+        if (t.includes('commercial') || t.includes('inyubako')) {
+          if (pt.includes('commercial') || pt.includes('office') || pt.includes('shop')) return true;
+        }
+        if ((t.includes('land') || t.includes('ubutaka')) && (pt.includes('land') || pt.includes('plot'))) return true;
+        return false;
+      });
+      if (!ok) return false;
+    }
+    /* Location */
+    if (checkedLocs.length > 0) {
+      var pd = (prop.district || '').toLowerCase();
+      var ok2 = checkedLocs.some(function(l) {
+        var parts = l.split('—').map(function(s) { return s.trim(); });
+        return parts.some(function(p) { return pd.includes(p) || p.includes(pd); });
+      });
+      if (!ok2) return false;
+    }
+    /* Price (priceMax in millions, 500 = unlimited) */
+    if (priceMax < 500) {
+      if ((parseInt(prop.price) || 0) > priceMax * 1000000) return false;
+    }
+    /* Bedrooms */
+    if (minBeds > 0 && (parseInt(prop.beds) || 0) < minBeds) return false;
+    /* Special */
+    if (need3d && !prop.tour3dUrl) return false;
+    if (needVerified && !prop.verified) return false;
+    return true;
+  });
+
+  /* Render */
+  var grids = document.querySelectorAll('#p-grid-main');
+  grids.forEach(function(grid) {
+    grid.querySelectorAll('.user-prop-card, .empty-listings, .similar-results-note').forEach(function(el) { el.remove(); });
+    if (filtered.length === 0) {
+      var d = document.createElement('div');
+      d.className = 'empty-listings empty-state';
+      d.style.cssText = 'grid-column:1/-1';
+      d.innerHTML = '<div class="es-icon">&#128270;</div>'
+        + '<div class="es-title">' + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Nta mitungo ihuye' : 'No matching properties') + '</div>'
+        + '<div class="es-sub">' + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Gerageza guhindura filters' : 'Try adjusting your filters') + '</div>'
+        + '<button onclick="resetSidebarFilters()" class="btn btn-outline btn-sm" style="margin-top:.6rem">'
+        + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Siba Filters' : 'Reset Filters') + '</button>';
+      grid.appendChild(d);
+    } else {
+      filtered.forEach(function(prop) {
+        var w = document.createElement('div');
+        w.className = 'user-prop-card';
+        w.setAttribute('data-pid', String(prop.id));
+        w.innerHTML = renderUserPropCard(prop);
+        grid.appendChild(w);
+      });
+    }
+  });
+
+  var countEl = document.getElementById('listings-count');
+  if (countEl) countEl.textContent = filtered.length;
+
+  /* Re-apply current sort */
+  var sortEl = document.getElementById('filt-sort');
+  if (sortEl && sortEl.value && sortEl.value !== 'featured') sortListings(sortEl.value);
+
+  if (fBtn) {
+    fBtn.disabled = false;
+    fBtn.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>'
+      + '<span data-rw="Shyira Filters" data-en="Apply Filters">' + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Shyira Filters' : 'Apply Filters') + '</span>';
+  }
+}
+
+/* Reset sidebar filters to defaults */
+function resetSidebarFilters() {
+  var sidebar = document.querySelector('.filters');
+  if (sidebar) {
+    sidebar.querySelectorAll('input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
+    var range = document.getElementById('filt-price'); if (range) { range.value = 500; updatePriceLabel(500); }
+    var bedsRow = document.getElementById('filt-beds-row');
+    if (bedsRow) {
+      bedsRow.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('on'); });
+      var first = bedsRow.querySelector('.chip'); if (first) first.classList.add('on');
+    }
+  }
+  var sortEl = document.getElementById('filt-sort'); if (sortEl) sortEl.value = 'featured';
+  loadApprovedProperties();
+}
+
+/* Load live platform stats into hero section */
+function loadLiveHomeStats() {
+  var elListings = document.getElementById('hero-stat-listings');
+  var elClients  = document.getElementById('hero-stat-clients');
+  var elAgents   = document.getElementById('hero-stat-agents');
+  if (!elListings && !elClients && !elAgents) return;
+
+  db.collection('properties')
+    .where('status', 'in', ['approved', 'Approved'])
+    .where('isActive', '==', true)
+    .get().then(function(snap) {
+      if (elListings && snap.size > 0) elListings.textContent = snap.size + '+';
+    }).catch(function(){});
+
+  db.collection('users').where('isActive', '==', true).get().then(function(snap) {
+    if (elClients && snap.size > 5) elClients.textContent = snap.size + '+';
+  }).catch(function(){});
+
+  db.collection('users').where('role', 'in', ['agent', 'Agent']).get().then(function(snap) {
+    if (elAgents && snap.size > 0) elAgents.textContent = snap.size + '+';
+  }).catch(function(){});
+}
+
+/* Hook loadLiveHomeStats into home page navigation */
+(function() {
+  var _goP7 = go;
+  go = function(name) {
+    _goP7(name);
+    if (name === 'home') setTimeout(loadLiveHomeStats, 800);
+  };
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(loadLiveHomeStats, 1500);
+  });
+})();
 
 /* Override openPropDetail — fetch from Firestore when not in localStorage cache */
 (function() {
