@@ -6187,9 +6187,22 @@ html,body{overscroll-behavior-x:none}
       <button class="btn btn-outline btn-sm" style="font-size:.78rem" onclick="saveDealNotes()" data-rw="Bika Amanotisi" data-en="Save Notes">Save Notes</button>
     </div>
 
+    <!-- Quick Contact (WhatsApp / Call) -->
+    <div id="dd-contact-row" style="display:none;gap:.4rem;margin-bottom:.6rem">
+      <a id="dd-whatsapp-btn" href="#" target="_blank" rel="noopener" class="btn" style="flex:1;justify-content:center;font-size:.79rem;text-decoration:none;background:#25D366;color:#fff;border:none">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        WhatsApp
+      </a>
+      <a id="dd-call-btn" href="#" class="btn btn-outline" style="flex:1;justify-content:center;font-size:.79rem;text-decoration:none">
+        📞 <span data-rw="Hamagara" data-en="Call">Call</span>
+      </a>
+    </div>
+
     <!-- Actions -->
     <div style="display:flex;gap:.5rem;flex-wrap:wrap">
       <button class="btn btn-navy" id="dd-advance-btn" style="flex:1;justify-content:center;font-size:.82rem" onclick="advanceDealStage()" data-rw="Jya Imbere" data-en="Advance Stage">Advance Stage</button>
+      <button class="btn" id="dd-close-won-btn" style="background:#16A34A;color:#fff;font-size:.82rem;padding:.45rem .7rem;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:.3rem" onclick="closeDealWon()">✅ <span data-rw="Won" data-en="Won">Won</span></button>
+      <button class="btn" id="dd-close-lost-btn" style="background:#DC2626;color:#fff;font-size:.82rem;padding:.45rem .7rem;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:.3rem" onclick="closeDealLost()">✗ <span data-rw="Lost" data-en="Lost">Lost</span></button>
       <button class="btn btn-outline" style="flex-shrink:0;font-size:.82rem" onclick="closeDealDetail()" data-rw="Funga" data-en="Close">Close</button>
     </div>
 
@@ -6564,7 +6577,17 @@ html,body{overscroll-behavior-x:none}
         </select>
       </div>
       <div class="vr-field">
-        <label data-rw="URL ya Dosiye (Google Drive, Dropbox...)" data-en="File URL (Google Drive, Dropbox...)">File URL *</label>
+        <label data-rw="Shyira Dosiye Hano" data-en="Upload File">Upload File (PDF / DOC / Image)</label>
+        <input type="file" id="du-file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif" style="width:100%;padding:.5rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;box-sizing:border-box;background:#fff;cursor:pointer">
+        <div id="du-upload-progress" style="display:none;margin-top:.4rem">
+          <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden">
+            <div id="du-progress-bar" style="background:var(--navy);height:100%;border-radius:4px;width:0%;transition:width .3s ease"></div>
+          </div>
+          <div id="du-progress-label" style="font-size:.72rem;color:var(--muted);margin-top:.2rem">Uploading...</div>
+        </div>
+      </div>
+      <div class="vr-field">
+        <label data-rw="Cyangwa injiza URL (Google Drive, Dropbox...)" data-en="Or enter File URL (Google Drive, Dropbox...)">Or File URL</label>
         <input type="url" id="du-url" placeholder="https://drive.google.com/..." style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
       </div>
       <div class="vr-field">
@@ -23901,6 +23924,190 @@ function _updateLeadDetailButtons(lead) {
   if (wonBtn)  wonBtn.style.display  = isWon    ? 'none' : '';
   if (lostBtn) lostBtn.style.display = isLost   ? 'none' : '';
   if (convBtn) convBtn.style.display = canConvert ? '' : 'none';
+}
+
+/* ══════════════════════════════════════════════════════
+   DEAL DETAIL — CLOSE WON / CLOSE LOST / QUICK CONTACT
+══════════════════════════════════════════════════════ */
+
+function closeDealWon() {
+  if (!_ddCurrentDeal) return;
+  var dealId = _ddCurrentDeal._docId || _ddCurrentDeal.id || '';
+  if (!dealId || typeof db === 'undefined') return;
+  var cur = _ddCurrentDeal.pipelineStage || 'new';
+  if (cur === 'closed_won') {
+    showToast(curLang === 'rw' ? 'Deal isanzwe ifunzwe neza!' : 'Deal already closed won!', 'info'); return;
+  }
+  if (!confirm(curLang === 'rw'
+    ? 'Wemeza ko deal irangiye neza kandi wabigezeho (Closed Won)?'
+    : 'Confirm: Mark this deal as Closed Won and trigger commission calculation?')) return;
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+  db.collection('deals').doc(dealId).update({
+    pipelineStage: 'closed_won',
+    status:        'closed_won',
+    closedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy:     uid
+  }).then(function() {
+    logAudit('deal.closed.won', 'deals', dealId, { pipelineStage: cur }, { pipelineStage: 'closed_won' });
+    showToast(curLang === 'rw'
+      ? 'Deal yafunzwe neza! Komisiyoni irategerezwa...'
+      : 'Deal closed as Won! Calculating commission...', 'success');
+    if (_ddCurrentDeal) _ddCurrentDeal.pipelineStage = 'closed_won';
+    for (var i = 0; i < _deals.length; i++) {
+      if ((_deals[i]._docId || _deals[i].id) === dealId) { _deals[i].pipelineStage = 'closed_won'; break; }
+    }
+    _updateDealDetailButtons(_ddCurrentDeal);
+    renderDealList();
+    updateDealStats();
+    setTimeout(function() {
+      if (typeof autoCalculateCommission === 'function') autoCalculateCommission(dealId, _ddCurrentDeal);
+    }, 600);
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error closing deal', 'error');
+    console.error('[Deal] Close won error:', err);
+  });
+}
+
+function closeDealLost() {
+  if (!_ddCurrentDeal) return;
+  var dealId = _ddCurrentDeal._docId || _ddCurrentDeal.id || '';
+  if (!dealId || typeof db === 'undefined') return;
+  var cur = _ddCurrentDeal.pipelineStage || 'new';
+  if (cur === 'closed_lost') {
+    showToast(curLang === 'rw' ? 'Deal isanzwe ifunzwe (Lost)!' : 'Deal already closed lost!', 'info'); return;
+  }
+  var lostReason = window.prompt(
+    curLang === 'rw' ? 'Impamvu deal yanze (optional):' : 'Reason for losing deal (optional):',
+    ''
+  );
+  if (lostReason === null) return;
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+  var update = {
+    pipelineStage: 'closed_lost',
+    status:        'closed_lost',
+    closedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy:     uid
+  };
+  if (lostReason.trim()) update.lostReason = lostReason.trim();
+  db.collection('deals').doc(dealId).update(update).then(function() {
+    logAudit('deal.closed.lost', 'deals', dealId, { pipelineStage: cur }, { pipelineStage: 'closed_lost', lostReason: update.lostReason });
+    showToast(curLang === 'rw' ? 'Deal yashyizwe muri Lost.' : 'Deal marked as Lost.', 'info');
+    if (_ddCurrentDeal) _ddCurrentDeal.pipelineStage = 'closed_lost';
+    for (var i = 0; i < _deals.length; i++) {
+      if ((_deals[i]._docId || _deals[i].id) === dealId) { _deals[i].pipelineStage = 'closed_lost'; break; }
+    }
+    _updateDealDetailButtons(_ddCurrentDeal);
+    renderDealList();
+    updateDealStats();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error closing deal', 'error');
+    console.error('[Deal] Close lost error:', err);
+  });
+}
+
+function _updateDealDetailButtons(deal) {
+  var stage   = (deal && deal.pipelineStage) || 'new';
+  var isWon   = stage === 'closed_won';
+  var isLost  = stage === 'closed_lost';
+  var isFinal = isWon || isLost;
+  var phone   = deal ? (deal.clientPhone || '') : '';
+
+  var advBtn  = document.getElementById('dd-advance-btn');
+  var wonBtn  = document.getElementById('dd-close-won-btn');
+  var lostBtn = document.getElementById('dd-close-lost-btn');
+  var ctRow   = document.getElementById('dd-contact-row');
+  var waBtn   = document.getElementById('dd-whatsapp-btn');
+  var callBtn = document.getElementById('dd-call-btn');
+
+  if (advBtn)  advBtn.style.display  = isFinal ? 'none' : '';
+  if (wonBtn)  wonBtn.style.display  = isWon   ? 'none' : '';
+  if (lostBtn) lostBtn.style.display = isLost  ? 'none' : '';
+
+  if (ctRow) ctRow.style.display = phone ? 'flex' : 'none';
+  var cleanPhone = phone.replace(/\D/g, '');
+  if (waBtn && cleanPhone) waBtn.href = 'https://wa.me/' + cleanPhone;
+  if (callBtn && phone) callBtn.href = 'tel:' + phone.replace(/\s/g, '');
+}
+
+(function() {
+  var _origDDFn = _openDealDetailWithData;
+  _openDealDetailWithData = function(deal) {
+    _origDDFn(deal);
+    _updateDealDetailButtons(deal);
+  };
+})();
+
+/* ══════════════════════════════════════════════════════
+   DOCUMENT VAULT — FIREBASE STORAGE FILE UPLOAD
+══════════════════════════════════════════════════════ */
+
+(function() {
+  var _origSubmitDoc = submitDocumentUpload;
+  window.submitDocumentUpload = function() {
+    var fileEl = document.getElementById('du-file');
+    if (fileEl && fileEl.files && fileEl.files[0]) {
+      _uploadDocFileToStorage(fileEl.files[0], function(downloadUrl) {
+        var urlEl = document.getElementById('du-url');
+        if (urlEl) urlEl.value = downloadUrl;
+        _origSubmitDoc();
+        if (fileEl) fileEl.value = '';
+      });
+    } else {
+      _origSubmitDoc();
+    }
+  };
+})();
+
+function _uploadDocFileToStorage(file, callback) {
+  if (typeof storage === 'undefined') {
+    showToast(curLang === 'rw' ? 'Firebase Storage ntabwo ihuye' : 'Firebase Storage not configured', 'error'); return;
+  }
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'anon';
+  var ts  = Date.now();
+  var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  var path = 'documents/' + uid + '/' + ts + '_' + safeName;
+  var ref  = storage.ref(path);
+  var task = ref.put(file);
+
+  var progressWrap = document.getElementById('du-upload-progress');
+  var progressBar  = document.getElementById('du-progress-bar');
+  var progressLbl  = document.getElementById('du-progress-label');
+  var btn = document.getElementById('du-submit-btn');
+  var lbl = document.getElementById('du-submit-lbl');
+
+  if (progressWrap) progressWrap.style.display = 'block';
+  if (progressBar)  progressBar.style.width    = '0%';
+  if (btn) btn.disabled = true;
+  if (lbl) lbl.textContent = curLang === 'rw' ? 'Kohereza...' : 'Uploading...';
+
+  task.on('state_changed',
+    function(snap) {
+      var pct = snap.totalBytes > 0 ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100) : 0;
+      if (progressBar) progressBar.style.width = pct + '%';
+      if (progressLbl) progressLbl.textContent = pct + '% uploaded...';
+    },
+    function(err) {
+      showToast((curLang === 'rw' ? 'Kohereza byanze: ' : 'Upload failed: ') + err.message, 'error');
+      if (progressWrap) progressWrap.style.display = 'none';
+      if (btn) btn.disabled = false;
+      if (lbl) lbl.textContent = curLang === 'rw' ? 'Shyira Dosiye' : 'Upload Document';
+      console.error('[DocUpload] Storage error:', err);
+    },
+    function() {
+      ref.getDownloadURL().then(function(url) {
+        if (progressWrap) progressWrap.style.display = 'none';
+        if (btn) btn.disabled = false;
+        if (lbl) lbl.textContent = curLang === 'rw' ? 'Shyira Dosiye' : 'Upload Document';
+        callback(url);
+      }).catch(function(e) {
+        showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Could not get file URL', 'error');
+        if (progressWrap) progressWrap.style.display = 'none';
+        console.error('[DocUpload] getDownloadURL error:', e);
+      });
+    }
+  );
 }
 </script>
 </body></html>
