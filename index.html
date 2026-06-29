@@ -2259,6 +2259,12 @@ html,body{overscroll-behavior-x:none}
       <button class="sm-more-toggle" onclick="toggleMoreFilters(this)">⚙️ Ibindi Filters ▾</button>
       <div class="sm-more-panel" style="display:none">
 
+        <!-- IGICIRO — MIN PRICE -->
+        <div class="sm-field">
+          <label style="font-size:.7rem;font-weight:700;letter-spacing:.1em;color:var(--navy)" data-rw="IGICIRO CYO HASI (RWF)" data-en="MIN PRICE (RWF)">MIN PRICE (RWF)</label>
+          <input type="number" id="srch-price-min" placeholder="0" min="0" step="1000000" oninput="updateCount()">
+        </div>
+
         <!-- UBUSO / SIZE -->
         <div class="sm-2col">
           <div class="sm-field">
@@ -2327,6 +2333,11 @@ html,body{overscroll-behavior-x:none}
     </div>
     <!-- Avatar (logged in) -->
     <div id="nav-avatar" onclick="openProfile()" style="display:none;width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;cursor:pointer;border:2px solid var(--gold)">U</div>
+    <!-- Saved Properties Button -->
+    <button id="nav-fav-btn" onclick="openFavoritesPanel()" style="display:none;position:relative;background:none;border:1.5px solid var(--border);border-radius:8px;padding:.38rem .5rem;cursor:pointer;width:38px;height:38px;font-size:1.1rem;line-height:1" aria-label="Saved Properties" title="Saved Properties">
+      ❤️
+      <span id="nav-fav-badge" style="display:none;position:absolute;top:2px;right:2px;background:#e53e3e;color:#fff;border-radius:50%;font-size:.55rem;font-weight:700;width:14px;height:14px;align-items:center;justify-content:center">0</span>
+    </button>
     <!-- Notification Bell -->
     <button id="notif-bell" onclick="requestNotifPermission()" style="position:relative;background:none;border:1.5px solid var(--border);border-radius:8px;padding:.38rem .5rem;cursor:pointer;width:38px;height:38px;font-size:1.1rem;line-height:1" aria-label="Notifications" title="Enable notifications">
       🔔
@@ -2479,6 +2490,8 @@ html,body{overscroll-behavior-x:none}
           Hindura
         </button>
         <button id="profile-add-prop-btn" class="btn" style="flex:1;justify-content:center;border:1.5px solid var(--border)" onclick="closeProfile();openAddProperty()">+ Imitungo</button>
+        <button class="btn" style="flex:1;justify-content:center;border:1.5px solid #e53e3e;color:#e53e3e" onclick="closeProfile();openFavoritesPanel()" title="Saved Properties">❤️ <span data-rw="Bitswe" data-en="Saved">Saved</span></button>
+        <button class="btn" style="flex:1;justify-content:center;border:1.5px solid var(--gold);color:var(--gold)" onclick="closeProfile();openReferralPanel()" title="Referral Program">🔗 Invite</button>
         <button class="btn" style="justify-content:center;border:1.5px solid var(--border);padding:.5rem .7rem" onclick="logoutUser()">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
@@ -2804,9 +2817,9 @@ html,body{overscroll-behavior-x:none}
         </div>
 
         <div class="hero-stats">
-          <div><span class="hero-stat-val">1,240+</span><span class="hero-stat-lbl" data-rw="Imitungo Yanditswe" data-en="Listed Properties">Imitungo Yanditswe</span></div>
-          <div><span class="hero-stat-val">850+</span><span class="hero-stat-lbl" data-rw="Abakiliya Bashimye" data-en="Happy Clients">Abakiliya Bashimye</span></div>
-          <div><span class="hero-stat-val">100+</span><span class="hero-stat-lbl" data-rw="Agents Bemewe" data-en="Verified Agents">Agents Bemewe</span></div>
+          <div><span class="hero-stat-val" id="hero-stat-listings">1,240+</span><span class="hero-stat-lbl" data-rw="Imitungo Yanditswe" data-en="Listed Properties">Imitungo Yanditswe</span></div>
+          <div><span class="hero-stat-val" id="hero-stat-clients">850+</span><span class="hero-stat-lbl" data-rw="Abakiliya Bashimye" data-en="Happy Clients">Abakiliya Bashimye</span></div>
+          <div><span class="hero-stat-val" id="hero-stat-agents">100+</span><span class="hero-stat-lbl" data-rw="Agents Bemewe" data-en="Verified Agents">Agents Bemewe</span></div>
           <div><span class="hero-stat-val">30</span><span class="hero-stat-lbl" data-rw="Akarere ka Rwanda" data-en="Districts in Rwanda">Akarere ka Rwanda</span></div>
         </div>
       </div>
@@ -2817,26 +2830,26 @@ html,body{overscroll-behavior-x:none}
 
   <!-- Tabs -->
   <div class="s-tabs">
-    <button class="s-tab active" data-rw="Kugura" data-en="Buy">Kugura</button>
-    <button class="s-tab" data-rw="Kugurisha" data-en="Sell">Kugurisha</button>
-    <button class="s-tab" data-rw="Gukodesha" data-en="Gukodesha">Gukodesha</button>
+    <button class="s-tab active" data-rw="Kugura" data-en="Buy" onclick="this.closest('.s-tabs').querySelectorAll('.s-tab').forEach(function(b){b.classList.remove('active')}); this.classList.add('active')">Kugura</button>
+    <button class="s-tab" data-rw="Kugurisha" data-en="Sell" onclick="this.closest('.s-tabs').querySelectorAll('.s-tab').forEach(function(b){b.classList.remove('active')}); this.classList.add('active')">Kugurisha</button>
+    <button class="s-tab" data-rw="Gukodesha" data-en="Gukodesha" onclick="this.closest('.s-tabs').querySelectorAll('.s-tab').forEach(function(b){b.classList.remove('active')}); this.classList.add('active')">Gukodesha</button>
   </div>
 
   <!-- AHANTU -->
   <div class="s-row">
     <label data-rw="AHANTU" data-en="LOCATION">AHANTU</label>
-    <select>
-      <option>Kigali — Gasabo</option>
-      <option>Kigali — Kicukiro</option>
-      <option>Kigali — Nyarugenge</option>
-      <option>Musanze</option>
-      <option>Huye</option>
-      <option>Rubavu</option>
-      <option>Nyagatare</option>
-      <option>Rwamagana</option>
-      <option>Muhanga</option>
-      <option>Karongi</option>
-      <option data-rw="Akarere Kose" data-en="All Districts">Akarere Kose</option>
+    <select id="hsc-location">
+      <option value="">Kigali — Gasabo</option>
+      <option value="Kicukiro">Kigali — Kicukiro</option>
+      <option value="Nyarugenge">Kigali — Nyarugenge</option>
+      <option value="Musanze">Musanze</option>
+      <option value="Huye">Huye</option>
+      <option value="Rubavu">Rubavu</option>
+      <option value="Nyagatare">Nyagatare</option>
+      <option value="Rwamagana">Rwamagana</option>
+      <option value="Muhanga">Muhanga</option>
+      <option value="Karongi">Karongi</option>
+      <option value="" data-rw="Akarere Kose" data-en="All Districts">Akarere Kose</option>
     </select>
   </div>
 
@@ -2844,25 +2857,25 @@ html,body{overscroll-behavior-x:none}
   <div class="s-2col">
     <div class="s-row">
       <label data-rw="UBWOKO" data-en="TYPE">UBWOKO</label>
-      <select>
-        <option data-rw="Yose" data-en="All">Yose</option>
-        <option>Villa</option>
-        <option data-rw="Apartimanı" data-en="Apartment">Apartimanı</option>
-        <option data-rw="Inyubako" data-en="Commercial">Inyubako</option>
-        <option data-rw="Ubutaka" data-en="Land">Ubutaka</option>
-        <option>Duplex</option>
-        <option>Penthouse</option>
+      <select id="hsc-type">
+        <option value="" data-rw="Yose" data-en="All">Yose</option>
+        <option value="Villa">Villa</option>
+        <option value="Apartment" data-rw="Apartimanı" data-en="Apartment">Apartimanı</option>
+        <option value="Commercial" data-rw="Inyubako" data-en="Commercial">Inyubako</option>
+        <option value="Land" data-rw="Ubutaka" data-en="Land">Ubutaka</option>
+        <option value="Duplex">Duplex</option>
+        <option value="Penthouse">Penthouse</option>
       </select>
     </div>
     <div class="s-row">
       <label data-rw="IBYUMBA" data-en="BEDROOMS">IBYUMBA</label>
-      <select>
-        <option data-rw="Yose" data-en="Any">Yose</option>
-        <option>1+</option>
-        <option>2+</option>
-        <option>3+</option>
-        <option>4+</option>
-        <option>5+</option>
+      <select id="hsc-beds">
+        <option value="" data-rw="Yose" data-en="Any">Yose</option>
+        <option value="1">1+</option>
+        <option value="2">2+</option>
+        <option value="3">3+</option>
+        <option value="4">4+</option>
+        <option value="5">5+</option>
       </select>
     </div>
   </div>
@@ -2871,13 +2884,13 @@ html,body{overscroll-behavior-x:none}
   <div class="s-2col">
     <div class="s-row">
       <label data-rw="INGANO Y'AMAFARANGA" data-en="BUDGET">INGANO Y'AMAFARANGA</label>
-      <select>
-        <option data-rw="Yose" data-en="Any">Yose</option>
-        <option>&lt; 30M RWF</option>
-        <option>30M – 80M</option>
-        <option>80M – 150M</option>
-        <option>150M – 300M</option>
-        <option>&gt; 300M RWF</option>
+      <select id="hsc-budget">
+        <option value="" data-rw="Yose" data-en="Any">Yose</option>
+        <option value="0-30000000">&lt; 30M RWF</option>
+        <option value="30000000-80000000">30M – 80M</option>
+        <option value="80000000-150000000">80M – 150M</option>
+        <option value="150000000-300000000">150M – 300M</option>
+        <option value="300000000-999999999">&gt; 300M RWF</option>
       </select>
     </div>
     <div class="s-row">
@@ -2931,7 +2944,7 @@ html,body{overscroll-behavior-x:none}
   </div>
 
   <!-- SEARCH BUTTON -->
-  <button class="s-btn" onclick="openSearch()">
+  <button class="s-btn" onclick="openSearchFromHeroCard()">
     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <span data-rw="Shakisha Imitungo" data-en="Search Properties">Shakisha Imitungo</span>
   </button>
@@ -3279,24 +3292,23 @@ html,body{overscroll-behavior-x:none}
         </div>
         <div class="filt-sec">
           <div class="filt-title" data-rw="Igiciro" data-en="Price Range">Igiciro</div>
-          <input type="range" class="range-sl" min="0" max="500" value="200">
-          <div class="range-lbl"><span>0</span><span id="range-val">200M RWF</span><span>500M+</span></div>
+          <input type="range" class="range-sl" id="filt-price" min="0" max="500" value="500" oninput="updatePriceLabel(this.value)">
+          <div class="range-lbl"><span>0</span><span id="range-val" data-rw="Byose" data-en="All">Byose</span><span>500M+</span></div>
         </div>
         <div class="filt-sec">
           <div class="filt-title" data-rw="Ibyumba" data-en="Bedrooms">Ibyumba</div>
-          <div class="chips-row">
-            <button class="chip on">1+</button><button class="chip">2+</button><button class="chip">3+</button><button class="chip">4+</button><button class="chip">5+</button>
+          <div class="chips-row" id="filt-beds-row">
+            <button class="chip on" onclick="toggleBedChip(this,0)" data-rw="Zose" data-en="All">Zose</button><button class="chip" onclick="toggleBedChip(this,1)">1+</button><button class="chip" onclick="toggleBedChip(this,2)">2+</button><button class="chip" onclick="toggleBedChip(this,3)">3+</button><button class="chip" onclick="toggleBedChip(this,4)">4+</button>
           </div>
         </div>
         <div class="filt-sec">
-          <div class="filt-title" data-rw="Serivisi Zihariye" data-en="Special">Serivisi Zihariye</div>
+          <div class="filt-title" data-rw="Serivisi Zihariye" data-en="Special Features">Serivisi Zihariye</div>
           <div class="filt-opts">
-            <label class="filt-opt"><input type="checkbox"> <span>3D Virtual Tour</span></label>
-            <label class="filt-opt"><input type="checkbox"> <span>AI Valuation</span></label>
-            <label class="filt-opt"><input type="checkbox"> <span data-rw="Agent Wemwe" data-en="Verified Agent">Agent Wemwe</span></label>
+            <label class="filt-opt"><input type="checkbox" id="filt-3d"> <span>3D Virtual Tour</span></label>
+            <label class="filt-opt"><input type="checkbox" id="filt-verified"> <span data-rw="Agent Wemwe" data-en="Verified Agent">Agent Wemwe</span></label>
           </div>
         </div>
-        <button class="btn btn-navy" style="width:100%;justify-content:center;margin-top:.3rem">
+        <button class="btn btn-navy" id="filt-apply-btn" onclick="applySidebarFilters()" style="width:100%;justify-content:center;margin-top:.3rem">
           <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
           <span data-rw="Shyira Filters" data-en="Apply Filters">Shyira Filters</span>
         </button>
@@ -3306,15 +3318,15 @@ html,body{overscroll-behavior-x:none}
       <div class="list-main-bar">
         <p class="res-count"><strong id="listings-count">0</strong> <span data-rw="imitungo yabonetse" data-en="properties found">imitungo yabonetse</span></p>
         <div class="bar-right">
-          <select class="sort-sel">
-            <option data-rw="Ishimishije" data-en="Featured">Ishimishije</option>
-            <option data-rw="Igiciro: Hasi → Hejuru" data-en="Price: Low → High">Igiciro: Hasi → Hejuru</option>
-            <option data-rw="Igiciro: Hejuru → Hasi" data-en="Price: High → Low">Igiciro: Hejuru → Hasi</option>
-            <option data-rw="Rishya Hambere" data-en="Newest First">Rishya Hambere</option>
+          <select class="sort-sel" id="filt-sort" onchange="sortListings(this.value)">
+            <option value="featured" data-rw="Ishimishije" data-en="Featured">Ishimishije</option>
+            <option value="price-asc" data-rw="Igiciro: Hasi → Hejuru" data-en="Price: Low → High">Igiciro: Hasi → Hejuru</option>
+            <option value="price-desc" data-rw="Igiciro: Hejuru → Hasi" data-en="Price: High → Low">Igiciro: Hejuru → Hasi</option>
+            <option value="newest" data-rw="Rishya Hambere" data-en="Newest First">Rishya Hambere</option>
           </select>
           <div class="v-btns">
-            <button class="v-btn active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button>
-            <button class="v-btn"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1.5" style="fill:currentColor;stroke:none"/><circle cx="3" cy="12" r="1.5" style="fill:currentColor;stroke:none"/><circle cx="3" cy="18" r="1.5" style="fill:currentColor;stroke:none"/></svg></button>
+            <button class="v-btn active" id="vbtn-grid" onclick="setListingView('grid')" title="Grid view"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button>
+            <button class="v-btn" id="vbtn-list" onclick="setListingView('list')" title="List view"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1.5" style="fill:currentColor;stroke:none"/><circle cx="3" cy="12" r="1.5" style="fill:currentColor;stroke:none"/><circle cx="3" cy="18" r="1.5" style="fill:currentColor;stroke:none"/></svg></button>
           </div>
         </div>
       </div>
@@ -3355,6 +3367,10 @@ html,body{overscroll-behavior-x:none}
         <div class="det-price">120,000,000 RWF<small data-rw="(Kugura)" data-en="(For Sale)">(Kugura)</small></div>
       </div>
       <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+        <button id="det-fav-btn" onclick="toggleFav(window._currentProp&&window._currentProp.id,event)" style="background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);border-radius:8px;padding:.5rem .9rem;cursor:pointer;color:#fff;font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:.4rem;transition:var(--tr)" title="Save to favorites">
+          <svg id="det-fav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span id="det-fav-label" data-rw="Bika" data-en="Save">Save</span>
+        </button>
         <button class="btn btn-gold" onclick="openPay()">
           <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
           <span data-rw="Saba Kwishyura" data-en="Request Payment">Saba Kwishyura</span>
@@ -4179,9 +4195,9 @@ html,body{overscroll-behavior-x:none}
           <button id="crm-vbtn-list" class="crm-vbtn active" onclick="toggleCrmView('list')" title="List View" data-rw="Urutonde" data-en="List">☰ List</button>
           <button id="crm-vbtn-kanban" class="crm-vbtn" onclick="toggleCrmView('kanban')" title="Kanban Board" data-rw="Kanban" data-en="Kanban">⬛ Kanban</button>
         </div>
-        <button class="btn btn-navy btn-sm" onclick="openLead()">
+        <button class="btn btn-navy btn-sm" onclick="openAgentLead()">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <span data-rw="Ikibazo Gishya" data-en="New Lead">New Lead</span>
+          <span data-rw="Lead Nshya" data-en="New Lead">New Lead</span>
         </button>
       </div>
     </div>
@@ -6061,13 +6077,24 @@ html,body{overscroll-behavior-x:none}
       <button class="btn btn-outline" style="flex-shrink:0;padding:.48rem 1rem;font-size:.82rem" onclick="saveLeadFollowUp()" data-rw="Bika" data-en="Set">Set</button>
     </div>
 
-    <!-- Advance Stage + Close -->
-    <div style="display:flex;gap:.6rem">
-      <button class="btn btn-navy" id="ld-advance-btn" style="flex:1;justify-content:center;font-size:.85rem" onclick="advanceLeadStage()">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    <!-- Advance Stage + Quick Actions -->
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem">
+      <button class="btn btn-navy" id="ld-advance-btn" style="flex:1;min-width:120px;justify-content:center;font-size:.82rem" onclick="advanceLeadStage()">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         <span id="ld-advance-lbl" data-rw="Jya Imbere" data-en="Advance Stage">Advance Stage</span>
       </button>
-      <button class="btn btn-outline" style="flex-shrink:0;font-size:.85rem" onclick="closeLeadDetail()" data-rw="Funga" data-en="Close">Close</button>
+      <button class="btn" id="ld-convert-deal-btn" style="flex:1;min-width:110px;justify-content:center;font-size:.82rem;background:var(--gold);color:var(--dark)" onclick="convertLeadToDeal(document.getElementById('ld-lead-id').value)">
+        💼 <span data-rw="Kora Deal" data-en="Convert to Deal">Convert to Deal</span>
+      </button>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn" id="ld-close-won-btn" style="flex:1;justify-content:center;font-size:.82rem;background:#16A34A;color:#fff" onclick="closeLeadWon()">
+        ✅ <span data-rw="Byarangiye" data-en="Won">Won</span>
+      </button>
+      <button class="btn" id="ld-close-lost-btn" style="flex:1;justify-content:center;font-size:.82rem;background:#DC2626;color:#fff" onclick="closeLeadLost()">
+        ✗ <span data-rw="Byanze" data-en="Lost">Lost</span>
+      </button>
+      <button class="btn btn-outline" style="flex-shrink:0;font-size:.82rem;padding:.5rem .8rem" onclick="closeLeadDetail()" data-rw="Funga" data-en="Close">×</button>
     </div>
 
     <input type="hidden" id="ld-lead-id">
@@ -6166,9 +6193,22 @@ html,body{overscroll-behavior-x:none}
       <button class="btn btn-outline btn-sm" style="font-size:.78rem" onclick="saveDealNotes()" data-rw="Bika Amanotisi" data-en="Save Notes">Save Notes</button>
     </div>
 
+    <!-- Quick Contact (WhatsApp / Call) -->
+    <div id="dd-contact-row" style="display:none;gap:.4rem;margin-bottom:.6rem">
+      <a id="dd-whatsapp-btn" href="#" target="_blank" rel="noopener" class="btn" style="flex:1;justify-content:center;font-size:.79rem;text-decoration:none;background:#25D366;color:#fff;border:none">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        WhatsApp
+      </a>
+      <a id="dd-call-btn" href="#" class="btn btn-outline" style="flex:1;justify-content:center;font-size:.79rem;text-decoration:none">
+        📞 <span data-rw="Hamagara" data-en="Call">Call</span>
+      </a>
+    </div>
+
     <!-- Actions -->
     <div style="display:flex;gap:.5rem;flex-wrap:wrap">
       <button class="btn btn-navy" id="dd-advance-btn" style="flex:1;justify-content:center;font-size:.82rem" onclick="advanceDealStage()" data-rw="Jya Imbere" data-en="Advance Stage">Advance Stage</button>
+      <button class="btn" id="dd-close-won-btn" style="background:#16A34A;color:#fff;font-size:.82rem;padding:.45rem .7rem;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:.3rem" onclick="closeDealWon()">✅ <span data-rw="Won" data-en="Won">Won</span></button>
+      <button class="btn" id="dd-close-lost-btn" style="background:#DC2626;color:#fff;font-size:.82rem;padding:.45rem .7rem;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:.3rem" onclick="closeDealLost()">✗ <span data-rw="Lost" data-en="Lost">Lost</span></button>
       <button class="btn btn-outline" style="flex-shrink:0;font-size:.82rem" onclick="closeDealDetail()" data-rw="Funga" data-en="Close">Close</button>
     </div>
 
@@ -6543,7 +6583,17 @@ html,body{overscroll-behavior-x:none}
         </select>
       </div>
       <div class="vr-field">
-        <label data-rw="URL ya Dosiye (Google Drive, Dropbox...)" data-en="File URL (Google Drive, Dropbox...)">File URL *</label>
+        <label data-rw="Shyira Dosiye Hano" data-en="Upload File">Upload File (PDF / DOC / Image)</label>
+        <input type="file" id="du-file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif" style="width:100%;padding:.5rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;box-sizing:border-box;background:#fff;cursor:pointer">
+        <div id="du-upload-progress" style="display:none;margin-top:.4rem">
+          <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden">
+            <div id="du-progress-bar" style="background:var(--navy);height:100%;border-radius:4px;width:0%;transition:width .3s ease"></div>
+          </div>
+          <div id="du-progress-label" style="font-size:.72rem;color:var(--muted);margin-top:.2rem">Uploading...</div>
+        </div>
+      </div>
+      <div class="vr-field">
+        <label data-rw="Cyangwa injiza URL (Google Drive, Dropbox...)" data-en="Or enter File URL (Google Drive, Dropbox...)">Or File URL</label>
         <input type="url" id="du-url" placeholder="https://drive.google.com/..." style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
       </div>
       <div class="vr-field">
@@ -7985,14 +8035,8 @@ const rs = document.querySelector('.range-sl');
 const rv = document.getElementById('range-val');
 if (rs && rv) rs.addEventListener('input', () => { rv.textContent = rs.value + 'M RWF'; });
 
-// ── FAV BUTTONS
-document.querySelectorAll('.p-fav').forEach(btn => {
-  btn.addEventListener('click', e => {
-    e.stopPropagation();
-    btn.classList.toggle('on');
-    showToast(btn.classList.contains('on') ? (curLang === 'rw' ? 'Yongewe ku rutonde!' : 'Added to favorites!') : (curLang === 'rw' ? 'Yakuwe ku rutonde' : 'Removed from favorites'));
-  });
-});
+// ── FAV BUTTONS — handled by toggleFav() in favorites module below
+// _applyFavState() is called after dynamic property cards are rendered
 
 // ── PAYMENT MODAL
 function openPay() {
@@ -8464,7 +8508,8 @@ function updateNavForUser(user) {
     }
   }
   var dashBtn = document.getElementById('nl-dashboard');
-  if(dashBtn) dashBtn.style.display = (user.role === 'Agent' || user.role === 'Admin') ? '' : 'none';
+  var _r = (user.role || '').toLowerCase();
+  if(dashBtn) dashBtn.style.display = ['agent','admin','staff','ceo','super_admin','owner','partner','investor'].indexOf(_r) !== -1 ? '' : 'none';
 }
 
 function loadAgentDashboard() {
@@ -9210,10 +9255,13 @@ function go(name) {
     } else if (currentUser.role === 'PendingAgent') {
       showToast(curLang==='rw' ? '⏳ Iyandikishe ryawe irimo gusuzumwa! KOMISIYONERI izakugezaho mu masaa 24.' : '⏳ Your application is under review! We will contact you within 24 hours.', 'warn');
       return;
-    } else if (currentUser.role !== 'Agent' && currentUser.role !== 'Admin') {
-      showToast(curLang==='rw' ? 'Dashboard irabana n\'Agents gusa!' : 'Dashboard is for Agents only!');
-      return;
     } else {
+      var _dr = (currentUser.role || '').toLowerCase();
+      var _dAllowed = ['agent','admin','staff','ceo','super_admin','owner','partner','investor'];
+      if (_dAllowed.indexOf(_dr) === -1) {
+        showToast(curLang==='rw' ? 'Injira nk\'umukozi wa KOMISIYONERI!' : 'Authorized accounts only!', 'warn');
+        return;
+      }
       loadAgentDashboard();
     }
   }
@@ -9461,6 +9509,21 @@ function openSearch(opts) {
     if (opts.type) {
       var el=document.getElementById('srch-type-txt'); if (el) el.value=opts.type;
     }
+    if (opts.minBeds) {
+      var el=document.getElementById('srch-beds-txt'); if (el) el.value=String(opts.minBeds);
+    }
+    if (opts.maxPrice) {
+      var el=document.getElementById('srch-price-txt'); if (el) el.value=String(opts.maxPrice);
+    }
+    if (opts.minPrice) {
+      var el=document.getElementById('srch-price-min'); if (el) el.value=String(opts.minPrice);
+      var morePanel=document.querySelector('.sm-more-panel');
+      var moreToggle=document.querySelector('.sm-more-toggle');
+      if (morePanel && morePanel.style.display==='none') {
+        morePanel.style.display='flex';
+        if (moreToggle) moreToggle.innerHTML='⚙️ Ibindi Filters ▲';
+      }
+    }
     if (opts.query) {
       var el=document.getElementById('sm-quick-search'); if (el) el.value=opts.query;
     }
@@ -9530,6 +9593,8 @@ function applySearchFilters(props) {
     var n = parseInt(s); return isNaN(n) ? 0 : n;
   }
   var maxP = parseP(priceTxt);
+  var minPTxt = g('srch-price-min').replace(/[,\s]/g,'');
+  var minP = minPTxt ? (parseInt(minPTxt)||0) : 0;
 
   return props.filter(function(p) {
     if (quickQ && kmScore(quickQ, p) < 40) return false;
@@ -9544,6 +9609,7 @@ function applySearchFilters(props) {
     if (bedsMin>0 && (parseInt(p.beds)||0)<bedsMin) return false;
     var pp = parseInt(p.price)||0;
     if (maxP && pp>maxP) return false;
+    if (minP && pp>0 && pp<minP) return false;
     var ps = parseInt(p.size)||0;
     if (sizeMin && ps<sizeMin) return false;
     if (sizeMax && ps>sizeMax) return false;
@@ -9695,6 +9761,7 @@ function renderUserPropCard(prop) {
     +   '<div class="p-tag">' + svcBadge + '</div>'
     +   '<div class="p-price">' + priceLabel + '</div>'
     +   verifiedBadge
+    +   '<button class="p-fav" data-pid="' + pid + '" onclick="event.stopPropagation();toggleFav(\'' + pid + '\',event)" title="Save to favorites"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>'
     + '</div>'
     + '<div class="p-body" onclick="openPropDetail(\'' + pid + '\')">'
     +   '<div class="p-loc">' + loc + '</div>'
@@ -11553,6 +11620,27 @@ function openPropDetail(propId) {
   window._currentProp = prop;
   kmTrack('view_item',{item_id:String(prop.id),item_name:prop.title||'',price:prop.price||'',district:prop.district||'',type:prop.type||''});
 
+  // Update detail page fav button state
+  setTimeout(function() {
+    var detFavBtn = document.getElementById('det-fav-btn');
+    var detFavIcon = document.getElementById('det-fav-icon');
+    var detFavLabel = document.getElementById('det-fav-label');
+    if (detFavBtn && typeof _userFavorites !== 'undefined') {
+      var isFav = _userFavorites.has(String(prop.id));
+      if (isFav) {
+        detFavBtn.style.background = 'rgba(229,62,62,.25)';
+        detFavBtn.style.borderColor = '#e53e3e';
+        if (detFavIcon) { detFavIcon.style.fill = '#e53e3e'; detFavIcon.style.stroke = '#e53e3e'; }
+        if (detFavLabel) { detFavLabel.setAttribute('data-rw', 'Byabitswe'); detFavLabel.setAttribute('data-en', 'Saved'); detFavLabel.textContent = curLang==='rw' ? 'Byabitswe' : 'Saved'; }
+      } else {
+        detFavBtn.style.background = 'rgba(255,255,255,.18)';
+        detFavBtn.style.borderColor = 'rgba(255,255,255,.35)';
+        if (detFavIcon) { detFavIcon.style.fill = 'none'; detFavIcon.style.stroke = 'currentColor'; }
+        if (detFavLabel) { detFavLabel.setAttribute('data-rw', 'Bika'); detFavLabel.setAttribute('data-en', 'Save'); detFavLabel.textContent = curLang==='rw' ? 'Bika' : 'Save'; }
+      }
+    }
+  }, 100);
+
   // === PRICE ===
   var priceNum = parseInt(prop.price)||0;
   var priceStr = priceNum >= 1000000
@@ -12904,13 +12992,14 @@ go = function(page) {
         if (adminModal && adminModal.style.display !== 'none' && adminCurrentTab === 'deals') {
           if (typeof renderAdminDeals === 'function') renderAdminDeals();
         }
-        if (currentUser && currentUser.role === 'Agent' && currentUser.email) {
+        if (currentUser && ['agent','Agent'].indexOf(currentUser.role) !== -1 && currentUser.email) {
           items.forEach(function(lead) {
-            if (lead.agentEmail === currentUser.email && lead.id && !_kmSeenLeads.has(lead.id)) {
+            var isMyLead = (lead.agentEmail === currentUser.email) || (lead.agentId === currentUser.uid);
+            if (isMyLead && lead.id && !_kmSeenLeads.has(lead.id)) {
               _kmSeenLeads.add(lead.id);
               kmNotify(
                 curLang==='rw' ? 'Lead Nshya! 🏠' : 'New Lead! 🏠',
-                (lead.clientName||'') + ' — ' + (lead.zone||''),
+                (lead.clientName||'') + ' — ' + (lead.zone||lead.district||''),
                 'lead-' + lead.id
               );
             }
@@ -12935,13 +13024,15 @@ go = function(page) {
         s.forEach(function(c){ items.push(c.val()); });
         if (!items.length) return;
         _set('km_bookings', JSON.stringify(items));
-        if (currentUser && currentUser.role === 'Agent' && currentUser.email) {
+        if (currentUser && ['agent','Agent','admin','Admin','staff'].indexOf(currentUser.role) !== -1 && currentUser.email) {
+          var isAgentOnly = ['agent','Agent'].indexOf(currentUser.role) !== -1;
           items.forEach(function(bk) {
-            if (bk.agentEmail === currentUser.email && bk.id && !_kmSeenBookings.has(bk.id)) {
+            var isMyBooking = !isAgentOnly || bk.agentEmail === currentUser.email;
+            if (isMyBooking && bk.id && !_kmSeenBookings.has(bk.id)) {
               _kmSeenBookings.add(bk.id);
               kmNotify(
                 curLang==='rw' ? 'Gahunda Nshya! 📅' : 'New Booking! 📅',
-                (bk.name||'') + ' — ' + (bk.propTitle||'') + ' ' + (bk.date||''),
+                (bk.name||'') + ' — ' + (bk.propTitle||'') + (bk.date ? ' · ' + bk.date : ''),
                 'booking-' + bk.id
               );
             }
@@ -13037,6 +13128,56 @@ go = function(page) {
     document.readyState==='loading'
       ? document.addEventListener('DOMContentLoaded', attachRealtimeListeners)
       : attachRealtimeListeners();
+    window.requestNotifPermission = requestNotifPermission;
+    window.closeNotifPanel        = closeNotifPanel;
+    window.openNotifPanel         = openNotifPanel;
+    window.kmNotify               = kmNotify;
+    window._kmBadge               = function(d) { _kmBadge(d); };
+
+    /* Firestore real-time lead listener — fires even when localStorage is bypassed */
+    var _fsLeadUnsub = null;
+    function _attachFsLeadListener() {
+      if (_fsLeadUnsub) { _fsLeadUnsub(); _fsLeadUnsub = null; }
+      if (typeof db === 'undefined' || !currentUser) return;
+      var role = (currentUser.role || '').toLowerCase();
+      var query;
+      if (role === 'agent') {
+        query = db.collection('leads').where('agentId','==',currentUser.uid).where('isActive','==',true);
+      } else if (['admin','staff','ceo','super_admin'].indexOf(role) !== -1) {
+        query = db.collection('leads').where('isActive','==',true);
+      } else { return; }
+      var _fsSeenLeads = new Set(JSON.parse(localStorage.getItem('km_fs_seen_leads')||'[]'));
+      _fsLeadUnsub = query.onSnapshot(function(snap) {
+        snap.docChanges().forEach(function(change) {
+          if (change.type !== 'added') return;
+          var lead = change.doc.data();
+          var lid  = change.doc.id;
+          if (!_fsSeenLeads.has(lid)) {
+            _fsSeenLeads.add(lid);
+            kmNotify(
+              curLang==='rw' ? 'Lead Nshya kuri Firestore! 🏠' : 'New Lead! 🏠',
+              (lead.clientName||'') + ' — ' + (lead.district||lead.zone||'') + ' · ' + (lead.action||''),
+              'fslead-' + lid
+            );
+            /* Refresh CRM badge */
+            var badge = document.getElementById('crm-sidebar-count');
+            if (badge) badge.textContent = parseInt(badge.textContent||0) + 1;
+          }
+        });
+        try { localStorage.setItem('km_fs_seen_leads', JSON.stringify(Array.from(_fsSeenLeads))); } catch(e){}
+      }, function(err){ console.warn('[FS Lead Listener]', err); });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        if (typeof currentUser !== 'undefined' && currentUser) _attachFsLeadListener();
+        if (typeof firebaseAuth !== 'undefined' && firebaseAuth) {
+          firebaseAuth.onAuthStateChanged(function(u) {
+            if (u) { setTimeout(_attachFsLeadListener, 800); }
+            else { if (_fsLeadUnsub) { _fsLeadUnsub(); _fsLeadUnsub = null; } }
+          });
+        }
+      }, 1500);
+    });
   } catch(e){ console.error('Sync error:',e); }
 })();
 </script>
@@ -21228,10 +21369,12 @@ function submitSiteForm() {
 function loadAgentDashboard() {
   if (!currentUser) return;
   var cu = currentUser;
+  var _cuRoleLower = (cu.role || '').toLowerCase();
+  var _isAgentRole = _cuRoleLower === 'agent';
 
   // Personalize welcome
   var wn = document.getElementById('dash-welcome-name');
-  if (wn) wn.textContent = (curLang==='rw' ? 'Murakaza neza, ' : 'Welcome back, ') + (cu.name || 'Agent') + '!';
+  if (wn) wn.textContent = (curLang==='rw' ? 'Murakaza neza, ' : 'Welcome back, ') + (cu.name || cu.displayName || 'User') + '!';
 
   var now = new Date();
   var thirtyDaysAgo = new Date(now.getTime() - 30*24*60*60*1000);
@@ -21257,7 +21400,7 @@ function loadAgentDashboard() {
   }
 
   /* Active Listings (my properties approved) */
-  var propQuery = cu.role === 'agent'
+  var propQuery = _isAgentRole
     ? db.collection('properties').where('agentId','==',cu.uid).where('isActive','==',true).where('status','==','approved')
     : db.collection('properties').where('isActive','==',true).where('status','==','approved');
   propQuery.get().then(function(snap) {
@@ -21276,7 +21419,7 @@ function loadAgentDashboard() {
   }).catch(function(){});
 
   /* New Leads (current 30d vs prev 30d) */
-  var leadsQuery = cu.role === 'agent'
+  var leadsQuery = _isAgentRole
     ? db.collection('leads').where('agentId','==',cu.uid).where('isActive','==',true)
     : db.collection('leads').where('isActive','==',true);
   leadsQuery.get().then(function(snap) {
@@ -21296,7 +21439,7 @@ function loadAgentDashboard() {
   }).catch(function(){});
 
   /* Deals closed (my deals closed_won this 30d vs prev 30d) */
-  var dealsQuery = cu.role === 'agent'
+  var dealsQuery = _isAgentRole
     ? db.collection('deals').where('agentId','==',cu.uid).where('isActive','==',true)
     : db.collection('deals').where('isActive','==',true);
   dealsQuery.get().then(function(snap) {
@@ -21324,7 +21467,7 @@ function loadAgentDashboard() {
   var prevMonthStart = new Date(now.getFullYear(), now.getMonth()-1, 1);
   var tsMonth = firebase.firestore.Timestamp.fromDate(monthStart);
   var tsPrevMonth = firebase.firestore.Timestamp.fromDate(prevMonthStart);
-  var commQuery = cu.role === 'agent'
+  var commQuery = _isAgentRole
     ? db.collection('commissions').where('agentId','==',cu.uid).where('isActive','==',true)
     : db.collection('commissions').where('isActive','==',true);
   commQuery.get().then(function(snap) {
@@ -21334,7 +21477,7 @@ function loadAgentDashboard() {
       var ts = x.createdAt;
       if (!ts) return;
       var dt = ts.toDate ? ts.toDate() : new Date(ts);
-      var share = cu.role === 'agent' ? (x.agentShare || 0) : (x.totalCommission || 0);
+      var share = _isAgentRole ? (x.agentShare || 0) : (x.totalCommission || 0);
       if (dt >= monthStart) curComm += share;
       else if (dt >= prevMonthStart) prevComm += share;
     });
@@ -21349,7 +21492,7 @@ function loadAgentDashboard() {
   }).catch(function(){});
 
   /* Upcoming visits */
-  var visitQuery = cu.role === 'agent'
+  var visitQuery = _isAgentRole
     ? db.collection('viewings').where('agentId','==',cu.uid).where('isActive','==',true)
     : db.collection('viewings').where('isActive','==',true);
   visitQuery.where('scheduledAt','>=',firebase.firestore.Timestamp.fromDate(now)).orderBy('scheduledAt','asc').limit(8).get().then(function(snap) {
@@ -21608,6 +21751,661 @@ function loadApprovedProperties() {
     });
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   PHASE 7 — Listings Sidebar Filters, Sort, View Toggle & Live Stats
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Update price range display label */
+function updatePriceLabel(val) {
+  var el = document.getElementById('range-val');
+  if (!el) return;
+  var v = parseInt(val);
+  el.textContent = v >= 500 ? (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Byose' : 'All') : v + 'M RWF';
+}
+
+/* Toggle bedroom filter chip (mutually exclusive) */
+function toggleBedChip(btn, minBeds) {
+  var row = document.getElementById('filt-beds-row');
+  if (row) row.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('on'); });
+  btn.classList.add('on');
+  btn._minBeds = minBeds;
+}
+
+/* Switch listings grid/list view */
+function setListingView(view) {
+  var grid = document.getElementById('p-grid-main');
+  if (!grid) return;
+  if (view === 'list') {
+    grid.classList.add('p-list-view');
+    var g = document.getElementById('vbtn-grid'); if (g) g.classList.remove('active');
+    var l = document.getElementById('vbtn-list'); if (l) l.classList.add('active');
+  } else {
+    grid.classList.remove('p-list-view');
+    var g2 = document.getElementById('vbtn-grid'); if (g2) g2.classList.add('active');
+    var l2 = document.getElementById('vbtn-list'); if (l2) l2.classList.remove('active');
+  }
+}
+
+/* Sort currently rendered property cards */
+function sortListings(value) {
+  var grids = document.querySelectorAll('#p-grid-main');
+  grids.forEach(function(grid) {
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.user-prop-card'));
+    if (cards.length < 2) return;
+    var approved = getApprovedProps();
+    var propMap = {};
+    approved.forEach(function(p) { propMap[String(p.id)] = p; });
+    cards.sort(function(a, b) {
+      var pa = propMap[a.getAttribute('data-pid')] || {};
+      var pb = propMap[b.getAttribute('data-pid')] || {};
+      if (value === 'price-asc')  return (parseInt(pa.price)||0) - (parseInt(pb.price)||0);
+      if (value === 'price-desc') return (parseInt(pb.price)||0) - (parseInt(pa.price)||0);
+      if (value === 'featured')   return (pb.featured ? 1 : 0) - (pa.featured ? 1 : 0);
+      return 0; /* newest: Firestore already ordered */
+    });
+    cards.forEach(function(c) { grid.appendChild(c); });
+  });
+}
+
+/* Apply sidebar filters to the listings grid */
+function applySidebarFilters() {
+  var fBtn = document.getElementById('filt-apply-btn');
+  if (fBtn) { fBtn.disabled = true; fBtn.textContent = '...'; }
+
+  var approved = getApprovedProps();
+
+  /* Collect checked property types */
+  var secs = document.querySelectorAll('.filters .filt-sec');
+  var checkedTypes = [], checkedLocs = [], priceMax = 500, minBeds = 0, need3d = false, needVerified = false;
+
+  if (secs[0]) {
+    secs[0].querySelectorAll('input[type=checkbox]:checked').forEach(function(cb) {
+      checkedTypes.push((cb.nextElementSibling.textContent || '').trim().toLowerCase());
+    });
+  }
+  if (secs[1]) {
+    secs[1].querySelectorAll('input[type=checkbox]:checked').forEach(function(cb) {
+      checkedLocs.push((cb.nextElementSibling.textContent || '').trim().toLowerCase());
+    });
+  }
+  var rangeEl = document.getElementById('filt-price');
+  if (rangeEl) priceMax = parseInt(rangeEl.value) || 500;
+
+  var activeBed = document.querySelector('#filt-beds-row .chip.on');
+  if (activeBed) minBeds = activeBed._minBeds || 0;
+
+  var cb3d  = document.getElementById('filt-3d');       if (cb3d)  need3d       = cb3d.checked;
+  var cbVer = document.getElementById('filt-verified'); if (cbVer) needVerified = cbVer.checked;
+
+  var filtered = approved.filter(function(prop) {
+    /* Type */
+    if (checkedTypes.length > 0) {
+      var pt = (prop.type || '').toLowerCase();
+      var ok = checkedTypes.some(function(t) {
+        if (t.includes('villa') && pt.includes('villa')) return true;
+        if ((t.includes('apart') || t.includes('aparti')) && pt.includes('apart')) return true;
+        if (t.includes('commercial') || t.includes('inyubako')) {
+          if (pt.includes('commercial') || pt.includes('office') || pt.includes('shop')) return true;
+        }
+        if ((t.includes('land') || t.includes('ubutaka')) && (pt.includes('land') || pt.includes('plot'))) return true;
+        return false;
+      });
+      if (!ok) return false;
+    }
+    /* Location */
+    if (checkedLocs.length > 0) {
+      var pd = (prop.district || '').toLowerCase();
+      var ok2 = checkedLocs.some(function(l) {
+        var parts = l.split('—').map(function(s) { return s.trim(); });
+        return parts.some(function(p) { return pd.includes(p) || p.includes(pd); });
+      });
+      if (!ok2) return false;
+    }
+    /* Price (priceMax in millions, 500 = unlimited) */
+    if (priceMax < 500) {
+      if ((parseInt(prop.price) || 0) > priceMax * 1000000) return false;
+    }
+    /* Bedrooms */
+    if (minBeds > 0 && (parseInt(prop.beds) || 0) < minBeds) return false;
+    /* Special */
+    if (need3d && !prop.tour3dUrl) return false;
+    if (needVerified && !prop.verified) return false;
+    return true;
+  });
+
+  /* Render */
+  var grids = document.querySelectorAll('#p-grid-main');
+  grids.forEach(function(grid) {
+    grid.querySelectorAll('.user-prop-card, .empty-listings, .similar-results-note').forEach(function(el) { el.remove(); });
+    if (filtered.length === 0) {
+      var d = document.createElement('div');
+      d.className = 'empty-listings empty-state';
+      d.style.cssText = 'grid-column:1/-1';
+      d.innerHTML = '<div class="es-icon">&#128270;</div>'
+        + '<div class="es-title">' + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Nta mitungo ihuye' : 'No matching properties') + '</div>'
+        + '<div class="es-sub">' + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Gerageza guhindura filters' : 'Try adjusting your filters') + '</div>'
+        + '<button onclick="resetSidebarFilters()" class="btn btn-outline btn-sm" style="margin-top:.6rem">'
+        + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Siba Filters' : 'Reset Filters') + '</button>';
+      grid.appendChild(d);
+    } else {
+      filtered.forEach(function(prop) {
+        var w = document.createElement('div');
+        w.className = 'user-prop-card';
+        w.setAttribute('data-pid', String(prop.id));
+        w.innerHTML = renderUserPropCard(prop);
+        grid.appendChild(w);
+      });
+    }
+  });
+
+  var countEl = document.getElementById('listings-count');
+  if (countEl) countEl.textContent = filtered.length;
+
+  /* Re-apply current sort */
+  var sortEl = document.getElementById('filt-sort');
+  if (sortEl && sortEl.value && sortEl.value !== 'featured') sortListings(sortEl.value);
+
+  if (fBtn) {
+    fBtn.disabled = false;
+    fBtn.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>'
+      + '<span data-rw="Shyira Filters" data-en="Apply Filters">' + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Shyira Filters' : 'Apply Filters') + '</span>';
+  }
+}
+
+/* Reset sidebar filters to defaults */
+function resetSidebarFilters() {
+  var sidebar = document.querySelector('.filters');
+  if (sidebar) {
+    sidebar.querySelectorAll('input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
+    var range = document.getElementById('filt-price'); if (range) { range.value = 500; updatePriceLabel(500); }
+    var bedsRow = document.getElementById('filt-beds-row');
+    if (bedsRow) {
+      bedsRow.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('on'); });
+      var first = bedsRow.querySelector('.chip'); if (first) first.classList.add('on');
+    }
+  }
+  var sortEl = document.getElementById('filt-sort'); if (sortEl) sortEl.value = 'featured';
+  loadApprovedProperties();
+}
+
+/* Load live platform stats into hero section */
+function loadLiveHomeStats() {
+  var elListings = document.getElementById('hero-stat-listings');
+  var elClients  = document.getElementById('hero-stat-clients');
+  var elAgents   = document.getElementById('hero-stat-agents');
+  if (!elListings && !elClients && !elAgents) return;
+
+  db.collection('properties')
+    .where('status', 'in', ['approved', 'Approved'])
+    .where('isActive', '==', true)
+    .get().then(function(snap) {
+      if (elListings && snap.size > 0) elListings.textContent = snap.size + '+';
+    }).catch(function(){});
+
+  db.collection('users').where('isActive', '==', true).get().then(function(snap) {
+    if (elClients && snap.size > 5) elClients.textContent = snap.size + '+';
+  }).catch(function(){});
+
+  db.collection('users').where('role', 'in', ['agent', 'Agent']).get().then(function(snap) {
+    if (elAgents && snap.size > 0) elAgents.textContent = snap.size + '+';
+  }).catch(function(){});
+}
+
+/* Hook loadLiveHomeStats into home page navigation */
+(function() {
+  var _goP7 = go;
+  go = function(name) {
+    _goP7(name);
+    if (name === 'home') setTimeout(loadLiveHomeStats, 800);
+  };
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(loadLiveHomeStats, 1500);
+  });
+})();
+
+/* ══════════════════════════════════════════════════════════════════════
+   PHASE 9 — Firestore-Backed Property Submission & Admin Approval
+   Overrides submitProperty(), adminRender(), adminApprove(),
+   adminReject(), adminDelete() so the entire property lifecycle
+   (submit → review → approve → publish) is persisted in Firestore.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Convert localStorage propData format to Firestore schema and write doc */
+function _savePropToFirestoreFS(propData, status, userId, isVerified) {
+  if (typeof db === 'undefined') return Promise.resolve(null);
+  var imgs = [propData.img1, propData.img2, propData.img3].filter(function(u) {
+    return u && u.length < 2000; /* skip base64 blobs — too large for Firestore */
+  });
+  var fsDoc = {
+    id:          '',
+    title:       propData.title       || '',
+    type:        propData.type        || '',
+    category:    propData.service === 'Gukodesha' ? 'rent' : 'sale',
+    district:    propData.district    || '',
+    sector:      propData.sector      || '',
+    price:       parseInt(propData.price)    || 0,
+    bedrooms:    parseInt(propData.beds)     || 0,
+    bathrooms:   parseInt(propData.baths)    || 0,
+    area:        propData.size        || '',
+    description: propData.desc        || '',
+    images:      imgs,
+    tour3dUrl:   propData.tour3dUrl   || '',
+    amenities:   propData.amenities   || [],
+    yearBuilt:   propData.yearBuilt   || '',
+    agentId:     userId               || '',
+    ownerId:     userId               || '',
+    ownerEmail:  propData.ownerEmail  || '',
+    ownerName:   propData.owner       || '',
+    contact:     propData.contact     || '',
+    verified:    !!isVerified,
+    featured:    false,
+    rating:      isVerified ? 5.0 : 0,
+    reviews:     0,
+    status:      status,
+    isActive:    true,
+    createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:   userId || '',
+    updatedBy:   userId || ''
+  };
+  if (propData.latitude && propData.longitude) {
+    fsDoc.coordinates = { lat: propData.latitude, lng: propData.longitude };
+  }
+  return db.collection('properties').add(fsDoc).then(function(ref) {
+    return ref.update({ id: ref.id }).then(function() { return ref.id; });
+  });
+}
+
+/* Finish agent submit: save to localStorage + reset button + toast */
+function _agentSubmitFinish(pd) {
+  var ps = []; try { ps = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+  ps.push(pd);
+  try { localStorage.setItem('km_properties', JSON.stringify(ps)); } catch(e){}
+  var sb = document.getElementById('submit-prop-btn'), sl = document.getElementById('submit-prop-label');
+  if (sb) { sb.disabled = false; sb.classList.remove('btn-loading'); if (sl) sl.textContent = (curLang==='rw'?'Ohereza Imitungo':'Submit Property'); }
+  closeAddProperty();
+  showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Admin azayisuzuma vuba.' : '✅ Property submitted for review!');
+}
+
+/* Base64 fallback that accepts a callback instead of always saving directly */
+function _submitPropertyBase64Compat(fileList, propData, callback) {
+  var images = [], done = 0;
+  fileList.forEach(function(f, i) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      images[i] = e.target.result; done++;
+      if (done === fileList.length) {
+        propData.img1 = images[0] || '';
+        propData.img2 = images[1] || '';
+        propData.img3 = images[2] || '';
+        callback();
+      }
+    };
+    reader.readAsDataURL(f.files[0]);
+  });
+}
+
+/* Override submitProperty — last declaration wins; adds Firestore writes */
+function submitProperty() {
+  var g = function(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+
+  if (!currentUser) {
+    showToast(curLang==='rw' ? 'Injira mbere yo gushyiraho imitungo!' : 'Please login first!', 'warn');
+    closeAddProperty(); go('auth'); return;
+  }
+  var isAdmin = (
+    currentUser.email === 'info.komisiyoneri.net@gmail.com' ||
+    currentUser.role  === 'Admin' || currentUser.role === 'admin' ||
+    currentUser.role  === 'super_admin'
+  );
+  if (!isAdmin && currentUser.role !== 'Agent' && currentUser.role !== 'agent') {
+    showToast(curLang==='rw'
+      ? '🔒 Agents bemewe gusa ni bo bashobora ohereza imitungo.'
+      : '🔒 Only approved agents can submit listings.', 'warn');
+    return;
+  }
+
+  /* ── EDIT MODE ── */
+  if (_editPropId) {
+    var editId = _editPropId;
+    var eProps = []; try { eProps = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+    var ei = -1;
+    for (var i=0; i<eProps.length; i++) { if (String(eProps[i].id)===String(editId)) { ei=i; break; } }
+    if (ei===-1) { showToast('Imitungo ntiboneka.'); closeAddProperty(); return; }
+    if (eProps[ei].status !== 'Pending') {
+      showToast(curLang==='rw'?'Imitungo yemejwe ntishobora guhindurwa.':'Only pending listings can be edited.','warn');
+      closeAddProperty(); return;
+    }
+    var u = eProps[ei];
+    u.type=g('prop-type')||u.type; u.service=g('prop-service')||u.service;
+    u.district=g('prop-district')||u.district; u.sector=g('prop-sector');
+    u.price=g('prop-price')||u.price; u.beds=g('prop-beds'); u.baths=g('prop-baths');
+    u.size=g('prop-size'); u.desc=g('prop-desc');
+    u.contact=g('prop-contact')||u.contact; u.phone=g('prop-contact')||u.phone;
+    u.title=g('prop-title')||(u.type+(u.district?' — '+u.district:''));
+    u.yearBuilt=g('prop-year'); u.titleDeed=g('prop-deed');
+    u.floors=g('prop-floors'); u.parking=g('prop-parking');
+    u.amenities=['garden','pool','garage','solar','fibre','security','generator'].filter(function(a){ var el=document.getElementById('am-'+a); return el&&el.checked; });
+    u.docLuc=g('prop-doc-luc'); u.docId=g('prop-doc-id'); u.docPermit=g('prop-doc-permit');
+    u.latitude=g('prop-lat')?parseFloat(g('prop-lat')):(u.latitude||null);
+    u.longitude=g('prop-lng')?parseFloat(g('prop-lng')):(u.longitude||null);
+    eProps[ei]=u;
+    try { localStorage.setItem('km_properties', JSON.stringify(eProps)); } catch(e){}
+    if (u._fsId && typeof db !== 'undefined') {
+      db.collection('properties').doc(u._fsId).update({
+        type:u.type, category:u.service==='Gukodesha'?'rent':'sale',
+        district:u.district, sector:u.sector||'', price:parseInt(u.price)||0,
+        bedrooms:parseInt(u.beds)||0, bathrooms:parseInt(u.baths)||0,
+        area:u.size||'', description:u.desc||'', title:u.title||'',
+        amenities:u.amenities||[],
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
+      }).catch(function(){});
+    }
+    closeAddProperty();
+    showToast(curLang==='rw'?'✅ Imitungo yahinduwe! Irasabwa kwemezwa.':'✅ Listing updated! Awaiting approval.');
+    return;
+  }
+
+  if (!g('prop-price')) { showToast(curLang==='rw'?'Shyira igiciro!':'Enter price!','error'); return; }
+  if (!g('prop-type'))  { showToast('Hitamo ubwoko!'); return; }
+  if (!g('prop-district')) { showToast('Hitamo akarere!'); return; }
+
+  /* ── ADMIN PATH ── */
+  if (isAdmin) {
+    var videoUrl = convertYouTubeURL(g('prop-video'));
+    var newProp = {
+      id:Date.now(), type:g('prop-type'), service:g('prop-service'),
+      district:g('prop-district'), sector:g('prop-sector'), price:g('prop-price'),
+      beds:g('prop-beds'), baths:g('prop-baths'), size:g('prop-size'), desc:g('prop-desc'),
+      contact:g('prop-contact')||'+250 783 177 254',
+      img1:g('prop-img1'), img2:g('prop-img2'), img3:g('prop-img3'),
+      video:videoUrl, tour3dUrl:g('prop-tour3d'),
+      title:g('prop-title')||(g('prop-type')+(g('prop-district')?' — '+g('prop-district'):'')),
+      phone:g('prop-contact')||'+250 783 177 254',
+      yearBuilt:g('prop-year'), titleDeed:g('prop-deed'), floors:g('prop-floors'), parking:g('prop-parking'),
+      amenities:['garden','pool','garage','solar','fibre','security','generator'].filter(function(a){ var el=document.getElementById('am-'+a); return el&&el.checked; }),
+      docLuc:g('prop-doc-luc'), docId:g('prop-doc-id'), docPermit:g('prop-doc-permit'),
+      latitude:g('prop-lat')?parseFloat(g('prop-lat')):null,
+      longitude:g('prop-lng')?parseFloat(g('prop-lng')):null,
+      owner:'KOMISIYONERI', ownerEmail:currentUser.email,
+      verified:true, rating:5.0, reviews:0,
+      date:new Date().toISOString(), status:'Approved'
+    };
+    var _adminFinish = function(fsId) {
+      if (fsId) newProp._fsId = fsId;
+      var ps=[]; try{ps=JSON.parse(localStorage.getItem('km_properties')||'[]');}catch(e){}
+      ps.push(newProp); try{localStorage.setItem('km_properties',JSON.stringify(ps));}catch(e){}
+      invalidatePropsCache();
+      closeAddProperty(); loadApprovedProperties();
+      logAudit('property.created', 'properties', fsId||String(newProp.id), null, {title:newProp.title, status:'approved'});
+      showToast('✅ Imitungo yashyizweho kandi yemejwe!');
+    };
+    _savePropToFirestoreFS(newProp, 'approved', currentUser.uid, true)
+      .then(_adminFinish).catch(function(){ _adminFinish(null); });
+    return;
+  }
+
+  /* ── AGENT PATH ── */
+  var file1El=document.getElementById('prop-file1');
+  var file2El=document.getElementById('prop-file2');
+  var file3El=document.getElementById('prop-file3');
+  if (!(file1El && file1El.files && file1El.files[0])) {
+    showToast(curLang==='rw'?'Shyiramo nibura ifoto imwe!':'Upload at least one photo!','error'); return;
+  }
+  showToast(curLang==='rw'?'Amafoto arakopiwa...':'Uploading photos...');
+  var _sb=document.getElementById('submit-prop-btn');
+  var _sl=document.getElementById('submit-prop-label');
+  if(_sb){_sb.disabled=true;_sb.classList.add('btn-loading');if(_sl)_sl.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Kopiwa...':'Uploading...');}
+
+  var propId=Date.now();
+  var fileList=[file1El,file2El,file3El].filter(function(f){return f&&f.files&&f.files[0];});
+  var pd={
+    id:propId, type:g('prop-type'), service:g('prop-service'),
+    district:g('prop-district'), sector:g('prop-sector'), price:g('prop-price'),
+    beds:g('prop-beds'), baths:g('prop-baths'), size:g('prop-size'), desc:g('prop-desc'),
+    contact:g('prop-contact')||(currentUser.phone||'+250 783 177 254'),
+    img1:'', img2:'', img3:'', video:'', tour3dUrl:'',
+    title:g('prop-title')||(g('prop-type')+(g('prop-district')?' — '+g('prop-district'):'')),
+    phone:g('prop-contact')||(currentUser.phone||'+250 783 177 254'),
+    yearBuilt:g('prop-year'), titleDeed:g('prop-deed'), floors:g('prop-floors'), parking:g('prop-parking'),
+    amenities:['garden','pool','garage','solar','fibre','security','generator'].filter(function(a){var el=document.getElementById('am-'+a);return el&&el.checked;}),
+    docLuc:g('prop-doc-luc'), docId:g('prop-doc-id'), docPermit:g('prop-doc-permit'),
+    latitude:g('prop-lat')?parseFloat(g('prop-lat')):null,
+    longitude:g('prop-lng')?parseFloat(g('prop-lng')):null,
+    owner:currentUser.name||currentUser.displayName||'', ownerEmail:currentUser.email,
+    date:new Date().toISOString(), status:'Pending'
+  };
+
+  var _doneUpload = function() {
+    _savePropToFirestoreFS(pd, 'pending', currentUser.uid, false).then(function(fsId) {
+      if (fsId) pd._fsId = fsId;
+      logAudit('property.submitted', 'properties', fsId||String(pd.id), null, {title:pd.title, status:'pending'});
+      _agentSubmitFinish(pd);
+    }).catch(function(){ _agentSubmitFinish(pd); });
+  };
+
+  if (typeof storage !== 'undefined' && storage) {
+    var ups = fileList.map(function(f,i) {
+      var file=f.files[0];
+      var ref=storage.ref('properties/'+propId+'/img'+(i+1)+'_'+file.name);
+      return ref.put(file).then(function(){return ref.getDownloadURL();}).then(function(url){pd['img'+(i+1)]=url;});
+    });
+    Promise.all(ups).then(_doneUpload).catch(function(err){
+      console.error('Storage upload failed, using base64:', err);
+      _submitPropertyBase64Compat(fileList, pd, _doneUpload);
+    });
+  } else {
+    _submitPropertyBase64Compat(fileList, pd, _doneUpload);
+  }
+}
+
+/* Admin panel globals */
+var _adminAllProps  = [];  /* cached from Firestore + localStorage */
+var _adminLoading  = false;
+
+/* Override adminRender — reads from Firestore, falls back to localStorage */
+function adminRender(filter) {
+  var list = document.getElementById('admin-list'); if (!list) return;
+  if (_adminLoading) return;
+  _adminLoading = true;
+
+  list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">&#9203; Loading from Firestore...</div>';
+
+  var fetchPropsPromise;
+  if (typeof db !== 'undefined') {
+    fetchPropsPromise = db.collection('properties').where('isActive','==',true).limit(200).get()
+      .then(function(snap) {
+        var fsProps = [];
+        snap.forEach(function(doc) {
+          var d = doc.data();
+          d._fsId = doc.id;
+          fsProps.push(d);
+        });
+        return fsProps;
+      });
+  } else {
+    fetchPropsPromise = Promise.resolve([]);
+  }
+
+  fetchPropsPromise.then(function(fsProps) {
+    /* Merge with localStorage (localStorage may have unsync'd pending items) */
+    var lsProps = [];
+    try { lsProps = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+    var fsPropFsIds = {};
+    fsProps.forEach(function(p) { if (p._fsId) fsPropFsIds[p._fsId] = true; });
+    var lsOnly = lsProps.filter(function(p) {
+      return !p._fsId || !fsPropFsIds[p._fsId];
+    });
+    _adminAllProps = fsProps.concat(lsOnly.map(function(p) {
+      p._source = 'local'; return p;
+    }));
+
+    /* Update tab counts */
+    ['pending','approved','rejected'].forEach(function(s) {
+      var el = document.getElementById('adm-count-'+s);
+      if (el) el.textContent = _adminAllProps.filter(function(p) {
+        return (p.status||'').toLowerCase()===s;
+      }).length;
+    });
+    var allEl = document.getElementById('adm-count-all');
+    if (allEl) allEl.textContent = _adminAllProps.length;
+
+    /* Update tab button styles */
+    ['all','pending','approved','rejected'].forEach(function(s) {
+      var btn = document.getElementById('adm-btn-'+s);
+      if (!btn) return;
+      if (s===filter) { btn.style.background='var(--navy)';btn.style.color='#fff';btn.style.border='none'; }
+      else { btn.style.background='#fff';btn.style.color='var(--dark)';btn.style.border='1.5px solid var(--border)'; }
+    });
+
+    var filtered = filter==='all' ? _adminAllProps : _adminAllProps.filter(function(p) {
+      return (p.status||'').toLowerCase()===filter.toLowerCase();
+    });
+
+    if (filtered.length===0) {
+      list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">Nta mitungo muri iri tsinda / No properties in this category</div>';
+      _adminLoading=false; return;
+    }
+
+    list.innerHTML = filtered.map(function(prop, i) {
+      /* resolve global index back to _adminAllProps for action buttons */
+      var globalIdx = _adminAllProps.indexOf(prop);
+      var fsId = prop._fsId || '';
+      var priceDisplay = prop.price ? Number(prop.price).toLocaleString()+' RWF' : '—';
+      var st = prop.status || 'Pending';
+      var statusColor = st.toLowerCase()==='approved'?'#27A84A':st.toLowerCase()==='rejected'?'#e53e3e':'#F5A623';
+      var imgs = (prop.images || []).filter(Boolean);
+      var thumbSrc = imgs[0] || prop.img1 || '';
+      var thumbHtml = thumbSrc ? '<img src="'+thumbSrc+'" style="width:60px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0" loading="lazy">' : '';
+      return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.8rem;background:#fafbff">'
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;flex-wrap:wrap">'
+        + thumbHtml
+        + '<div style="flex:1">'
+        + '<div style="font-weight:700;color:var(--navy);font-size:.95rem">'
+        +   escapeHtml(prop.title||prop.type||'')+' — '+escapeHtml(prop.district||'')+
+            (prop.sector?', '+escapeHtml(prop.sector):'')+'</div>'
+        + '<div style="font-size:.8rem;color:var(--muted);margin:.2rem 0">👤 '+escapeHtml(prop.ownerName||prop.owner||'')+' | 📧 '+escapeHtml(prop.ownerEmail||'—')+'</div>'
+        + (prop.contact?'<div style="font-size:.78rem;color:var(--muted)">📞 '+escapeHtml(prop.contact)+'</div>':'')
+        + '<div style="font-size:.85rem;margin:.4rem 0;font-weight:600">💰 '+priceDisplay+' ('+escapeHtml(prop.service||prop.category||'')+')</div>'
+        + (prop.description||prop.desc?'<div style="font-size:.78rem;color:#555;font-style:italic">'+escapeHtml((prop.description||prop.desc||'').substring(0,100))+'...</div>':'')
+        + '<div style="font-size:.72rem;color:var(--muted)">📅 '+(prop.date||'')+' '+(fsId?'<span style="background:#e0f2fe;color:#0369a1;padding:1px 5px;border-radius:4px;font-size:.65rem">FS ✓</span>':'<span style="background:#fef9c3;color:#78350f;padding:1px 5px;border-radius:4px;font-size:.65rem">LOCAL</span>')+'</div>'
+        + '</div>'
+        + '<div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">'
+        + '<div style="font-size:.7rem;font-weight:700;color:'+statusColor+';text-align:center">'+escapeHtml(st)+'</div>'
+        + (st.toLowerCase()!=='approved'?'<button onclick="_fsAdminApprove('+globalIdx+')" style="background:#27A84A;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">✅ Emeza</button>':'')
+        + (st.toLowerCase()!=='rejected'?'<button onclick="_fsAdminReject('+globalIdx+')" style="background:#e53e3e;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">❌ Kataa</button>':'')
+        + '<button onclick="_fsAdminDelete('+globalIdx+')" style="background:#718096;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem">🗑️ Siba</button>'
+        + '</div></div></div>';
+    }).join('');
+    _adminLoading = false;
+  }).catch(function(err) {
+    console.warn('[Admin] Firestore fetch failed, using localStorage:', err);
+    _adminLoading = false;
+    /* fall back to original localStorage render */
+    var lsFallback = [];
+    try { lsFallback = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+    _adminAllProps = lsFallback;
+    list.innerHTML = lsFallback.length === 0
+      ? '<div style="text-align:center;padding:2rem;color:var(--muted)">Nta mitungo</div>'
+      : '<div style="text-align:center;padding:1rem;color:var(--warning)">⚠ Firestore ntiboneka — mbona kuri localStorage</div>';
+  });
+}
+
+/* Approve a property by _adminAllProps index — writes to Firestore */
+function _fsAdminApprove(idx) {
+  var prop = _adminAllProps[idx]; if (!prop) return;
+  var fsId = prop._fsId;
+  var doApprove = function(docId) {
+    prop.status = 'Approved'; prop._fsId = docId;
+    if (typeof db !== 'undefined' && docId) {
+      db.collection('properties').doc(docId).update({
+        status:'approved',
+        approvedBy:currentUser.uid,
+        approvedAt:firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
+        updatedBy:currentUser.uid
+      }).then(function() {
+        logAudit('property.approved','properties',docId,{status:'pending'},{status:'approved'});
+        showToast('✅ Imitungo yemejwe! Igaragara muri Listings.');
+        invalidatePropsCache();
+        loadApprovedProperties();
+        adminRender(adminCurrentFilter);
+      }).catch(function(){ showToast('Imitungo yemejwe kuri server ariko Firestore yakubye!','warn'); adminRender(adminCurrentFilter); });
+    } else {
+      showToast('✅ Imitungo yemejwe (localStorage gusa).'); adminRender(adminCurrentFilter);
+    }
+    /* Also update localStorage entry */
+    var ls=[]; try{ls=JSON.parse(localStorage.getItem('km_properties')||'[]');}catch(e){}
+    var li=ls.findIndex(function(p){return String(p.id)===String(prop.id||prop._fsId);});
+    if(li>=0){ls[li].status='Approved';ls[li]._fsId=docId;}
+    try{localStorage.setItem('km_properties',JSON.stringify(ls));}catch(e){}
+  };
+  if (fsId) {
+    doApprove(fsId);
+  } else {
+    /* Property only in localStorage — push to Firestore first */
+    _savePropToFirestoreFS(prop, 'approved', (prop.agentId||currentUser.uid), false)
+      .then(function(newId) { doApprove(newId); })
+      .catch(function() { doApprove(null); });
+  }
+}
+
+/* Reject a property */
+function _fsAdminReject(idx) {
+  var prop = _adminAllProps[idx]; if (!prop) return;
+  var fsId = prop._fsId;
+  prop.status = 'Rejected';
+  if (typeof db !== 'undefined' && fsId) {
+    db.collection('properties').doc(fsId).update({
+      status:'rejected', updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
+    }).then(function() {
+      logAudit('property.rejected','properties',fsId,{status:'pending'},{status:'rejected'});
+    }).catch(function(){});
+  }
+  var ls=[]; try{ls=JSON.parse(localStorage.getItem('km_properties')||'[]');}catch(e){}
+  var li=ls.findIndex(function(p){return String(p.id)===String(prop.id||prop._fsId);});
+  if(li>=0) ls[li].status='Rejected'; try{localStorage.setItem('km_properties',JSON.stringify(ls));}catch(e){}
+  showToast('❌ Imitungo yananiwe.'); adminRender(adminCurrentFilter);
+}
+
+/* Soft-delete a property */
+function _fsAdminDelete(idx) {
+  var prop = _adminAllProps[idx]; if (!prop) return;
+  if (!confirm(t('delConfirm')||'Confirm delete?')) return;
+  var fsId = prop._fsId;
+  if (typeof db !== 'undefined' && fsId) {
+    db.collection('properties').doc(fsId).update({
+      isActive:false, updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
+    }).then(function() {
+      logAudit('property.deleted','properties',fsId,{isActive:true},{isActive:false});
+    }).catch(function(){});
+  }
+  var ls=[]; try{ls=JSON.parse(localStorage.getItem('km_properties')||'[]');}catch(e){}
+  ls=ls.filter(function(p){return String(p.id)!==String(prop.id||prop._fsId);});
+  try{localStorage.setItem('km_properties',JSON.stringify(ls));}catch(e){}
+  _adminAllProps.splice(idx,1);
+  invalidatePropsCache();
+  showToast(t('deleted')||'Deleted'); adminRender(adminCurrentFilter);
+}
+
+/* Override openAdmin to trigger Firestore-backed adminRender */
+(function() {
+  var _origOpenAdmin = openAdmin;
+  openAdmin = function() {
+    var isAdmin = currentUser && (
+      currentUser.email === 'info.komisiyoneri.net@gmail.com' ||
+      currentUser.email === 'admin@komisiyoneri.com' ||
+      currentUser.role  === 'Admin' || currentUser.role === 'admin' ||
+      currentUser.role  === 'super_admin'
+    );
+    if (!isAdmin) {
+      showToast(curLang==='rw' ? 'Ntabwo wemerewe! Admin gusa.' : 'Access denied. Admin only.', 'error'); return;
+    }
+    var m = document.getElementById('admin-modal'); if (m) m.style.display = 'flex';
+    adminRender('pending');
+  };
+})();
+
 /* Override openPropDetail — fetch from Firestore when not in localStorage cache */
 (function() {
   var _origDetail = openPropDetail;
@@ -21641,5 +22439,1831 @@ function loadApprovedProperties() {
   };
 })();
 
+/* ══════════════════════════════════════════════════════════════════════
+   PHASE 8 — Firestore-Backed Agents Directory
+   Overrides loadAgentsPage() and filterAgentsPage() so the public
+   agents listing reads from Cloud Firestore instead of localStorage.
+   ══════════════════════════════════════════════════════════════════════ */
+
+var _fsAgents = []; /* module-level cache shared by load + filter */
+
+/* Map a Firestore user doc (role=agent) to the card-renderer format */
+function _normalizeAgentDoc(data, docId) {
+  var isVerified = data.isVerified || data.verified || false;
+  return {
+    id:           docId,
+    name:         data.displayName || data.name || data.email || 'Agent',
+    email:        data.email || '',
+    phone:        data.phone || '',
+    zone:         data.district || data.zone || data.branchId || '',
+    experience:   String(data.experience || data.yearsExp || '0'),
+    transport:    data.transport || '',
+    languages:    Array.isArray(data.languages) ? data.languages : ['Kinyarwanda'],
+    status:       isVerified ? 'Active' : 'Pending Verification',
+    rating:       data.rating || 0,
+    deals:        data.deals || data.dealCount || 0,
+    isDemo:       false
+  };
+}
+
+/* Update the three stat chips at the top of the agents page */
+function _updateAgentStats(agents) {
+  var active = agents.filter(function(a) { return a.status === 'Active'; });
+  var zoneSet = {};
+  agents.forEach(function(a) { if (a.zone) zoneSet[a.zone] = true; });
+  var tc = document.getElementById('agents-total-count');
+  var ac = document.getElementById('agents-active-count');
+  var zc = document.getElementById('agents-zones-count');
+  if (tc) tc.textContent = agents.length;
+  if (ac) ac.textContent = active.length;
+  if (zc) zc.textContent = Object.keys(zoneSet).length;
+}
+
+/* Override loadAgentsPage — last function declaration wins */
+function loadAgentsPage() {
+  var grid = document.getElementById('agents-page-grid');
+  if (!grid) return;
+
+  grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">'
+    + '<div class="es-icon" style="font-size:2rem">&#9203;</div>'
+    + '<div class="es-title">' + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Gutegereza...' : 'Loading agents...') + '</div></div>';
+
+  db.collection('users')
+    .where('role', 'in', ['agent', 'Agent'])
+    .where('isActive', '==', true)
+    .limit(60)
+    .get()
+    .then(function(snap) {
+      var agents = [];
+      snap.forEach(function(doc) { agents.push(_normalizeAgentDoc(doc.data(), doc.id)); });
+      if (agents.length === 0) {
+        agents = getDemoAgents().map(function(a) { a.isDemo = true; return a; });
+      }
+      _fsAgents = agents;
+      try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e) {}
+      _updateAgentStats(agents);
+      renderAgentsGrid(agents);
+    })
+    .catch(function(err) {
+      console.warn('[K-REOS] loadAgentsPage Firestore error:', err);
+      var fallback = [];
+      try { fallback = JSON.parse(localStorage.getItem('km_agents') || '[]'); } catch(e) {}
+      if (fallback.length === 0) fallback = getDemoAgents();
+      _fsAgents = fallback;
+      _updateAgentStats(fallback);
+      renderAgentsGrid(fallback);
+    });
+}
+
+/* Override filterAgentsPage to use _fsAgents cache */
+function filterAgentsPage() {
+  var inp = document.getElementById('agent-search-inp');
+  var sel = document.getElementById('agent-zone-filter');
+  var search = (inp ? inp.value : '').toLowerCase();
+  var zone   = sel ? sel.value : '';
+  var base   = _fsAgents.length > 0 ? _fsAgents : getDemoAgents();
+  var filtered = base.filter(function(a) {
+    var matchSearch = !search || (a.name || '').toLowerCase().includes(search) || (a.zone || '').toLowerCase().includes(search);
+    var matchZone   = !zone  || a.zone === zone;
+    return matchSearch && matchZone;
+  });
+  renderAgentsGrid(filtered);
+  var countEl = document.getElementById('agents-total-count');
+  if (countEl) countEl.textContent = filtered.length;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   PHASE 11 — Viewing Scheduler & Agent Viewing Manager
+   Intercepts CRM stage → viewing_scheduled to create a Firestore
+   viewings doc. Adds "My Viewings" section below the CRM lead list.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Viewing Scheduler Modal (created dynamically) ── */
+var _vsLeadId   = null;
+var _vsLeadData = null;
+
+function _ensureViewingSchedulerModal() {
+  if (document.getElementById('vs-modal')) return;
+  var div = document.createElement('div');
+  div.className = 'modal-wrap';
+  div.id = 'vs-modal';
+  div.style.display = 'none';
+  div.innerHTML = '<div class="modal" style="max-width:420px;width:94%">'
+    + '<button class="modal-x" onclick="closeViewingScheduler()" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">&#10005;</button>'
+    + '<div class="eyebrow tag-green" style="font-size:.65rem;margin-bottom:.5rem">&#128197; SCHEDULE VIEWING</div>'
+    + '<h3 id="vs-client-name" style="font-size:1.1rem;font-weight:800;color:var(--navy);margin-bottom:1rem">Client</h3>'
+    + '<label style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.3rem">Date &amp; Time</label>'
+    + '<input type="datetime-local" id="vs-datetime" style="width:100%;padding:.55rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:\'DM Sans\',sans-serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.8rem">'
+    + '<label style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.3rem">Property</label>'
+    + '<input type="text" id="vs-prop-title" placeholder="Property title / address..." style="width:100%;padding:.55rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:\'DM Sans\',sans-serif;font-size:.88rem;box-sizing:border-box;margin-bottom:.8rem">'
+    + '<label style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.3rem">Notes</label>'
+    + '<textarea id="vs-notes" rows="2" placeholder="Meeting point, gate code, special instructions..." style="width:100%;padding:.55rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:\'DM Sans\',sans-serif;font-size:.85rem;resize:vertical;box-sizing:border-box;display:block;margin-bottom:1rem"></textarea>'
+    + '<div style="display:flex;gap:.6rem">'
+    + '<button class="btn btn-navy" id="vs-save-btn" style="flex:1;justify-content:center" onclick="saveScheduledViewing()">'
+    + '&#128197; <span id="vs-save-lbl">Schedule Viewing</span></button>'
+    + '<button class="btn btn-outline" style="flex-shrink:0" onclick="closeViewingScheduler()">Skip</button>'
+    + '</div>'
+    + '</div>';
+  document.body.appendChild(div);
+}
+
+function openViewingScheduler(leadId) {
+  _vsLeadId = leadId;
+  _vsLeadData = null;
+  for (var i = 0; i < _crmLeads.length; i++) {
+    if ((_crmLeads[i]._docId || _crmLeads[i].id) === leadId) { _vsLeadData = _crmLeads[i]; break; }
+  }
+  _ensureViewingSchedulerModal();
+  var nameEl = document.getElementById('vs-client-name');
+  if (nameEl) nameEl.textContent = (_vsLeadData ? (_vsLeadData.clientName || _vsLeadData.name || 'Client') : 'Client');
+  var propEl = document.getElementById('vs-prop-title');
+  if (propEl) propEl.value = (_vsLeadData ? (_vsLeadData.propertyTitle || _vsLeadData.zone || '') : '');
+  var dtEl = document.getElementById('vs-datetime');
+  if (dtEl) {
+    var tomorrow = new Date(Date.now() + 86400000);
+    tomorrow.setHours(10, 0, 0, 0);
+    dtEl.value = tomorrow.toISOString().slice(0, 16);
+  }
+  var noteEl = document.getElementById('vs-notes'); if (noteEl) noteEl.value = '';
+  var m = document.getElementById('vs-modal'); if (m) m.style.display = 'flex';
+}
+
+function closeViewingScheduler() {
+  var m = document.getElementById('vs-modal'); if (m) m.style.display = 'none';
+  _vsLeadId   = null;
+  _vsLeadData = null;
+}
+
+function saveScheduledViewing() {
+  var dtEl   = document.getElementById('vs-datetime');
+  var propEl = document.getElementById('vs-prop-title');
+  var noteEl = document.getElementById('vs-notes');
+  var saveBtn = document.getElementById('vs-save-btn');
+  var saveLbl = document.getElementById('vs-save-lbl');
+
+  if (!dtEl || !dtEl.value) {
+    showToast(curLang === 'rw' ? 'Hitamo itariki n\'isaha!' : 'Select date and time!', 'error');
+    return;
+  }
+  var scheduledAt = new Date(dtEl.value);
+  if (isNaN(scheduledAt.getTime())) {
+    showToast(curLang === 'rw' ? 'Itariki si nziza' : 'Invalid date', 'error');
+    return;
+  }
+
+  if (saveBtn) { saveBtn.disabled = true; if (saveLbl) saveLbl.textContent = 'Saving...'; }
+
+  var uid       = currentUser ? currentUser.uid : '';
+  var agentName = currentUser ? (currentUser.displayName || currentUser.name || currentUser.email || '') : '';
+  var lead      = _vsLeadData || {};
+  var propTitle = propEl ? propEl.value.trim() : '';
+  var notes     = noteEl ? noteEl.value.trim() : '';
+
+  var viewingDoc = {
+    id:            '',
+    leadId:        _vsLeadId || '',
+    propertyId:    lead.propertyId    || '',
+    propertyTitle: propTitle          || lead.propertyTitle || (lead.zone || lead.district || ''),
+    clientId:      lead.clientId      || '',
+    clientName:    lead.clientName    || lead.name  || '',
+    clientPhone:   lead.clientPhone   || lead.phone || '',
+    agentId:       uid,
+    agentName:     agentName,
+    scheduledAt:   firebase.firestore.Timestamp.fromDate(scheduledAt),
+    notes:         notes,
+    status:        'scheduled',
+    agentCheckIn:  null,
+    agentGPS:      null,
+    photos:        [],
+    report:        {},
+    isActive:      true,
+    createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:     uid,
+    updatedBy:     uid
+  };
+
+  if (typeof db === 'undefined') {
+    showToast(curLang === 'rw' ? 'Firebase ntabwo ihuye' : 'Firebase not connected', 'error');
+    if (saveBtn) { saveBtn.disabled = false; if (saveLbl) saveLbl.textContent = 'Schedule Viewing'; }
+    return;
+  }
+
+  db.collection('viewings').add(viewingDoc).then(function(ref) {
+    ref.update({ id: ref.id });
+    logAudit('viewing.scheduled', 'viewings', ref.id, null,
+      { leadId: _vsLeadId, scheduledAt: scheduledAt.toISOString(), clientName: viewingDoc.clientName });
+    showToast(curLang === 'rw' ? '&#128197; Gutekereza kwabitswe!' : '&#128197; Viewing scheduled!', 'success');
+    closeViewingScheduler();
+    if (saveBtn) { saveBtn.disabled = false; if (saveLbl) saveLbl.textContent = 'Schedule Viewing'; }
+    loadMyViewings();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa — ongera ugerageze' : 'Error saving viewing', 'error');
+    console.error('[Viewing] schedule error:', err);
+    if (saveBtn) { saveBtn.disabled = false; if (saveLbl) saveLbl.textContent = 'Schedule Viewing'; }
+  });
+}
+
+/* ── Override updateLeadStage — intercept viewing_scheduled ── */
+(function() {
+  var _origUpdateLeadStage = updateLeadStage;
+  updateLeadStage = function(leadId, newStageKey) {
+    if (newStageKey === 'viewing_scheduled') {
+      _origUpdateLeadStage(leadId, newStageKey);
+      setTimeout(function() { openViewingScheduler(leadId); }, 400);
+    } else {
+      _origUpdateLeadStage(leadId, newStageKey);
+    }
+  };
+})();
+
+/* ── My Viewings — agent's viewing list in CRM page ── */
+var _myViewings = [];
+
+function loadMyViewings() {
+  var container = document.getElementById('my-viewings-list');
+  if (!container) return;
+  if (!currentUser || typeof db === 'undefined') return;
+
+  container.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.82rem">'
+    + (curLang === 'rw' ? 'Gutegura...' : 'Loading...') + '</div>';
+
+  var now = new Date();
+  var past = firebase.firestore.Timestamp.fromDate(new Date(now.getTime() - 7 * 86400000));
+
+  db.collection('viewings')
+    .where('agentId', '==', currentUser.uid)
+    .where('isActive', '==', true)
+    .where('scheduledAt', '>=', past)
+    .orderBy('scheduledAt', 'asc')
+    .limit(20)
+    .get().then(function(snap) {
+      _myViewings = [];
+      snap.forEach(function(doc) {
+        var d = doc.data();
+        d._docId = doc.id;
+        _myViewings.push(d);
+      });
+      renderMyViewings();
+    }).catch(function(err) {
+      console.warn('[MyViewings] Firestore error:', err);
+      container.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:.82rem">'
+        + (curLang === 'rw' ? 'Habaye ikosa' : 'Error loading viewings') + '</div>';
+    });
+}
+
+function renderMyViewings() {
+  var container = document.getElementById('my-viewings-list');
+  if (!container) return;
+  if (_myViewings.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">'
+      + '<div style="font-size:2rem;margin-bottom:.5rem">&#128197;</div>'
+      + '<div style="font-size:.82rem">'
+      + (curLang === 'rw' ? 'Nta gutekereza gushyizweho' : 'No viewings scheduled') + '</div></div>';
+    return;
+  }
+  var now = Date.now();
+  container.innerHTML = _myViewings.map(function(v) {
+    var dt = v.scheduledAt ? (v.scheduledAt.toDate ? v.scheduledAt.toDate() : new Date(v.scheduledAt)) : null;
+    var isPast = dt && dt.getTime() < now;
+    var isToday = dt && Math.abs(dt.getTime() - now) < 86400000;
+    var dateStr = dt ? dt.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'}) : '—';
+    var timeStr = dt ? dt.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'}) : '';
+    var statusColor = isPast ? (v.status === 'completed' ? '#16A34A' : '#EA580C') : '#3B82F6';
+    var statusLabel = v.status === 'completed' ? (curLang === 'rw' ? 'Byarangiye' : 'Done')
+      : isPast ? (curLang === 'rw' ? 'Byarenze' : 'Overdue')
+      : isToday ? (curLang === 'rw' ? 'Uyu munsi' : 'Today')
+      : (curLang === 'rw' ? 'Gutegerezwa' : 'Upcoming');
+    var vid = v._docId || v.id || '';
+    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.6rem;display:flex;gap:.8rem;align-items:flex-start">'
+      + '<div style="text-align:center;min-width:52px;flex-shrink:0">'
+      + '<div style="font-size:.75rem;font-weight:700;color:var(--muted);line-height:1.1">' + dateStr.split(' ')[0] + '</div>'
+      + '<div style="font-size:1.1rem;font-weight:800;color:var(--navy);line-height:1">' + (dt ? dt.getDate() : '—') + '</div>'
+      + '<div style="font-size:.7rem;color:var(--muted)">' + timeStr + '</div>'
+      + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-weight:700;color:var(--navy);font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(v.clientName || '—') + '</div>'
+      + '<div style="font-size:.78rem;color:var(--muted);margin:.1rem 0">' + escapeHtml(v.propertyTitle || '—') + '</div>'
+      + (v.notes ? '<div style="font-size:.72rem;color:#555;font-style:italic">' + escapeHtml(v.notes.substring(0, 60)) + '</div>' : '')
+      + '</div>'
+      + '<div style="flex-shrink:0;display:flex;flex-direction:column;gap:.3rem;align-items:flex-end">'
+      + '<span style="font-size:.65rem;font-weight:700;background:' + statusColor + '1a;color:' + statusColor + ';padding:.2rem .5rem;border-radius:20px;white-space:nowrap">' + statusLabel + '</span>'
+      + (v.status !== 'completed' && vid
+          ? (v.agentCheckIn
+              ? '<span style="font-size:.65rem;font-weight:700;background:#16A34A1a;color:#16A34A;padding:.2rem .5rem;border-radius:20px;white-space:nowrap">&#128205; ' + (curLang==='rw'?'Wageze':'Checked In') + '</span>'
+              : '<button onclick="checkInViewingGPS(\'' + vid + '\')" style="background:var(--navy);color:#fff;border:none;border-radius:6px;padding:.25rem .55rem;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap">&#128205; ' + (curLang==='rw'?'Wageze':'Arrived') + '</button>')
+          : '')
+      + (v.status !== 'completed' && vid ? '<button onclick="markViewingComplete(\'' + vid + '\')" style="background:var(--success);color:#fff;border:none;border-radius:6px;padding:.25rem .55rem;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap">&#9989; ' + (curLang==='rw'?'Byarangiye':'Done') + '</button>' : '')
+      + (vid && v.leadId ? '<button onclick="openViewingReport(\'' + vid + '\',\'' + (v.leadId||'') + '\')" style="background:none;border:1.5px solid var(--border);color:var(--navy);border-radius:6px;padding:.25rem .55rem;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap">&#128196; ' + (curLang==='rw'?'Raporo':'Report') + '</button>' : '')
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function markViewingComplete(viewingId) {
+  if (!viewingId || typeof db === 'undefined') return;
+  var uid = currentUser ? currentUser.uid : '';
+  db.collection('viewings').doc(viewingId).update({
+    status:    'completed',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: uid
+  }).then(function() {
+    showToast(curLang === 'rw' ? 'Gutekereza kwangiye!' : 'Viewing marked complete!', 'success');
+    for (var i = 0; i < _myViewings.length; i++) {
+      if (_myViewings[i]._docId === viewingId) { _myViewings[i].status = 'completed'; break; }
+    }
+    renderMyViewings();
+    logAudit('viewing.completed', 'viewings', viewingId, { status: 'scheduled' }, { status: 'completed' });
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error updating viewing', 'error');
+    console.error('[Viewing] complete error:', err);
+  });
+}
+
+function checkInViewingGPS(viewingId) {
+  if (!viewingId || typeof db === 'undefined') return;
+  if (!navigator.geolocation) {
+    showToast(curLang === 'rw' ? 'GPS ntiboneka kuri iyi telefoni' : 'GPS not available on this device', 'error');
+    return;
+  }
+  showToast(curLang === 'rw' ? 'GPS irashakwa...' : 'Getting your GPS location...', 'info');
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      var lat = pos.coords.latitude;
+      var lng = pos.coords.longitude;
+      var acc = Math.round(pos.coords.accuracy);
+      var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : '';
+      db.collection('viewings').doc(viewingId).update({
+        agentCheckIn: firebase.firestore.FieldValue.serverTimestamp(),
+        agentGPS:     { lat: lat, lng: lng, accuracy: acc },
+        updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+        updatedBy:    uid
+      }).then(function() {
+        showToast(
+          (curLang === 'rw' ? 'Wageze wanditse! Accuracy: ' : 'Check-in recorded! Accuracy: ') + acc + 'm',
+          'success'
+        );
+        for (var i = 0; i < _myViewings.length; i++) {
+          if (_myViewings[i]._docId === viewingId) {
+            _myViewings[i].agentCheckIn = new Date().toISOString();
+            _myViewings[i].agentGPS = { lat: lat, lng: lng, accuracy: acc };
+            break;
+          }
+        }
+        renderMyViewings();
+        logAudit('viewing.gps.checkin', 'viewings', viewingId, null, { lat: lat, lng: lng, accuracy: acc });
+      }).catch(function(err) {
+        showToast(curLang === 'rw' ? 'Habaye ikosa mu kubika GPS' : 'Error saving GPS check-in', 'error');
+        console.error('[Viewing GPS]', err);
+      });
+    },
+    function(gpsErr) {
+      var msg = gpsErr.code === 1
+        ? (curLang === 'rw' ? 'GPS ntiyemewe — fungura location settings' : 'Location permission denied — enable in settings')
+        : (curLang === 'rw' ? 'GPS ntiyabonetse — ongera ugerageze' : 'Could not get GPS — please try again');
+      showToast(msg, 'error');
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
+}
+
+/* ── Inject "My Viewings" section below #crm-lead-list ── */
+(function() {
+  var _goP11 = go;
+  go = function(name) {
+    _goP11(name);
+    if (name === 'crm') {
+      setTimeout(function() {
+        var crmWrap = document.querySelector('#page-crm .crm-wrap');
+        if (!crmWrap) return;
+        if (document.getElementById('my-viewings-section')) { loadMyViewings(); return; }
+        if (!currentUser || (currentUser.role !== 'agent' && currentUser.role !== 'Agent'
+          && currentUser.role !== 'admin' && currentUser.role !== 'Admin'
+          && currentUser.role !== 'super_admin' && currentUser.role !== 'staff')) return;
+        var section = document.createElement('div');
+        section.id = 'my-viewings-section';
+        section.style.cssText = 'margin-top:1.5rem;border-top:2px solid var(--border);padding-top:1rem';
+        section.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem">'
+          + '<div>'
+          + '<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.08em">&#128197; MY VIEWINGS</div>'
+          + '<div style="font-size:.72rem;color:var(--muted);margin-top:.1rem">' + (curLang === 'rw' ? 'Gutekereza gw\'icyumweru cy\'ubu + cy\'iruhande' : 'Past 7 days + upcoming') + '</div>'
+          + '</div>'
+          + '</div>'
+          + '<div id="my-viewings-list"></div>';
+        crmWrap.appendChild(section);
+        loadMyViewings();
+      }, 300);
+    }
+  };
+})();
+
+/* ══════════════════════════════════════════════════════════════════════
+   PHASE 10 — Bug Fixes + Lead-to-Deal Conversion
+   1. Fix loadLiveHomeStats composite index
+   2. Override openMyProps → Firestore-backed
+   3. Override adminDeleteAll → Firestore batch soft-delete
+   4. Inject "Convert to Deal" button into lead detail
+   5. convertLeadToDeal() — creates deal + commission from lead
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Fix 1: Remove composite index (status + isActive) from hero stats query */
+function loadLiveHomeStats() {
+  var elListings = document.getElementById('hero-stat-listings');
+  var elClients  = document.getElementById('hero-stat-clients');
+  var elAgents   = document.getElementById('hero-stat-agents');
+  if (!elListings && !elClients && !elAgents) return;
+  if (typeof db === 'undefined') return;
+
+  db.collection('properties')
+    .where('status', 'in', ['approved', 'Approved'])
+    .get().then(function(snap) {
+      var active = 0;
+      snap.forEach(function(d) { if (d.data().isActive !== false) active++; });
+      if (elListings && active > 0) elListings.textContent = active + '+';
+    }).catch(function(){});
+
+  db.collection('users').where('isActive', '==', true).get().then(function(snap) {
+    if (elClients && snap.size > 3) elClients.textContent = snap.size + '+';
+  }).catch(function(){});
+
+  db.collection('users').where('role', 'in', ['agent', 'Agent']).get().then(function(snap) {
+    if (elAgents && snap.size > 0) elAgents.textContent = snap.size + '+';
+  }).catch(function(){});
+}
+
+/* Fix 2: openMyProps — Firestore-backed (queries by agentId, merges localStorage) */
+function _renderMyPropsList(mine, list) {
+  if (!list) return;
+  if (mine.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">'
+      + '<div style="font-size:2rem;margin-bottom:.5rem">&#127968;</div>'
+      + '<div>' + (typeof t === 'function' ? t('noMyProps') : 'No properties yet') + '</div>'
+      + '<button class="btn btn-navy btn-sm" style="margin-top:1rem" onclick="openAddProperty()">'
+      + (typeof t === 'function' ? t('addProp') : 'Add Property') + '</button>'
+      + '</div>';
+    return;
+  }
+  list.innerHTML = mine.map(function(prop) {
+    var st = (prop.status || 'Pending').charAt(0).toUpperCase() + (prop.status || 'Pending').slice(1);
+    var statusColor = st === 'Approved' ? '#27A84A' : st === 'Rejected' ? '#e53e3e' : '#F5A623';
+    var statusIcon  = st === 'Approved' ? '&#9989;' : st === 'Rejected' ? '&#10060;' : '&#9203;';
+    var priceDisplay = prop.price ? Number(prop.price).toLocaleString() + ' RWF' : '—';
+    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.9rem;margin-bottom:.7rem">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">'
+      + '<div style="flex:1">'
+      + '<div style="font-weight:700;color:var(--navy)">' + (prop.type || '') + ' — ' + (prop.district || '') + '</div>'
+      + '<div style="font-size:.82rem;color:var(--muted);margin:.2rem 0">' + (prop.service || '') + ' | ' + priceDisplay + '</div>'
+      + (prop.desc ? '<div style="font-size:.78rem;color:#555;font-style:italic">' + prop.desc.substring(0, 60) + '...</div>' : '')
+      + '</div>'
+      + '<div style="text-align:center;flex-shrink:0">'
+      + '<div style="font-size:1.3rem">' + statusIcon + '</div>'
+      + '<div style="font-size:.65rem;font-weight:700;color:' + statusColor + '">' + st + '</div>'
+      + '</div>'
+      + '</div></div>';
+  }).join('');
+}
+
+function openMyProps() {
+  if (!currentUser) { go('auth'); return; }
+  var m = document.getElementById('my-props-modal');
+  if (m) m.style.display = 'flex';
+  var list = document.getElementById('my-props-list');
+  if (!list) return;
+
+  list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)"><div style="font-size:2rem">&#9203;</div>'
+    + '<div style="margin-top:.5rem">' + (curLang === 'rw' ? 'Gutegura...' : 'Loading...') + '</div></div>';
+
+  var uid   = currentUser.uid   || '';
+  var email = currentUser.email || '';
+
+  if (typeof db === 'undefined') {
+    var lsAll = [];
+    try { lsAll = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+    _renderMyPropsList(lsAll.filter(function(p) { return p.ownerEmail === email; }), list);
+    return;
+  }
+
+  db.collection('properties').where('agentId', '==', uid).where('isActive', '==', true).get()
+    .then(function(snap) {
+      var mine = [];
+      snap.forEach(function(doc) { mine.push(_normalizePropDoc(doc.data(), doc.id)); });
+      var fsIds = {};
+      mine.forEach(function(p) { fsIds[String(p.id)] = true; });
+      var lsProps = [];
+      try { lsProps = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+      lsProps.forEach(function(p) {
+        if (p.ownerEmail === email && !fsIds[String(p.id || '')]) mine.push(p);
+      });
+      _renderMyPropsList(mine, list);
+    }).catch(function() {
+      var lsAll = [];
+      try { lsAll = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+      _renderMyPropsList(lsAll.filter(function(p) { return p.ownerEmail === email; }), list);
+    });
+}
+
+/* Fix 3: adminDeleteAll — Firestore batch soft-delete + localStorage cleanup */
+function adminDeleteAll(status) {
+  var labelMap = {
+    approved: curLang === 'rw' ? 'Emejwe' : 'Approved',
+    rejected: curLang === 'rw' ? 'Byanzwe' : 'Rejected',
+    pending:  curLang === 'rw' ? 'Bitegereje' : 'Pending'
+  };
+  var label = labelMap[status] || (curLang === 'rw' ? 'Byose' : 'All');
+  if (!confirm((curLang === 'rw' ? 'Guhanagura BYOSE: ' : 'Delete ALL: ') + label + '?')) return;
+
+  var toDelete = (typeof _adminAllProps !== 'undefined' ? _adminAllProps : []).filter(function(p) {
+    return status === 'all' || (p.status || '').toLowerCase() === status.toLowerCase();
+  });
+  if (toDelete.length === 0) {
+    showToast(curLang === 'rw' ? 'Nta kintu cyabonetse' : 'Nothing to delete', 'info');
+    return;
+  }
+
+  var doFinish = function() {
+    var ls = [];
+    try { ls = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+    var delIds = {};
+    toDelete.forEach(function(p) { delIds[String(p.id || p._fsId || '')] = true; });
+    ls = ls.filter(function(p) { return !delIds[String(p.id || '')]; });
+    try { localStorage.setItem('km_properties', JSON.stringify(ls)); } catch(e) {}
+    if (typeof invalidatePropsCache === 'function') invalidatePropsCache();
+    showToast((curLang === 'rw' ? 'Byahanaguwe: ' : 'Deleted: ') + toDelete.length, 'success');
+    if (typeof logAudit === 'function') {
+      logAudit('admin.deleteAll', 'properties', status, { count: toDelete.length }, null);
+    }
+    if (typeof adminRender === 'function') adminRender(typeof adminCurrentFilter !== 'undefined' ? adminCurrentFilter : 'all');
+    if (typeof loadApprovedProperties === 'function') loadApprovedProperties();
+  };
+
+  if (typeof db !== 'undefined') {
+    var batch = db.batch();
+    var now   = firebase.firestore.FieldValue.serverTimestamp();
+    var uid   = currentUser ? currentUser.uid : 'system';
+    var fsCount = 0;
+    toDelete.forEach(function(p) {
+      var fsId = p._fsId || (p.id && String(p.id).length > 15 ? p.id : null);
+      if (fsId) {
+        batch.update(db.collection('properties').doc(fsId), { isActive: false, updatedAt: now, updatedBy: uid });
+        fsCount++;
+      }
+    });
+    if (fsCount > 0) {
+      batch.commit().then(doFinish).catch(function(err) {
+        console.warn('[adminDeleteAll] Firestore error:', err);
+        doFinish();
+      });
+    } else {
+      doFinish();
+    }
+  } else {
+    doFinish();
+  }
+}
+
+/* Fix 4: Inject "Convert to Deal" button into lead detail modal footer */
+(function() {
+  var _origOpenLeadDetailWithData = _openLeadDetailWithData;
+  _openLeadDetailWithData = function(lead) {
+    _origOpenLeadDetailWithData(lead);
+    var lateStages = ['offer_submitted', 'negotiation', 'due_diligence', 'financing', 'contract', 'closing'];
+    var stage = lead.pipelineStage || 'new';
+    var footer = document.querySelector('#lead-detail-modal .modal > div:last-of-type');
+    var existingBtn = document.getElementById('ld-convert-btn');
+    if (existingBtn) existingBtn.remove();
+    if (lateStages.indexOf(stage) > -1) {
+      var btn = document.createElement('button');
+      btn.id = 'ld-convert-btn';
+      btn.className = 'btn';
+      btn.style.cssText = 'background:var(--gold);color:#fff;border:none;border-radius:20px;padding:.55rem 1.1rem;font-size:.82rem;font-weight:700;cursor:pointer;margin-top:.6rem;width:100%;justify-content:center;display:flex;gap:.35rem;align-items:center';
+      btn.innerHTML = (curLang === 'rw' ? '&#128198; Hindura Deal' : '&#128198; Convert to Deal');
+      var leadId = lead._docId || lead.id || '';
+      btn.onclick = function() { convertLeadToDeal(leadId); };
+      var modal = document.getElementById('lead-detail-modal');
+      if (modal) {
+        var inner = modal.querySelector('.modal');
+        if (inner) inner.appendChild(btn);
+      }
+    }
+  };
+})();
+
+/* Fix 5: convertLeadToDeal — creates deal + commission record from lead */
+function convertLeadToDeal(leadId) {
+  if (!leadId) return;
+  var lead = null;
+  for (var i = 0; i < _crmLeads.length; i++) {
+    if ((_crmLeads[i]._docId || _crmLeads[i].id) === leadId) { lead = _crmLeads[i]; break; }
+  }
+  if (!lead) { showToast(curLang === 'rw' ? 'Lead ntiyabonetse' : 'Lead not found', 'error'); return; }
+  if (typeof db === 'undefined') { showToast('Firebase ntabwo ihuye', 'error'); return; }
+
+  var uid       = currentUser ? currentUser.uid : '';
+  var agentName = currentUser ? (currentUser.displayName || currentUser.name || currentUser.email || '') : '';
+  var clientName  = lead.clientName || lead.name || '';
+  var clientPhone = lead.clientPhone || lead.phone || '';
+  var dealType    = (lead.action || lead.type || 'sale').toLowerCase() === 'gukodesha' ? 'rental' : 'sale';
+  var agreedPrice = parseInt(lead.budgetMax || lead.budgetMin || 0);
+  var defaultRate = dealType === 'rental' ? 0.0833 : 0.04;
+  var commAmt     = agreedPrice * defaultRate;
+  var agentShare  = Math.round(commAmt * 0.60);
+  var coShare     = Math.round(commAmt * 0.40);
+
+  if (!confirm((curLang === 'rw'
+    ? 'Gufungura Deal ya: ' + clientName + '\nAgaciro: ' + agreedPrice.toLocaleString() + ' RWF\nObutumwa bw\'Umukozi: ' + agentShare.toLocaleString() + ' RWF\nEmeza?'
+    : 'Open Deal for: ' + clientName + '\nValue: ' + agreedPrice.toLocaleString() + ' RWF\nAgent Share: ' + agentShare.toLocaleString() + ' RWF\nConfirm?'
+  ))) return;
+
+  db.collection('deals').add({
+    id:             '',
+    leadId:         leadId,
+    propertyId:     lead.propertyId || '',
+    propertyTitle:  lead.propertyTitle || (lead.zone || lead.district || ''),
+    clientId:       lead.clientId || '',
+    clientName:     clientName,
+    clientPhone:    clientPhone,
+    sellerId:       lead.agentId || uid,
+    agentId:        uid,
+    agentName:      agentName,
+    dealType:       dealType,
+    agreedPrice:    agreedPrice,
+    commissionRate: defaultRate,
+    pipelineStage:  'contract',
+    offerId:        '',
+    notes:          'Converted from CRM lead: ' + leadId,
+    milestones:     {},
+    closedAt:       null,
+    isActive:       true,
+    status:         'contract',
+    createdAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:      uid,
+    updatedBy:      uid
+  }).then(function(dealRef) {
+    dealRef.update({ id: dealRef.id });
+    logAudit('deal.converted.from.lead', 'deals', dealRef.id, { leadId: leadId },
+      { clientName: clientName, agreedPrice: agreedPrice });
+
+    db.collection('commissions').add({
+      id:              '',
+      dealId:          dealRef.id,
+      agentId:         uid,
+      agentName:       agentName,
+      clientName:      clientName,
+      dealType:        dealType,
+      dealValue:       agreedPrice,
+      commissionRate:  defaultRate,
+      totalCommission: Math.round(commAmt),
+      agentShare:      agentShare,
+      companyShare:    coShare,
+      approvedBy:      '',
+      paidAt:          null,
+      status:          'pending',
+      isActive:        true,
+      createdAt:       firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:       firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy:       uid,
+      updatedBy:       uid
+    }).then(function(commRef) {
+      commRef.update({ id: commRef.id });
+      logAudit('commission.created', 'commissions', commRef.id, null,
+        { dealId: dealRef.id, agentShare: agentShare });
+    }).catch(function(e) { console.warn('[Commission] create error:', e); });
+
+    updateLeadStage(leadId, 'contract');
+    showToast(curLang === 'rw' ? 'Deal ifunguwe neza!' : 'Deal opened successfully!', 'success');
+    closeLeadDetail();
+    if (typeof loadDeals === 'function') loadDeals();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa — ongera ugerageze' : 'Error creating deal', 'error');
+    console.error('[convertLeadToDeal] error:', err);
+  });
+}
+
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     MODULE 06 — REFERRAL SYSTEM
+     Referral Codes | Link Capture | Tracking | Rewards UI
+════════════════════════════════════════════════════════ -->
+<script>
+/* ── Referral System globals ── */
+var _refCode   = null;   // current user's referral code
+var _refStats  = null;   // { total, registered, qualified, rewarded }
+
+/* Generate a unique referral code from uid + random suffix */
+function _genRefCode(uid) {
+  var chars  = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var suffix = '';
+  for (var i = 0; i < 5; i++) {
+    suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  var prefix = (uid || '').slice(0, 4).toUpperCase().replace(/[^A-Z0-9]/g, 'X');
+  return 'KM' + prefix + suffix;
+}
+
+/* On page load — capture ?ref=CODE and store for use at registration */
+(function captureRefParam() {
+  var params = new URLSearchParams(window.location.search);
+  var code   = params.get('ref') || params.get('referral');
+  if (code) {
+    try { localStorage.setItem('km_ref_code', code.toUpperCase()); } catch(e){}
+  }
+})();
+
+/* Ensure user has a referral code in Firestore; create one if missing */
+function ensureReferralCode(uid) {
+  if (!uid || typeof db === 'undefined') return;
+  db.collection('users').doc(uid).get().then(function(snap) {
+    if (!snap.exists) return;
+    var data = snap.data();
+    if (data.referralCode) {
+      _refCode = data.referralCode;
+      _updateRefUI();
+      return;
+    }
+    var code = _genRefCode(uid);
+    db.collection('users').doc(uid).update({
+      referralCode: code,
+      updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy:    uid
+    }).then(function() {
+      _refCode = code;
+      _updateRefUI();
+    }).catch(function(){});
+  }).catch(function(){});
+}
+
+/* After registration — link the new user to the referrer */
+function linkReferralOnRegister(newUid, newEmail) {
+  var refCode = '';
+  try { refCode = localStorage.getItem('km_ref_code') || ''; } catch(e){}
+  if (!refCode || typeof db === 'undefined') return;
+
+  /* Look up the referrer by code */
+  db.collection('users').where('referralCode','==',refCode).where('isActive','==',true).limit(1).get()
+    .then(function(snap) {
+      if (snap.empty) return;
+      var referrerDoc = snap.docs[0];
+      var referrerId  = referrerDoc.id;
+      if (referrerId === newUid) return; /* can't self-refer */
+
+      return db.collection('referrals').add({
+        id:             '',
+        referrerId:     referrerId,
+        referrerCode:   refCode,
+        referredUserId: newUid,
+        referredEmail:  newEmail,
+        source:         'link',
+        status:         'registered',
+        rewardAmount:   0,
+        rewardPaid:     false,
+        isActive:       true,
+        createdAt:      firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy:      newUid,
+        updatedBy:      newUid
+      });
+    })
+    .then(function(ref) {
+      if (ref) {
+        ref.update({ id: ref.id });
+        logAudit('referral.registered', 'referrals', ref.id, null, { referredEmail: newEmail, referralCode: refCode });
+        try { localStorage.removeItem('km_ref_code'); } catch(e){}
+      }
+    })
+    .catch(function(e){ console.warn('[Referral] link error:', e); });
+}
+
+/* Load referral stats for current user */
+function loadReferralStats() {
+  if (!currentUser || !currentUser.uid || typeof db === 'undefined') return;
+  var uid = currentUser.uid;
+
+  /* First ensure this user has a referral code */
+  if (!_refCode) ensureReferralCode(uid);
+
+  db.collection('referrals').where('referrerId','==',uid).where('isActive','==',true).get()
+    .then(function(snap) {
+      var total = snap.size;
+      var registered = 0, qualified = 0, rewarded = 0;
+      snap.forEach(function(d) {
+        var s = d.data().status;
+        if (s === 'registered')  registered++;
+        if (s === 'qualified')   qualified++;
+        if (s === 'rewarded')    rewarded++;
+      });
+      _refStats = { total: total, registered: registered, qualified: qualified, rewarded: rewarded };
+      _updateRefUI();
+    }).catch(function(){});
+}
+
+/* Update referral UI elements wherever they appear */
+function _updateRefUI() {
+  var code = _refCode || '';
+  var baseUrl = window.location.origin + '/';
+  var link    = code ? baseUrl + '?ref=' + code : '';
+
+  /* Profile modal referral section */
+  var codeEl = document.getElementById('ref-code-display');
+  var linkEl = document.getElementById('ref-link-display');
+  if (codeEl) codeEl.textContent = code || '—';
+  if (linkEl) linkEl.value       = link;
+
+  /* Dashboard referral card */
+  var dashCode = document.getElementById('dash-ref-code');
+  var dashLink = document.getElementById('dash-ref-link');
+  var dashStat = document.getElementById('dash-ref-total');
+  if (dashCode) dashCode.textContent = code || '—';
+  if (dashLink) dashLink.value       = link;
+  if (dashStat && _refStats) dashStat.textContent = _refStats.total;
+
+  /* Stat counters */
+  if (_refStats) {
+    var elReg  = document.getElementById('ref-stat-registered');
+    var elQual = document.getElementById('ref-stat-qualified');
+    var elRwd  = document.getElementById('ref-stat-rewarded');
+    if (elReg)  elReg.textContent  = _refStats.registered;
+    if (elQual) elQual.textContent = _refStats.qualified;
+    if (elRwd)  elRwd.textContent  = _refStats.rewarded;
+  }
+}
+
+/* Copy referral link to clipboard */
+function copyRefLink(sourceId) {
+  var el = document.getElementById(sourceId || 'ref-link-display');
+  if (!el) return;
+  var link = el.value || el.textContent || '';
+  if (!link) { showToast(curLang === 'rw' ? 'Nta link ibonetse' : 'No link available', 'warn'); return; }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(link).then(function() {
+      showToast(curLang === 'rw' ? 'Link yakopiwe!' : 'Referral link copied!', 'success');
+    }).catch(function(){
+      _fallbackCopy(link);
+    });
+  } else {
+    _fallbackCopy(link);
+  }
+}
+
+function _fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;left:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); showToast(curLang === 'rw' ? 'Link yakopiwe!' : 'Copied!', 'success'); } catch(e){}
+  document.body.removeChild(ta);
+}
+
+/* Open referral panel modal */
+function openReferralPanel() {
+  _ensureReferralModal();
+  loadReferralStats();
+  document.getElementById('ref-panel-modal').style.display = 'flex';
+}
+
+function closeReferralPanel() {
+  var m = document.getElementById('ref-panel-modal');
+  if (m) m.style.display = 'none';
+}
+
+/* Dynamically create the referral modal (lazy init) */
+function _ensureReferralModal() {
+  if (document.getElementById('ref-panel-modal')) return;
+  var m = document.createElement('div');
+  m.className     = 'modal-wrap';
+  m.id            = 'ref-panel-modal';
+  m.style.display = 'none';
+  m.innerHTML = '<div class="modal" style="max-width:480px;width:95vw">'
+    + '<div class="modal-hdr">'
+    + '<div><div class="modal-title" data-rw="Porogaramu yo Gutumiza Inshuti" data-en="Referral Program">Referral Program</div>'
+    + '<div class="modal-sub" data-rw="Tumiza inshuti, uzahabwa inguzanyo!" data-en="Invite friends and earn rewards!">Invite friends and earn rewards!</div></div>'
+    + '<button class="modal-x" onclick="closeReferralPanel()">✕</button>'
+    + '</div>'
+    + '<div class="modal-body">'
+    /* Referral code display */
+    + '<div style="background:var(--light);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1rem">'
+    + '<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.5rem" data-rw="Kode Yawe yo Gutumiza" data-en="Your Referral Code">YOUR REFERRAL CODE</div>'
+    + '<div id="ref-code-display" style="font-size:1.6rem;font-weight:800;letter-spacing:.12em;color:var(--navy);font-family:monospace">—</div>'
+    + '</div>'
+    /* Referral link + copy */
+    + '<div style="margin-bottom:1rem">'
+    + '<div style="font-size:.72rem;font-weight:600;color:var(--muted);margin-bottom:.4rem" data-rw="Link Yawe yo Gutumiza" data-en="Your Referral Link">YOUR INVITE LINK</div>'
+    + '<div style="display:flex;gap:.5rem;align-items:center">'
+    + '<input type="text" id="ref-link-display" readonly style="flex:1;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-size:.78rem;background:var(--light);color:var(--navy);font-family:monospace" value="">'
+    + '<button class="btn btn-navy btn-sm" onclick="copyRefLink(\'ref-link-display\')" style="white-space:nowrap" data-rw="Kopi" data-en="Copy">Copy Link</button>'
+    + '</div>'
+    + '</div>'
+    /* Stats */
+    + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1rem">'
+    + '<div style="background:var(--light);border-radius:9px;padding:.7rem;text-align:center"><div id="ref-stat-registered" style="font-size:1.4rem;font-weight:800;color:var(--navy)">0</div><div style="font-size:.68rem;color:var(--muted)" data-rw="Byiyandikishije" data-en="Registered">Registered</div></div>'
+    + '<div style="background:var(--light);border-radius:9px;padding:.7rem;text-align:center"><div id="ref-stat-qualified" style="font-size:1.4rem;font-weight:800;color:#16A34A">0</div><div style="font-size:.68rem;color:var(--muted)" data-rw="Yemejwe" data-en="Qualified">Qualified</div></div>'
+    + '<div style="background:var(--light);border-radius:9px;padding:.7rem;text-align:center"><div id="ref-stat-rewarded" style="font-size:1.4rem;font-weight:800;color:var(--gold)">0</div><div style="font-size:.68rem;color:var(--muted)" data-rw="Yahawe Igihembo" data-en="Rewarded">Rewarded</div></div>'
+    + '</div>'
+    /* Share via WhatsApp */
+    + '<div style="display:flex;gap:.6rem;flex-wrap:wrap">'
+    + '<button class="btn btn-outline btn-sm" onclick="shareRefWhatsApp()" style="flex:1" data-rw="Sangira kuri WhatsApp" data-en="Share on WhatsApp">📱 WhatsApp</button>'
+    + '<button class="btn btn-outline btn-sm" onclick="copyRefLink(\'ref-link-display\')" style="flex:1" data-rw="Kopi Link" data-en="Copy Link">🔗 Copy Link</button>'
+    + '</div>'
+    + '<div style="margin-top:1rem;padding:.75rem 1rem;background:#EFF6FF;border-radius:9px;border:1px solid #BFDBFE;font-size:.75rem;color:#1E40AF">'
+    + '<strong data-rw="Uburyo bwo gutuza:" data-en="How it works:">How it works:</strong><br>'
+    + '<span data-rw="1. Sangira link yawe na bagenzi bawe · 2. Bakiyandikisha barimo iyo link · 3. Uzahabwa inguzanyo iyo bagerageje gutumanahana" data-en="1. Share your link with friends · 2. They register using your link · 3. You earn rewards when they complete a transaction">1. Share your link · 2. Friends register · 3. Earn rewards when they transact</span>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+  document.body.appendChild(m);
+  m.addEventListener('click', function(e){ if (e.target === m) closeReferralPanel(); });
+}
+
+/* Share via WhatsApp */
+function shareRefWhatsApp() {
+  var link = (document.getElementById('ref-link-display') || {}).value || '';
+  if (!link) return;
+  var msg = curLang === 'rw'
+    ? encodeURIComponent('Murakaza neza kuri KOMISIYONERI — Platform nziza y\'imitungo mu Rwanda! Iyandikishe ukoresheje link yanjye: ' + link)
+    : encodeURIComponent('Join KOMISIYONERI — Rwanda\'s #1 Real Estate Platform! Register using my referral link: ' + link);
+  window.open('https://wa.me/?text=' + msg, '_blank');
+}
+
+/* Inject referral card into dashboard on navigation */
+(function() {
+  var _goRef = go;
+  go = function(name) {
+    _goRef(name);
+    if (name === 'dashboard') {
+      setTimeout(function() {
+        if (!currentUser) return;
+        var dashContent = document.querySelector('.dash-content');
+        if (!dashContent) return;
+        if (document.getElementById('dash-ref-card')) { loadReferralStats(); return; }
+        var card = document.createElement('div');
+        card.id        = 'dash-ref-card';
+        card.className = 'dc';
+        card.style.cssText = 'margin-top:1.4rem;cursor:pointer';
+        card.onclick   = openReferralPanel;
+        card.innerHTML = '<div class="dc-hdr">'
+          + '<span class="dc-title" data-rw="Porogaramu yo Gutumiza" data-en="Referral Program">Referral Program</span>'
+          + '<button class="dc-action" onclick="event.stopPropagation();openReferralPanel()" data-rw="Reba" data-en="View">View</button>'
+          + '</div>'
+          + '<div style="padding:1rem 1.4rem;display:flex;align-items:center;gap:1.2rem">'
+          + '<div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--navy),var(--blue));display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+          + '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>'
+          + '</div>'
+          + '<div style="flex:1">'
+          + '<div style="font-size:.82rem;font-weight:600;color:var(--dark)" data-rw="Itumizwa Ryawe" data-en="Your Referral Code">Your Referral Code</div>'
+          + '<div id="dash-ref-code" style="font-size:1rem;font-weight:800;letter-spacing:.08em;color:var(--navy);font-family:monospace">—</div>'
+          + '<div style="font-size:.72rem;color:var(--muted);margin-top:.2rem"><span id="dash-ref-total" style="color:var(--navy);font-weight:700">0</span> <span data-rw="inshuti zitumijwe" data-en="friends referred">friends referred</span></div>'
+          + '</div>'
+          + '<div style="display:flex;gap:.4rem;flex-direction:column;align-items:flex-end">'
+          + '<input type="text" id="dash-ref-link" readonly style="width:1px;height:1px;opacity:0;position:absolute" value="">'
+          + '<button class="btn btn-navy btn-sm" onclick="event.stopPropagation();copyRefLink(\'dash-ref-link\')" data-rw="Kopi Link" data-en="Copy Link">Copy Link</button>'
+          + '</div>'
+          + '</div>';
+        dashContent.appendChild(card);
+        loadReferralStats();
+      }, 200);
+    }
+  };
+})();
+
+/* Hook into handleRegister to link referrals after successful signup */
+(function() {
+  if (typeof handleRegister !== 'function') return;
+  var _origHandleRegister = handleRegister;
+  handleRegister = async function() {
+    /* Call original — it handles auth + Firestore user creation */
+    var refCode = '';
+    try { refCode = localStorage.getItem('km_ref_code') || ''; } catch(e){}
+    await _origHandleRegister.apply(this, arguments);
+    /* After register: link referral if code was stored */
+    if (refCode && typeof currentUser !== 'undefined' && currentUser && currentUser.uid) {
+      linkReferralOnRegister(currentUser.uid, currentUser.email || '');
+    }
+  };
+})();
+
+/* Hook into auth state change to ensure referral code exists */
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      if (typeof firebaseAuth !== 'undefined' && firebaseAuth) {
+        firebaseAuth.onAuthStateChanged(function(fbUser) {
+          if (fbUser) {
+            setTimeout(function() { ensureReferralCode(fbUser.uid); }, 1000);
+          } else {
+            _refCode  = null;
+            _refStats = null;
+          }
+        });
+      }
+    }, 500);
+  });
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 07 — PROPERTY FAVORITES / WISHLIST
+   Persists to Firestore users.{uid}.favorites[]
+   Falls back to localStorage for guests
+   ═══════════════════════════════════════════════════════════════ */
+var _userFavorites = new Set();
+
+function toggleFav(pid, evt) {
+  if (evt) { evt.stopPropagation(); evt.preventDefault(); }
+  if (!pid) return;
+  pid = String(pid);
+
+  var wasFav = _userFavorites.has(pid);
+  if (wasFav) {
+    _userFavorites.delete(pid);
+  } else {
+    _userFavorites.add(pid);
+  }
+
+  // Update all card fav buttons with this pid
+  document.querySelectorAll('.p-fav[data-pid="' + pid + '"]').forEach(function(btn) {
+    wasFav ? btn.classList.remove('on') : btn.classList.add('on');
+  });
+
+  // Update detail page fav button if open
+  var detFavBtn = document.getElementById('det-fav-btn');
+  var detFavIcon = document.getElementById('det-fav-icon');
+  var detFavLabel = document.getElementById('det-fav-label');
+  if (detFavBtn && window._currentProp && String(window._currentProp.id) === pid) {
+    var nowFav = !wasFav;
+    detFavBtn.style.background = nowFav ? 'rgba(229,62,62,.25)' : 'rgba(255,255,255,.18)';
+    detFavBtn.style.borderColor = nowFav ? '#e53e3e' : 'rgba(255,255,255,.35)';
+    if (detFavIcon) { detFavIcon.style.fill = nowFav ? '#e53e3e' : 'none'; detFavIcon.style.stroke = nowFav ? '#e53e3e' : 'currentColor'; }
+    if (detFavLabel) { detFavLabel.textContent = nowFav ? (curLang==='rw' ? 'Byabitswe' : 'Saved') : (curLang==='rw' ? 'Bika' : 'Save'); }
+  }
+
+  var lang = (typeof curLang !== 'undefined' ? curLang : 'en');
+  showToast(
+    !wasFav ? (lang==='rw' ? 'Yongewe ku rutonde rwawe!' : 'Added to favorites!')
+            : (lang==='rw' ? 'Yakuwe ku rutonde rwawe' : 'Removed from favorites'),
+    !wasFav ? 'success' : 'info'
+  );
+
+  _updateNavFavBadge();
+
+  // Persist to Firestore if logged in, else localStorage
+  if (typeof currentUser !== 'undefined' && currentUser && typeof db !== 'undefined') {
+    var op = !wasFav ? firebase.firestore.FieldValue.arrayUnion(pid) : firebase.firestore.FieldValue.arrayRemove(pid);
+    db.collection('users').doc(currentUser.uid).update({
+      favorites:  op,
+      updatedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy:  currentUser.uid
+    }).catch(function(err) { console.warn('[Favorites] Firestore update failed:', err); });
+  } else {
+    try { localStorage.setItem('km_favorites', JSON.stringify(Array.from(_userFavorites))); } catch(e){}
+  }
+}
+
+function loadUserFavorites(callback) {
+  if (typeof currentUser === 'undefined' || !currentUser) {
+    try { _userFavorites = new Set(JSON.parse(localStorage.getItem('km_favorites') || '[]')); } catch(e) { _userFavorites = new Set(); }
+    _applyFavState();
+    _updateNavFavBadge();
+    if (callback) callback();
+    return;
+  }
+  if (typeof db === 'undefined') { if (callback) callback(); return; }
+  db.collection('users').doc(currentUser.uid).get().then(function(doc) {
+    if (doc.exists) {
+      var data = doc.data();
+      _userFavorites = new Set(Array.isArray(data.favorites) ? data.favorites.map(String) : []);
+    }
+    _applyFavState();
+    _updateNavFavBadge();
+    if (callback) callback();
+  }).catch(function(err) {
+    console.warn('[Favorites] Load failed:', err);
+    _applyFavState();
+    if (callback) callback();
+  });
+}
+
+function _applyFavState() {
+  document.querySelectorAll('.p-fav[data-pid]').forEach(function(btn) {
+    var pid = btn.getAttribute('data-pid');
+    _userFavorites.has(pid) ? btn.classList.add('on') : btn.classList.remove('on');
+  });
+}
+
+function _updateNavFavBadge() {
+  var btn   = document.getElementById('nav-fav-btn');
+  var badge = document.getElementById('nav-fav-badge');
+  var count = _userFavorites.size;
+  if (btn) btn.style.display = count > 0 ? '' : 'none';
+  if (badge) {
+    if (count > 0) {
+      badge.style.display = 'flex';
+      badge.textContent   = count > 9 ? '9+' : String(count);
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+}
+
+function openFavoritesPanel() {
+  _ensureFavModal();
+  var modal = document.getElementById('fav-modal');
+  if (!modal) return;
+  _renderFavModal();
+  modal.style.display = 'flex';
+}
+
+function closeFavoritesPanel() {
+  var modal = document.getElementById('fav-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function _ensureFavModal() {
+  if (document.getElementById('fav-modal')) return;
+  var modal = document.createElement('div');
+  modal.id = 'fav-modal';
+  modal.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:1rem';
+  modal.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:820px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.22)">'
+    + '<div style="padding:1.4rem 1.6rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff">'
+    + '<div><h3 style="margin:0;font-size:1.1rem;font-weight:700">❤️ <span data-rw="Imitungo Mwibitse" data-en="Saved Properties">Saved Properties</span></h3>'
+    + '<p style="margin:.2rem 0 0;font-size:.76rem;opacity:.8" id="fav-count-label"></p></div>'
+    + '<button onclick="closeFavoritesPanel()" style="background:rgba(255,255,255,.18);border:none;cursor:pointer;border-radius:50%;width:32px;height:32px;font-size:1.1rem;color:#fff;display:flex;align-items:center;justify-content:center">✕</button>'
+    + '</div>'
+    + '<div id="fav-grid" style="overflow-y:auto;padding:1.2rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem"></div>'
+    + '</div>';
+  modal.addEventListener('click', function(e) { if (e.target === modal) closeFavoritesPanel(); });
+  document.body.appendChild(modal);
+}
+
+function _renderFavModal() {
+  var grid  = document.getElementById('fav-grid');
+  var label = document.getElementById('fav-count-label');
+  if (!grid) return;
+
+  var props = [];
+  try { props = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e){}
+  var favProps = props.filter(function(p) { return _userFavorites.has(String(p.id)); });
+  var lang = (typeof curLang !== 'undefined' ? curLang : 'en');
+
+  if (label) {
+    label.textContent = lang === 'rw'
+      ? (favProps.length + ' imitungo mwibitse')
+      : (favProps.length + ' saved propert' + (favProps.length === 1 ? 'y' : 'ies'));
+  }
+
+  if (!favProps.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3.5rem 1rem;color:var(--muted)">'
+      + '<div style="font-size:3rem;margin-bottom:.8rem">❤️</div>'
+      + '<div style="font-size:1rem;font-weight:700;color:var(--dark);margin-bottom:.4rem">'
+      + (lang === 'rw' ? 'Nta mitungo mwibitse' : 'No saved properties yet') + '</div>'
+      + '<div style="font-size:.82rem;margin-bottom:1.2rem">'
+      + (lang === 'rw' ? 'Kanda ❤️ kuri imitungo ibaguteze kuyibika!' : 'Tap the ❤️ on any property card to save it here.') + '</div>'
+      + '<button onclick="closeFavoritesPanel();showPage(\'properties\')" class="btn btn-navy" style="padding:.55rem 1.5rem;font-size:.85rem">'
+      + (lang === 'rw' ? 'Reba Imitungo' : 'Browse Properties') + '</button>'
+      + '</div>';
+    return;
+  }
+
+  grid.innerHTML = favProps.map(function(prop) {
+    return typeof renderUserPropCard === 'function'
+      ? '<div class="user-prop-card" data-pid="' + String(prop.id) + '">' + renderUserPropCard(prop) + '</div>'
+      : '';
+  }).join('');
+
+  setTimeout(_applyFavState, 60);
+}
+
+/* Override loadApprovedProperties to re-apply fav state after cards render */
+(function() {
+  if (typeof loadApprovedProperties === 'function') {
+    var _origLoad = loadApprovedProperties;
+    loadApprovedProperties = function() {
+      _origLoad.apply(this, arguments);
+      setTimeout(_applyFavState, 350);
+    };
+  }
+})();
+
+/* Auth-aware favorites load */
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      // Load for already-signed-in user
+      if (typeof currentUser !== 'undefined' && currentUser) {
+        loadUserFavorites();
+      } else {
+        // Guest: load from localStorage
+        try { _userFavorites = new Set(JSON.parse(localStorage.getItem('km_favorites') || '[]')); } catch(e){}
+        _updateNavFavBadge();
+      }
+
+      if (typeof firebaseAuth !== 'undefined' && firebaseAuth) {
+        firebaseAuth.onAuthStateChanged(function(fbUser) {
+          if (fbUser) {
+            setTimeout(loadUserFavorites, 1000);
+          } else {
+            try { _userFavorites = new Set(JSON.parse(localStorage.getItem('km_favorites') || '[]')); } catch(e) { _userFavorites = new Set(); }
+            _applyFavState();
+            _updateNavFavBadge();
+          }
+        });
+      }
+    }, 1600);
+  });
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   CRM ENHANCEMENT MODULE
+   • Agent Lead Creation form (openAgentLead)
+   • Close Won / Close Lost with reason capture
+   • Convert Lead → Deal with pre-fill
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Agent Lead Creation ─────────────────────────────── */
+
+function openAgentLead() {
+  _ensureAgentLeadModal();
+  var modal = document.getElementById('agent-lead-modal');
+  if (!modal) return;
+  // Reset form
+  ['al-client-name','al-client-phone','al-client-email','al-budget-min','al-budget-max','al-notes'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  var distEl = document.getElementById('al-district');
+  var srcEl  = document.getElementById('al-source');
+  var priEl  = document.getElementById('al-priority');
+  var typEl  = document.getElementById('al-property-type');
+  if (distEl) distEl.selectedIndex = 0;
+  if (srcEl)  srcEl.selectedIndex  = 0;
+  if (priEl)  priEl.selectedIndex  = 0;
+  if (typEl)  typEl.selectedIndex  = 0;
+
+  // Pre-fill agent name if agent role
+  if (typeof currentUser !== 'undefined' && currentUser) {
+    var agEl = document.getElementById('al-agent-name');
+    if (agEl) agEl.value = currentUser.displayName || currentUser.name || currentUser.email || '';
+  }
+
+  // Show assign-agent row only for admin/staff
+  var assignRow = document.getElementById('al-assign-row');
+  if (assignRow) {
+    var role = typeof currentUser !== 'undefined' && currentUser ? (currentUser.role || '').toLowerCase() : '';
+    assignRow.style.display = ['admin','super_admin','staff','ceo'].indexOf(role) > -1 ? '' : 'none';
+  }
+
+  modal.style.display = 'flex';
+}
+
+function closeAgentLead() {
+  var modal = document.getElementById('agent-lead-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function _ensureAgentLeadModal() {
+  if (document.getElementById('agent-lead-modal')) return;
+
+  var districts = ['Gasabo','Kicukiro','Nyarugenge','Bugesera','Rulindo','Rwamagana','Musanze','Rubavu','Nyamasheke','Huye','Muhanga','Kamonyi','Ngoma','Kirehe','Kayonza','Nyagatare','Gisagara','Nyamagabe','Nyaruguru','Ruhango','Karongi','Rutsiro','Ngororero','Nyabihu','Gakenke','Gicumbi','Burera','Gatsibo','Rusizi'];
+  var distOpts = districts.map(function(d){ return '<option value="'+d+'">'+d+'</option>'; }).join('');
+
+  var modal = document.createElement('div');
+  modal.id = 'agent-lead-modal';
+  modal.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:1rem';
+  modal.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:540px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.22)">'
+    /* Header */
+    + '<div style="padding:1.2rem 1.4rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff">'
+    + '<div><div style="font-size:.64rem;text-transform:uppercase;letter-spacing:.1em;opacity:.8;margin-bottom:.15rem">CRM</div>'
+    + '<h3 style="margin:0;font-size:1rem;font-weight:700">➕ <span data-rw="Ongeraho Lead Nshya" data-en="Add New Lead">Add New Lead</span></h3></div>'
+    + '<button onclick="closeAgentLead()" style="background:rgba(255,255,255,.18);border:none;cursor:pointer;border-radius:50%;width:30px;height:30px;font-size:1rem;color:#fff;display:flex;align-items:center;justify-content:center">✕</button>'
+    + '</div>'
+    /* Body */
+    + '<div style="overflow-y:auto;padding:1.2rem;display:flex;flex-direction:column;gap:.75rem">'
+    /* Client info */
+    + '<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.07em" data-rw="AMAKURU Y\'UMUKILIYA" data-en="CLIENT INFORMATION">CLIENT INFORMATION</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Amazina*" data-en="Full Name*">Full Name*</label><input id="al-client-name" type="text" placeholder="Nziza Jean..." style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"></div>'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Telefoni*" data-en="Phone*">Phone*</label><input id="al-client-phone" type="tel" placeholder="+250 7xx xxx xxx" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"></div>'
+    + '</div>'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Imeyili (Ntibisabwa)" data-en="Email (Optional)">Email (Optional)</label><input id="al-client-email" type="email" placeholder="client@email.com" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"></div>'
+    /* Lead details */
+    + '<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.07em;margin-top:.2rem" data-rw="IBIREBANA NA LEAD" data-en="LEAD DETAILS">LEAD DETAILS</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Ubwoko bw\'Imitungo" data-en="Property Type">Property Type</label><select id="al-property-type" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"><option value="Kugura">Kugura (Buy)</option><option value="Gukodesha">Gukodesha (Rent)</option><option value="Gutanga">Gutanga (Sell)</option><option value="Gusimbura">Gusimbura (Invest)</option></select></div>'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Akarere" data-en="District">District</label><select id="al-district" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"><option value="">-- Select --</option>' + distOpts + '</select></div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Ingengo Min (RWF)" data-en="Budget Min (RWF)">Budget Min (RWF)</label><input id="al-budget-min" type="number" placeholder="e.g. 15000000" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"></div>'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Ingengo Max (RWF)" data-en="Budget Max (RWF)">Budget Max (RWF)</label><input id="al-budget-max" type="number" placeholder="e.g. 80000000" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"></div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Inkomoko" data-en="Lead Source">Lead Source</label><select id="al-source" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"><option value="walk_in">Walk-in</option><option value="phone_call">Phone Call</option><option value="whatsapp">WhatsApp</option><option value="referral">Referral</option><option value="website">Website</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="agent_network">Agent Network</option><option value="other">Other</option></select></div>'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Urwego rw\'Akiciro" data-en="Priority">Priority</label><select id="al-priority" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"><option value="hot">🔥 Hot</option><option value="warm" selected>🌡️ Warm</option><option value="cold">🧊 Cold</option></select></div>'
+    + '</div>'
+    /* Agent assignment (admin/staff only) */
+    + '<div id="al-assign-row" style="display:none"><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Izina rya Agent" data-en="Agent Name">Agent Name</label><input id="al-agent-name" type="text" placeholder="Agent name..." style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"></div>'
+    /* Notes */
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Inyandiko (Ntibisabwa)" data-en="Notes (Optional)">Notes (Optional)</label><textarea id="al-notes" rows="2" placeholder="Any extra details..." style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;resize:vertical;box-sizing:border-box;display:block"></textarea></div>'
+    /* Footer */
+    + '<div style="display:flex;gap:.6rem;padding-top:.4rem">'
+    + '<button class="btn btn-navy" style="flex:1;justify-content:center" onclick="saveAgentLead()" id="al-save-btn"><span id="al-save-lbl" data-rw="Bika Lead" data-en="Save Lead">Save Lead</span></button>'
+    + '<button class="btn btn-outline" style="flex-shrink:0" onclick="closeAgentLead()" data-rw="Guhagarika" data-en="Cancel">Cancel</button>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+  modal.addEventListener('click', function(e) { if (e.target === modal) closeAgentLead(); });
+  document.body.appendChild(modal);
+}
+
+function saveAgentLead() {
+  var g = function(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  var name  = g('al-client-name');
+  var phone = g('al-client-phone');
+  if (!name)  { showToast(curLang==='rw' ? 'Andika amazina y\'umukiliya!' : 'Enter client name!', 'error'); return; }
+  if (!phone) { showToast(curLang==='rw' ? 'Andika telefoni y\'umukiliya!' : 'Enter client phone!', 'error'); return; }
+
+  var btn = document.getElementById('al-save-btn');
+  var lbl = document.getElementById('al-save-lbl');
+  if (btn) btn.disabled = true;
+  if (lbl) lbl.textContent = curLang==='rw' ? 'Tegereza...' : 'Saving...';
+
+  var uid  = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : '';
+  var role = typeof currentUser !== 'undefined' && currentUser ? (currentUser.role || '').toLowerCase() : '';
+  var isAdminRole = ['admin','super_admin','staff','ceo'].indexOf(role) > -1;
+
+  var leadData = {
+    id:            '',
+    clientName:    name,
+    clientPhone:   phone,
+    clientEmail:   g('al-client-email'),
+    agentId:       isAdminRole ? '' : uid,
+    agentName:     g('al-agent-name') || (typeof currentUser !== 'undefined' && currentUser ? (currentUser.displayName || currentUser.name || '') : ''),
+    action:        g('al-property-type'),
+    district:      g('al-district'),
+    zone:          g('al-district'),
+    budgetMin:     g('al-budget-min'),
+    budgetMax:     g('al-budget-max'),
+    source:        g('al-source'),
+    priority:      g('al-priority'),
+    notes:         g('al-notes'),
+    pipelineStage: 'new',
+    contactLog:    [],
+    nextFollowUp:  null,
+    status:        'new',
+    isActive:      true,
+    createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:     uid || 'system',
+    updatedBy:     uid || 'system'
+  };
+  if (!isAdminRole) leadData.agentId = uid;
+
+  if (typeof db !== 'undefined') {
+    db.collection('leads').add(leadData).then(function(ref) {
+      ref.update({ id: ref.id });
+      if (typeof logAudit === 'function') {
+        logAudit('lead.created', 'leads', ref.id, null, { clientName: name, source: leadData.source, priority: leadData.priority });
+      }
+      showToast(curLang==='rw' ? 'Lead yabitswe neza!' : 'Lead saved successfully!', 'success');
+      closeAgentLead();
+      if (typeof loadCRM === 'function') loadCRM();
+    }).catch(function(err) {
+      console.error('[AgentLead] Save error:', err);
+      showToast(curLang==='rw' ? 'Habaye ikosa — ongera ugerageze' : 'Error saving lead', 'error');
+    }).finally(function() {
+      if (btn) btn.disabled = false;
+      if (lbl) lbl.textContent = curLang==='rw' ? 'Bika Lead' : 'Save Lead';
+    });
+  } else {
+    showToast(curLang==='rw' ? 'Firebase ntabwo iri gutangira' : 'Firebase not ready', 'error');
+    if (btn) btn.disabled = false;
+    if (lbl) lbl.textContent = curLang==='rw' ? 'Bika Lead' : 'Save Lead';
+  }
+}
+
+/* ── Close Won ───────────────────────────────────────── */
+
+function closeLeadWon() {
+  var leadId = (document.getElementById('ld-lead-id') || {}).value || '';
+  var lead   = typeof _ldCurrentLead !== 'undefined' ? _ldCurrentLead : null;
+  if (!leadId) { showToast(curLang==='rw' ? 'Nta lead yatoranijwe' : 'No lead selected', 'error'); return; }
+
+  var confirmed = window.confirm(
+    curLang === 'rw'
+      ? 'Emeza: Lead ya ' + ((lead && lead.clientName) || '') + ' yarangiye neza (Closed Won)?'
+      : 'Confirm: Mark this lead as Closed Won for ' + ((lead && lead.clientName) || '') + '?'
+  );
+  if (!confirmed) return;
+
+  if (typeof db !== 'undefined') {
+    db.collection('leads').doc(leadId).update({
+      pipelineStage: 'closed_won',
+      status:        'closed_won',
+      closedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy:     typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system'
+    }).then(function() {
+      showToast(curLang==='rw' ? '✅ Lead yarangiye neza!' : '✅ Lead closed as Won!', 'success');
+      if (typeof logAudit === 'function') {
+        logAudit('lead.closed_won', 'leads', leadId, { pipelineStage: lead ? lead.pipelineStage : '' }, { pipelineStage: 'closed_won' });
+      }
+      if (lead) lead.pipelineStage = 'closed_won';
+      for (var i = 0; i < _crmLeads.length; i++) {
+        if ((_crmLeads[i]._docId || _crmLeads[i].id) === leadId) { _crmLeads[i].pipelineStage = 'closed_won'; break; }
+      }
+      closeLeadDetail();
+      renderCrmLeads();
+      updateCrmStats();
+      // Prompt to convert to deal
+      setTimeout(function() {
+        if (window.confirm(curLang==='rw' ? 'Kora deal ya imitungo kuri lead iyi?' : 'Convert this lead to a Deal record?')) {
+          if (lead) _convertLeadToDealData(lead);
+        }
+      }, 400);
+    }).catch(function(err) {
+      showToast(curLang==='rw' ? 'Habaye ikosa' : 'Error', 'error');
+      console.error('[CRM] Close Won error:', err);
+    });
+  }
+}
+
+/* ── Close Lost ──────────────────────────────────────── */
+
+function closeLeadLost() {
+  var leadId = (document.getElementById('ld-lead-id') || {}).value || '';
+  var lead   = typeof _ldCurrentLead !== 'undefined' ? _ldCurrentLead : null;
+  if (!leadId) { showToast(curLang==='rw' ? 'Nta lead yatoranijwe' : 'No lead selected', 'error'); return; }
+
+  var reason = window.prompt(
+    curLang === 'rw'
+      ? 'Impamvu Lead Yasize (Ntibisabwa):'
+      : 'Reason for losing this lead (optional):',
+    ''
+  );
+  if (reason === null) return; // user cancelled
+
+  if (typeof db !== 'undefined') {
+    db.collection('leads').doc(leadId).update({
+      pipelineStage: 'closed_lost',
+      status:        'closed_lost',
+      lostReason:    reason || '',
+      closedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy:     typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system'
+    }).then(function() {
+      showToast(curLang==='rw' ? 'Lead yabitswe nk\'ibyanze' : 'Lead marked as Lost', 'info');
+      if (typeof logAudit === 'function') {
+        logAudit('lead.closed_lost', 'leads', leadId, { pipelineStage: lead ? lead.pipelineStage : '' }, { pipelineStage: 'closed_lost', reason: reason });
+      }
+      if (lead) lead.pipelineStage = 'closed_lost';
+      for (var i = 0; i < _crmLeads.length; i++) {
+        if ((_crmLeads[i]._docId || _crmLeads[i].id) === leadId) { _crmLeads[i].pipelineStage = 'closed_lost'; break; }
+      }
+      closeLeadDetail();
+      renderCrmLeads();
+      updateCrmStats();
+    }).catch(function(err) {
+      showToast(curLang==='rw' ? 'Habaye ikosa' : 'Error', 'error');
+      console.error('[CRM] Close Lost error:', err);
+    });
+  }
+}
+
+/* ── Convert Lead → Deal (pre-fill form helper, used by closeLeadWon) ── */
+
+function _convertLeadToDealData(lead) {
+  if (typeof openCreateDeal !== 'function') { showToast('Deal module not ready', 'error'); return; }
+  openCreateDeal();
+
+  // Pre-fill the deal creation form from lead data
+  setTimeout(function() {
+    var fields = {
+      'deal-client-name':  lead.clientName || lead.name || '',
+      'deal-client-phone': lead.clientPhone || lead.phone || '',
+      'deal-agent-name':   lead.agentName || '',
+      'deal-agent-id':     lead.agentId || '',
+      'deal-lead-id':      lead._docId || lead.id || '',
+      'deal-district':     lead.district || lead.zone || '',
+      'deal-type':         lead.action === 'Gukodesha' ? 'rental' : 'sale',
+      'deal-agreed-price': lead.budgetMax || lead.budgetMin || ''
+    };
+    Object.keys(fields).forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el && fields[id]) el.value = fields[id];
+    });
+
+    // Mark lead source in notes
+    var notesEl = document.getElementById('deal-notes');
+    if (notesEl && !notesEl.value) {
+      notesEl.value = (curLang === 'rw' ? 'Ivuye kuri Lead: ' : 'Converted from Lead: ') + (lead.clientName || '') + ' — ' + (lead._docId || lead.id || '');
+    }
+
+    showToast(curLang==='rw' ? 'Deal yuzuzwa kuva kuri lead!' : 'Deal pre-filled from lead!', 'success');
+  }, 350);
+}
+
+/* ── Update lead detail button states ────────────────── */
+(function() {
+  var _origOpenDetail = typeof _openLeadDetailWithData !== 'undefined' ? _openLeadDetailWithData : null;
+  if (_origOpenDetail) {
+    window._openLeadDetailWithData = function(lead) {
+      _origOpenDetail(lead);
+      _updateLeadDetailButtons(lead);
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Patch after script loads
+    setTimeout(function() {
+      if (typeof _openLeadDetailWithData === 'function') {
+        var orig = _openLeadDetailWithData;
+        _openLeadDetailWithData = function(lead) {
+          orig(lead);
+          _updateLeadDetailButtons(lead);
+        };
+      }
+    }, 2000);
+  });
+})();
+
+function _updateLeadDetailButtons(lead) {
+  var stage       = (lead && lead.pipelineStage) || 'new';
+  var isClosed    = stage === 'closed_won' || stage === 'closed_lost';
+  var isWon       = stage === 'closed_won';
+  var isLost      = stage === 'closed_lost';
+  var canConvert  = ['offer_submitted','negotiation','due_diligence','financing','contract','closing','closed_won'].indexOf(stage) > -1;
+
+  var advBtn     = document.getElementById('ld-advance-btn');
+  var wonBtn     = document.getElementById('ld-close-won-btn');
+  var lostBtn    = document.getElementById('ld-close-lost-btn');
+  var convBtn    = document.getElementById('ld-convert-deal-btn');
+
+  if (advBtn)  advBtn.style.display  = isClosed ? 'none' : '';
+  if (wonBtn)  wonBtn.style.display  = isWon    ? 'none' : '';
+  if (lostBtn) lostBtn.style.display = isLost   ? 'none' : '';
+  if (convBtn) convBtn.style.display = canConvert ? '' : 'none';
+}
+
+/* ══════════════════════════════════════════════════════
+   DEAL DETAIL — CLOSE WON / CLOSE LOST / QUICK CONTACT
+══════════════════════════════════════════════════════ */
+
+function closeDealWon() {
+  if (!_ddCurrentDeal) return;
+  var dealId = _ddCurrentDeal._docId || _ddCurrentDeal.id || '';
+  if (!dealId || typeof db === 'undefined') return;
+  var cur = _ddCurrentDeal.pipelineStage || 'new';
+  if (cur === 'closed_won') {
+    showToast(curLang === 'rw' ? 'Deal isanzwe ifunzwe neza!' : 'Deal already closed won!', 'info'); return;
+  }
+  if (!confirm(curLang === 'rw'
+    ? 'Wemeza ko deal irangiye neza kandi wabigezeho (Closed Won)?'
+    : 'Confirm: Mark this deal as Closed Won and trigger commission calculation?')) return;
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+  db.collection('deals').doc(dealId).update({
+    pipelineStage: 'closed_won',
+    status:        'closed_won',
+    closedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy:     uid
+  }).then(function() {
+    logAudit('deal.closed.won', 'deals', dealId, { pipelineStage: cur }, { pipelineStage: 'closed_won' });
+    showToast(curLang === 'rw'
+      ? 'Deal yafunzwe neza! Komisiyoni irategerezwa...'
+      : 'Deal closed as Won! Calculating commission...', 'success');
+    if (_ddCurrentDeal) _ddCurrentDeal.pipelineStage = 'closed_won';
+    for (var i = 0; i < _deals.length; i++) {
+      if ((_deals[i]._docId || _deals[i].id) === dealId) { _deals[i].pipelineStage = 'closed_won'; break; }
+    }
+    _updateDealDetailButtons(_ddCurrentDeal);
+    renderDealList();
+    updateDealStats();
+    setTimeout(function() {
+      if (typeof autoCalculateCommission === 'function') autoCalculateCommission(dealId, _ddCurrentDeal);
+    }, 600);
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error closing deal', 'error');
+    console.error('[Deal] Close won error:', err);
+  });
+}
+
+function closeDealLost() {
+  if (!_ddCurrentDeal) return;
+  var dealId = _ddCurrentDeal._docId || _ddCurrentDeal.id || '';
+  if (!dealId || typeof db === 'undefined') return;
+  var cur = _ddCurrentDeal.pipelineStage || 'new';
+  if (cur === 'closed_lost') {
+    showToast(curLang === 'rw' ? 'Deal isanzwe ifunzwe (Lost)!' : 'Deal already closed lost!', 'info'); return;
+  }
+  var lostReason = window.prompt(
+    curLang === 'rw' ? 'Impamvu deal yanze (optional):' : 'Reason for losing deal (optional):',
+    ''
+  );
+  if (lostReason === null) return;
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+  var update = {
+    pipelineStage: 'closed_lost',
+    status:        'closed_lost',
+    closedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy:     uid
+  };
+  if (lostReason.trim()) update.lostReason = lostReason.trim();
+  db.collection('deals').doc(dealId).update(update).then(function() {
+    logAudit('deal.closed.lost', 'deals', dealId, { pipelineStage: cur }, { pipelineStage: 'closed_lost', lostReason: update.lostReason });
+    showToast(curLang === 'rw' ? 'Deal yashyizwe muri Lost.' : 'Deal marked as Lost.', 'info');
+    if (_ddCurrentDeal) _ddCurrentDeal.pipelineStage = 'closed_lost';
+    for (var i = 0; i < _deals.length; i++) {
+      if ((_deals[i]._docId || _deals[i].id) === dealId) { _deals[i].pipelineStage = 'closed_lost'; break; }
+    }
+    _updateDealDetailButtons(_ddCurrentDeal);
+    renderDealList();
+    updateDealStats();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error closing deal', 'error');
+    console.error('[Deal] Close lost error:', err);
+  });
+}
+
+function _updateDealDetailButtons(deal) {
+  var stage   = (deal && deal.pipelineStage) || 'new';
+  var isWon   = stage === 'closed_won';
+  var isLost  = stage === 'closed_lost';
+  var isFinal = isWon || isLost;
+  var phone   = deal ? (deal.clientPhone || '') : '';
+
+  var advBtn  = document.getElementById('dd-advance-btn');
+  var wonBtn  = document.getElementById('dd-close-won-btn');
+  var lostBtn = document.getElementById('dd-close-lost-btn');
+  var ctRow   = document.getElementById('dd-contact-row');
+  var waBtn   = document.getElementById('dd-whatsapp-btn');
+  var callBtn = document.getElementById('dd-call-btn');
+
+  if (advBtn)  advBtn.style.display  = isFinal ? 'none' : '';
+  if (wonBtn)  wonBtn.style.display  = isWon   ? 'none' : '';
+  if (lostBtn) lostBtn.style.display = isLost  ? 'none' : '';
+
+  if (ctRow) ctRow.style.display = phone ? 'flex' : 'none';
+  var cleanPhone = phone.replace(/\D/g, '');
+  if (waBtn && cleanPhone) waBtn.href = 'https://wa.me/' + cleanPhone;
+  if (callBtn && phone) callBtn.href = 'tel:' + phone.replace(/\s/g, '');
+}
+
+(function() {
+  var _origDDFn = _openDealDetailWithData;
+  _openDealDetailWithData = function(deal) {
+    _origDDFn(deal);
+    _updateDealDetailButtons(deal);
+  };
+})();
+
+/* ══════════════════════════════════════════════════════
+   DOCUMENT VAULT — FIREBASE STORAGE FILE UPLOAD
+══════════════════════════════════════════════════════ */
+
+(function() {
+  var _origSubmitDoc = submitDocumentUpload;
+  window.submitDocumentUpload = function() {
+    var fileEl = document.getElementById('du-file');
+    if (fileEl && fileEl.files && fileEl.files[0]) {
+      _uploadDocFileToStorage(fileEl.files[0], function(downloadUrl) {
+        var urlEl = document.getElementById('du-url');
+        if (urlEl) urlEl.value = downloadUrl;
+        _origSubmitDoc();
+        if (fileEl) fileEl.value = '';
+      });
+    } else {
+      _origSubmitDoc();
+    }
+  };
+})();
+
+function _uploadDocFileToStorage(file, callback) {
+  if (typeof storage === 'undefined') {
+    showToast(curLang === 'rw' ? 'Firebase Storage ntabwo ihuye' : 'Firebase Storage not configured', 'error'); return;
+  }
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'anon';
+  var ts  = Date.now();
+  var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  var path = 'documents/' + uid + '/' + ts + '_' + safeName;
+  var ref  = storage.ref(path);
+  var task = ref.put(file);
+
+  var progressWrap = document.getElementById('du-upload-progress');
+  var progressBar  = document.getElementById('du-progress-bar');
+  var progressLbl  = document.getElementById('du-progress-label');
+  var btn = document.getElementById('du-submit-btn');
+  var lbl = document.getElementById('du-submit-lbl');
+
+  if (progressWrap) progressWrap.style.display = 'block';
+  if (progressBar)  progressBar.style.width    = '0%';
+  if (btn) btn.disabled = true;
+  if (lbl) lbl.textContent = curLang === 'rw' ? 'Kohereza...' : 'Uploading...';
+
+  task.on('state_changed',
+    function(snap) {
+      var pct = snap.totalBytes > 0 ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100) : 0;
+      if (progressBar) progressBar.style.width = pct + '%';
+      if (progressLbl) progressLbl.textContent = pct + '% uploaded...';
+    },
+    function(err) {
+      showToast((curLang === 'rw' ? 'Kohereza byanze: ' : 'Upload failed: ') + err.message, 'error');
+      if (progressWrap) progressWrap.style.display = 'none';
+      if (btn) btn.disabled = false;
+      if (lbl) lbl.textContent = curLang === 'rw' ? 'Shyira Dosiye' : 'Upload Document';
+      console.error('[DocUpload] Storage error:', err);
+    },
+    function() {
+      ref.getDownloadURL().then(function(url) {
+        if (progressWrap) progressWrap.style.display = 'none';
+        if (btn) btn.disabled = false;
+        if (lbl) lbl.textContent = curLang === 'rw' ? 'Shyira Dosiye' : 'Upload Document';
+        callback(url);
+      }).catch(function(e) {
+        showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Could not get file URL', 'error');
+        if (progressWrap) progressWrap.style.display = 'none';
+        console.error('[DocUpload] getDownloadURL error:', e);
+      });
+    }
+  );
+}
+
+/* ══════════════════════════════════════════════════════
+   HERO SEARCH CARD — wire selects to openSearch()
+══════════════════════════════════════════════════════ */
+
+function openSearchFromHeroCard() {
+  var locEl    = document.getElementById('hsc-location');
+  var typeEl   = document.getElementById('hsc-type');
+  var bedsEl   = document.getElementById('hsc-beds');
+  var budgetEl = document.getElementById('hsc-budget');
+
+  var opts = {};
+
+  var loc = locEl  ? (locEl.value  || locEl.options[locEl.selectedIndex].text).replace('Kigali — ','').trim() : '';
+  if (loc && loc !== 'Akarere Kose') opts.district = loc;
+
+  var typ = typeEl ? typeEl.value : '';
+  if (typ) opts.type = typ;
+
+  var beds = bedsEl ? bedsEl.value : '';
+  if (beds) opts.minBeds = parseInt(beds);
+
+  var budget = budgetEl ? budgetEl.value : '';
+  if (budget) {
+    var parts = budget.split('-');
+    if (parts.length === 2) {
+      opts.minPrice = parseInt(parts[0]) || 0;
+      opts.maxPrice = parseInt(parts[1]) || 0;
+    }
+  }
+
+  /* Also pick up the active tab (Buy / Sell / Rent) */
+  var activeTab = document.querySelector('.s-tab.active');
+  if (activeTab) {
+    var tabEn = (activeTab.getAttribute('data-en') || '').toLowerCase();
+    if (tabEn === 'sell') { showPage('add-property'); return; }
+    if (tabEn === 'gukodesha' || tabEn === 'rent') opts.tab = 'rent';
+  }
+
+  openSearch(Object.keys(opts).length ? opts : undefined);
+}
+
+/* ══════════════════════════════════════════════════════
+   HERO STATS — load live counts from Firestore
+══════════════════════════════════════════════════════ */
+
+(function() {
+  function _loadHeroStats() {
+    if (typeof db === 'undefined') return;
+    /* Listings count */
+    db.collection('properties').where('isActive','==',true).where('status','==','approved').get()
+      .then(function(s) {
+        var n = s.size;
+        var el = document.getElementById('hero-stat-listings');
+        if (el && n > 0) el.textContent = n >= 1000 ? (n/1000).toFixed(1)+'K+' : n + '+';
+      }).catch(function(){});
+    /* Agents count */
+    db.collection('users').where('isActive','==',true).where('role','==','agent').get()
+      .then(function(s) {
+        var n = s.size;
+        var el = document.getElementById('hero-stat-agents');
+        if (el && n > 0) el.textContent = n + '+';
+      }).catch(function(){});
+    /* Clients count (users who are clients or have logged in) */
+    db.collection('users').where('isActive','==',true).get()
+      .then(function(s) {
+        var n = s.size;
+        var el = document.getElementById('hero-stat-clients');
+        if (el && n > 10) el.textContent = n + '+';
+      }).catch(function(){});
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(_loadHeroStats, 3000);
+  });
+  /* Also re-load after auth settles */
+  firebase.auth().onAuthStateChanged(function() {
+    setTimeout(_loadHeroStats, 1500);
+  });
+})();
 </script>
 </body></html>
