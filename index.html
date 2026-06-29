@@ -21487,5 +21487,159 @@ function loadHomeTestimonials() {
   });
 })();
 
+/* ══════════════════════════════════════════════════════════════════════
+   PHASE 6 — Firestore-Backed Property Listings
+   Overrides loadApprovedProperties() and openPropDetail() so listings
+   and property detail pages are powered by Cloud Firestore, not
+   localStorage.  LocalStorage still acts as a short-lived cache so all
+   existing search / filter / compare logic continues to work unchanged.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Map a Firestore property document to the card-renderer field format */
+function _normalizePropDoc(data, docId) {
+  var imgs = Array.isArray(data.images) ? data.images : [];
+  var cat  = (data.category || '').toLowerCase();
+  var svc  = cat === 'rent' ? 'Gukodesha' : cat === 'sale' ? 'Kugura' : (data.service || 'Kugura');
+  var st   = data.status || 'approved';
+  return {
+    id:        docId,
+    title:     data.title || data.titleRW || '',
+    price:     data.price || 0,
+    type:      data.type || '',
+    service:   svc,
+    district:  data.district || '',
+    sector:    data.sector || '',
+    beds:      String(data.bedrooms !== undefined ? data.bedrooms : (data.beds || '0')),
+    baths:     String(data.bathrooms !== undefined ? data.bathrooms : (data.baths || '0')),
+    size:      data.area || data.size || '',
+    img1:      imgs[0] || data.img1 || '',
+    img2:      imgs[1] || data.img2 || '',
+    img3:      imgs[2] || data.img3 || '',
+    img4:      imgs[3] || data.img4 || '',
+    desc:      data.description || data.desc || '',
+    verified:  !!data.verified,
+    featured:  !!data.featured,
+    rating:    data.rating || 0,
+    reviews:   data.reviews || 0,
+    tour3dUrl: data.tour3dUrl || '',
+    agentId:   data.agentId || '',
+    ownerId:   data.ownerId || '',
+    isActive:  data.isActive !== false,
+    isDemo:    false,
+    status:    st.charAt(0).toUpperCase() + st.slice(1)
+  };
+}
+
+/* Merge Firestore docs into localStorage, preserving demo entries */
+function _mergePropsToCache(fsProps) {
+  var existing = [];
+  try { existing = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+  var demos = existing.filter(function(p) { return p.isDemo === true; });
+  var merged = demos.concat(fsProps);
+  try { localStorage.setItem('km_properties', JSON.stringify(merged)); } catch(e) {}
+  invalidatePropsCache();
+  return merged;
+}
+
+/* Render approved props from localStorage cache into all #p-grid-main elements */
+function _renderApprovedGrids() {
+  var grids = document.querySelectorAll('#p-grid-main');
+  var approved = getApprovedProps();
+  grids.forEach(function(grid) {
+    grid.querySelectorAll('.user-prop-card, .sk-init').forEach(function(el) { el.remove(); });
+    var emp = grid.querySelector('.empty-listings'); if (emp) emp.remove();
+    if (approved.length === 0) {
+      var d = document.createElement('div');
+      d.className = 'empty-listings empty-state';
+      d.innerHTML = '<div class="es-icon">&#127968;</div>'
+        + '<div class="es-title">' + (typeof t === 'function' ? t('noListings') : 'Nta mitungo') + '</div>'
+        + '<div class="es-sub">' + (typeof curLang !== 'undefined' && curLang === 'rw'
+            ? 'Nta mitungo yemejwe ubu. Gerageza demo!'
+            : 'No approved listings yet. Try demo listings!') + '</div>'
+        + '<button onclick="loadDemoListings()" class="btn btn-navy btn-sm">'
+        + (typeof t === 'function' ? t('demoBtn') : 'Demo') + '</button>';
+      grid.appendChild(d);
+    } else {
+      approved.forEach(function(prop) {
+        var w = document.createElement('div');
+        w.className = 'user-prop-card';
+        w.setAttribute('data-pid', String(prop.id));
+        w.innerHTML = renderUserPropCard(prop);
+        grid.appendChild(w);
+      });
+    }
+  });
+  var countEl = document.getElementById('listings-count');
+  if (countEl) countEl.textContent = approved.length;
+}
+
+/* Override — last function declaration wins, replaces original at line ~9719 */
+function loadApprovedProperties() {
+  var grids = document.querySelectorAll('#p-grid-main');
+  if (!grids.length) return;
+
+  grids.forEach(function(grid) {
+    if (!grid.querySelector('.user-prop-card') && !grid.querySelector('.sk-init')) {
+      var sk = '<div class="skeleton-card sk-init"><div class="skeleton-img"></div>'
+        + '<div class="skeleton-body"><div class="skeleton-line sl-title"></div>'
+        + '<div class="skeleton-line sl-sub"></div><div class="skeleton-line sl-price"></div></div></div>';
+      grid.innerHTML = sk + sk + sk;
+    }
+  });
+
+  db.collection('properties')
+    .where('status', 'in', ['approved', 'Approved'])
+    .limit(60)
+    .get()
+    .then(function(snap) {
+      var fsProps = [];
+      snap.forEach(function(doc) {
+        var data = doc.data();
+        if (data.isActive !== false) {
+          fsProps.push(_normalizePropDoc(data, doc.id));
+        }
+      });
+      _mergePropsToCache(fsProps);
+      _renderApprovedGrids();
+    })
+    .catch(function(err) {
+      console.warn('[K-REOS] loadApprovedProperties error:', err);
+      _renderApprovedGrids();
+    });
+}
+
+/* Override openPropDetail — fetch from Firestore when not in localStorage cache */
+(function() {
+  var _origDetail = openPropDetail;
+  openPropDetail = function(propId) {
+    if (!propId) { console.warn('openPropDetail: no propId'); return; }
+    var cached = [];
+    try { cached = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+    var inCache = cached.some(function(p) { return String(p.id) === String(propId); });
+    var inDemos = window._allDemos && window._allDemos.some(function(p) { return String(p.id) === String(propId); });
+    if (inCache || inDemos) { _origDetail(propId); return; }
+    db.collection('properties').doc(String(propId)).get().then(function(doc) {
+      if (!doc.exists) {
+        showToast(typeof curLang !== 'undefined' && curLang === 'rw'
+          ? 'Imitungo ntiboneka.' : 'Property not found.', 'error');
+        go('listings'); return;
+      }
+      var norm = _normalizePropDoc(doc.data(), doc.id);
+      try {
+        var c = JSON.parse(localStorage.getItem('km_properties') || '[]');
+        var idx = c.findIndex(function(p) { return String(p.id) === String(propId); });
+        if (idx >= 0) c[idx] = norm; else c.push(norm);
+        localStorage.setItem('km_properties', JSON.stringify(c));
+      } catch(e) {}
+      invalidatePropsCache();
+      _origDetail(propId);
+    }).catch(function() {
+      showToast(typeof curLang !== 'undefined' && curLang === 'rw'
+        ? 'Imitungo ntiboneka — gerageza nanone!' : 'Property not found — please retry.', 'error');
+      go('listings');
+    });
+  };
+})();
+
 </script>
 </body></html>
