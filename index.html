@@ -2354,6 +2354,58 @@ html,body{overscroll-behavior-x:none}
         <button onclick="closeNotifPanel();requestNotifPermission();" id="notif-enable-btn" style="font-size:.72rem;background:none;border:none;color:var(--blue);cursor:pointer;font-weight:600">⚙️ Enable / Manage Notifications</button>
       </div>
     </div>
+    <!-- Messages Inbox Button -->
+    <button id="inbox-bell" onclick="openInbox()" style="position:relative;background:none;border:1.5px solid var(--border);border-radius:8px;padding:.38rem .5rem;cursor:pointer;width:38px;height:38px;font-size:1.05rem;line-height:1;display:none" aria-label="Messages" title="Messages">
+      ✉️
+      <span id="inbox-badge" style="display:none;position:absolute;top:2px;right:2px;background:#7C3AED;color:#fff;border-radius:50%;font-size:.55rem;font-weight:700;width:14px;height:14px;align-items:center;justify-content:center">0</span>
+    </button>
+    <!-- Messages Inbox Panel (slide-in drawer) -->
+    <div id="inbox-panel" style="display:none;position:fixed;top:0;right:0;bottom:0;width:min(360px,100vw);background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:10001;flex-direction:column;overflow:hidden">
+      <div style="background:var(--navy);color:#fff;padding:.85rem 1rem;display:flex;align-items:center;gap:.6rem;flex-shrink:0">
+        <button onclick="closeInbox()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;line-height:1;padding:.1rem .3rem;border-radius:4px;flex-shrink:0">&#8592;</button>
+        <span style="font-weight:700;font-size:.95rem;flex:1" data-rw="Ubutumwa" data-en="Messages">Messages</span>
+        <button onclick="openCompose()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:.3rem .6rem;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap" data-rw="Ohereza" data-en="Compose">+ Compose</button>
+      </div>
+      <div id="inbox-list" style="flex:1;overflow-y:auto"></div>
+    </div>
+    <!-- Message Thread Panel (layered over inbox panel) -->
+    <div id="thread-panel" style="display:none;position:fixed;top:0;right:0;bottom:0;width:min(360px,100vw);background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:10002;flex-direction:column;overflow:hidden">
+      <div style="background:var(--navy);color:#fff;padding:.85rem 1rem;display:flex;align-items:center;gap:.6rem;flex-shrink:0">
+        <button onclick="closeThread()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;line-height:1;padding:.1rem .3rem;border-radius:4px;flex-shrink:0">&#8592;</button>
+        <div style="flex:1;min-width:0">
+          <div id="thread-name" style="font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+          <div id="thread-role" style="font-size:.7rem;opacity:.7"></div>
+        </div>
+      </div>
+      <div id="thread-messages" style="flex:1;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.5rem"></div>
+      <div style="flex-shrink:0;padding:.6rem;border-top:1px solid var(--border);display:flex;gap:.4rem;background:#fff">
+        <textarea id="thread-compose" rows="2" placeholder="Andika ubutumwa... / Type a message..." style="flex:1;resize:none;border:1.5px solid var(--border);border-radius:8px;padding:.5rem .7rem;font-family:'DM Sans',sans-serif;font-size:.84rem;outline:none;line-height:1.4" onkeydown="if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){sendThreadMessage()}"></textarea>
+        <button onclick="sendThreadMessage()" style="background:var(--navy);color:#fff;border:none;border-radius:8px;padding:.5rem .8rem;font-weight:700;cursor:pointer;font-size:.8rem;align-self:flex-end;flex-shrink:0">&#9658;</button>
+      </div>
+    </div>
+    <!-- Compose Modal -->
+    <div id="compose-modal" style="display:none;position:fixed;inset:0;background:rgba(10,15,30,.55);z-index:10003;align-items:center;justify-content:center;padding:1rem">
+      <div style="background:#fff;border-radius:14px;width:100%;max-width:400px;overflow:hidden">
+        <div style="background:var(--navy);padding:.85rem 1rem;display:flex;align-items:center;justify-content:space-between">
+          <span style="color:#fff;font-weight:700;font-size:.9rem" data-rw="Ubutumwa Bushya" data-en="New Message">New Message</span>
+          <button onclick="closeCompose()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer">&#10005;</button>
+        </div>
+        <div style="padding:1rem">
+          <label style="font-size:.72rem;font-weight:700;letter-spacing:.1em;color:var(--navy);display:block;margin-bottom:.3rem" data-rw="OHEREZA KWA" data-en="SEND TO">SEND TO</label>
+          <select id="compose-to" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.84rem;box-sizing:border-box;margin-bottom:.7rem">
+            <option value="">-- Hitamo umuntu / Select user --</option>
+          </select>
+          <label style="font-size:.72rem;font-weight:700;letter-spacing:.1em;color:var(--navy);display:block;margin-bottom:.3rem" data-rw="UBUTUMWA" data-en="MESSAGE">MESSAGE</label>
+          <textarea id="compose-content" rows="4" style="width:100%;resize:none;border:1.5px solid var(--border);border-radius:8px;padding:.55rem .7rem;font-family:'DM Sans',sans-serif;font-size:.84rem;box-sizing:border-box;outline:none" placeholder="Andika ubutumwa... / Write your message..."></textarea>
+        </div>
+        <div style="padding:.6rem 1rem 1rem;display:flex;gap:.5rem;justify-content:flex-end">
+          <button onclick="closeCompose()" class="btn btn-outline" style="font-size:.84rem" data-rw="Gusubira" data-en="Cancel">Cancel</button>
+          <button onclick="submitCompose()" class="btn btn-navy" style="font-size:.84rem" data-rw="Ohereza" data-en="Send">Send</button>
+        </div>
+      </div>
+    </div>
+    <!-- Inbox backdrop -->
+    <div id="inbox-backdrop" onclick="closeInbox()" style="display:none;position:fixed;inset:0;background:rgba(10,15,30,.4);z-index:10000"></div>
     <button onclick="toggleHamburger()" id="hamburger-btn" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:.38rem .5rem;cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;width:38px;height:38px" aria-label="Menu">
       <span id="hb1" style="display:block;width:18px;height:2px;background:var(--navy);border-radius:2px;transition:.3s"></span>
       <span id="hb2" style="display:block;width:18px;height:2px;background:var(--navy);border-radius:2px;transition:.3s"></span>
@@ -24265,5 +24317,322 @@ function openSearchFromHeroCard() {
     setTimeout(_loadHeroStats, 1500);
   });
 })();
+
+/* ══════════════════════════════════════════════════════════
+   COMMUNICATION HUB — Internal Messaging System
+   Module 20: Messages stored in Firestore 'messages' collection
+   RTDB /inbox/{uid}/unread for real-time badge counts
+══════════════════════════════════════════════════════════ */
+
+var _inboxOpen = false;
+var _threadToId = '';
+var _threadToName = '';
+var _inboxConversations = [];
+var _threadMessages = [];
+var _inboxUnread = 0;
+var _allStaffUsers = [];
+
+/* ── Helpers ── */
+function _convId(uidA, uidB) {
+  return uidA < uidB ? uidA + '_' + uidB : uidB + '_' + uidA;
+}
+
+function _inboxBadge(n) {
+  _inboxUnread = Math.max(0, n);
+  var badge = document.getElementById('inbox-badge');
+  if (!badge) return;
+  if (_inboxUnread > 0) {
+    badge.style.display = 'flex';
+    badge.textContent = _inboxUnread > 9 ? '9+' : String(_inboxUnread);
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+/* ── Show/Hide inbox button for logged-in users ── */
+(function() {
+  firebase.auth().onAuthStateChanged(function(user) {
+    var btn = document.getElementById('inbox-bell');
+    if (btn) btn.style.display = user ? 'flex' : 'none';
+    if (user) {
+      /* Listen for unread count on RTDB */
+      rtdb.ref('inbox/' + user.uid + '/unread').on('value', function(snap) {
+        _inboxBadge(snap.val() || 0);
+      });
+    } else {
+      _inboxBadge(0);
+      closeInbox();
+    }
+  });
+})();
+
+function openInbox() {
+  if (!currentUser) { showToast(curLang==='rw' ? 'Injira kugira ngo ubone ubutumwa.' : 'Log in to view messages.', 'info'); return; }
+  var panel = document.getElementById('inbox-panel');
+  var backdrop = document.getElementById('inbox-backdrop');
+  if (panel) panel.style.display = 'flex';
+  if (backdrop) backdrop.style.display = 'block';
+  _inboxOpen = true;
+  loadInboxConversations();
+  /* Reset unread on RTDB */
+  rtdb.ref('inbox/' + currentUser.uid + '/unread').set(0).catch(function(){});
+  _inboxBadge(0);
+}
+
+function closeInbox() {
+  var panel = document.getElementById('inbox-panel');
+  var backdrop = document.getElementById('inbox-backdrop');
+  if (panel) panel.style.display = 'none';
+  if (backdrop) backdrop.style.display = 'none';
+  closeThread();
+  _inboxOpen = false;
+}
+
+function loadInboxConversations() {
+  var el = document.getElementById('inbox-list');
+  if (!el || !currentUser) return;
+  el.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:.83rem">' + (curLang==='rw' ? 'Gutegura...' : 'Loading...') + '</div>';
+
+  /* Load messages where currentUser is sender or recipient */
+  db.collection('messages')
+    .where('participants', 'array-contains', currentUser.uid)
+    .where('isActive', '==', true)
+    .orderBy('createdAt', 'desc')
+    .limit(100)
+    .get()
+    .then(function(snap) {
+      var convMap = {};
+      snap.forEach(function(doc) {
+        var m = doc.data();
+        m._docId = doc.id;
+        var cid = m.conversationId || '';
+        if (!cid) return;
+        if (!convMap[cid]) {
+          var otherId = m.fromId === currentUser.uid ? m.toId : m.fromId;
+          var otherName = m.fromId === currentUser.uid ? m.toName : m.fromName;
+          convMap[cid] = { cid: cid, otherId: otherId, otherName: otherName, lastMsg: m.content, lastTs: m.createdAt, unread: 0 };
+        }
+        if (!m.read && m.toId === currentUser.uid) convMap[cid].unread++;
+      });
+      _inboxConversations = Object.values(convMap);
+      renderInboxList();
+    })
+    .catch(function() {
+      if (el) el.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:.83rem">' + (curLang==='rw' ? 'Habaye ikosa' : 'Error loading messages') + '</div>';
+    });
+}
+
+function renderInboxList() {
+  var el = document.getElementById('inbox-list');
+  if (!el) return;
+  if (_inboxConversations.length === 0) {
+    el.innerHTML = '<div style="padding:3rem 1.5rem;text-align:center">'
+      + '<div style="font-size:2rem;margin-bottom:.6rem">&#128140;</div>'
+      + '<div style="font-size:.85rem;color:var(--muted)">' + (curLang==='rw' ? 'Nta butumwa urahari. Tangira itumanahana!' : 'No messages yet. Start a conversation!') + '</div>'
+      + '<button onclick="openCompose()" class="btn btn-navy btn-sm" style="margin-top:1rem">&#10010; ' + (curLang==='rw' ? 'Ohereza Ubutumwa' : 'Send a Message') + '</button>'
+      + '</div>';
+    return;
+  }
+  el.innerHTML = _inboxConversations.map(function(c) {
+    var initials = (c.otherName || '?').split(' ').slice(0,2).map(function(w){ return w[0]||''; }).join('').toUpperCase();
+    var lastPreview = (c.lastMsg || '').substring(0, 48) + ((c.lastMsg||'').length > 48 ? '...' : '');
+    return '<div onclick="openThread(\'' + c.otherId + '\',\'' + escapeHtml(c.otherName) + '\')" style="display:flex;align-items:center;gap:.7rem;padding:.7rem 1rem;border-bottom:1px solid var(--light);cursor:pointer;transition:background .15s" onmouseenter="this.style.background=\'#f8f9ff\'" onmouseleave="this.style.background=\'\'">'
+      + '<div style="width:40px;height:40px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem;flex-shrink:0">' + escapeHtml(initials) + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-weight:700;font-size:.85rem;color:var(--navy)">' + escapeHtml(c.otherName || '—') + '</div>'
+      + '<div style="font-size:.75rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(lastPreview) + '</div>'
+      + '</div>'
+      + (c.unread > 0 ? '<span style="background:#7C3AED;color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;flex-shrink:0">' + c.unread + '</span>' : '')
+      + '</div>';
+  }).join('');
+}
+
+/* ── Thread ── */
+function openThread(toId, toName) {
+  if (!currentUser || !toId) return;
+  _threadToId = toId;
+  _threadToName = toName;
+  var nameEl = document.getElementById('thread-name');
+  if (nameEl) nameEl.textContent = toName;
+  var panel = document.getElementById('thread-panel');
+  if (panel) panel.style.display = 'flex';
+  loadThreadMessages();
+  /* Mark messages as read */
+  var cid = _convId(currentUser.uid, toId);
+  db.collection('messages')
+    .where('conversationId','==',cid)
+    .where('toId','==',currentUser.uid)
+    .where('read','==',false)
+    .where('isActive','==',true)
+    .get()
+    .then(function(snap) {
+      var batch = db.batch();
+      snap.forEach(function(doc){ batch.update(doc.ref, { read: true }); });
+      return batch.commit();
+    }).catch(function(){});
+}
+
+function closeThread() {
+  var panel = document.getElementById('thread-panel');
+  if (panel) panel.style.display = 'none';
+  _threadToId = '';
+  _threadToName = '';
+  _threadMessages = [];
+}
+
+function loadThreadMessages() {
+  if (!currentUser || !_threadToId) return;
+  var msgEl = document.getElementById('thread-messages');
+  if (msgEl) msgEl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.8rem;padding:1rem">' + (curLang==='rw' ? 'Gutegura...' : 'Loading...') + '</div>';
+
+  var cid = _convId(currentUser.uid, _threadToId);
+  db.collection('messages')
+    .where('conversationId','==',cid)
+    .where('isActive','==',true)
+    .orderBy('createdAt','asc')
+    .limit(80)
+    .get()
+    .then(function(snap) {
+      _threadMessages = [];
+      snap.forEach(function(doc){ var d = doc.data(); d._docId = doc.id; _threadMessages.push(d); });
+      renderThreadMessages();
+    }).catch(function(){
+      if (msgEl) msgEl.innerHTML = '<div style="text-align:center;color:var(--error);font-size:.8rem;padding:1rem">Error loading thread</div>';
+    });
+}
+
+function renderThreadMessages() {
+  var el = document.getElementById('thread-messages');
+  if (!el) return;
+  if (_threadMessages.length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.82rem;padding:2rem">'
+      + (curLang==='rw' ? 'Nta butumwa burabaho. Tangira itumanahana!' : 'No messages yet. Say hello!') + '</div>';
+    return;
+  }
+  el.innerHTML = _threadMessages.map(function(m) {
+    var isMine = m.fromId === currentUser.uid;
+    var ts = m.createdAt ? (m.createdAt.toDate ? m.createdAt.toDate() : new Date(m.createdAt)) : new Date();
+    var timeStr = ts.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
+    return '<div style="display:flex;flex-direction:column;align-items:' + (isMine ? 'flex-end' : 'flex-start') + ';gap:.15rem">'
+      + '<div style="max-width:80%;background:' + (isMine ? 'var(--navy)' : 'var(--light)') + ';color:' + (isMine ? '#fff' : 'var(--dark)') + ';border-radius:' + (isMine ? '12px 12px 4px 12px' : '12px 12px 12px 4px') + ';padding:.5rem .75rem;font-size:.84rem;line-height:1.45;word-break:break-word">'
+      + escapeHtml(m.content || '') + '</div>'
+      + '<div style="font-size:.65rem;color:var(--muted);padding:0 .3rem">' + timeStr + '</div>'
+      + '</div>';
+  }).join('');
+  /* Scroll to bottom */
+  el.scrollTop = el.scrollHeight;
+}
+
+function sendThreadMessage() {
+  if (!currentUser || !_threadToId) return;
+  var inp = document.getElementById('thread-compose');
+  var content = inp ? inp.value.trim() : '';
+  if (!content) return;
+  var cid = _convId(currentUser.uid, _threadToId);
+  var uid = currentUser.uid;
+  var fromName = currentUser.displayName || currentUser.name || currentUser.email || 'Agent';
+  var toName = _threadToName;
+  var msg = {
+    id:             '',
+    conversationId: cid,
+    participants:   [uid, _threadToId],
+    fromId:         uid,
+    fromName:       fromName,
+    toId:           _threadToId,
+    toName:         toName,
+    content:        content,
+    read:           false,
+    status:         'sent',
+    isActive:       true,
+    createdAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:      uid,
+    updatedBy:      uid
+  };
+  if (inp) inp.value = '';
+  /* Optimistic UI */
+  var optimistic = Object.assign({}, msg, { createdAt: { toDate: function(){ return new Date(); } }, _docId: '_tmp' });
+  _threadMessages.push(optimistic);
+  renderThreadMessages();
+
+  db.collection('messages').add(msg)
+    .then(function(ref) {
+      return ref.update({ id: ref.id });
+    })
+    .then(function() {
+      /* Increment unread on recipient RTDB inbox */
+      rtdb.ref('inbox/' + _threadToId + '/unread').transaction(function(n) { return (n || 0) + 1; }).catch(function(){});
+      /* Also record conversation for recipient for listing */
+      rtdb.ref('inbox/' + _threadToId + '/conversations/' + cid).set({
+        otherUserId:   uid,
+        otherUserName: fromName,
+        lastMessage:   content.substring(0, 80),
+        lastTimestamp: Date.now()
+      }).catch(function(){});
+    })
+    .catch(function(err) {
+      showToast(curLang==='rw' ? 'Habaye ikosa mu kohereza' : 'Error sending message', 'error');
+      console.error('[Inbox] send error:', err);
+    });
+}
+
+/* ── Compose ── */
+function openCompose() {
+  var modal = document.getElementById('compose-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  _loadStaffUsersForCompose();
+}
+
+function closeCompose() {
+  var modal = document.getElementById('compose-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function _loadStaffUsersForCompose() {
+  if (!currentUser) return;
+  var sel = document.getElementById('compose-to');
+  if (!sel) return;
+  if (_allStaffUsers.length > 0) {
+    _renderComposeUsers(sel);
+    return;
+  }
+  db.collection('users')
+    .where('isActive','==',true)
+    .limit(50)
+    .get()
+    .then(function(snap) {
+      _allStaffUsers = [];
+      snap.forEach(function(doc) {
+        var u = doc.data();
+        if (doc.id === currentUser.uid) return;
+        _allStaffUsers.push({ id: doc.id, name: u.displayName || u.name || u.email || doc.id, role: u.role || '' });
+      });
+      _renderComposeUsers(sel);
+    }).catch(function(){});
+}
+
+function _renderComposeUsers(sel) {
+  sel.innerHTML = '<option value="">-- Hitamo umuntu / Select user --</option>'
+    + _allStaffUsers.map(function(u) {
+        return '<option value="' + u.id + '" data-name="' + escapeHtml(u.name) + '">' + escapeHtml(u.name) + ' (' + (u.role || 'user') + ')</option>';
+      }).join('');
+}
+
+function submitCompose() {
+  var selEl   = document.getElementById('compose-to');
+  var bodyEl  = document.getElementById('compose-content');
+  var toId    = selEl ? selEl.value : '';
+  var content = bodyEl ? bodyEl.value.trim() : '';
+  if (!toId) { showToast(curLang==='rw' ? 'Hitamo uwo wohereza!' : 'Select a recipient!', 'error'); return; }
+  if (!content) { showToast(curLang==='rw' ? 'Andika ubutumwa!' : 'Write a message!', 'error'); return; }
+  var selOpt = selEl ? selEl.options[selEl.selectedIndex] : null;
+  var toName = selOpt ? (selOpt.getAttribute('data-name') || selOpt.text || '') : '';
+  closeCompose();
+  openThread(toId, toName);
+  /* Pre-fill compose area */
+  var compEl = document.getElementById('thread-compose');
+  if (compEl) { compEl.value = content; sendThreadMessage(); }
+}
 </script>
 </body></html>

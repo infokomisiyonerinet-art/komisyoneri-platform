@@ -266,6 +266,34 @@
         { "fieldPath": "isActive",   "order": "ASCENDING"  },
         { "fieldPath": "createdAt",  "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "participants", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "isActive",     "order": "ASCENDING"      },
+        { "fieldPath": "createdAt",    "order": "DESCENDING"     }
+      ]
+    },
+    {
+      "collectionGroup": "messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "conversationId", "order": "ASCENDING" },
+        { "fieldPath": "isActive",       "order": "ASCENDING" },
+        { "fieldPath": "createdAt",      "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "conversationId", "order": "ASCENDING"  },
+        { "fieldPath": "toId",           "order": "ASCENDING"  },
+        { "fieldPath": "read",           "order": "ASCENDING"  },
+        { "fieldPath": "isActive",       "order": "ASCENDING"  }
+      ]
     }
   ],
   "fieldOverrides": []
