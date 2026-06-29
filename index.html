@@ -2259,6 +2259,12 @@ html,body{overscroll-behavior-x:none}
       <button class="sm-more-toggle" onclick="toggleMoreFilters(this)">⚙️ Ibindi Filters ▾</button>
       <div class="sm-more-panel" style="display:none">
 
+        <!-- IGICIRO — MIN PRICE -->
+        <div class="sm-field">
+          <label style="font-size:.7rem;font-weight:700;letter-spacing:.1em;color:var(--navy)" data-rw="IGICIRO CYO HASI (RWF)" data-en="MIN PRICE (RWF)">MIN PRICE (RWF)</label>
+          <input type="number" id="srch-price-min" placeholder="0" min="0" step="1000000" oninput="updateCount()">
+        </div>
+
         <!-- UBUSO / SIZE -->
         <div class="sm-2col">
           <div class="sm-field">
@@ -9503,6 +9509,21 @@ function openSearch(opts) {
     if (opts.type) {
       var el=document.getElementById('srch-type-txt'); if (el) el.value=opts.type;
     }
+    if (opts.minBeds) {
+      var el=document.getElementById('srch-beds-txt'); if (el) el.value=String(opts.minBeds);
+    }
+    if (opts.maxPrice) {
+      var el=document.getElementById('srch-price-txt'); if (el) el.value=String(opts.maxPrice);
+    }
+    if (opts.minPrice) {
+      var el=document.getElementById('srch-price-min'); if (el) el.value=String(opts.minPrice);
+      var morePanel=document.querySelector('.sm-more-panel');
+      var moreToggle=document.querySelector('.sm-more-toggle');
+      if (morePanel && morePanel.style.display==='none') {
+        morePanel.style.display='flex';
+        if (moreToggle) moreToggle.innerHTML='⚙️ Ibindi Filters ▲';
+      }
+    }
     if (opts.query) {
       var el=document.getElementById('sm-quick-search'); if (el) el.value=opts.query;
     }
@@ -9572,6 +9593,8 @@ function applySearchFilters(props) {
     var n = parseInt(s); return isNaN(n) ? 0 : n;
   }
   var maxP = parseP(priceTxt);
+  var minPTxt = g('srch-price-min').replace(/[,\s]/g,'');
+  var minP = minPTxt ? (parseInt(minPTxt)||0) : 0;
 
   return props.filter(function(p) {
     if (quickQ && kmScore(quickQ, p) < 40) return false;
@@ -9586,6 +9609,7 @@ function applySearchFilters(props) {
     if (bedsMin>0 && (parseInt(p.beds)||0)<bedsMin) return false;
     var pp = parseInt(p.price)||0;
     if (maxP && pp>maxP) return false;
+    if (minP && pp>0 && pp<minP) return false;
     var ps = parseInt(p.size)||0;
     if (sizeMin && ps<sizeMin) return false;
     if (sizeMax && ps>sizeMax) return false;
