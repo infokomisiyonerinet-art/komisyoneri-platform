@@ -2824,26 +2824,26 @@ html,body{overscroll-behavior-x:none}
 
   <!-- Tabs -->
   <div class="s-tabs">
-    <button class="s-tab active" data-rw="Kugura" data-en="Buy">Kugura</button>
-    <button class="s-tab" data-rw="Kugurisha" data-en="Sell">Kugurisha</button>
-    <button class="s-tab" data-rw="Gukodesha" data-en="Gukodesha">Gukodesha</button>
+    <button class="s-tab active" data-rw="Kugura" data-en="Buy" onclick="this.closest('.s-tabs').querySelectorAll('.s-tab').forEach(function(b){b.classList.remove('active')}); this.classList.add('active')">Kugura</button>
+    <button class="s-tab" data-rw="Kugurisha" data-en="Sell" onclick="this.closest('.s-tabs').querySelectorAll('.s-tab').forEach(function(b){b.classList.remove('active')}); this.classList.add('active')">Kugurisha</button>
+    <button class="s-tab" data-rw="Gukodesha" data-en="Gukodesha" onclick="this.closest('.s-tabs').querySelectorAll('.s-tab').forEach(function(b){b.classList.remove('active')}); this.classList.add('active')">Gukodesha</button>
   </div>
 
   <!-- AHANTU -->
   <div class="s-row">
     <label data-rw="AHANTU" data-en="LOCATION">AHANTU</label>
-    <select>
-      <option>Kigali — Gasabo</option>
-      <option>Kigali — Kicukiro</option>
-      <option>Kigali — Nyarugenge</option>
-      <option>Musanze</option>
-      <option>Huye</option>
-      <option>Rubavu</option>
-      <option>Nyagatare</option>
-      <option>Rwamagana</option>
-      <option>Muhanga</option>
-      <option>Karongi</option>
-      <option data-rw="Akarere Kose" data-en="All Districts">Akarere Kose</option>
+    <select id="hsc-location">
+      <option value="">Kigali — Gasabo</option>
+      <option value="Kicukiro">Kigali — Kicukiro</option>
+      <option value="Nyarugenge">Kigali — Nyarugenge</option>
+      <option value="Musanze">Musanze</option>
+      <option value="Huye">Huye</option>
+      <option value="Rubavu">Rubavu</option>
+      <option value="Nyagatare">Nyagatare</option>
+      <option value="Rwamagana">Rwamagana</option>
+      <option value="Muhanga">Muhanga</option>
+      <option value="Karongi">Karongi</option>
+      <option value="" data-rw="Akarere Kose" data-en="All Districts">Akarere Kose</option>
     </select>
   </div>
 
@@ -2851,25 +2851,25 @@ html,body{overscroll-behavior-x:none}
   <div class="s-2col">
     <div class="s-row">
       <label data-rw="UBWOKO" data-en="TYPE">UBWOKO</label>
-      <select>
-        <option data-rw="Yose" data-en="All">Yose</option>
-        <option>Villa</option>
-        <option data-rw="Apartimanı" data-en="Apartment">Apartimanı</option>
-        <option data-rw="Inyubako" data-en="Commercial">Inyubako</option>
-        <option data-rw="Ubutaka" data-en="Land">Ubutaka</option>
-        <option>Duplex</option>
-        <option>Penthouse</option>
+      <select id="hsc-type">
+        <option value="" data-rw="Yose" data-en="All">Yose</option>
+        <option value="Villa">Villa</option>
+        <option value="Apartment" data-rw="Apartimanı" data-en="Apartment">Apartimanı</option>
+        <option value="Commercial" data-rw="Inyubako" data-en="Commercial">Inyubako</option>
+        <option value="Land" data-rw="Ubutaka" data-en="Land">Ubutaka</option>
+        <option value="Duplex">Duplex</option>
+        <option value="Penthouse">Penthouse</option>
       </select>
     </div>
     <div class="s-row">
       <label data-rw="IBYUMBA" data-en="BEDROOMS">IBYUMBA</label>
-      <select>
-        <option data-rw="Yose" data-en="Any">Yose</option>
-        <option>1+</option>
-        <option>2+</option>
-        <option>3+</option>
-        <option>4+</option>
-        <option>5+</option>
+      <select id="hsc-beds">
+        <option value="" data-rw="Yose" data-en="Any">Yose</option>
+        <option value="1">1+</option>
+        <option value="2">2+</option>
+        <option value="3">3+</option>
+        <option value="4">4+</option>
+        <option value="5">5+</option>
       </select>
     </div>
   </div>
@@ -2878,13 +2878,13 @@ html,body{overscroll-behavior-x:none}
   <div class="s-2col">
     <div class="s-row">
       <label data-rw="INGANO Y'AMAFARANGA" data-en="BUDGET">INGANO Y'AMAFARANGA</label>
-      <select>
-        <option data-rw="Yose" data-en="Any">Yose</option>
-        <option>&lt; 30M RWF</option>
-        <option>30M – 80M</option>
-        <option>80M – 150M</option>
-        <option>150M – 300M</option>
-        <option>&gt; 300M RWF</option>
+      <select id="hsc-budget">
+        <option value="" data-rw="Yose" data-en="Any">Yose</option>
+        <option value="0-30000000">&lt; 30M RWF</option>
+        <option value="30000000-80000000">30M – 80M</option>
+        <option value="80000000-150000000">80M – 150M</option>
+        <option value="150000000-300000000">150M – 300M</option>
+        <option value="300000000-999999999">&gt; 300M RWF</option>
       </select>
     </div>
     <div class="s-row">
@@ -2938,7 +2938,7 @@ html,body{overscroll-behavior-x:none}
   </div>
 
   <!-- SEARCH BUTTON -->
-  <button class="s-btn" onclick="openSearch()">
+  <button class="s-btn" onclick="openSearchFromHeroCard()">
     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <span data-rw="Shakisha Imitungo" data-en="Search Properties">Shakisha Imitungo</span>
   </button>
@@ -24109,5 +24109,85 @@ function _uploadDocFileToStorage(file, callback) {
     }
   );
 }
+
+/* ══════════════════════════════════════════════════════
+   HERO SEARCH CARD — wire selects to openSearch()
+══════════════════════════════════════════════════════ */
+
+function openSearchFromHeroCard() {
+  var locEl    = document.getElementById('hsc-location');
+  var typeEl   = document.getElementById('hsc-type');
+  var bedsEl   = document.getElementById('hsc-beds');
+  var budgetEl = document.getElementById('hsc-budget');
+
+  var opts = {};
+
+  var loc = locEl  ? (locEl.value  || locEl.options[locEl.selectedIndex].text).replace('Kigali — ','').trim() : '';
+  if (loc && loc !== 'Akarere Kose') opts.district = loc;
+
+  var typ = typeEl ? typeEl.value : '';
+  if (typ) opts.type = typ;
+
+  var beds = bedsEl ? bedsEl.value : '';
+  if (beds) opts.minBeds = parseInt(beds);
+
+  var budget = budgetEl ? budgetEl.value : '';
+  if (budget) {
+    var parts = budget.split('-');
+    if (parts.length === 2) {
+      opts.minPrice = parseInt(parts[0]) || 0;
+      opts.maxPrice = parseInt(parts[1]) || 0;
+    }
+  }
+
+  /* Also pick up the active tab (Buy / Sell / Rent) */
+  var activeTab = document.querySelector('.s-tab.active');
+  if (activeTab) {
+    var tabEn = (activeTab.getAttribute('data-en') || '').toLowerCase();
+    if (tabEn === 'sell') { showPage('add-property'); return; }
+    if (tabEn === 'gukodesha' || tabEn === 'rent') opts.tab = 'rent';
+  }
+
+  openSearch(Object.keys(opts).length ? opts : undefined);
+}
+
+/* ══════════════════════════════════════════════════════
+   HERO STATS — load live counts from Firestore
+══════════════════════════════════════════════════════ */
+
+(function() {
+  function _loadHeroStats() {
+    if (typeof db === 'undefined') return;
+    /* Listings count */
+    db.collection('properties').where('isActive','==',true).where('status','==','approved').get()
+      .then(function(s) {
+        var n = s.size;
+        var el = document.getElementById('hero-stat-listings');
+        if (el && n > 0) el.textContent = n >= 1000 ? (n/1000).toFixed(1)+'K+' : n + '+';
+      }).catch(function(){});
+    /* Agents count */
+    db.collection('users').where('isActive','==',true).where('role','==','agent').get()
+      .then(function(s) {
+        var n = s.size;
+        var el = document.getElementById('hero-stat-agents');
+        if (el && n > 0) el.textContent = n + '+';
+      }).catch(function(){});
+    /* Clients count (users who are clients or have logged in) */
+    db.collection('users').where('isActive','==',true).get()
+      .then(function(s) {
+        var n = s.size;
+        var el = document.getElementById('hero-stat-clients');
+        if (el && n > 10) el.textContent = n + '+';
+      }).catch(function(){});
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(_loadHeroStats, 3000);
+  });
+  /* Also re-load after auth settles */
+  firebase.auth().onAuthStateChanged(function() {
+    setTimeout(_loadHeroStats, 1500);
+  });
+})();
 </script>
 </body></html>
