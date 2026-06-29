@@ -21,8 +21,25 @@
       "collectionGroup": "leads",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "isActive",  "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "ASCENDING" }
+        { "fieldPath": "isActive",      "order": "ASCENDING" },
+        { "fieldPath": "createdAt",     "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "leads",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "agentId",       "order": "ASCENDING" },
+        { "fieldPath": "isActive",      "order": "ASCENDING" },
+        { "fieldPath": "nextFollowUp",  "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "leads",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive",      "order": "ASCENDING" },
+        { "fieldPath": "nextFollowUp",  "order": "ASCENDING" }
       ]
     },
     {

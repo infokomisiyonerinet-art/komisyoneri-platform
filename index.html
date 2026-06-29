@@ -3852,6 +3852,21 @@ html,body{overscroll-behavior-x:none}
           <div class="delta d-up" id="dash-delta-leads"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>—</div>
         </div>
       </div>
+      <!-- Today's Agenda — Follow-up Reminders -->
+      <div id="dash-agenda-wrap" style="display:none;margin-bottom:1.2rem">
+        <div class="dc" style="border-left:3px solid #DC2626">
+          <div class="dc-hdr">
+            <span class="dc-title" style="display:flex;align-items:center;gap:.4rem">
+              <span style="font-size:.95rem">&#128276;</span>
+              <span data-rw="Igihe cyo Gusubira Kuri Ababuza" data-en="Follow-up Due Today">Follow-up Due Today</span>
+              <span id="dash-agenda-count" style="background:#DC2626;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700">0</span>
+            </span>
+            <button class="dc-action" onclick="go('crm')" data-rw="Gura CRM" data-en="Open CRM">Open CRM</button>
+          </div>
+          <div id="dash-agenda-list" style="padding:.4rem .8rem 0"></div>
+        </div>
+      </div>
+
       <div class="dash-grid">
         <!-- My Listings -->
         <div class="dc">
@@ -21579,6 +21594,68 @@ function loadAgentDashboard() {
 
   /* Load activity feed */
   loadDashboardActivity();
+
+  /* Load follow-up reminders */
+  loadDashFollowups(cu, _isAgentRole);
+}
+
+function loadDashFollowups(cu, isAgentRole) {
+  if (!cu || typeof db === 'undefined') return;
+  var wrap     = document.getElementById('dash-agenda-wrap');
+  var list     = document.getElementById('dash-agenda-list');
+  var countEl  = document.getElementById('dash-agenda-count');
+  if (!wrap || !list) return;
+
+  var tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(23, 59, 59, 999);
+  var tsTomorrow = firebase.firestore.Timestamp.fromDate(tomorrow);
+
+  var query = isAgentRole
+    ? db.collection('leads').where('agentId','==',cu.uid).where('isActive','==',true).where('nextFollowUp','<=',tsTomorrow).orderBy('nextFollowUp','asc').limit(10)
+    : db.collection('leads').where('isActive','==',true).where('nextFollowUp','<=',tsTomorrow).orderBy('nextFollowUp','asc').limit(10);
+
+  query.get().then(function(snap) {
+    if (snap.empty) { wrap.style.display = 'none'; return; }
+    var now = Date.now();
+    var items = [];
+    snap.forEach(function(doc) {
+      var l = doc.data(); l._docId = doc.id;
+      if (l.pipelineStage === 'closed_won' || l.pipelineStage === 'closed_lost') return;
+      var fuTs = l.nextFollowUp;
+      if (!fuTs) return;
+      var fuMs = fuTs.toDate ? fuTs.toDate().getTime() : new Date(fuTs).getTime();
+      items.push({ lead: l, fuMs: fuMs });
+    });
+    if (items.length === 0) { wrap.style.display = 'none'; return; }
+
+    wrap.style.display = 'block';
+    if (countEl) countEl.textContent = items.length;
+
+    list.innerHTML = items.map(function(it) {
+      var l       = it.lead;
+      var fuMs    = it.fuMs;
+      var isOverdue = fuMs < now;
+      var fuDate  = new Date(fuMs);
+      var fuStr   = isOverdue
+        ? (curLang==='rw' ? 'Yarengeje! ' : 'OVERDUE! ') + fuDate.toLocaleDateString()
+        : fuDate.toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+      var priority = l.priority || 'warm';
+      var prioColor = priority === 'hot' ? '#DC2626' : priority === 'warm' ? '#F59E0B' : '#64748B';
+      var stage   = (l.pipelineStage || 'new').replace(/_/g,' ');
+      var lid     = l._docId || '';
+      return '<div style="display:flex;align-items:center;gap:.6rem;padding:.45rem .3rem;border-bottom:1px solid var(--light);cursor:pointer" onclick="openLeadDetail(\'' + lid + '\')">'
+        + '<div style="width:8px;height:8px;border-radius:50%;background:' + prioColor + ';flex-shrink:0"></div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:.8rem;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(l.clientName || 'Client') + '</div>'
+        + '<div style="font-size:.7rem;color:var(--muted)">' + escapeHtml(stage) + ' &bull; ' + escapeHtml(l.clientPhone || '') + '</div>'
+        + '</div>'
+        + '<div style="font-size:.68rem;font-weight:700;color:' + (isOverdue ? '#DC2626' : '#F59E0B') + ';white-space:nowrap;text-align:right">' + fuStr + '</div>'
+        + '</div>';
+    }).join('');
+  }).catch(function(){
+    if (wrap) wrap.style.display = 'none';
+  });
 }
 
 function loadDashboardActivity() {
