@@ -138,14 +138,26 @@
 <!-- ── PERFORMANCE: Preconnect + Preload ── -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Firebase service preconnects — eliminates cold-start TCP/TLS latency -->
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="preconnect" href="https://firestore.googleapis.com">
+<link rel="preconnect" href="https://firebasestorage.googleapis.com">
+<link rel="preconnect" href="https://komisyoneri-platform-prod-default-rtdb.firebaseio.com">
+<!-- Preload Firebase SDK — browser fetches scripts early while parsing <head> -->
+<link rel="preload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" as="script">
+<link rel="preload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" as="script">
+<link rel="preload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" as="script">
+<link rel="preload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js" as="script">
 <link rel="dns-prefetch" href="https://www.google-analytics.com">
-<link rel="dns-prefetch" href="https://www.gstatic.com">
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="dns-prefetch" href="https://browser.sentry-cdn.com">
 
-
-<!-- ── GOOGLE FONTS (with display=swap for Chrome performance) ── -->
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap">
+<!-- ── GOOGLE FONTS — combined single request, non-blocking (print→all swap trick) ── -->
+<link rel="stylesheet" media="print" onload="this.media='all'"
+  href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap">
+<noscript>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap">
+</noscript>
 
 <!-- ── GOOGLE ANALYTICS (GA4) ── -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-NE0PHMB885"></script>
@@ -167,11 +179,18 @@ var _phKey='YOUR_POSTHOG_API_KEY';
 if(_phKey&&_phKey.indexOf('YOUR_')!==0){posthog.init(_phKey,{api_host:'https://us.i.posthog.com',person_profiles:'identified_only',capture_pageview:false,autocapture:true,session_recording:{maskAllInputs:true}});}
 </script>
 
-<!-- Sentry — production error monitoring -->
-<script src="https://browser.sentry-cdn.com/8.28.0/bundle.min.js" crossorigin="anonymous"></script>
+<!-- Sentry — loaded async so it never blocks first paint -->
 <script>
 var _sentryDsn='YOUR_SENTRY_DSN';
-if(typeof Sentry!=='undefined'&&_sentryDsn.indexOf('YOUR_')!==0){Sentry.init({dsn:_sentryDsn,release:'komisiyoneri@1.0.0',environment:location.hostname.includes('localhost')?'development':'production',tracesSampleRate:0.1,beforeSend:function(ev){return location.hostname==='localhost'?null:ev;}});}
+if(_sentryDsn.indexOf('YOUR_')!==0){
+  var _sentrySrc=document.createElement('script');
+  _sentrySrc.src='https://browser.sentry-cdn.com/8.28.0/bundle.min.js';
+  _sentrySrc.crossOrigin='anonymous';
+  _sentrySrc.onload=function(){
+    if(typeof Sentry!=='undefined'){Sentry.init({dsn:_sentryDsn,release:'komisiyoneri@1.0.0',environment:location.hostname.includes('localhost')?'development':'production',tracesSampleRate:0.1,beforeSend:function(ev){return location.hostname==='localhost'?null:ev;}});}
+  };
+  document.head.appendChild(_sentrySrc);
+}
 </script>
 
 <style>
@@ -2343,6 +2362,11 @@ html,body{overscroll-behavior-x:none}
         <button onclick="closeNotifPanel();requestNotifPermission();" id="notif-enable-btn" style="font-size:.72rem;background:none;border:none;color:var(--blue);cursor:pointer;font-weight:600">⚙️ Enable / Manage Notifications</button>
       </div>
     </div>
+    <!-- Guest CTA group (hidden when logged in by updateNavForUser) -->
+    <div class="topnav-cta-group" id="nav-cta-guest">
+      <button class="btn-nav-list" onclick="openAddProperty()" data-rw="+ Andika Imitungo" data-en="+ List Property">+ Andika Imitungo</button>
+      <button class="btn-nav-reg" onclick="go('auth')" data-rw="Iyandikishe Ubuntu" data-en="Register Free">Iyandikishe Ubuntu</button>
+    </div>
     <button onclick="toggleHamburger()" id="hamburger-btn" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:.38rem .5rem;cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;width:38px;height:38px" aria-label="Menu">
       <span id="hb1" style="display:block;width:18px;height:2px;background:var(--navy);border-radius:2px;transition:.3s"></span>
       <span id="hb2" style="display:block;width:18px;height:2px;background:var(--navy);border-radius:2px;transition:.3s"></span>
@@ -2355,6 +2379,25 @@ html,body{overscroll-behavior-x:none}
     <div id="nav-user" style="display:none"></div>
   </div>
 </nav>
+
+<!-- ═══ GLOBAL TRUST STRIP ═══ -->
+<div class="trust-strip" id="global-trust-strip" role="complementary" aria-label="Trust signals">
+  <div class="trust-strip-inner">
+    <span class="ts-item"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span data-rw="256-bit SSL" data-en="256-bit SSL">256-bit SSL</span></span>
+    <span class="ts-div">·</span>
+    <span class="ts-item"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg><span data-rw="Agents 100+ Bemewe" data-en="100+ Verified Agents">100+ Verified Agents</span></span>
+    <span class="ts-div">·</span>
+    <span class="ts-item"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span data-rw="4.9/5 — Clients 850+" data-en="4.9/5 Stars · 850+ Happy Clients">4.9/5 Stars · 850+ Clients</span></span>
+    <span class="ts-div">·</span>
+    <span class="ts-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span data-rw="Gusubiza mu masaha 2" data-en="Response within 2 Hours">Response in 2 Hours</span></span>
+    <span class="ts-div">·</span>
+    <span class="ts-item"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span data-rw="Imitungo Yemejwe" data-en="Verified Property Listings">Verified Listings</span></span>
+    <span class="ts-div">·</span>
+    <span class="ts-item"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg><span data-rw="Data Ikingiriwe" data-en="Data Protected">Data Protected</span></span>
+    <span class="ts-div">·</span>
+    <span class="ts-item"><span>🇷🇼</span><span data-rw="Yanditswe mu Rwanda" data-en="Registered in Rwanda">Registered in Rwanda</span></span>
+  </div>
+</div>
 
 <!-- ═══ HAMBURGER DROPDOWN MENU ═══ -->
 <div id="hamburger-menu" style="display:none;position:fixed;top:76px;right:1rem;z-index:999;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.15);border:1.5px solid var(--border);min-width:220px;overflow:hidden">
@@ -2940,6 +2983,46 @@ html,body{overscroll-behavior-x:none}
     </div>
   </section>
 
+  <!-- WHAT DO YOU WANT TO DO? — Intent Strip -->
+  <section class="intent-strip">
+    <div class="wrap">
+      <div class="intent-strip-hdr">
+        <h2 data-rw="Ushaka Gukora Iki?" data-en="What Would You Like to Do?">Ushaka Gukora Iki?</h2>
+        <p data-rw="Hitamo inzira yawe — tuzagufasha kuva aho utangira kugeza ku iherezo." data-en="Choose your path — we will guide you from start to finish.">Hitamo inzira yawe — tuzagufasha kuva aho utangira kugeza ku iherezo.</p>
+      </div>
+      <div class="intent-grid">
+        <button class="intent-btn" onclick="openSearch({tab:'buy'})">
+          <span class="intent-icon">🏠</span>
+          <span data-rw="Kugura Inzu" data-en="Buy Property">Kugura Inzu</span>
+        </button>
+        <button class="intent-btn" onclick="openSearch({tab:'rent'})">
+          <span class="intent-icon">🔑</span>
+          <span data-rw="Gukodesha" data-en="Rent Property">Gukodesha</span>
+        </button>
+        <button class="intent-btn" onclick="openAddProperty()">
+          <span class="intent-icon">📝</span>
+          <span data-rw="Gugurishia Imitungo" data-en="Sell / List Property">Gugurishia Imitungo</span>
+        </button>
+        <button class="intent-btn" onclick="go('agents')">
+          <span class="intent-icon">👔</span>
+          <span data-rw="Shakisha Agent" data-en="Find an Agent">Shakisha Agent</span>
+        </button>
+        <button class="intent-btn" onclick="go('verification')">
+          <span class="intent-icon">🔍</span>
+          <span data-rw="Isuzuma ry'Imitungo" data-en="Property Valuation">Isuzuma ry'Imitungo</span>
+        </button>
+        <button class="intent-btn" onclick="go('financing')">
+          <span class="intent-icon">🏦</span>
+          <span data-rw="Inguzanyo y'Inzu" data-en="Mortgage / Loan">Inguzanyo y'Inzu</span>
+        </button>
+        <button class="intent-btn" onclick="window.open('https://wa.me/250783177254?text=Muraho!%20Ndashaka%20amakuru%20y%27imitungo.','_blank')">
+          <span class="intent-icon">💬</span>
+          <span data-rw="Twandikire" data-en="Contact Us">Twandikire</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
   <!-- FEATURED LISTINGS -->
   <section class="section">
     <div class="wrap">
@@ -2960,6 +3043,59 @@ html,body{overscroll-behavior-x:none}
     </div>
   </section>
 
+  <!-- PROPERTY CATEGORIES -->
+  <section class="section section-light">
+    <div class="wrap">
+      <div class="section-hdr-center">
+        <div class="eyebrow" data-rw="Ubwoko bw'Imitungo" data-en="Browse by Category">Ubwoko bw'Imitungo</div>
+        <h2 class="h2" style="margin-top:.35rem" data-rw="Shakisha ukurikiye Ubwoko" data-en="Find by Property Type">Shakisha ukurikiye Ubwoko</h2>
+        <p class="section-sub" data-rw="Hitamo ubwoko bw'imitungo ukeneye — i Kigali, Musanze, Rubavu, no mugihugu hose." data-en="Choose the property type you need — across Kigali, Musanze, Rubavu, and all Rwanda.">Hitamo ubwoko bw'imitungo ukeneye — i Kigali, Musanze, Rubavu, no mugihugu hose.</p>
+      </div>
+      <div class="cat-grid">
+        <button class="cat-card" onclick="openSearch({type:'Villa'})">
+          <div class="cat-icon">🏡</div>
+          <div class="cat-name" data-rw="Villa" data-en="Villa">Villa</div>
+          <div class="cat-count" data-rw="320+ Zabonetse" data-en="320+ Available">320+ Zabonetse</div>
+        </button>
+        <button class="cat-card" onclick="openSearch({type:'Apartimanı'})">
+          <div class="cat-icon">🏢</div>
+          <div class="cat-name" data-rw="Apartimanı" data-en="Apartment">Apartimanı</div>
+          <div class="cat-count" data-rw="290+ Zabonetse" data-en="290+ Available">290+ Zabonetse</div>
+        </button>
+        <button class="cat-card" onclick="openSearch({type:'Ubutaka'})">
+          <div class="cat-icon">🌱</div>
+          <div class="cat-name" data-rw="Ubutaka" data-en="Land">Ubutaka</div>
+          <div class="cat-count" data-rw="210+ Zabonetse" data-en="210+ Available">210+ Zabonetse</div>
+        </button>
+        <button class="cat-card" onclick="openSearch({type:'Inyubako'})">
+          <div class="cat-icon">🏗️</div>
+          <div class="cat-name" data-rw="Ubucuruzi" data-en="Commercial">Ubucuruzi</div>
+          <div class="cat-count" data-rw="155+ Zabonetse" data-en="155+ Available">155+ Zabonetse</div>
+        </button>
+        <button class="cat-card" onclick="openSearch({chip:'Luxury'})">
+          <div class="cat-icon">💎</div>
+          <div class="cat-name" data-rw="Luxury" data-en="Luxury">Luxury</div>
+          <div class="cat-count" data-rw="45+ Zabonetse" data-en="45+ Available">45+ Zabonetse</div>
+        </button>
+        <button class="cat-card" onclick="openSearch({tab:'rent'})">
+          <div class="cat-icon">🔑</div>
+          <div class="cat-name" data-rw="Gukodesha" data-en="For Rent">Gukodesha</div>
+          <div class="cat-count" data-rw="180+ Zabonetse" data-en="180+ Available">180+ Zabonetse</div>
+        </button>
+        <button class="cat-card" onclick="go('sites')">
+          <div class="cat-icon">🏘️</div>
+          <div class="cat-name" data-rw="Sitey Nshya" data-en="New Sites">Sitey Nshya</div>
+          <div class="cat-count" data-rw="12 Zishya" data-en="12 New">12 Zishya</div>
+        </button>
+        <button class="cat-card" onclick="openSearch({chip:'Affordable'})">
+          <div class="cat-icon">💰</div>
+          <div class="cat-name" data-rw="Affordable" data-en="Affordable">Affordable</div>
+          <div class="cat-count" data-rw="240+ Zabonetse" data-en="240+ Available">240+ Zabonetse</div>
+        </button>
+      </div>
+    </div>
+  </section>
+
   <!-- 6 PLATFORM FEATURES (from pitch deck) -->
   <section class="section section-light">
     <div class="wrap">
@@ -2976,7 +3112,7 @@ html,body{overscroll-behavior-x:none}
         <div class="f-card fc2">
           <div class="f-icon" style="background:rgba(22,87,204,.1)"><svg viewBox="0 0 24 24" stroke="#1657CC"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
           <h3 data-rw="Virtual Tours 3D/VR" data-en="Virtual Tours 3D/VR">Virtual Tours 3D/VR</h3>
-          <p data-rw="Reba inzu mu 3D cyangwa VR utajya ahandi — ukoresha telefoni', 'error' cyangwa mudasobwa yawe." data-en="Tour properties in 3D or VR from home — using your smartphone or computer.">Reba inzu mu 3D cyangwa VR utajya ahandi — ukoresha telefoni', 'error' cyangwa mudasobwa yawe.</p>
+          <p data-rw="Reba inzu mu 3D cyangwa VR utajya ahandi — ukoresha telefoni cyangwa mudasobwa yawe." data-en="Tour properties in 3D or VR from home — using your smartphone or computer.">Reba inzu mu 3D cyangwa VR utajya ahandi — ukoresha telefoni cyangwa mudasobwa yawe.</p>
           <span class="f-link" onclick="go('detail')" style="cursor:pointer"><span data-rw="Gerageza 3D →" data-en="Try 3D →">Gerageza 3D →</span><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
         </div>
         <div class="f-card fc3">
@@ -3007,6 +3143,49 @@ html,body{overscroll-behavior-x:none}
     </div>
   </section>
 
+  <!-- WHY CHOOSE KOMISIYONERI -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-hdr-center">
+        <div class="eyebrow" data-rw="Impamvu Zo Guhitamo" data-en="Why Choose Us">Impamvu Zo Guhitamo</div>
+        <h2 class="h2" style="margin-top:.35rem" data-rw="Impamvu 6 zo Guhitamo KOMISIYONERI" data-en="6 Reasons to Choose KOMISIYONERI">Impamvu 6 zo Guhitamo KOMISIYONERI</h2>
+        <p class="section-sub" data-rw="Ni platform imwe yonyine iteganiriza amasoko y'imitungo mu Rwanda yose — bwizewe, bwihuse, kandi uburambe bwiza." data-en="The only platform built for Rwanda's real estate market — trusted, fast, and professional.">Ni platform imwe yonyine iteganiriza amasoko y'imitungo mu Rwanda yose — bwizewe, bwihuse, kandi uburambe bwiza.</p>
+      </div>
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="why-icon">🔒</div>
+          <h3 class="why-title" data-rw="Agents Bemewe 100%" data-en="100% Verified Agents">Agents Bemewe 100%</h3>
+          <p class="why-desc" data-rw="Abakora kuri platform yacu barapimwa indangamuntu, lisansi, no gukorana nawe bwizewe — nta gushidikanya." data-en="Every agent on our platform is ID-verified, licensed, and background-checked for your complete safety.">Abakora kuri platform yacu barapimwa indangamuntu, lisansi, no gukorana nawe bwizewe — nta gushidikanya.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon">🤖</div>
+          <h3 class="why-title" data-rw="AI yo Gushakisha" data-en="AI-Powered Search">AI yo Gushakisha</h3>
+          <p class="why-desc" data-rw="AI yacu ikureba imitungo ihuye neza n'ibyo ushaka — ibiciro, akarere, ubwoko, n'ibindi bihe byawe byose." data-en="Our AI matches you with properties perfectly fitted to your budget, location, type, and preferences.">AI yacu ikureba imitungo ihuye neza n'ibyo ushaka — ibiciro, akarere, ubwoko, n'ibindi bihe byawe byose.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon">📱</div>
+          <h3 class="why-title" data-rw="Ikoranabuhanga Ryose" data-en="Fully Digital Process">Ikoranabuhanga Ryose</h3>
+          <p class="why-desc" data-rw="Kuva mu gushakisha kugeza ku gusinya amasezerano — byose bikorwa kuri telefoni cyangwa mudasobwa yawe, igihe cyose." data-en="From searching to signing contracts — everything happens on your phone or computer, anytime.">Kuva mu gushakisha kugeza ku gusinya amasezerano — byose bikorwa kuri telefoni cyangwa mudasobwa yawe, igihe cyose.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon">🏦</div>
+          <h3 class="why-title" data-rw="Serivisi Zose Hamwe" data-en="All Services in One Place">Serivisi Zose Hamwe</h3>
+          <p class="why-desc" data-rw="Isuzuma ry'imitungo, ubukozi bw'amategeko, inguzanyo y'inzu, n'inshingano — byose kuri platform imwe, nta kwitabira n'ahandi." data-en="Valuation, legal services, mortgage, and management — all on one platform, no need to go elsewhere.">Isuzuma ry'imitungo, ubukozi bw'amategeko, inguzanyo y'inzu, n'inshingano — byose kuri platform imwe.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon">🌍</div>
+          <h3 class="why-title" data-rw="Akarere Kose k'u Rwanda" data-en="Nationwide Coverage">Akarere Kose k'u Rwanda</h3>
+          <p class="why-desc" data-rw="Imitungo mu turere twose 30 tw'u Rwanda — Kigali, Musanze, Rubavu, Huye, Nyagatare, na mbere na mbere." data-en="Properties in all 30 districts of Rwanda — Kigali, Musanze, Rubavu, Huye, Nyagatare, and more.">Imitungo mu turere twose 30 tw'u Rwanda — Kigali, Musanze, Rubavu, Huye, Nyagatare, na mbere na mbere.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon">🤝</div>
+          <h3 class="why-title" data-rw="Kinyarwanda na English" data-en="Bilingual Support">Kinyarwanda na English</h3>
+          <p class="why-desc" data-rw="Platform yacu ikoresha Kinyarwanda na Icyongereza — buri Munyarwanda n'umunyamahanga yose ashoboye gukoresha." data-en="Our platform works in Kinyarwanda and English — every Rwandan and international user is welcome.">Platform yacu ikoresha Kinyarwanda na Icyongereza — buri Munyarwanda n'umunyamahanga yose ashoboye gukoresha.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- HOW IT WORKS -->
   <section class="section">
     <div class="wrap" style="text-align:center">
@@ -3014,10 +3193,10 @@ html,body{overscroll-behavior-x:none}
       <h2 class="h2" style="margin-top:.35rem" data-rw="Intambwe 4 Gusa" data-en="Only 4 Steps">Intambwe 4 Gusa</h2>
     </div>
     <div class="wrap"><div class="steps">
-      <div class="step"><div class="step-n">1</div><h4 data-rw="Iyandikishe Ubuntu" data-en="Register Free">Iyandikishe Ubuntu</h4><p data-rw="Fungura konti yawe mu masegonda — nta mafaranga asabwa gutangira." data-en="Open your account in seconds — no payment required to start.">Fungura konti yawe mu masegonda — nta mafaranga asabwa gutangira.</p></div>
-      <div class="step"><div class="step-n">2</div><h4 data-rw="Shakisha Imitungo" data-en="Search Properties">Shakisha Imitungo</h4><p data-rw="Shakisha mu mitungo irenga 1,240 ukoresha filters, AI, cyangwa agent." data-en="Search 1,240+ listings using filters, AI recommendations, or an agent.">Shakisha mu mitungo irenga 1,240 ukoresha filters, AI, cyangwa agent.</p></div>
-      <div class="step"><div class="step-n">3</div><h4 data-rw="Huza n'Agent" data-en="Connect with Agent">Huza n'Agent</h4><p data-rw="Umukomisiyoneri wacu wawe azagufasha mu biganiro no kugenzura imitungo." data-en="Your verified agent helps with viewings, visits and negotiations.">Umukomisiyoneri wacu azagufasha mu biganiro no kugenzura imitungo.</p></div>
-      <div class="step"><div class="step-n">4</div><h4 data-rw="Soza Amasezerano" data-en="Close the Deal">Soza Amasezerano</h4><p data-rw="Soza igurishwa ukoresha e-contract no kwishyura bwizewe kuri platform." data-en="Complete with e-contract and secure payment directly on the platform.">Soza igurishwa ukoresha e-contract no kwishyura bwizewe kuri platform.</p></div>
+      <div class="step"><div class="step-n">1</div><h4 data-rw="Iyandikishe Ubuntu" data-en="Register Free">Iyandikishe Ubuntu</h4><p data-rw="Fungura konti yawe mu masegonda — nta mafaranga asabwa gutangira." data-en="Open your account in seconds — no payment required to start.">Fungura konti yawe mu masegonda — nta mafaranga asabwa gutangira.</p><button class="step-cta" onclick="go('auth')"><span data-rw="Iyandikishe Ubu" data-en="Register Now">Iyandikishe Ubu</span><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
+      <div class="step"><div class="step-n">2</div><h4 data-rw="Shakisha Imitungo" data-en="Search Properties">Shakisha Imitungo</h4><p data-rw="Shakisha mu mitungo irenga 1,240 ukoresha filters, AI, cyangwa agent." data-en="Search 1,240+ listings using filters, AI recommendations, or an agent.">Shakisha mu mitungo irenga 1,240 ukoresha filters, AI, cyangwa agent.</p><button class="step-cta" onclick="openSearch()"><span data-rw="Shakisha Ubu" data-en="Search Now">Shakisha Ubu</span><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
+      <div class="step"><div class="step-n">3</div><h4 data-rw="Huza n'Agent" data-en="Connect with Agent">Huza n'Agent</h4><p data-rw="Umukomisiyoneri wacu wawe azagufasha mu biganiro no kugenzura imitungo." data-en="Your verified agent helps with viewings, visits and negotiations.">Umukomisiyoneri wacu azagufasha mu biganiro no kugenzura imitungo.</p><button class="step-cta" onclick="go('agents')"><span data-rw="Shakisha Agent" data-en="Find Agent">Shakisha Agent</span><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
+      <div class="step"><div class="step-n">4</div><h4 data-rw="Soza Amasezerano" data-en="Close the Deal">Soza Amasezerano</h4><p data-rw="Soza igurishwa ukoresha e-contract no kwishyura bwizewe kuri platform." data-en="Complete with e-contract and secure payment directly on the platform.">Soza igurishwa ukoresha e-contract no kwishyura bwizewe kuri platform.</p><button class="step-cta" onclick="go('auth')"><span data-rw="Tangira Ubu" data-en="Get Started">Tangira Ubu</span><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
     </div></div>
   </section>
 
@@ -3044,6 +3223,227 @@ html,body{overscroll-behavior-x:none}
           <h3 data-rw="Umukomisiyoneri" data-en="Real Estate Agent">Umukomisiyoneri</h3>
           <p data-rw="Ufite ubuhanga mu nganda y'imitungo? Iyandikishe nk'umukomisiyoneri wacu ubone abakiliya barenze kandi uhabwe komisiyoni nziza." data-en="Expert in real estate? Join as an agent, get more clients, and earn great commissions.">Ufite ubuhanga mu nganda y'imitungo? Iyandikishe nk'umukomisiyoneri wacu ubone abakiliya barenze kandi uhabwe komisiyoni nziza.</p>
           <span class="role-link"><span data-rw="Iyandikishe nk'Agent →" data-en="Join as Agent →">Iyandikishe nk'Agent →</span><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CUSTOMER TESTIMONIALS -->
+  <section class="section section-light">
+    <div class="wrap">
+      <div class="section-hdr-center">
+        <div class="eyebrow tag-gold" data-rw="Ibyo Abakiliya Bavuga" data-en="What Clients Say">Ibyo Abakiliya Bavuga</div>
+        <h2 class="h2" style="margin-top:.35rem" data-rw="850+ Abakiliya Bashimye" data-en="850+ Happy Clients">850+ Abakiliya Bashimye</h2>
+        <p class="section-sub" data-rw="Inkuru z'ababuranye n'inzu, ibiciro by'imitungo, n'abakomisiyoneri bacu mu Rwanda." data-en="Real stories from property buyers, sellers, and agents across Rwanda.">Inkuru z'ababuranye n'inzu, ibiciro by'imitungo, n'abakomisiyoneri bacu mu Rwanda.</p>
+      </div>
+      <div class="testi-grid">
+        <div class="testi-card">
+          <div class="testi-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <p class="testi-quote" data-rw='"Nagiye gushaka inzu mu Kigali amezi 3 ntabona iyifuza. Nyuma y\'iminsi 2 kuri KOMISIYONERI, nahuye na agent wizewe wandekeza villa nziza mu Gasabo. Ubu ndatuje!"' data-en='"I searched for a home in Kigali for 3 months with no luck. After just 2 days on KOMISIYONERI, a verified agent found me a beautiful villa in Gasabo. I am now settled!"'>"Nagiye gushaka inzu mu Kigali amezi 3 ntabona iyifuza. Nyuma y'iminsi 2 kuri KOMISIYONERI, nahuye na agent wizewe wandekeza villa nziza mu Gasabo. Ubu ndatuje!"</p>
+          <div class="testi-author">
+            <div class="testi-av" style="background:linear-gradient(135deg,#0D3B8C,#1657CC)">MK</div>
+            <div>
+              <div class="testi-name">Marie-Claire K.</div>
+              <div class="testi-role" data-rw="Umuguzi — Kigali, Gasabo" data-en="Home Buyer — Kigali, Gasabo">Umuguzi — Kigali, Gasabo</div>
+            </div>
+          </div>
+        </div>
+        <div class="testi-card">
+          <div class="testi-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <p class="testi-quote" data-rw='"Narangurishije inzu yange mu rwego rwa KOMISIYONERI. Barantereye agent uzwi, hagati y\'amezi 3 inzu yagurishijwe kandi nahawe amafaranga yose bwizewe. Serivisi nziza cyane!"' data-en='"I sold my property through KOMISIYONERI. They connected me with a reliable agent, and within 3 months it was sold with full payment safely handled. Excellent service!"'>"Narangurishije inzu yange mu rwego rwa KOMISIYONERI. Barantereye agent uzwi, hagati y'amezi 3 inzu yagurishijwe kandi nahawe amafaranga yose bwizewe. Serivisi nziza cyane!"</p>
+          <div class="testi-author">
+            <div class="testi-av" style="background:linear-gradient(135deg,#27A84A,#4ade80)">JP</div>
+            <div>
+              <div class="testi-name">Jean-Pierre M.</div>
+              <div class="testi-role" data-rw="Nyir'Imitungo — Kicukiro" data-en="Property Seller — Kicukiro">Nyir'Imitungo — Kicukiro</div>
+            </div>
+          </div>
+        </div>
+        <div class="testi-card">
+          <div class="testi-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <p class="testi-quote" data-rw='"Nkuye agent ukora ku giti cye nagiye kuri KOMISIYONERI. Abakiliya, leads, komisiyoni, amasezerano — byose biri kuri app imwe. Amafaranga yanjye yiyongereye gatatu mu mwaka umwe!"' data-en='"As an independent agent I joined KOMISIYONERI. Clients, leads, commissions, contracts — all in one app. My income tripled in one year!"'>"Nkuye agent ukora ku giti cye nagiye kuri KOMISIYONERI. Abakiliya, leads, komisiyoni, amasezerano — byose biri kuri app imwe. Amafaranga yanjye yiyongereye gatatu mu mwaka umwe!"</p>
+          <div class="testi-author">
+            <div class="testi-av" style="background:linear-gradient(135deg,#F5A623,#e6951f)">ES</div>
+            <div>
+              <div class="testi-name">Esperance S.</div>
+              <div class="testi-role" data-rw="Agent — Musanze, Rubavu" data-en="Real Estate Agent — Musanze">Agent — Musanze, Rubavu</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES WE OFFER -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-hdr-center">
+        <div class="eyebrow" data-rw="Serivisi Zacu" data-en="Our Services">Serivisi Zacu</div>
+        <h2 class="h2" style="margin-top:.35rem" data-rw="Ibintu Byose Bifashije Kugura no Kugurisha" data-en="Everything You Need to Buy or Sell">Ibintu Byose Bifashije Kugura no Kugurisha</h2>
+        <p class="section-sub" data-rw="KOMISIYONERI iraha serivisi zose z'imitungo — kuva mu gushakisha kugeza ku gusinya amasezerano." data-en="KOMISIYONERI offers complete real estate services — from searching to signing the final contract.">KOMISIYONERI iraha serivisi zose z'imitungo — kuva mu gushakisha kugeza ku gusinya amasezerano.</p>
+      </div>
+      <div class="svc-grid">
+        <div class="svc-card" onclick="go('verification')">
+          <div class="svc-icon" style="background:rgba(13,59,140,.1)">
+            <svg viewBox="0 0 24 24" stroke="#0D3B8C"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <h3 class="svc-title" data-rw="Isuzuma ry'Imitungo" data-en="Property Valuation">Isuzuma ry'Imitungo</h3>
+          <p class="svc-desc" data-rw="Iga agaciro k'imitungo yawe ukoresha aba inzobere bacu — 30,000–150,000 RWF gusa." data-en="Know your property's true market value with our certified experts — 30,000–150,000 RWF.">Iga agaciro k'imitungo yawe ukoresha aba inzobere bacu — 30,000–150,000 RWF gusa.</p>
+          <span class="svc-link" data-rw="Saba Isuzuma →" data-en="Request Valuation →">Saba Isuzuma →</span>
+        </div>
+        <div class="svc-card" onclick="go('partners')">
+          <div class="svc-icon" style="background:rgba(22,87,204,.1)">
+            <svg viewBox="0 0 24 24" stroke="#1657CC"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <h3 class="svc-title" data-rw="Ubukozi bw'Amategeko" data-en="Legal Services">Ubukozi bw'Amategeko</h3>
+          <p class="svc-desc" data-rw="Aba notari na abakozi b'amategeko bacu bafasha mu biganiro, guhuza impapuro, no gusinya amasezerano bwizewe." data-en="Our notaries and legal experts assist with negotiations, title verification, and secure contract signing.">Aba notari na abakozi b'amategeko bacu bafasha mu biganiro, guhuza impapuro, no gusinya amasezerano bwizewe.</p>
+          <span class="svc-link" data-rw="Bona Ubukozi →" data-en="Get Legal Help →">Bona Ubukozi →</span>
+        </div>
+        <div class="svc-card" onclick="go('financing')">
+          <div class="svc-icon" style="background:rgba(39,168,74,.1)">
+            <svg viewBox="0 0 24 24" stroke="#27A84A"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16M2 12h20"/></svg>
+          </div>
+          <h3 class="svc-title" data-rw="Inguzanyo y'Inzu" data-en="Mortgage / Financing">Inguzanyo y'Inzu</h3>
+          <p class="svc-desc" data-rw="Duhuza n'amabanki n'inzego za finance mu Rwanda kugira ngo ubone inguzanyo nziza y'inzu yawe." data-en="We connect you with Rwanda's banks and finance institutions for the best home loan rates.">Duhuza n'amabanki n'inzego za finance mu Rwanda kugira ngo ubone inguzanyo nziza y'inzu yawe.</p>
+          <span class="svc-link" data-rw="Saba Inguzanyo →" data-en="Apply for Loan →">Saba Inguzanyo →</span>
+        </div>
+        <div class="svc-card" onclick="go('services')">
+          <div class="svc-icon" style="background:rgba(245,166,35,.15)">
+            <svg viewBox="0 0 24 24" stroke="#8B6A00"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <h3 class="svc-title" data-rw="Inshingano y'Imitungo" data-en="Property Management">Inshingano y'Imitungo</h3>
+          <p class="svc-desc" data-rw="Twita ku mitungo yawe — gukusanya amafaranga y'ubukode, gupfuka amakosa, no gukurikirana abakode." data-en="We manage your rental property — rent collection, maintenance, and tenant oversight.">Twita ku mitungo yawe — gukusanya amafaranga y'ubukode, gupfuka amakosa, no gukurikirana abakode.</p>
+          <span class="svc-link" data-rw="Saba Serivisi →" data-en="Get Management →">Saba Serivisi →</span>
+        </div>
+        <div class="svc-card" onclick="go('sites')">
+          <div class="svc-icon" style="background:rgba(61,107,28,.1)">
+            <svg viewBox="0 0 24 24" stroke="#3D6B1C"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <h3 class="svc-title" data-rw="Iterambere ry'Ubutaka" data-en="Land Development">Iterambere ry'Ubutaka</h3>
+          <p class="svc-desc" data-rw="Sitey nshya z'imitungo y'igenzi — kugura ubutaka bufite LUC, infra, no kwubaka inzu nziza." data-en="New serviced land developments — buy plots with LUC, infrastructure, and build your dream home.">Sitey nshya z'imitungo y'igenzi — kugura ubutaka bufite LUC, infra, no kwubaka inzu nziza.</p>
+          <span class="svc-link" data-rw="Reba Sitey →" data-en="View Sites →">Reba Sitey →</span>
+        </div>
+        <div class="svc-card" onclick="go('agents')">
+          <div class="svc-icon" style="background:rgba(28,94,139,.1)">
+            <svg viewBox="0 0 24 24" stroke="#1C5E8B"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          </div>
+          <h3 class="svc-title" data-rw="Serivisi y'Agents" data-en="Agent Services">Serivisi y'Agents</h3>
+          <p class="svc-desc" data-rw="Huza n'agent wizewe wari wowe mu turere twose 30 tw'u Rwanda — kubona agent, kugenzura no gupiganwa neza." data-en="Connect with a verified agent in any of Rwanda's 30 districts — find, view properties, and negotiate.">Huza n'agent wizewe wari wowe mu turere twose 30 tw'u Rwanda — kubona agent, kugenzura no gupiganwa neza.</p>
+          <span class="svc-link" data-rw="Bona Agent →" data-en="Find Agent →">Bona Agent →</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUSTED PARTNERS -->
+  <section class="section section-light">
+    <div class="wrap" style="text-align:center">
+      <div class="eyebrow" data-rw="Inshuti Zacu" data-en="Our Partners">Inshuti Zacu</div>
+      <h2 class="h2" style="margin-top:.35rem;margin-bottom:.5rem" data-rw="Inzego Dukorana Nazo" data-en="Institutions We Work With">Inzego Dukorana Nazo</h2>
+      <p class="section-sub" data-rw="Dukorana n'inzego zemewe za leta, amabanki, na sosiyete z'amategeko mu Rwanda." data-en="We partner with accredited government agencies, banks, and legal firms across Rwanda.">Dukorana n'inzego zemewe za leta, amabanki, na sosiyete z'amategeko mu Rwanda.</p>
+      <div class="partner-strip">
+        <div class="partner-logo">
+          <div class="plogo-inner">
+            <div style="width:40px;height:40px;border-radius:8px;background:#00629B;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;color:#fff;flex-shrink:0">BK</div>
+            <span>Bank of Kigali</span>
+          </div>
+        </div>
+        <div class="partner-logo">
+          <div class="plogo-inner">
+            <div style="width:40px;height:40px;border-radius:8px;background:#FFCB05;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem;color:#000;flex-shrink:0">MTN</div>
+            <span>MTN Rwanda</span>
+          </div>
+        </div>
+        <div class="partner-logo">
+          <div class="plogo-inner">
+            <div style="width:40px;height:40px;border-radius:8px;background:#E40046;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.65rem;color:#fff;flex-shrink:0">AIRTEL</div>
+            <span>Airtel Rwanda</span>
+          </div>
+        </div>
+        <div class="partner-logo">
+          <div class="plogo-inner">
+            <div style="width:40px;height:40px;border-radius:8px;background:#005E30;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem;color:#fff;flex-shrink:0">RHA</div>
+            <span data-rw="Ikigo cy'Imiturire" data-en="Rwanda Housing Authority">Rwanda Housing Authority</span>
+          </div>
+        </div>
+        <div class="partner-logo">
+          <div class="plogo-inner">
+            <div style="width:40px;height:40px;border-radius:8px;background:#E8320A;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.62rem;color:#fff;flex-shrink:0">EQUITY</div>
+            <span>Equity Bank</span>
+          </div>
+        </div>
+        <div class="partner-logo">
+          <div class="plogo-inner">
+            <div style="width:40px;height:40px;border-radius:8px;background:#1B3A6B;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.6rem;color:#fff;flex-shrink:0;text-align:center;line-height:1.2">LAND<br>AUTH</div>
+            <span data-rw="Urwego rw'Ubutaka" data-en="Land Authority (RLMUA)">Land Authority (RLMUA)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-hdr-center">
+        <div class="eyebrow" data-rw="Ibibazo Bikunze Kubazwa" data-en="Frequently Asked Questions">Ibibazo Bikunze Kubazwa</div>
+        <h2 class="h2" style="margin-top:.35rem" data-rw="Ibibazo n'Ibisubizo" data-en="Questions &amp; Answers">Ibibazo n'Ibisubizo</h2>
+        <p class="section-sub" data-rw="Subizo ry'ibibazo bikunze kubazwa kuri KOMISIYONERI platform." data-en="Answers to the most common questions about the KOMISIYONERI platform.">Subizo ry'ibibazo bikunze kubazwa kuri KOMISIYONERI platform.</p>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            <span data-rw="Ni iki KOMISIYONERI kandi ikora iki?" data-en="What is KOMISIYONERI and what does it do?">Ni iki KOMISIYONERI kandi ikora iki?</span>
+            <svg class="faq-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-a">
+            <p data-rw="KOMISIYONERI ni platform y'imitungo N°1 mu Rwanda ikoresha AI. Ihuza abantu bashaka kugura, kugurisha, cyangwa gukodesha imitungo na abakomisiyoneri bemewe — bose hamwe kuri app imwe. Duha serivisi zose: gushakisha, isuzuma, amasezerano, inguzanyo, na mbere na mbere." data-en="KOMISIYONERI is Rwanda's #1 AI-powered real estate platform. It connects people looking to buy, sell, or rent property with verified agents — all in one app. We offer complete services: search, valuation, contracts, financing, and more.">KOMISIYONERI ni platform y'imitungo N°1 mu Rwanda ikoresha AI. Ihuza abantu bashaka kugura, kugurisha, cyangwa gukodesha imitungo na abakomisiyoneri bemewe — bose hamwe kuri app imwe. Duha serivisi zose: gushakisha, isuzuma, amasezerano, inguzanyo, na mbere na mbere.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            <span data-rw="Komisiyoni ni angahe kuri KOMISIYONERI?" data-en="What are the commission rates on KOMISIYONERI?">Komisiyoni ni angahe kuri KOMISIYONERI?</span>
+            <svg class="faq-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-a">
+            <p data-rw="Kugurisha: 3–5% y'igiciro cy'imitungo. Gukodesha: umwezi 1 w'ubukode. Inshingano y'imitungo: 8–12% buri kwezi. Isuzuma: 30,000–150,000 RWF. Agents bahabwa 60% ya komisiyoni yose — KOMISIYONERI ifata 40%." data-en="For sales: 3–5% of property price. Rental: 1 month's rent. Property management: 8–12% monthly. Valuation: 30,000–150,000 RWF. Agents receive 60% of total commission — KOMISIYONERI keeps 40%.">Kugurisha: 3–5% y'igiciro cy'imitungo. Gukodesha: umwezi 1 w'ubukode. Inshingano: 8–12% buri kwezi. Isuzuma: 30,000–150,000 RWF. Agents bahabwa 60% ya komisiyoni yose — KOMISIYONERI ifata 40%.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            <span data-rw="Nagiriki ngo mbe agent wa KOMISIYONERI?" data-en="How do I become a KOMISIYONERI agent?">Nagiriki ngo mbe agent wa KOMISIYONERI?</span>
+            <svg class="faq-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-a">
+            <p data-rw="Iyandikishe kuri platform yacu ubuntu. Tuzasuzuma amakuru yawe, tuzakubaza impapuro z'indangamuntu na lisansi. Nyuma y'isuzuma ry'iminsi 1–3, uzahabwa konti y'agent kandi utangire kubona leads. Ntabwo bisaba amafaranga gutangira." data-en="Register on our platform for free. We will review your details and verify your ID and license. After 1–3 day approval, you get an agent account and start receiving leads. No cost to join.">Iyandikishe kuri platform yacu ubuntu. Tuzasuzuma amakuru yawe, tuzakubaza impapuro z'indangamuntu na lisansi. Nyuma y'isuzuma ry'iminsi 1–3, uzahabwa konti y'agent. Ntabwo bisaba amafaranga gutangira.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            <span data-rw="Ni uburyo bwiki bwo kwishyura bubonetse?" data-en="What payment methods are accepted?">Ni uburyo bwiki bwo kwishyura bubonetse?</span>
+            <svg class="faq-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-a">
+            <p data-rw="Twakira kwishyura binyuze kuri MTN Mobile Money, Airtel Money, virement y'ibanki, na Credit/Debit Cards. Kwishyura kwose kuri platform yacu bwizewe, bitangazwa, kandi bitandukanwa." data-en="We accept MTN Mobile Money, Airtel Money, bank transfer, and Credit/Debit Cards. All payments on our platform are secure, transparent, and traceable.">Twakira kwishyura binyuze kuri MTN Mobile Money, Airtel Money, virement y'ibanki, na Credit/Debit Cards. Kwishyura kwose kuri platform yacu bwizewe, bitangazwa, kandi bitandukanwa.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            <span data-rw="Imitungo ni iyindi yangwa bute mbere yo guherwa?" data-en="How is property verified before listing?">Imitungo ni iyindi yangwa bute mbere yo guherwa?</span>
+            <svg class="faq-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-a">
+            <p data-rw="Imitungo yose isuzumwa na team yacu mbere yo gushyirwa kuri rubanda: LUC (Land Use Certificate), inyandiko z'ubutaka, no kugenzura kuri RLMUA. Ntabwo tugura cyangwa tukurisha imitungo itazasuzumwa nziza." data-en="All properties are verified by our team before listing: LUC (Land Use Certificate), title documents, and cross-checking with RLMUA. We never list unverified property.">Imitungo yose isuzumwa na team yacu mbere yo gushyirwa kuri rubanda: LUC, inyandiko z'ubutaka, no kugenzura kuri RLMUA. Ntabwo tugura cyangwa tukurisha imitungo itazasuzumwa nziza.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            <span data-rw="Platform ifasha mu turere twose tw'u Rwanda?" data-en="Does the platform cover all districts in Rwanda?">Platform ifasha mu turere twose tw'u Rwanda?</span>
+            <svg class="faq-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-a">
+            <p data-rw="Yego. KOMISIYONERI ifasha mu turere twose 30 tw'u Rwanda. Turashaka cyane i Kigali (Gasabo, Kicukiro, Nyarugenge), Musanze, Rubavu, Huye, Nyagatare, Muhanga, na mbere na mbere. Agents bacu bari muri karere kose." data-en="Yes. KOMISIYONERI covers all 30 districts of Rwanda. We have strong presence in Kigali (Gasabo, Kicukiro, Nyarugenge), Musanze, Rubavu, Huye, Nyagatare, Muhanga, and more. Our agents serve every district.">Yego. KOMISIYONERI ifasha mu turere twose 30 tw'u Rwanda — i Kigali (Gasabo, Kicukiro, Nyarugenge), Musanze, Rubavu, Huye, Nyagatare, Muhanga, na mbere na mbere. Agents bacu bari muri karere kose.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -3108,6 +3508,14 @@ html,body{overscroll-behavior-x:none}
             <div><strong style="color:#fff;font-family:'Cormorant Garamond',serif;font-size:1.05rem">KOMISIYONERI</strong><br><span style="font-size:.55rem;color:rgba(255,255,255,.35);letter-spacing:.16em;text-transform:uppercase">Connectpro Services</span></div>
           </div>
           <p class="ft-brand" data-rw="Duhuza abantu n'imitungo itimurika mu Rwanda mu buryo bworoshye kandi bwizewe." data-en="Connecting people with quality properties in Rwanda simply and safely.">Duhuza abantu n'imitungo itimurika mu Rwanda mu buryo bworoshye kandi bwizewe.</p>
+          <div style="font-size:.68rem;color:rgba(255,255,255,.32);margin-top:.5rem;line-height:1.6">KOMISIYONERI Connectpro Services Ltd<br>Kigali, Rwanda · Est. 2024 · 🇷🇼</div>
+          <div class="ft-trust-row">
+            <span class="ft-trust-badge"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>SSL 256-bit</span>
+            <span class="ft-trust-badge"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Firebase</span>
+            <span class="ft-trust-badge">▲ Vercel</span>
+            <span class="ft-trust-badge"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Verified</span>
+            <span class="ft-trust-badge">🇷🇼 Rwanda</span>
+          </div>
         </div>
         <div class="ft-col"><h5 data-rw="Serivisi" data-en="Services">Serivisi</h5><ul>
           <li><a onclick="go('listings')" data-rw="Kugura Inzu" data-en="Buy Property">Kugura Inzu</a></li>
@@ -3227,6 +3635,17 @@ html,body{overscroll-behavior-x:none}
 <div class="page" id="page-listings">
   <div class="list-hdr">
     <div class="wrap"><h1 data-rw="Imitungo Yose" data-en="All Properties">Imitungo Yose</h1><p data-rw="Imitungo irenga 1,240 iraboneka mu Rwanda — Shakisha, Banya, Gura." data-en="1,240+ properties across Rwanda — Search, Filter, Buy or Rent.">Imitungo irenga 1,240 iraboneka mu Rwanda — Shakisha, Banya, Gura.</p></div>
+  </div>
+  <!-- Listings orientation bar -->
+  <div class="list-orient-bar">
+    <div class="lob-msg">
+      <span>🏠</span>
+      <span data-rw="Shakisha ugurishwa n'ugukodeshwa — imitungo irenga 1,240 mu Rwanda" data-en="Browse for sale and rent — 1,240+ properties across Rwanda">Shakisha ugurishwa n'ugukodeshwa — imitungo irenga 1,240 mu Rwanda</span>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="lob-btn primary" onclick="openAddProperty()" data-rw="+ Andika Imitungo Yawe" data-en="+ List Your Property">+ Andika Imitungo Yawe</button>
+      <button class="lob-btn" onclick="go('agents')" data-rw="Shakisha Agent" data-en="Find an Agent">Shakisha Agent</button>
+    </div>
   </div>
   <div class="list-body">
     <aside class="filters">
@@ -3429,7 +3848,7 @@ html,body{overscroll-behavior-x:none}
       <div class="ag-card">
         <div class="ag-head">
           <div class="ag-av">JM</div>
-          <div><div class="ag-name">NOHERI</div><div class="ag-sub">Senior Property Agent</div><div class="verified"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span data-rw="Agent Wemwe" data-en="Verified Agent">Agent Wemwe</span></div></div>
+          <div><div class="ag-name">NOHERI</div><div class="ag-sub">Senior Property Agent</div><div class="verified"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span data-rw="Agent Wemwe" data-en="Verified Agent">Agent Wemwe</span></div><div class="agent-resp-tag"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span data-rw="Asubiza mu masaha 2" data-en="Responds in ~2 Hours">Responds in ~2 Hours</span></div></div>
         </div>
         <div class="ag-stats">
           <div class="ag-stat"><span class="ag-stat-v">127</span><span class="ag-stat-l" data-rw="Imitungo Yagurishije" data-en="Sales">Imitungo</span></div>
@@ -3438,35 +3857,48 @@ html,body{overscroll-behavior-x:none}
           <div class="ag-stat"><span class="ag-stat-v">98%</span><span class="ag-stat-l" data-rw="Igihe" data-en="Response">Igihe</span></div>
         </div>
         <div class="ag-acts">
-          <button class="btn btn-navy" style="width:100%;justify-content:center" onclick="toggleChat()">
-            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            <span data-rw="Ganira na Agent" data-en="Chat with Agent">Ganira na Agent</span>
-          </button>
-          <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="window.location.href='tel:+250783177254'">
-            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.13a16 16 0 006.73 6.73l1.35-1.35a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-            <span data-rw="Hamagara Agent" data-en="Call Agent">Hamagara Agent</span>
-          </button>
-          <button class="btn btn-outline" style="width:100%;justify-content:center;border-color:#25D366;color:#25D366" onclick="window.open('https://wa.me/250783177254?text=Ndashaka amakuru y%27imitungo muri KOMISIYONERI','_blank')">
-            <svg viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-            <span>WhatsApp Agent</span>
-          </button>
-          <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="openBooking()">
+          <!-- ① PRIMARY — Most natural first step for any visitor -->
+          <button class="btn btn-gold" style="width:100%;justify-content:center;padding:.85rem 1rem;font-size:.95rem" onclick="openBooking()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <span data-rw="Gushyiraho Gahunda yo Gusura" data-en="Schedule a Visit">Gushyiraho Gahunda</span>
+            <span data-rw="Shyiraho Gahunda yo Gusura" data-en="Schedule a Visit">Shyiraho Gahunda yo Gusura</span>
           </button>
-          <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="openOfferModal()">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            <span data-rw="Ohereza Offer" data-en="Submit Offer">Submit Offer</span>
-          </button>
-          <button class="btn btn-navy" style="width:100%;justify-content:center;background:linear-gradient(135deg,#F5A623,#e6951f)" onclick="openLead()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-            <span data-rw="Saba Agent Wawe — Vuba!" data-en="Get an Agent — Fast!">Saba Agent Wawe</span>
-          </button>
-          <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="openMessageOwner()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            <span data-rw="Kohereza Message" data-en="Send Message">Kohereza Message</span>
-          </button>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem">
+          <!-- ② SECONDARY — Chat + Offer side by side -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+            <button class="btn btn-navy" style="justify-content:center" onclick="toggleChat()">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              <span data-rw="Ganira" data-en="Chat">Ganira</span>
+            </button>
+            <button class="btn btn-outline" style="justify-content:center" onclick="openOfferModal()">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              <span data-rw="Ohereza Offer" data-en="Submit Offer">Ohereza Offer</span>
+            </button>
+          </div>
+          <!-- ③ CONTACT OPTIONS — Expandable (all contact methods in one place) -->
+          <div class="contact-toggle-wrap">
+            <button class="contact-toggle-btn" onclick="toggleContactOptions(this)" data-rw="📞 Inzira zo Gutumanahana" data-en="📞 More Contact Options">📞 Inzira zo Gutumanahana
+              <svg class="contact-toggle-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="contact-options">
+              <button class="contact-opt-btn" onclick="window.location.href='tel:+250783177254'">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.13a16 16 0 006.73 6.73l1.35-1.35a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                <span data-rw="Hamagara Agent" data-en="Call Agent">Hamagara Agent</span>
+              </button>
+              <button class="contact-opt-btn" style="color:#25D366" onclick="window.open('https://wa.me/250783177254?text=Ndashaka amakuru y%27imitungo muri KOMISIYONERI','_blank')">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                <span>WhatsApp Agent</span>
+              </button>
+              <button class="contact-opt-btn" onclick="openMessageOwner()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                <span data-rw="Kohereza Message" data-en="Send Message">Kohereza Message</span>
+              </button>
+              <button class="contact-opt-btn" onclick="openLead()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                <span data-rw="Saba Agent Wawe" data-en="Get an Agent — Fast">Saba Agent Wawe</span>
+              </button>
+            </div>
+          </div>
+          <!-- ④ TOOLS — Mortgage calculator + Compare -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
             <button class="btn btn-sm" style="justify-content:center;border:1.5px solid var(--navy);color:var(--navy);font-size:.75rem" onclick="openMortgage()">
               🏦 Mortgage Calc
             </button>
@@ -3474,11 +3906,24 @@ html,body{overscroll-behavior-x:none}
               ⚖️ Gusuzuma 2
             </button>
           </div>
-          <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="openDepositPay()">
-            <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+          <!-- ⑤ ADVANCED — Only for committed buyers ready to transact -->
+          <button class="btn btn-outline" style="width:100%;justify-content:center;border-color:var(--gold);color:#7A5500;font-size:.85rem" onclick="openDepositPay()">
+            <svg viewBox="0 0 24 24" width="15" height="15"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
             <span data-rw="Ishyura Deposit / Tangira" data-en="Pay Deposit / Start">Ishyura Deposit</span>
           </button>
         </div>
+      </div>
+      <!-- PROPERTY TRUST BOX -->
+      <div class="prop-trust-box">
+        <div class="ptb-title">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span data-rw="Ikingiro ry'Ibikorwa" data-en="Transaction Safety">Transaction Safety</span>
+        </div>
+        <div class="ptb-row"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg><span data-rw="Imitungo Yemejwe na KOMISIYONERI" data-en="Property Verified by KOMISIYONERI">Property Verified by KOMISIYONERI</span></div>
+        <div class="ptb-row"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg><span data-rw="Inyandiko z'Imitungo Ziraboneka" data-en="Title Documents Available">Title Documents Available</span></div>
+        <div class="ptb-row"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span data-rw="Aho Imitungo Iri Byemejwe (GPS)" data-en="Location GPS-Confirmed">Location GPS-Confirmed</span></div>
+        <div class="ptb-row"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-rw="Kwishyura Birakingiriwe — 256-bit SSL" data-en="Secure Payment — 256-bit SSL">Secure Payment — 256-bit SSL</span></div>
+        <div class="ptb-row"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span data-rw="Yavuguruwe vuba bwa bva" data-en="Listing Recently Updated">Listing Recently Updated</span></div>
       </div>
       <!-- MAP TAB CONTENT -->
       <div id="tab-map" style="display:none">
@@ -3839,6 +4284,11 @@ html,body{overscroll-behavior-x:none}
     </div>
     <div class="auth-right">
       <div class="auth-box">
+        <!-- New-user welcome bar — hidden when register tab is active -->
+        <div class="auth-new-bar" id="auth-new-bar">
+          <span data-rw="Nshya kuri KOMISIYONERI?" data-en="New to KOMISIYONERI?">Nshya kuri KOMISIYONERI?</span>
+          <button class="auth-new-btn" onclick="if(typeof authMode!=='undefined'&&authMode!=='register')toggleAuthMode()" data-rw="Iyandikishe Ubuntu →" data-en="Register Free →">Iyandikishe Ubuntu →</button>
+        </div>
         <h2 class="auth-title" id="auth-title" data-rw="Injira mu Konti" data-en="Sign In">Injira mu Konti</h2>
         <p class="auth-sub" id="auth-sub" data-rw="Uzuza amakuru yawe hasi kugira ngo winjire" data-en="Enter your details below to sign in">Uzuza amakuru yawe hasi kugira ngo winjire</p>
         <!-- Role tabs -->
@@ -3891,8 +4341,19 @@ html,body{overscroll-behavior-x:none}
             <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
             <span id="register-btn-label" data-rw="Iyandikishe Ubuntu" data-en="Register Free">Iyandikishe Ubuntu</span>
           </button>
+          <div class="data-notice">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span data-rw="Amakuru yawe arakingiriwe neza. Reba " data-en="Your information is protected. See our ">Amakuru yawe arakingiriwe neza. Reba </span><a onclick="go('privacy')" data-rw="Politiki y'Ubucungezi" data-en="Privacy Policy">Privacy Policy</a>
+          </div>
         </div>
         <div class="auth-switch"><span id="auth-switch-txt" data-rw="Nta konti ufite?" data-en="Don't have an account?">Nta konti ufite?</span> <button onclick="toggleAuthMode()" id="auth-switch-btn" data-rw="Iyandikishe hano" data-en="Register here">Iyandikishe hano</button></div>
+        <!-- Trust bar -->
+        <div class="auth-trust-bar" aria-label="Trust signals">
+          <span class="atb-item"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span data-rw="Amakuru Akingiriwe — SSL" data-en="Data Secured — SSL">Data Secured</span></span>
+          <span class="atb-item"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg><span data-rw="Clients 850+ Bashimye" data-en="850+ Happy Clients">850+ Clients</span></span>
+          <span class="atb-item"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span>4.9/5 ★</span></span>
+          <span class="atb-item"><span>🇷🇼</span><span data-rw="Yanditswe mu Rwanda" data-en="Registered in Rwanda">Rwanda</span></span>
+        </div>
       </div>
     </div>
   </div>
@@ -4014,6 +4475,60 @@ html,body{overscroll-behavior-x:none}
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
       <span data-rw="Twandikire ubutumwa" data-en="Send us a message">Twandikire ubutumwa</span>
     </a>
+
+    <!-- Company Legal Information -->
+    <h2 style="color:var(--navy);margin:2.2rem 0 .4rem;font-size:1.15rem" data-rw="Amakuru y'Ubuzima bwa Sosiyete" data-en="Company Legal Information">Company Legal Information</h2>
+    <div class="co-reg-box">
+      <div class="co-reg-title" data-rw="Amakuru Yemejwe ya Sosiyete" data-en="Official Company Details">Official Company Details</div>
+      <div class="co-reg-row"><span class="co-reg-label" data-rw="Izina" data-en="Legal Name">Legal Name</span><span class="co-reg-val">KOMISIYONERI Connectpro Services Ltd</span></div>
+      <div class="co-reg-row"><span class="co-reg-label" data-rw="Ubwoko" data-en="Company Type">Company Type</span><span class="co-reg-val" data-rw="Sosiyete y'Ubucuruzi" data-en="Private Limited Company (Ltd)">Private Limited Company (Ltd)</span></div>
+      <div class="co-reg-row"><span class="co-reg-label" data-rw="Igihugu" data-en="Country">Country</span><span class="co-reg-val">🇷🇼 Rwanda</span></div>
+      <div class="co-reg-row"><span class="co-reg-label" data-rw="Aderesi" data-en="Registered Address">Registered Address</span><span class="co-reg-val">Kigali, Rwanda</span></div>
+      <div class="co-reg-row"><span class="co-reg-label" data-rw="Itariki Yaratangiye" data-en="Founded">Founded</span><span class="co-reg-val">2024</span></div>
+      <div class="co-reg-row"><span class="co-reg-label" data-rw="Imeri" data-en="Email">Email</span><span class="co-reg-val"><a href="mailto:info.komisiyoneri.net@gmail.com">info.komisiyoneri.net@gmail.com</a></span></div>
+      <div class="co-reg-row"><span class="co-reg-label" data-rw="Telefoni" data-en="Phone">Phone</span><span class="co-reg-val"><a href="tel:+250783177254">+250 783 177 254</a></span></div>
+      <div class="co-reg-row"><span class="co-reg-label">WhatsApp</span><span class="co-reg-val"><a href="https://wa.me/250783177254" target="_blank" style="color:#25D366">+250 783 177 254</a></span></div>
+      <div class="co-reg-row"><span class="co-reg-label" data-rw="Urubuga" data-en="Website">Website</span><span class="co-reg-val"><a href="https://komisyoneri-platform-nu.vercel.app" target="_blank">www.komisiyoneri.com</a></span></div>
+    </div>
+
+    <!-- Leadership -->
+    <h2 style="color:var(--navy);margin:2.2rem 0 .4rem;font-size:1.15rem" data-rw="Ubuyobozi" data-en="Leadership">Ubuyobozi</h2>
+    <div class="leader-grid">
+      <div class="leader-card">
+        <div class="leader-av">FN</div>
+        <div class="leader-name">Fabrice Ndacyayisenga</div>
+        <div class="leader-title" data-rw="Umuyobozi Mukuru &amp; Nyir'Ubwenegihugu" data-en="Chief Executive Officer &amp; Founder">CEO &amp; Founder</div>
+        <span class="leader-badge"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg><span data-rw="Umuyobozi Wemwe" data-en="Verified Executive">Verified Executive</span></span>
+      </div>
+      <div class="leader-card">
+        <div class="leader-av" style="background:linear-gradient(135deg,#27A84A,#4ade80)">AI</div>
+        <div class="leader-name">NOHERI</div>
+        <div class="leader-title" data-rw="Umujyanama wa AI — Ibikorwa 24/7" data-en="AI Property Advisor — Available 24/7">AI Property Advisor</div>
+        <span class="leader-badge"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg><span data-rw="AI Ikora buri gihe" data-en="AI · Always On">AI · Always On</span></span>
+      </div>
+      <div class="leader-card">
+        <div class="leader-av" style="background:linear-gradient(135deg,#F5A623,#e6951f)">AG</div>
+        <div class="leader-name" data-rw="Itsinda ry'Abajyanama" data-en="Agent Network">Agent Network</div>
+        <div class="leader-title" data-rw="Abajyanama 100+ mu Rwanda Yose — Bose Bemewe" data-en="100+ Licensed Agents Nationwide — All Verified">100+ Licensed Agents</div>
+        <span class="leader-badge"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg><span data-rw="Bose Bemewe" data-en="All Verified">All Verified</span></span>
+      </div>
+    </div>
+
+    <!-- Certifications & Compliance -->
+    <div style="background:var(--light);border-radius:14px;padding:1.3rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem">
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <span style="font-size:1.6rem">🔒</span>
+        <div><div style="font-weight:700;font-size:.88rem;color:var(--navy)" data-rw="Umutekano" data-en="Security">Security</div><div style="font-size:.76rem;color:var(--muted)">256-bit SSL · Firebase Auth · Google Cloud</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <span style="font-size:1.6rem">🛡️</span>
+        <div><div style="font-weight:700;font-size:.88rem;color:var(--navy)" data-rw="Ubucungezi" data-en="Privacy">Privacy</div><div style="font-size:.76rem;color:var(--muted)" data-rw="Firestore Security Rules · GDPR Compliant" data-en="Firestore Security Rules · GDPR Aligned">GDPR Aligned · Data Protected</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <span style="font-size:1.6rem">🏆</span>
+        <div><div style="font-weight:700;font-size:.88rem;color:var(--navy)" data-rw="Umurage" data-en="Track Record">Track Record</div><div style="font-size:.76rem;color:var(--muted)" data-rw="Ibikorwa 2,400+ · Clients bashimye 850+" data-en="2,400+ Transactions · 850+ Happy Clients">2,400+ Transactions · 850+ Clients</div></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -7675,6 +8190,16 @@ html,body{overscroll-behavior-x:none}
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
         <span id="book-submit-lbl">Emeza Gahunda</span>
       </button>
+      <div class="what-next-box">
+        <div class="wnb-title" data-rw="Nyuma yo Kohereza" data-en="What Happens Next">What Happens Next</div>
+        <div class="wnb-step"><div class="wnb-num">1</div><span data-rw="Agent ahabwa imenyesha ako kanya" data-en="Agent receives instant notification">Agent receives instant notification</span></div>
+        <div class="wnb-step"><div class="wnb-num">2</div><span data-rw="Uzatumanahana na agent kuri WhatsApp mu masaha 2" data-en="Agent contacts you on WhatsApp within 2 hours">Agent contacts you within 2 hours</span></div>
+        <div class="wnb-step"><div class="wnb-num">3</div><span data-rw="Gahunda y'isura iremererwa kuri ubutumwa" data-en="Viewing confirmed via message">Viewing confirmed by message</span></div>
+      </div>
+      <div class="data-notice">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span data-rw="Amakuru yawe arakingiriwe — " data-en="Your info is protected — ">Your info is protected — </span><a onclick="closeBooking();go('privacy')" data-rw="Reba Privacy Policy" data-en="Privacy Policy">Privacy Policy</a>
+      </div>
     </div>
   </div>
 </div>
@@ -7697,6 +8222,11 @@ html,body{overscroll-behavior-x:none}
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         Ohereza Message
       </button>
+      <div class="what-next-box">
+        <div class="wnb-title" data-rw="Nyuma yo Kohereza" data-en="What Happens Next">What Happens Next</div>
+        <div class="wnb-step"><div class="wnb-num">1</div><span data-rw="Ubutumwa bwawe bwoherezwa ako kanya" data-en="Your message is delivered instantly">Your message is delivered instantly</span></div>
+        <div class="wnb-step"><div class="wnb-num">2</div><span data-rw="Nyir'imitungo / Agent arasubiza mu masaha 2" data-en="Owner / Agent responds within 2 hours">Owner / Agent responds within 2 hours</span></div>
+      </div>
     </div>
   </div>
 </div>
@@ -8337,6 +8867,23 @@ function showToast(msg, type) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 5000);
 }
 
+// ── FAQ ACCORDION
+function toggleFaq(btn) {
+  var item = btn.parentElement;
+  var isOpen = item.classList.contains('open');
+  var all = document.querySelectorAll('.faq-item.open');
+  for (var i = 0; i < all.length; i++) { all[i].classList.remove('open'); }
+  if (!isOpen) item.classList.add('open');
+}
+
+// ── CONTACT OPTIONS ACCORDION (property detail sidebar)
+function toggleContactOptions(btn) {
+  var isOpen = btn.classList.contains('open');
+  var opts = btn.nextElementSibling;
+  btn.classList.toggle('open', !isOpen);
+  if (opts) opts.classList.toggle('open', !isOpen);
+}
+
 // ── STAB (search type) active
 document.querySelectorAll('.s-tab').forEach(s => {
   s.addEventListener('click', () => {
@@ -8395,13 +8942,16 @@ function updateNavForUser(user) {
   var guest = document.getElementById('nav-guest');
   var userArea = document.getElementById('nav-user');
   var avatar = document.getElementById('nav-avatar');
+  var navCta = document.getElementById('nav-cta-guest');
   if (!user) {
     if(guest) guest.style.display='flex';
     if(userArea) userArea.style.display='none';
+    if(navCta) navCta.style.display='flex';
     return;
   }
   if(guest) guest.style.display='none';
   if(userArea) userArea.style.display='flex';
+  if(navCta) navCta.style.display='none';
   var ini = (user.name||'U').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
   if (avatar) {
     if (user.photo) {
@@ -9092,7 +9642,6 @@ function checkPwStrength(pw) {
 }
 document.addEventListener('DOMContentLoaded', loadSavedUser);
 document.addEventListener('DOMContentLoaded', applyPlatformFlags);
-setTimeout(loadSavedUser, 200);
 
 // ── AUTH SWITCH (login <-> register)
 let authMode = 'login';
@@ -9104,6 +9653,7 @@ function toggleAuthMode() {
   const txt = document.getElementById('auth-switch-txt');
   const formLogin = document.getElementById('form-login');
   const formReg = document.getElementById('form-register');
+  var newBar = document.getElementById('auth-new-bar');
   if (authMode === 'register') {
     if(formLogin) formLogin.style.display = 'none';
     if(formReg) formReg.style.display = 'flex';
@@ -9111,6 +9661,7 @@ function toggleAuthMode() {
     if(s) s.textContent = curLang==='rw' ? 'Uzuza amakuru yawe kugira ngo wishyurishe' : 'Fill in your details to register';
     if(btn) btn.textContent = curLang==='rw' ? 'Injira mu konti ufite' : 'Sign in instead';
     if(txt) txt.textContent = curLang==='rw' ? 'Ufite konti?' : 'Already have an account?';
+    if(newBar) newBar.style.display = 'none';
   } else {
     if(formLogin) formLogin.style.display = 'block';
     if(formReg) formReg.style.display = 'none';
@@ -9118,6 +9669,7 @@ function toggleAuthMode() {
     if(s) s.textContent = curLang==='rw' ? 'Uzuza amakuru yawe hasi kugira ngo winjire' : 'Enter your details below to sign in';
     if(btn) btn.textContent = curLang==='rw' ? 'Iyandikishe hano' : 'Register here';
     if(txt) txt.textContent = curLang==='rw' ? 'Nta konti ufite?' : "Don't have an account?";
+    if(newBar) newBar.style.display = 'flex';
   }
 }
 
@@ -9309,7 +9861,7 @@ function renderQsSuggestions(query, boxId) {
     .filter(function(x){ return x.s >= 30; })
     .sort(function(a,b){ return b.s-a.s; }).slice(0,5);
   if (!scored.length) {
-    box.innerHTML='<div class="qs-no-results">Nta mituringo ihuye na "'+query.replace(/</g,'&lt;')+'"</div>';
+    box.innerHTML='<div class="qs-no-results">Nta mituringo ihuye na "'+escapeHtml(query)+'"</div>';
     box.style.display='block'; return;
   }
   var html = scored.map(function(x){
@@ -11620,8 +12172,11 @@ function openPropDetail(propId) {
   var tab3d = document.getElementById('tab-3d');
   if(tab3d) {
     if(prop.video) {
-      tab3d.innerHTML = '<div style="border-radius:12px;overflow:hidden;margin-bottom:1rem"><iframe src="'+prop.video+'" width="100%" height="260" style="border:0;display:block" allowfullscreen loading="lazy"></iframe></div>'
-        + '<p style="font-size:.82rem;color:var(--muted);text-align:center">'+prop.type+' — '+prop.district+'</p>';
+      var safeVideoUrl = /^https?:\/\//i.test(prop.video) ? prop.video : '';
+      tab3d.innerHTML = safeVideoUrl
+        ? '<div style="border-radius:12px;overflow:hidden;margin-bottom:1rem"><iframe src="'+escapeHtml(safeVideoUrl)+'" width="100%" height="260" style="border:0;display:block" allowfullscreen loading="lazy"></iframe></div>'
+          + '<p style="font-size:.82rem;color:var(--muted);text-align:center">'+escapeHtml(prop.type||'')+'</p>'
+        : '<div style="text-align:center;padding:2rem;color:var(--muted)"><div style="font-size:2rem;margin-bottom:.5rem">📹</div><div style="font-weight:600;color:var(--navy)">'+(curLang==='rw'?'Nta video irashyizweho':'No video available')+'</div></div>';
     } else {
       tab3d.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">'
         + '<div style="font-size:2rem;margin-bottom:.5rem">📹</div>'
@@ -12010,16 +12565,18 @@ function renderAgentsGrid(agents) {
     var isPending = agent.status === 'Pending Verification';
     var stars = agent.rating ? '★'.repeat(Math.round(agent.rating)) + ' ' + agent.rating : '—';
     var initials = (agent.name||'A').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
-    var langs = (agent.languages||[]).join(' · ');
+    var langs = escapeHtml((agent.languages||[]).join(' · '));
     var transport = agent.transport === 'car' ? '🚗 Imodoka' : agent.transport === 'boda' ? '🏍️ Boda' : '—';
+    var safePhone = (agent.phone||'').replace(/[^0-9+\-() ]/g,'');
+    var safePhoneDigits = safePhone.replace(/[^0-9]/g,'');
 
     return '<div style="background:#fff;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)">'
       // Header
       + '<div style="background:linear-gradient(135deg,var(--navy),var(--blue));padding:1rem;display:flex;align-items:center;gap:.8rem">'
-      +   '<div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0;border:2px solid var(--gold)">' + initials + '</div>'
+      +   '<div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0;border:2px solid var(--gold)">' + escapeHtml(initials) + '</div>'
       +   '<div style="flex:1;min-width:0">'
-      +     '<div style="font-weight:700;color:#fff;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (agent.name||'Agent') + '</div>'
-      +     '<div style="font-size:.72rem;color:rgba(255,255,255,.75);margin-top:.1rem">📍 ' + (agent.zone||'—') + '</div>'
+      +     '<div style="font-weight:700;color:#fff;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(agent.name||'Agent') + '</div>'
+      +     '<div style="font-size:.72rem;color:rgba(255,255,255,.75);margin-top:.1rem">📍 ' + escapeHtml(agent.zone||'—') + '</div>'
       +   '</div>'
       +   '<div style="flex-shrink:0">'
       +     '<span style="background:' + (isActive?'#27A84A':isPending?'#F5A623':'#718096') + ';color:#fff;border-radius:20px;padding:.15rem .55rem;font-size:.62rem;font-weight:700">'
@@ -12029,14 +12586,14 @@ function renderAgentsGrid(agents) {
       // Body
       + '<div style="padding:.9rem">'
       +   '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.7rem">'
-      +     '<div style="background:var(--light);border-radius:8px;padding:.5rem;text-align:center"><div style="font-size:1.1rem;font-weight:700;color:var(--navy)">' + (agent.deals||0) + '</div><div style="font-size:.65rem;color:var(--muted)">Deals</div></div>'
-      +     '<div style="background:var(--light);border-radius:8px;padding:.5rem;text-align:center"><div style="font-size:.9rem;font-weight:700;color:var(--gold)">' + stars + '</div><div style="font-size:.65rem;color:var(--muted)">Rating</div></div>'
+      +     '<div style="background:var(--light);border-radius:8px;padding:.5rem;text-align:center"><div style="font-size:1.1rem;font-weight:700;color:var(--navy)">' + (parseInt(agent.deals)||0) + '</div><div style="font-size:.65rem;color:var(--muted)">Deals</div></div>'
+      +     '<div style="background:var(--light);border-radius:8px;padding:.5rem;text-align:center"><div style="font-size:.9rem;font-weight:700;color:var(--gold)">' + escapeHtml(stars) + '</div><div style="font-size:.65rem;color:var(--muted)">Rating</div></div>'
       +   '</div>'
       +   '<div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">🌐 ' + (langs||'Kinyarwanda') + '</div>'
-      +   '<div style="font-size:.75rem;color:var(--muted);margin-bottom:.7rem">' + transport + ' · Uburambe: ' + (agent.experience==='0'?'Mushya':agent.experience+'yr+') + '</div>'
+      +   '<div style="font-size:.75rem;color:var(--muted);margin-bottom:.7rem">' + transport + ' · Uburambe: ' + (agent.experience==='0'?'Mushya':escapeHtml(agent.experience||'')+'yr+') + '</div>'
       +   '<div style="display:flex;gap:.4rem">'
-      +     '<a href="tel:' + (agent.phone||'') + '" style="flex:1;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">📞 Hamagara</a>'
-      +     '<a href="https://wa.me/' + (agent.phone||'').replace(/[^0-9]/g,'') + '?text=' + encodeURIComponent('Muraho! Ndabona kuri KOMISIYONERI ndashaka agent. Ni wowe '+agent.name+'?') + '" target="_blank" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">💬 WhatsApp</a>'
+      +     '<a href="tel:' + safePhone + '" style="flex:1;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">📞 Hamagara</a>'
+      +     '<a href="https://wa.me/' + safePhoneDigits + '?text=' + encodeURIComponent('Muraho! Ndabona kuri KOMISIYONERI ndashaka agent. Ni wowe '+(agent.name||'')+'?') + '" target="_blank" rel="noopener noreferrer" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">💬 WhatsApp</a>'
       +   '</div>'
       + '</div>'
       + '</div>';
@@ -12353,15 +12910,16 @@ function _renderAdminAgentsList() {
     var isPending = agent.status === 'Pending Verification';
     var statusColor = isActive ? '#27A84A' : isPending ? '#F5A623' : '#718096';
 
+    var safeAgentPhone = (agent.phone||'').replace(/[^0-9+\-() ]/g,'');
     return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.6rem;background:#fff">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">'
       +   '<div style="flex:1">'
-      +     '<div style="font-weight:700;font-size:.88rem;color:var(--navy)">' + (agent.name||'—') + '</div>'
-      +     '<div style="font-size:.75rem;color:var(--muted)">📍 ' + (agent.zone||'—') + ' | 📞 ' + (agent.phone||'—') + '</div>'
-      +     '<div style="font-size:.73rem;color:var(--muted)">📧 ' + (agent.email||'—') + '</div>'
-      +     '<div style="font-size:.73rem;color:var(--muted);margin-top:.2rem">🌐 ' + (agent.languages||[]).join(', ') + ' | ' + (agent.transport==='car'?'🚗':'🏍️') + ' | Deals: ' + (agent.deals||0) + '</div>'
+      +     '<div style="font-weight:700;font-size:.88rem;color:var(--navy)">' + escapeHtml(agent.name||'—') + '</div>'
+      +     '<div style="font-size:.75rem;color:var(--muted)">📍 ' + escapeHtml(agent.zone||'—') + ' | 📞 ' + escapeHtml(safeAgentPhone||'—') + '</div>'
+      +     '<div style="font-size:.73rem;color:var(--muted)">📧 ' + escapeHtml(agent.email||'—') + '</div>'
+      +     '<div style="font-size:.73rem;color:var(--muted);margin-top:.2rem">🌐 ' + escapeHtml((agent.languages||[]).join(', ')) + ' | ' + (agent.transport==='car'?'🚗':'🏍️') + ' | Deals: ' + (parseInt(agent.deals)||0) + '</div>'
       +   '</div>'
-      +   '<span style="background:'+statusColor+';color:#fff;border-radius:20px;padding:.15rem .55rem;font-size:.62rem;font-weight:700;flex-shrink:0">' + agent.status + '</span>'
+      +   '<span style="background:'+statusColor+';color:#fff;border-radius:20px;padding:.15rem .55rem;font-size:.62rem;font-weight:700;flex-shrink:0">' + escapeHtml(agent.status||'—') + '</span>'
       + '</div>'
       + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;margin-top:.6rem">'
       +   '<button onclick="adminAgentApprove('+idx+')" style="background:#27A84A;color:#fff;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:700">✅ Emeza</button>'
@@ -12688,10 +13246,41 @@ go = function(page) {
   var rtdb    = firebase.database();    // Realtime DB — notifications + presence
   var storage = firebase.storage();     // Storage — images + documents
 
+  // Firestore offline persistence — caches data in IndexedDB for repeat visits
+  db.enablePersistence({ synchronizeTabs: true }).catch(function(err) {
+    if (err.code === 'failed-precondition') {
+      // Multiple tabs open — persistence available in one tab only
+    } else if (err.code === 'unimplemented') {
+      // Browser doesn't support persistence (older browsers)
+    }
+  });
+
   // Analytics (optional — graceful fail if blocked by ad-blocker)
   try { firebase.analytics(); } catch(e) {}
 
   console.log('[KOMISIYONERI] Firebase yahuye na project:', firebase.app().options.projectId);
+
+  // ── Lightweight Firestore result cache (TTL-based, avoids repeat reads per session) ──
+  var _kmCache = {};
+  var _kmCacheTTL = 60000; // 60 seconds default
+
+  function kmCachedGet(cacheKey, queryFn, ttl) {
+    var now = Date.now();
+    var entry = _kmCache[cacheKey];
+    if (entry && (now - entry.ts) < (ttl || _kmCacheTTL)) {
+      return Promise.resolve(entry.data);
+    }
+    return queryFn().then(function(result) {
+      _kmCache[cacheKey] = { data: result, ts: now };
+      return result;
+    });
+  }
+
+  function kmCacheInvalidate(prefix) {
+    Object.keys(_kmCache).forEach(function(k) {
+      if (!prefix || k.indexOf(prefix) === 0) delete _kmCache[k];
+    });
+  }
 
   // ── EmailJS config — replace placeholders in your EmailJS dashboard ──
   var _ejsKey          = 'YOUR_EMAILJS_PUBLIC_KEY';
@@ -13041,16 +13630,16 @@ function loadBranchKPIs() {
     var el2 = g('br-kpi-districts'); if (el2) el2.textContent = districts.size;
   }).catch(function(){});
 
-  db.collection('users').where('role','==','agent').where('isActive','==',true).get().then(function(snap) {
-    var el = g('br-kpi-agents'); if (el) el.textContent = snap.size;
+  db.collection('users').where('role','==','agent').where('isActive','==',true).count().get().then(function(snap) {
+    var el = g('br-kpi-agents'); if (el) el.textContent = snap.data().count;
   }).catch(function(){});
 
-  db.collection('users').where('role','==','staff').where('isActive','==',true).get().then(function(snap) {
-    var el = g('br-kpi-staff'); if (el) el.textContent = snap.size;
+  db.collection('users').where('role','==','staff').where('isActive','==',true).count().get().then(function(snap) {
+    var el = g('br-kpi-staff'); if (el) el.textContent = snap.data().count;
   }).catch(function(){});
 
-  db.collection('properties').where('isActive','==',true).where('status','==','approved').get().then(function(snap) {
-    var el = g('br-kpi-props'); if (el) el.textContent = snap.size;
+  db.collection('properties').where('isActive','==',true).where('status','==','approved').count().get().then(function(snap) {
+    var el = g('br-kpi-props'); if (el) el.textContent = snap.data().count;
   }).catch(function(){});
 }
 
@@ -13226,22 +13815,23 @@ function openBranchDetail(branchId) {
   var isAdm = cu && ['super_admin','admin','ceo'].indexOf(cu.role) > -1;
   var color = BR_STATUS_COLOR[b.status] || '#64748B';
   var covDistricts = (b.districtsCovered || [b.district]).filter(Boolean);
+  var safeBPhone = (b.phone||'').replace(/[^0-9+\-() ]/g,'');
   body.innerHTML =
     '<div class="br-detail-head">' +
       '<div class="br-detail-info">' +
-        '<div class="br-detail-code">' + (b.code || 'N/A') + '</div>' +
-        '<span class="br-status-chip" style="background:' + color + '20;color:' + color + '">' + (b.status||'active') + '</span>' +
+        '<div class="br-detail-code">' + escapeHtml(b.code || 'N/A') + '</div>' +
+        '<span class="br-status-chip" style="background:' + color + '20;color:' + color + '">' + escapeHtml(b.status||'active') + '</span>' +
       '</div>' +
       (isAdm ? '<button class="btn btn-outline btn-sm" onclick="closeBranchDetail();openBranchCreate(\'' + b.id + '\')" data-rw="Hindura" data-en="Edit">Edit</button>' : '') +
     '</div>' +
     '<div class="br-detail-grid">' +
-      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Akarere" data-en="District">District</span><span class="br-detail-val">' + (b.district||'—') + '</span></div>' +
-      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Aderesi" data-en="Address">Address</span><span class="br-detail-val">' + (b.address||'—') + '</span></div>' +
-      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Telefoni" data-en="Phone">Phone</span><span class="br-detail-val">' + (b.phone ? '<a href="tel:' + b.phone + '" style="color:var(--navy)">' + b.phone + '</a>' : '—') + '</span></div>' +
-      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Imeyili" data-en="Email">Email</span><span class="br-detail-val">' + (b.email ? '<a href="mailto:' + b.email + '" style="color:var(--navy)">' + b.email + '</a>' : '—') + '</span></div>' +
+      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Akarere" data-en="District">District</span><span class="br-detail-val">' + escapeHtml(b.district||'—') + '</span></div>' +
+      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Aderesi" data-en="Address">Address</span><span class="br-detail-val">' + escapeHtml(b.address||'—') + '</span></div>' +
+      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Telefoni" data-en="Phone">Phone</span><span class="br-detail-val">' + (safeBPhone ? '<a href="tel:' + safeBPhone + '" style="color:var(--navy)">' + escapeHtml(safeBPhone) + '</a>' : '—') + '</span></div>' +
+      '<div class="br-detail-row"><span class="br-detail-lbl" data-rw="Imeyili" data-en="Email">Email</span><span class="br-detail-val">' + (b.email ? '<a href="mailto:' + escapeHtml(b.email) + '" style="color:var(--navy)">' + escapeHtml(b.email) + '</a>' : '—') + '</span></div>' +
     '</div>' +
     '<div class="br-detail-section" data-rw="Akarere Afite" data-en="Districts Covered">Districts Covered</div>' +
-    '<div class="br-detail-chips">' + covDistricts.map(function(d){ return '<span class="br-dist-chip br-dist-chip-lg">' + d + '</span>'; }).join('') + '</div>' +
+    '<div class="br-detail-chips">' + covDistricts.map(function(d){ return '<span class="br-dist-chip br-dist-chip-lg">' + escapeHtml(d) + '</span>'; }).join('') + '</div>' +
     '<div class="br-detail-section" data-rw="Imibare" data-en="Live Stats">Live Stats</div>' +
     '<div class="br-detail-stats" id="br-detail-stats-' + b.id + '"><div class="exec-loading">Loading...</div></div>';
 
@@ -13255,10 +13845,10 @@ function openBranchDetail(branchId) {
     if (statsEl) statsEl.innerHTML =
       '<div class="br-live-stats"><div class="br-live-kpi"><span class="br-live-val">'+st.agents+'</span><span class="br-live-lbl">Agents</span></div><div class="br-live-kpi"><span class="br-live-val">'+st.staff+'</span><span class="br-live-lbl">Staff</span></div><div class="br-live-kpi"><span class="br-live-val">'+st.props+'</span><span class="br-live-lbl">Listings</span></div><div class="br-live-kpi"><span class="br-live-val">'+st.deals+'</span><span class="br-live-lbl">Deals</span></div></div>';
   }
-  db.collection('users').where('branchId','==',b.id).where('role','==','agent').where('isActive','==',true).get().then(function(s){st.agents=s.size;done();}).catch(done);
-  db.collection('users').where('branchId','==',b.id).where('role','==','staff').where('isActive','==',true).get().then(function(s){st.staff=s.size;done();}).catch(done);
-  db.collection('properties').where('branchId','==',b.id).where('isActive','==',true).get().then(function(s){st.props=s.size;done();}).catch(done);
-  db.collection('deals').where('branchId','==',b.id).where('isActive','==',true).get().then(function(s){st.deals=s.size;done();}).catch(done);
+  db.collection('users').where('branchId','==',b.id).where('role','==','agent').where('isActive','==',true).count().get().then(function(s){st.agents=s.data().count;done();}).catch(done);
+  db.collection('users').where('branchId','==',b.id).where('role','==','staff').where('isActive','==',true).count().get().then(function(s){st.staff=s.data().count;done();}).catch(done);
+  db.collection('properties').where('branchId','==',b.id).where('isActive','==',true).count().get().then(function(s){st.props=s.data().count;done();}).catch(done);
+  db.collection('deals').where('branchId','==',b.id).where('isActive','==',true).count().get().then(function(s){st.deals=s.data().count;done();}).catch(done);
 }
 
 function closeBranchDetail() { closeModal('branch-detail-modal'); }
@@ -13295,7 +13885,7 @@ function loadBranchStaff() {
       var brName = data.branchId ? (branchMap[data.branchId] || data.branchId) : '<span style="color:var(--muted)">Unassigned</span>';
       var cu = currentUser;
       var isAdm = cu && ['super_admin','admin'].indexOf(cu.role) > -1;
-      html += '<tr><td><strong>' + (data.displayName||data.email||d.id) + '</strong></td><td><span class="hr-role-chip">' + (data.role||'—') + '</span></td><td>' + brName + '</td><td style="font-size:.75rem;color:var(--muted)">' + (data.email||'—') + '</td><td>' + (isAdm ? '<button class="btn btn-outline btn-sm" onclick="openAssignBranch(\'' + d.id + '\',\'' + (data.branchId||'') + '\')" data-rw="Gera" data-en="Assign">Assign</button>' : '') + '</td></tr>';
+      html += '<tr><td><strong>' + escapeHtml(data.displayName||data.email||d.id) + '</strong></td><td><span class="hr-role-chip">' + escapeHtml(data.role||'—') + '</span></td><td>' + escapeHtml(brName) + '</td><td style="font-size:.75rem;color:var(--muted)">' + escapeHtml(data.email||'—') + '</td><td>' + (isAdm ? '<button class="btn btn-outline btn-sm" onclick="openAssignBranch(\'' + d.id + '\',\'' + escapeHtml(data.branchId||'') + '\')" data-rw="Gera" data-en="Assign">Assign</button>' : '') + '</td></tr>';
     });
     html += '</tbody></table>';
     el.innerHTML = html;
@@ -13359,10 +13949,10 @@ function loadBranchPerformance() {
   if (pending === 0) { renderBranchPerf(results, el); return; }
   function done() { pending--; if (pending === 0) renderBranchPerf(results, el); }
   results.forEach(function(r) {
-    db.collection('users').where('branchId','==',r.id).where('role','==','agent').where('isActive','==',true).get().then(function(s){r.agents=s.size;done();}).catch(done);
-    db.collection('deals').where('branchId','==',r.id).where('isActive','==',true).get().then(function(s){r.deals=s.size;done();}).catch(done);
-    db.collection('properties').where('branchId','==',r.id).where('isActive','==',true).get().then(function(s){r.props=s.size;done();}).catch(done);
-    db.collection('invoices').where('branchId','==',r.id).where('status','==','paid').where('isActive','==',true).get().then(function(s){var t=0;s.forEach(function(d){t+=(d.data().totalAmount||0);});r.revenue=t;done();}).catch(done);
+    db.collection('users').where('branchId','==',r.id).where('role','==','agent').where('isActive','==',true).count().get().then(function(s){r.agents=s.data().count;done();}).catch(done);
+    db.collection('deals').where('branchId','==',r.id).where('isActive','==',true).count().get().then(function(s){r.deals=s.data().count;done();}).catch(done);
+    db.collection('properties').where('branchId','==',r.id).where('isActive','==',true).count().get().then(function(s){r.props=s.data().count;done();}).catch(done);
+    db.collection('invoices').where('branchId','==',r.id).where('status','==','paid').where('isActive','==',true).limit(200).get().then(function(s){var t=0;s.forEach(function(d){t+=(d.data().totalAmount||0);});r.revenue=t;done();}).catch(done);
   });
 }
 
@@ -13506,8 +14096,8 @@ function loadBIDash() {
 
 /* ── summary strip ── */
 function loadBISummary() {
-  /* total listings */
-  db.collection('properties').where('isActive','==',true).get().then(function(snap) {
+  /* total listings — limit 500 prevents unbounded read as catalogue grows */
+  db.collection('properties').where('isActive','==',true).limit(500).get().then(function(snap) {
     var el = g('bi-sum-props'); if (el) el.textContent = snap.size;
     var total = 0, cnt = 0;
     snap.forEach(function(d) { var p = d.data().price; if (p) { total += parseFloat(p)||0; cnt++; } });
@@ -13540,11 +14130,11 @@ function loadBISummary() {
     if (el) el.textContent = top ? (BI_SOURCES[top]||top) : '—';
   }).catch(function(){});
 
-  /* team win rate */
+  /* team win rate — count() aggregation avoids full document reads */
   var pending = 2; var won = 0; var total = 0;
   function calcWin() { pending--; if (pending > 0) return; var el = g('bi-sum-winrate'); if (el) el.textContent = total > 0 ? Math.round(won/total*100)+'%' : '—'; }
-  db.collection('deals').where('isActive','==',true).where('pipelineStage','==','closed_won').get().then(function(s){ won = s.size; calcWin(); }).catch(calcWin);
-  db.collection('leads').where('isActive','==',true).get().then(function(s){ total = s.size; calcWin(); }).catch(calcWin);
+  db.collection('deals').where('isActive','==',true).where('pipelineStage','==','closed_won').count().get().then(function(s){ won = s.data().count; calcWin(); }).catch(calcWin);
+  db.collection('leads').where('isActive','==',true).count().get().then(function(s){ total = s.data().count; calcWin(); }).catch(calcWin);
 }
 
 /* ────────────────────────────────────────────
@@ -13570,7 +14160,7 @@ function biDistrictChart() {
     var max = sorted[0] ? sorted[0][1] : 1;
     el.innerHTML = sorted.map(function(row) {
       var pct = Math.round(row[1]/max*100);
-      return '<div class="bi-hbar-row"><div class="bi-hbar-lbl">' + row[0] + '</div><div class="bi-hbar-wrap"><div class="bi-hbar-fill bi-hbar-navy" style="width:'+pct+'%"></div></div><div class="bi-hbar-val">'+row[1]+'</div></div>';
+      return '<div class="bi-hbar-row"><div class="bi-hbar-lbl">' + escapeHtml(row[0]) + '</div><div class="bi-hbar-wrap"><div class="bi-hbar-fill bi-hbar-navy" style="width:'+pct+'%"></div></div><div class="bi-hbar-val">'+row[1]+'</div></div>';
     }).join('') || '<div class="exec-empty">No data</div>';
   }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
 }
@@ -13587,7 +14177,7 @@ function biTypeChart() {
     el.innerHTML = '<div class="bi-donut-wrap">' + sorted.map(function(row, i) {
       var pct = Math.round(row[1]/total*100);
       var color = colors[i % colors.length];
-      return '<div class="bi-donut-row"><span class="bi-donut-dot" style="background:'+color+'"></span><span class="bi-donut-lbl">'+(BI_PROP_TYPES[row[0]]||row[0])+'</span><span class="bi-donut-pct">'+pct+'%</span><span class="bi-donut-cnt">('+row[1]+')</span></div>';
+      return '<div class="bi-donut-row"><span class="bi-donut-dot" style="background:'+color+'"></span><span class="bi-donut-lbl">'+escapeHtml(BI_PROP_TYPES[row[0]]||row[0])+'</span><span class="bi-donut-pct">'+pct+'%</span><span class="bi-donut-cnt">('+row[1]+')</span></div>';
     }).join('') + '</div>' || '<div class="exec-empty">No data</div>';
   }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
 }
@@ -13609,7 +14199,7 @@ function biPriceByDistrict() {
     el.innerHTML = '<div style="overflow-x:auto"><table class="bi-price-table"><thead><tr><th>District</th><th>Avg Price</th><th>Listings</th><th style="min-width:120px">Bar</th></tr></thead><tbody>' +
       rows.map(function(r) {
         var pct = Math.round(r.avg/max*100);
-        return '<tr><td>'+r.name+'</td><td style="font-weight:700;color:var(--navy)">'+fmtRWF(r.avg)+'</td><td>'+r.cnt+'</td><td><div class="bi-hbar-wrap" style="height:10px;min-width:80px"><div class="bi-hbar-fill bi-hbar-gold" style="width:'+pct+'%;height:10px"></div></div></td></tr>';
+        return '<tr><td>'+escapeHtml(r.name)+'</td><td style="font-weight:700;color:var(--navy)">'+fmtRWF(r.avg)+'</td><td>'+r.cnt+'</td><td><div class="bi-hbar-wrap" style="height:10px;min-width:80px"><div class="bi-hbar-fill bi-hbar-gold" style="width:'+pct+'%;height:10px"></div></div></td></tr>';
       }).join('') + '</tbody></table></div>' || '<div class="exec-empty">No data</div>';
   }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
 }
@@ -13729,7 +14319,7 @@ function loadBIAgents() {
 function biBenchmarkTable() {
   var el = g('bi-agent-bench'); if (!el) return;
   el.innerHTML = '<div class="exec-loading">Loading...</div>';
-  db.collection('users').where('role','==','agent').where('isActive','==',true).get().then(function(snap) {
+  db.collection('users').where('role','==','agent').where('isActive','==',true).limit(50).get().then(function(snap) {
     if (snap.empty) { el.innerHTML = '<div class="exec-empty">No agents</div>'; return; }
     var agents = [];
     snap.forEach(function(d) { agents.push({ id:d.id, name:d.data().displayName||d.data().email||d.id, leads:0, deals:0, won:0, commission:0, viewings:0 }); });
@@ -13737,10 +14327,10 @@ function biBenchmarkTable() {
     if (pending === 0) { renderBenchTable(agents, el); return; }
     function done() { pending--; if (pending === 0) renderBenchTable(agents, el); }
     agents.forEach(function(a) {
-      db.collection('leads').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s){ a.leads=s.size; done(); }).catch(done);
-      db.collection('deals').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s){ a.deals=s.size; s.forEach(function(d){ if(d.data().pipelineStage==='closed_won') a.won++; }); done(); }).catch(done);
-      db.collection('commissions').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s){ s.forEach(function(d){ a.commission+=(d.data().agentShare||0); }); done(); }).catch(done);
-      db.collection('viewings').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s){ a.viewings=s.size; done(); }).catch(done);
+      db.collection('leads').where('agentId','==',a.id).where('isActive','==',true).count().get().then(function(s){ a.leads=s.data().count; done(); }).catch(done);
+      db.collection('deals').where('agentId','==',a.id).where('isActive','==',true).limit(200).get().then(function(s){ a.deals=s.size; s.forEach(function(d){ if(d.data().pipelineStage==='closed_won') a.won++; }); done(); }).catch(done);
+      db.collection('commissions').where('agentId','==',a.id).where('isActive','==',true).limit(200).get().then(function(s){ s.forEach(function(d){ a.commission+=(d.data().agentShare||0); }); done(); }).catch(done);
+      db.collection('viewings').where('agentId','==',a.id).where('isActive','==',true).count().get().then(function(s){ a.viewings=s.data().count; done(); }).catch(done);
     });
   }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
 }
@@ -13851,7 +14441,7 @@ function biRevForecast() {
 function biPipelineValue() {
   var el = g('bi-pipeline-value'); if (!el) return;
   el.innerHTML = '<div class="exec-loading">Loading...</div>';
-  db.collection('deals').where('isActive','==',true).get().then(function(snap) {
+  db.collection('deals').where('isActive','==',true).limit(500).get().then(function(snap) {
     var pipeline = {}, pipelineTotal = 0, closedVal = 0;
     snap.forEach(function(d) {
       var data = d.data();
@@ -13903,16 +14493,16 @@ function biTargets() {
   db.collection('deals').where('isActive','==',true).where('createdAt','>=',tsLast).where('createdAt','<',tsThis).get().then(function(s){ data.lastDeals=s.size; finish(); }).catch(finish);
 }
 
-/* ── SIDEBAR BADGE ── */
+/* ── SIDEBAR BADGE — fires once on auth, uses count() to avoid full scan ── */
 (function() {
-  var _biTimer = setInterval(function() {
-    if (typeof db === 'undefined' || !currentUser) return;
-    clearInterval(_biTimer);
-    /* badge = total active properties + leads (gives a sense of live data) */
-    db.collection('properties').where('isActive','==',true).where('status','==','approved').get().then(function(s) {
-      var el = g('bi-sidebar-badge'); if (el && s.size > 0) el.textContent = s.size;
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (!user) return;
+    db.collection('properties').where('isActive','==',true).where('status','==','approved').count().get().then(function(s) {
+      var el = g('bi-sidebar-badge');
+      var n = s.data().count;
+      if (el && n > 0) el.textContent = n;
     }).catch(function(){});
-  }, 9000);
+  });
 })();
 </script>
 
@@ -13976,7 +14566,7 @@ function loadExecKPIs() {
       if (el) el.textContent = fmtRWF(total);
     }).catch(function(){});
 
-  db.collection('deals').where('isActive','==',true).get().then(function(snap) {
+  db.collection('deals').where('isActive','==',true).limit(500).get().then(function(snap) {
     var active = 0;
     snap.forEach(function(d) {
       var s = d.data().pipelineStage || '';
@@ -13986,22 +14576,22 @@ function loadExecKPIs() {
     if (el) el.textContent = active;
   }).catch(function(){});
 
-  db.collection('properties').where('isActive','==',true).where('status','==','approved').get().then(function(snap) {
+  db.collection('properties').where('isActive','==',true).where('status','==','approved').count().get().then(function(snap) {
     var el = g('exec-kpi-props');
-    if (el) el.textContent = snap.size;
+    if (el) el.textContent = snap.data().count;
   }).catch(function(){});
 
-  db.collection('users').where('role','==','agent').where('isActive','==',true).get().then(function(snap) {
+  db.collection('users').where('role','==','agent').where('isActive','==',true).count().get().then(function(snap) {
     var el = g('exec-kpi-agents');
-    if (el) el.textContent = snap.size;
+    if (el) el.textContent = snap.data().count;
   }).catch(function(){});
 
-  db.collection('leads').where('isActive','==',true).where('createdAt','>=',ts).get().then(function(snap) {
+  db.collection('leads').where('isActive','==',true).where('createdAt','>=',ts).count().get().then(function(snap) {
     var el = g('exec-kpi-leads');
-    if (el) el.textContent = snap.size;
+    if (el) el.textContent = snap.data().count;
   }).catch(function(){});
 
-  db.collection('commissions').where('isActive','==',true).where('createdAt','>=',ts).get().then(function(snap) {
+  db.collection('commissions').where('isActive','==',true).where('createdAt','>=',ts).limit(500).get().then(function(snap) {
     var total = 0;
     snap.forEach(function(d) { total += (d.data().totalCommission || 0); });
     var el = g('exec-kpi-comm');
@@ -14084,17 +14674,17 @@ function loadExecHealth() {
     return '<div class="exec-health-card" id="exec-health-' + m.key + '"><div class="exec-health-dot exec-health-loading"></div><div class="exec-health-lbl">' + m.label + '</div><div class="exec-health-count" id="exec-health-cnt-' + m.key + '">—</div></div>';
   }).join('');
   modules.forEach(function(m) {
-    db.collection(m.col).where('isActive','==',true).limit(1).get().then(function() {
-      var card = g('exec-health-' + m.key);
+    var key = m.key;
+    db.collection(m.col).where('isActive','==',true).count().get().then(function(snap) {
+      var count = snap.data().count;
+      var card = g('exec-health-' + key);
       if (card) { var dot = card.querySelector('.exec-health-dot'); if (dot) { dot.classList.remove('exec-health-loading'); dot.classList.add('exec-health-ok'); } }
+      var cnt = g('exec-health-cnt-' + key);
+      if (cnt) cnt.textContent = count;
     }).catch(function() {
-      var card = g('exec-health-' + m.key);
+      var card = g('exec-health-' + key);
       if (card) { var dot = card.querySelector('.exec-health-dot'); if (dot) { dot.classList.remove('exec-health-loading'); dot.classList.add('exec-health-err'); } }
     });
-    db.collection(m.col).where('isActive','==',true).get().then(function(snap) {
-      var cnt = g('exec-health-cnt-' + m.key);
-      if (cnt) cnt.textContent = snap.size;
-    }).catch(function(){});
   });
 }
 
@@ -14149,7 +14739,7 @@ function loadExecTopAgents() {
   var container = g('exec-top-agents');
   if (!container) return;
   container.innerHTML = '<div class="exec-loading">Loading...</div>';
-  db.collection('commissions').where('isActive','==',true).get().then(function(snap) {
+  db.collection('commissions').where('isActive','==',true).limit(500).get().then(function(snap) {
     if (snap.empty) { container.innerHTML = '<div class="exec-empty">No commission data</div>'; return; }
     var totals = {};
     snap.forEach(function(d) {

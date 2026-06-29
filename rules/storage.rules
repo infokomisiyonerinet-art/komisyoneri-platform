@@ -1,0 +1,108 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ── Helpers ──────────────────────────────────────
+    function isAuth() {
+      return request.auth != null;
+    }
+    function isAdminOrStaff() {
+      return isAuth() && request.auth.token.role in
+        ['admin', 'super_admin', 'staff', 'Admin', 'ceo'];
+    }
+    function isOwner(uid) {
+      return isAuth() && request.auth.uid == uid;
+    }
+    // Allowed MIME types for property images
+    function isImage() {
+      return request.resource.contentType.matches('image/(jpeg|png|webp|gif|svg\\+xml)');
+    }
+    // Allowed MIME types for documents
+    function isDocument() {
+      return request.resource.contentType.matches(
+        'application/(pdf|msword|vnd\\.openxmlformats-officedocument\\.wordprocessingml\\.document)'
+      ) || request.resource.contentType == 'text/plain';
+    }
+    // 10 MB limit for images
+    function underImageLimit() {
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+    // 20 MB limit for documents
+    function underDocLimit() {
+      return request.resource.size < 20 * 1024 * 1024;
+    }
+
+    // ── Property images — public read, authenticated write ──
+    match /properties/{propertyId}/{fileName} {
+      allow read:   if true;
+      allow write:  if isAuth() && isImage() && underImageLimit();
+      allow delete: if isAdminOrStaff();
+    }
+
+    // ── Property documents (contracts, title deeds) — restricted ──
+    match /property_docs/{propertyId}/{fileName} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && request.auth.uid == resource.metadata['ownerId'])
+                    || (isAuth() && request.auth.uid == resource.metadata['agentId']);
+      allow write:  if isAuth() && isDocument() && underDocLimit();
+      allow delete: if isAdminOrStaff();
+    }
+
+    // ── Deal documents (contracts, agreements) — deal parties only ──
+    match /deals/{dealId}/{fileName} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && request.auth.uid == resource.metadata['agentId'])
+                    || (isAuth() && request.auth.uid == resource.metadata['clientId']);
+      allow write:  if isAuth() && (isImage() || isDocument())
+                    && (underImageLimit() || underDocLimit());
+      allow delete: if isAdminOrStaff();
+    }
+
+    // ── User profile images — owner or admin only ──
+    match /users/{uid}/{fileName} {
+      allow read:   if isAuth();
+      allow write:  if (isOwner(uid) || isAdminOrStaff()) && isImage() && underImageLimit();
+      allow delete: if isOwner(uid) || isAdminOrStaff();
+    }
+
+    // ── Viewing reports and check-in photos ──
+    match /viewings/{viewingId}/{fileName} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && request.auth.uid == resource.metadata['agentId'])
+                    || (isAuth() && request.auth.uid == resource.metadata['clientId']);
+      allow write:  if isAuth() && (isImage() || isDocument())
+                    && (underImageLimit() || underDocLimit());
+      allow delete: if isAdminOrStaff();
+    }
+
+    // ── Agent verification documents ──
+    match /agent_docs/{agentId}/{fileName} {
+      allow read:   if isAdminOrStaff() || isOwner(agentId);
+      allow write:  if (isOwner(agentId) || isAdminOrStaff())
+                    && isDocument() && underDocLimit();
+      allow delete: if isAdminOrStaff();
+    }
+
+    // ── Invoice PDFs — billed party or admin ──
+    match /invoices/{invoiceId}/{fileName} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && request.auth.uid == resource.metadata['billedTo']);
+      allow write:  if isAdminOrStaff() && isDocument() && underDocLimit();
+      allow delete: if isAdminOrStaff();
+    }
+
+    // ── Site / plot images — public read ──
+    match /sites/{siteId}/{fileName} {
+      allow read:   if true;
+      allow write:  if isAuth() && isImage() && underImageLimit();
+      allow delete: if isAdminOrStaff();
+    }
+
+    // ── Catch-all: deny everything else ──
+    match /{allPaths=**} {
+      allow read:   if isAdminOrStaff();
+      allow write:  if false;
+      allow delete: if false;
+    }
+  }
+}

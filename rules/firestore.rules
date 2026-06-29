@@ -9,14 +9,19 @@ service cloud.firestore {
     function isRole(r) {
       return isAuth() && request.auth.token.role == r;
     }
+    // ceo added; 'Admin' variant kept for backward compat with legacy tokens
     function isAdminOrStaff() {
       return isAuth() && request.auth.token.role in
-        ['admin', 'super_admin', 'staff', 'Admin'];
+        ['admin', 'super_admin', 'staff', 'Admin', 'ceo'];
     }
     function hasStandardFields() {
       return request.resource.data.keys().hasAll([
         'id','createdAt','updatedAt','createdBy','updatedBy','status','isActive'
       ]);
+    }
+    // Only http/https URLs may be stored as document fields
+    function isSafeUrl(url) {
+      return url.matches('https?://.*');
     }
 
     // ── EXISTING collections ──────────────────────────
@@ -30,8 +35,11 @@ service cloud.firestore {
 
     match /properties/{id} {
       allow read:   if true;
+      // Only the listing agent, property owner, or admin/staff may update
       allow create: if isAuth() && hasStandardFields();
-      allow update: if isAuth();
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && resource.data.agentId  == request.auth.uid)
+                    || (isAuth() && resource.data.ownerId  == request.auth.uid);
       allow delete: if false;
     }
 
@@ -39,7 +47,11 @@ service cloud.firestore {
       allow read:   if isAdminOrStaff()
                     || (isAuth() && (resource.data.clientId == request.auth.uid
                         || resource.data.agentId  == request.auth.uid));
-      allow create: if isAuth() && hasStandardFields();
+      // Only agents and above may create leads
+      allow create: if isAuth()
+                    && request.auth.token.role in
+                       ['agent','Agent','staff','admin','Admin','super_admin','ceo']
+                    && hasStandardFields();
       allow update: if isAdminOrStaff()
                     || (isAuth() && resource.data.agentId == request.auth.uid);
       allow delete: if false;
@@ -49,7 +61,11 @@ service cloud.firestore {
       allow read:   if isAdminOrStaff()
                     || (isAuth() && (resource.data.clientId == request.auth.uid
                         || resource.data.agentId  == request.auth.uid));
-      allow create: if isAuth() && hasStandardFields();
+      // Only agents and above may create deals
+      allow create: if isAuth()
+                    && request.auth.token.role in
+                       ['agent','Agent','staff','admin','Admin','super_admin','ceo']
+                    && hasStandardFields();
       allow update: if isAdminOrStaff()
                     || (isAuth() && resource.data.agentId == request.auth.uid);
       allow delete: if false;
@@ -58,7 +74,8 @@ service cloud.firestore {
     match /commissions/{id} {
       allow read:   if isAdminOrStaff()
                     || (isAuth() && resource.data.agentId == request.auth.uid);
-      allow create: if isAuth() && hasStandardFields();
+      // Only admin/staff may create or modify commission records (prevents falsification)
+      allow create: if isAdminOrStaff() && hasStandardFields();
       allow update: if isAdminOrStaff();
       allow delete: if false;
     }
@@ -68,22 +85,36 @@ service cloud.firestore {
                     || (isAuth() && resource.data.clientId == request.auth.uid)
                     || (isAuth() && resource.data.agentId  == request.auth.uid);
       allow create: if isAuth() && hasStandardFields();
-      allow update: if isAuth();
+      // Clients may only update signing-related fields on their own docs
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && resource.data.agentId == request.auth.uid)
+                    || (isAuth() && resource.data.clientId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status','signed','signatories','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
     match /offers/{id} {
       allow read:   if isAdminOrStaff()
-                    || (isAuth() && (resource.data.fromUserId == request.auth.uid));
+                    || (isAuth() && resource.data.fromUserId == request.auth.uid)
+                    || (isAuth() && resource.data.toUserId   == request.auth.uid);
       allow create: if isAuth() && hasStandardFields();
-      allow update: if isAdminOrStaff() || isAuth();
+      // Only the offer sender, the recipient, or admin/staff may update
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && resource.data.fromUserId == request.auth.uid)
+                    || (isAuth() && resource.data.toUserId   == request.auth.uid);
       allow delete: if false;
     }
 
     match /viewings/{id} {
-      allow read:   if isAuth();
+      // Agents and clients see only their own viewings; admin sees all
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && resource.data.clientId == request.auth.uid)
+                    || (isAuth() && resource.data.agentId  == request.auth.uid);
       allow create: if isAuth() && hasStandardFields();
-      allow update: if isAuth();
+      // Only the assigned agent or admin may update (check-in, photos, report)
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && resource.data.agentId == request.auth.uid);
       allow delete: if false;
     }
 
@@ -98,7 +129,8 @@ service cloud.firestore {
     }
 
     match /partners/{id} {
-      allow read:   if true;
+      // Financial details require authentication; public listing info is fine
+      allow read:   if isAuth();
       allow create: if isAuth() && hasStandardFields();
       allow update: if isAdminOrStaff()
                     || (isAuth() && resource.data.userId == request.auth.uid);
@@ -177,13 +209,19 @@ service cloud.firestore {
 
     match /notifications/{id} {
       allow read:   if isAuth() && resource.data.userId == request.auth.uid;
-      allow create: if isAuth() && hasStandardFields();
+      // Users may only create notifications addressed to themselves (prevents notification spam)
+      allow create: if isAuth()
+                    && request.resource.data.userId == request.auth.uid
+                    && hasStandardFields();
       allow update: if isAuth() && resource.data.userId == request.auth.uid;
       allow delete: if false;
     }
 
     match /messages/{id} {
-      allow read:   if isAuth();
+      // Messages are private — only sender and recipient may read
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && (resource.data.senderId   == request.auth.uid
+                        || resource.data.receiverId == request.auth.uid));
       allow create: if isAuth() && hasStandardFields();
       allow update: if isAdminOrStaff();
       allow delete: if false;
@@ -202,7 +240,7 @@ service cloud.firestore {
     match /sites/{siteId} {
       allow read:   if true;
       allow create: if isAuth()
-                    && request.auth.token.role in ['agent','Agent','developer','staff','admin','Admin','super_admin']
+                    && request.auth.token.role in ['agent','Agent','developer','staff','admin','Admin','super_admin','ceo']
                     && hasStandardFields();
       allow update: if isAdminOrStaff()
                     || (isAuth() && isRole('agent')
@@ -215,7 +253,7 @@ service cloud.firestore {
     match /plots/{plotId} {
       allow read:   if true;
       allow create: if isAuth()
-                    && request.auth.token.role in ['agent','Agent','staff','admin','Admin','super_admin']
+                    && request.auth.token.role in ['agent','Agent','staff','admin','Admin','super_admin','ceo']
                     && hasStandardFields();
       allow update: if isAdminOrStaff()
                     || (isAuth()
