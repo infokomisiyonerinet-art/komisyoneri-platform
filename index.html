@@ -8463,7 +8463,8 @@ function updateNavForUser(user) {
     }
   }
   var dashBtn = document.getElementById('nl-dashboard');
-  if(dashBtn) dashBtn.style.display = (user.role === 'Agent' || user.role === 'Admin') ? '' : 'none';
+  var _r = (user.role || '').toLowerCase();
+  if(dashBtn) dashBtn.style.display = ['agent','admin','staff','ceo','super_admin','owner','partner','investor'].indexOf(_r) !== -1 ? '' : 'none';
 }
 
 function loadAgentDashboard() {
@@ -9209,10 +9210,13 @@ function go(name) {
     } else if (currentUser.role === 'PendingAgent') {
       showToast(curLang==='rw' ? '⏳ Iyandikishe ryawe irimo gusuzumwa! KOMISIYONERI izakugezaho mu masaa 24.' : '⏳ Your application is under review! We will contact you within 24 hours.', 'warn');
       return;
-    } else if (currentUser.role !== 'Agent' && currentUser.role !== 'Admin') {
-      showToast(curLang==='rw' ? 'Dashboard irabana n\'Agents gusa!' : 'Dashboard is for Agents only!');
-      return;
     } else {
+      var _dr = (currentUser.role || '').toLowerCase();
+      var _dAllowed = ['agent','admin','staff','ceo','super_admin','owner','partner','investor'];
+      if (_dAllowed.indexOf(_dr) === -1) {
+        showToast(curLang==='rw' ? 'Injira nk\'umukozi wa KOMISIYONERI!' : 'Authorized accounts only!', 'warn');
+        return;
+      }
       loadAgentDashboard();
     }
   }
@@ -21232,10 +21236,12 @@ function submitSiteForm() {
 function loadAgentDashboard() {
   if (!currentUser) return;
   var cu = currentUser;
+  var _cuRoleLower = (cu.role || '').toLowerCase();
+  var _isAgentRole = _cuRoleLower === 'agent';
 
   // Personalize welcome
   var wn = document.getElementById('dash-welcome-name');
-  if (wn) wn.textContent = (curLang==='rw' ? 'Murakaza neza, ' : 'Welcome back, ') + (cu.name || 'Agent') + '!';
+  if (wn) wn.textContent = (curLang==='rw' ? 'Murakaza neza, ' : 'Welcome back, ') + (cu.name || cu.displayName || 'User') + '!';
 
   var now = new Date();
   var thirtyDaysAgo = new Date(now.getTime() - 30*24*60*60*1000);
@@ -21261,7 +21267,7 @@ function loadAgentDashboard() {
   }
 
   /* Active Listings (my properties approved) */
-  var propQuery = cu.role === 'agent'
+  var propQuery = _isAgentRole
     ? db.collection('properties').where('agentId','==',cu.uid).where('isActive','==',true).where('status','==','approved')
     : db.collection('properties').where('isActive','==',true).where('status','==','approved');
   propQuery.get().then(function(snap) {
@@ -21280,7 +21286,7 @@ function loadAgentDashboard() {
   }).catch(function(){});
 
   /* New Leads (current 30d vs prev 30d) */
-  var leadsQuery = cu.role === 'agent'
+  var leadsQuery = _isAgentRole
     ? db.collection('leads').where('agentId','==',cu.uid).where('isActive','==',true)
     : db.collection('leads').where('isActive','==',true);
   leadsQuery.get().then(function(snap) {
@@ -21300,7 +21306,7 @@ function loadAgentDashboard() {
   }).catch(function(){});
 
   /* Deals closed (my deals closed_won this 30d vs prev 30d) */
-  var dealsQuery = cu.role === 'agent'
+  var dealsQuery = _isAgentRole
     ? db.collection('deals').where('agentId','==',cu.uid).where('isActive','==',true)
     : db.collection('deals').where('isActive','==',true);
   dealsQuery.get().then(function(snap) {
@@ -21328,7 +21334,7 @@ function loadAgentDashboard() {
   var prevMonthStart = new Date(now.getFullYear(), now.getMonth()-1, 1);
   var tsMonth = firebase.firestore.Timestamp.fromDate(monthStart);
   var tsPrevMonth = firebase.firestore.Timestamp.fromDate(prevMonthStart);
-  var commQuery = cu.role === 'agent'
+  var commQuery = _isAgentRole
     ? db.collection('commissions').where('agentId','==',cu.uid).where('isActive','==',true)
     : db.collection('commissions').where('isActive','==',true);
   commQuery.get().then(function(snap) {
@@ -21338,7 +21344,7 @@ function loadAgentDashboard() {
       var ts = x.createdAt;
       if (!ts) return;
       var dt = ts.toDate ? ts.toDate() : new Date(ts);
-      var share = cu.role === 'agent' ? (x.agentShare || 0) : (x.totalCommission || 0);
+      var share = _isAgentRole ? (x.agentShare || 0) : (x.totalCommission || 0);
       if (dt >= monthStart) curComm += share;
       else if (dt >= prevMonthStart) prevComm += share;
     });
@@ -21353,7 +21359,7 @@ function loadAgentDashboard() {
   }).catch(function(){});
 
   /* Upcoming visits */
-  var visitQuery = cu.role === 'agent'
+  var visitQuery = _isAgentRole
     ? db.collection('viewings').where('agentId','==',cu.uid).where('isActive','==',true)
     : db.collection('viewings').where('isActive','==',true);
   visitQuery.where('scheduledAt','>=',firebase.firestore.Timestamp.fromDate(now)).orderBy('scheduledAt','asc').limit(8).get().then(function(snap) {
