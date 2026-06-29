@@ -4189,9 +4189,9 @@ html,body{overscroll-behavior-x:none}
           <button id="crm-vbtn-list" class="crm-vbtn active" onclick="toggleCrmView('list')" title="List View" data-rw="Urutonde" data-en="List">☰ List</button>
           <button id="crm-vbtn-kanban" class="crm-vbtn" onclick="toggleCrmView('kanban')" title="Kanban Board" data-rw="Kanban" data-en="Kanban">⬛ Kanban</button>
         </div>
-        <button class="btn btn-navy btn-sm" onclick="openLead()">
+        <button class="btn btn-navy btn-sm" onclick="openAgentLead()">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <span data-rw="Ikibazo Gishya" data-en="New Lead">New Lead</span>
+          <span data-rw="Lead Nshya" data-en="New Lead">New Lead</span>
         </button>
       </div>
     </div>
@@ -6071,13 +6071,24 @@ html,body{overscroll-behavior-x:none}
       <button class="btn btn-outline" style="flex-shrink:0;padding:.48rem 1rem;font-size:.82rem" onclick="saveLeadFollowUp()" data-rw="Bika" data-en="Set">Set</button>
     </div>
 
-    <!-- Advance Stage + Close -->
-    <div style="display:flex;gap:.6rem">
-      <button class="btn btn-navy" id="ld-advance-btn" style="flex:1;justify-content:center;font-size:.85rem" onclick="advanceLeadStage()">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    <!-- Advance Stage + Quick Actions -->
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem">
+      <button class="btn btn-navy" id="ld-advance-btn" style="flex:1;min-width:120px;justify-content:center;font-size:.82rem" onclick="advanceLeadStage()">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         <span id="ld-advance-lbl" data-rw="Jya Imbere" data-en="Advance Stage">Advance Stage</span>
       </button>
-      <button class="btn btn-outline" style="flex-shrink:0;font-size:.85rem" onclick="closeLeadDetail()" data-rw="Funga" data-en="Close">Close</button>
+      <button class="btn" id="ld-convert-deal-btn" style="flex:1;min-width:110px;justify-content:center;font-size:.82rem;background:var(--gold);color:var(--dark)" onclick="convertLeadToDeal(document.getElementById('ld-lead-id').value)">
+        💼 <span data-rw="Kora Deal" data-en="Convert to Deal">Convert to Deal</span>
+      </button>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn" id="ld-close-won-btn" style="flex:1;justify-content:center;font-size:.82rem;background:#16A34A;color:#fff" onclick="closeLeadWon()">
+        ✅ <span data-rw="Byarangiye" data-en="Won">Won</span>
+      </button>
+      <button class="btn" id="ld-close-lost-btn" style="flex:1;justify-content:center;font-size:.82rem;background:#DC2626;color:#fff" onclick="closeLeadLost()">
+        ✗ <span data-rw="Byanze" data-en="Lost">Lost</span>
+      </button>
+      <button class="btn btn-outline" style="flex-shrink:0;font-size:.82rem;padding:.5rem .8rem" onclick="closeLeadDetail()" data-rw="Funga" data-en="Close">×</button>
     </div>
 
     <input type="hidden" id="ld-lead-id">
@@ -23561,5 +23572,335 @@ function _renderFavModal() {
     }, 1600);
   });
 })();
+
+/* ═══════════════════════════════════════════════════════════════
+   CRM ENHANCEMENT MODULE
+   • Agent Lead Creation form (openAgentLead)
+   • Close Won / Close Lost with reason capture
+   • Convert Lead → Deal with pre-fill
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Agent Lead Creation ─────────────────────────────── */
+
+function openAgentLead() {
+  _ensureAgentLeadModal();
+  var modal = document.getElementById('agent-lead-modal');
+  if (!modal) return;
+  // Reset form
+  ['al-client-name','al-client-phone','al-client-email','al-budget-min','al-budget-max','al-notes'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  var distEl = document.getElementById('al-district');
+  var srcEl  = document.getElementById('al-source');
+  var priEl  = document.getElementById('al-priority');
+  var typEl  = document.getElementById('al-property-type');
+  if (distEl) distEl.selectedIndex = 0;
+  if (srcEl)  srcEl.selectedIndex  = 0;
+  if (priEl)  priEl.selectedIndex  = 0;
+  if (typEl)  typEl.selectedIndex  = 0;
+
+  // Pre-fill agent name if agent role
+  if (typeof currentUser !== 'undefined' && currentUser) {
+    var agEl = document.getElementById('al-agent-name');
+    if (agEl) agEl.value = currentUser.displayName || currentUser.name || currentUser.email || '';
+  }
+
+  // Show assign-agent row only for admin/staff
+  var assignRow = document.getElementById('al-assign-row');
+  if (assignRow) {
+    var role = typeof currentUser !== 'undefined' && currentUser ? (currentUser.role || '').toLowerCase() : '';
+    assignRow.style.display = ['admin','super_admin','staff','ceo'].indexOf(role) > -1 ? '' : 'none';
+  }
+
+  modal.style.display = 'flex';
+}
+
+function closeAgentLead() {
+  var modal = document.getElementById('agent-lead-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function _ensureAgentLeadModal() {
+  if (document.getElementById('agent-lead-modal')) return;
+
+  var districts = ['Gasabo','Kicukiro','Nyarugenge','Bugesera','Rulindo','Rwamagana','Musanze','Rubavu','Nyamasheke','Huye','Muhanga','Kamonyi','Ngoma','Kirehe','Kayonza','Nyagatare','Gisagara','Nyamagabe','Nyaruguru','Ruhango','Karongi','Rutsiro','Ngororero','Nyabihu','Gakenke','Gicumbi','Burera','Gatsibo','Rusizi'];
+  var distOpts = districts.map(function(d){ return '<option value="'+d+'">'+d+'</option>'; }).join('');
+
+  var modal = document.createElement('div');
+  modal.id = 'agent-lead-modal';
+  modal.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:1rem';
+  modal.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:540px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.22)">'
+    /* Header */
+    + '<div style="padding:1.2rem 1.4rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff">'
+    + '<div><div style="font-size:.64rem;text-transform:uppercase;letter-spacing:.1em;opacity:.8;margin-bottom:.15rem">CRM</div>'
+    + '<h3 style="margin:0;font-size:1rem;font-weight:700">➕ <span data-rw="Ongeraho Lead Nshya" data-en="Add New Lead">Add New Lead</span></h3></div>'
+    + '<button onclick="closeAgentLead()" style="background:rgba(255,255,255,.18);border:none;cursor:pointer;border-radius:50%;width:30px;height:30px;font-size:1rem;color:#fff;display:flex;align-items:center;justify-content:center">✕</button>'
+    + '</div>'
+    /* Body */
+    + '<div style="overflow-y:auto;padding:1.2rem;display:flex;flex-direction:column;gap:.75rem">'
+    /* Client info */
+    + '<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.07em" data-rw="AMAKURU Y\'UMUKILIYA" data-en="CLIENT INFORMATION">CLIENT INFORMATION</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Amazina*" data-en="Full Name*">Full Name*</label><input id="al-client-name" type="text" placeholder="Nziza Jean..." style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"></div>'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Telefoni*" data-en="Phone*">Phone*</label><input id="al-client-phone" type="tel" placeholder="+250 7xx xxx xxx" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"></div>'
+    + '</div>'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Imeyili (Ntibisabwa)" data-en="Email (Optional)">Email (Optional)</label><input id="al-client-email" type="email" placeholder="client@email.com" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"></div>'
+    /* Lead details */
+    + '<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.07em;margin-top:.2rem" data-rw="IBIREBANA NA LEAD" data-en="LEAD DETAILS">LEAD DETAILS</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Ubwoko bw\'Imitungo" data-en="Property Type">Property Type</label><select id="al-property-type" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"><option value="Kugura">Kugura (Buy)</option><option value="Gukodesha">Gukodesha (Rent)</option><option value="Gutanga">Gutanga (Sell)</option><option value="Gusimbura">Gusimbura (Invest)</option></select></div>'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Akarere" data-en="District">District</label><select id="al-district" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"><option value="">-- Select --</option>' + distOpts + '</select></div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Ingengo Min (RWF)" data-en="Budget Min (RWF)">Budget Min (RWF)</label><input id="al-budget-min" type="number" placeholder="e.g. 15000000" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"></div>'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Ingengo Max (RWF)" data-en="Budget Max (RWF)">Budget Max (RWF)</label><input id="al-budget-max" type="number" placeholder="e.g. 80000000" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"></div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Inkomoko" data-en="Lead Source">Lead Source</label><select id="al-source" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"><option value="walk_in">Walk-in</option><option value="phone_call">Phone Call</option><option value="whatsapp">WhatsApp</option><option value="referral">Referral</option><option value="website">Website</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="agent_network">Agent Network</option><option value="other">Other</option></select></div>'
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Urwego rw\'Akiciro" data-en="Priority">Priority</label><select id="al-priority" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"><option value="hot">🔥 Hot</option><option value="warm" selected>🌡️ Warm</option><option value="cold">🧊 Cold</option></select></div>'
+    + '</div>'
+    /* Agent assignment (admin/staff only) */
+    + '<div id="al-assign-row" style="display:none"><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Izina rya Agent" data-en="Agent Name">Agent Name</label><input id="al-agent-name" type="text" placeholder="Agent name..." style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"></div>'
+    /* Notes */
+    + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Inyandiko (Ntibisabwa)" data-en="Notes (Optional)">Notes (Optional)</label><textarea id="al-notes" rows="2" placeholder="Any extra details..." style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;resize:vertical;box-sizing:border-box;display:block"></textarea></div>'
+    /* Footer */
+    + '<div style="display:flex;gap:.6rem;padding-top:.4rem">'
+    + '<button class="btn btn-navy" style="flex:1;justify-content:center" onclick="saveAgentLead()" id="al-save-btn"><span id="al-save-lbl" data-rw="Bika Lead" data-en="Save Lead">Save Lead</span></button>'
+    + '<button class="btn btn-outline" style="flex-shrink:0" onclick="closeAgentLead()" data-rw="Guhagarika" data-en="Cancel">Cancel</button>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+  modal.addEventListener('click', function(e) { if (e.target === modal) closeAgentLead(); });
+  document.body.appendChild(modal);
+}
+
+function saveAgentLead() {
+  var g = function(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  var name  = g('al-client-name');
+  var phone = g('al-client-phone');
+  if (!name)  { showToast(curLang==='rw' ? 'Andika amazina y\'umukiliya!' : 'Enter client name!', 'error'); return; }
+  if (!phone) { showToast(curLang==='rw' ? 'Andika telefoni y\'umukiliya!' : 'Enter client phone!', 'error'); return; }
+
+  var btn = document.getElementById('al-save-btn');
+  var lbl = document.getElementById('al-save-lbl');
+  if (btn) btn.disabled = true;
+  if (lbl) lbl.textContent = curLang==='rw' ? 'Tegereza...' : 'Saving...';
+
+  var uid  = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : '';
+  var role = typeof currentUser !== 'undefined' && currentUser ? (currentUser.role || '').toLowerCase() : '';
+  var isAdminRole = ['admin','super_admin','staff','ceo'].indexOf(role) > -1;
+
+  var leadData = {
+    id:            '',
+    clientName:    name,
+    clientPhone:   phone,
+    clientEmail:   g('al-client-email'),
+    agentId:       isAdminRole ? '' : uid,
+    agentName:     g('al-agent-name') || (typeof currentUser !== 'undefined' && currentUser ? (currentUser.displayName || currentUser.name || '') : ''),
+    action:        g('al-property-type'),
+    district:      g('al-district'),
+    zone:          g('al-district'),
+    budgetMin:     g('al-budget-min'),
+    budgetMax:     g('al-budget-max'),
+    source:        g('al-source'),
+    priority:      g('al-priority'),
+    notes:         g('al-notes'),
+    pipelineStage: 'new',
+    contactLog:    [],
+    nextFollowUp:  null,
+    status:        'new',
+    isActive:      true,
+    createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:     uid || 'system',
+    updatedBy:     uid || 'system'
+  };
+  if (!isAdminRole) leadData.agentId = uid;
+
+  if (typeof db !== 'undefined') {
+    db.collection('leads').add(leadData).then(function(ref) {
+      ref.update({ id: ref.id });
+      if (typeof logAudit === 'function') {
+        logAudit('lead.created', 'leads', ref.id, null, { clientName: name, source: leadData.source, priority: leadData.priority });
+      }
+      showToast(curLang==='rw' ? 'Lead yabitswe neza!' : 'Lead saved successfully!', 'success');
+      closeAgentLead();
+      if (typeof loadCRM === 'function') loadCRM();
+    }).catch(function(err) {
+      console.error('[AgentLead] Save error:', err);
+      showToast(curLang==='rw' ? 'Habaye ikosa — ongera ugerageze' : 'Error saving lead', 'error');
+    }).finally(function() {
+      if (btn) btn.disabled = false;
+      if (lbl) lbl.textContent = curLang==='rw' ? 'Bika Lead' : 'Save Lead';
+    });
+  } else {
+    showToast(curLang==='rw' ? 'Firebase ntabwo iri gutangira' : 'Firebase not ready', 'error');
+    if (btn) btn.disabled = false;
+    if (lbl) lbl.textContent = curLang==='rw' ? 'Bika Lead' : 'Save Lead';
+  }
+}
+
+/* ── Close Won ───────────────────────────────────────── */
+
+function closeLeadWon() {
+  var leadId = (document.getElementById('ld-lead-id') || {}).value || '';
+  var lead   = typeof _ldCurrentLead !== 'undefined' ? _ldCurrentLead : null;
+  if (!leadId) { showToast(curLang==='rw' ? 'Nta lead yatoranijwe' : 'No lead selected', 'error'); return; }
+
+  var confirmed = window.confirm(
+    curLang === 'rw'
+      ? 'Emeza: Lead ya ' + ((lead && lead.clientName) || '') + ' yarangiye neza (Closed Won)?'
+      : 'Confirm: Mark this lead as Closed Won for ' + ((lead && lead.clientName) || '') + '?'
+  );
+  if (!confirmed) return;
+
+  if (typeof db !== 'undefined') {
+    db.collection('leads').doc(leadId).update({
+      pipelineStage: 'closed_won',
+      status:        'closed_won',
+      closedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy:     typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system'
+    }).then(function() {
+      showToast(curLang==='rw' ? '✅ Lead yarangiye neza!' : '✅ Lead closed as Won!', 'success');
+      if (typeof logAudit === 'function') {
+        logAudit('lead.closed_won', 'leads', leadId, { pipelineStage: lead ? lead.pipelineStage : '' }, { pipelineStage: 'closed_won' });
+      }
+      if (lead) lead.pipelineStage = 'closed_won';
+      for (var i = 0; i < _crmLeads.length; i++) {
+        if ((_crmLeads[i]._docId || _crmLeads[i].id) === leadId) { _crmLeads[i].pipelineStage = 'closed_won'; break; }
+      }
+      closeLeadDetail();
+      renderCrmLeads();
+      updateCrmStats();
+      // Prompt to convert to deal
+      setTimeout(function() {
+        if (window.confirm(curLang==='rw' ? 'Kora deal ya imitungo kuri lead iyi?' : 'Convert this lead to a Deal record?')) {
+          if (lead) _convertLeadToDealData(lead);
+        }
+      }, 400);
+    }).catch(function(err) {
+      showToast(curLang==='rw' ? 'Habaye ikosa' : 'Error', 'error');
+      console.error('[CRM] Close Won error:', err);
+    });
+  }
+}
+
+/* ── Close Lost ──────────────────────────────────────── */
+
+function closeLeadLost() {
+  var leadId = (document.getElementById('ld-lead-id') || {}).value || '';
+  var lead   = typeof _ldCurrentLead !== 'undefined' ? _ldCurrentLead : null;
+  if (!leadId) { showToast(curLang==='rw' ? 'Nta lead yatoranijwe' : 'No lead selected', 'error'); return; }
+
+  var reason = window.prompt(
+    curLang === 'rw'
+      ? 'Impamvu Lead Yasize (Ntibisabwa):'
+      : 'Reason for losing this lead (optional):',
+    ''
+  );
+  if (reason === null) return; // user cancelled
+
+  if (typeof db !== 'undefined') {
+    db.collection('leads').doc(leadId).update({
+      pipelineStage: 'closed_lost',
+      status:        'closed_lost',
+      lostReason:    reason || '',
+      closedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy:     typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system'
+    }).then(function() {
+      showToast(curLang==='rw' ? 'Lead yabitswe nk\'ibyanze' : 'Lead marked as Lost', 'info');
+      if (typeof logAudit === 'function') {
+        logAudit('lead.closed_lost', 'leads', leadId, { pipelineStage: lead ? lead.pipelineStage : '' }, { pipelineStage: 'closed_lost', reason: reason });
+      }
+      if (lead) lead.pipelineStage = 'closed_lost';
+      for (var i = 0; i < _crmLeads.length; i++) {
+        if ((_crmLeads[i]._docId || _crmLeads[i].id) === leadId) { _crmLeads[i].pipelineStage = 'closed_lost'; break; }
+      }
+      closeLeadDetail();
+      renderCrmLeads();
+      updateCrmStats();
+    }).catch(function(err) {
+      showToast(curLang==='rw' ? 'Habaye ikosa' : 'Error', 'error');
+      console.error('[CRM] Close Lost error:', err);
+    });
+  }
+}
+
+/* ── Convert Lead → Deal (pre-fill form helper, used by closeLeadWon) ── */
+
+function _convertLeadToDealData(lead) {
+  if (typeof openCreateDeal !== 'function') { showToast('Deal module not ready', 'error'); return; }
+  openCreateDeal();
+
+  // Pre-fill the deal creation form from lead data
+  setTimeout(function() {
+    var fields = {
+      'deal-client-name':  lead.clientName || lead.name || '',
+      'deal-client-phone': lead.clientPhone || lead.phone || '',
+      'deal-agent-name':   lead.agentName || '',
+      'deal-agent-id':     lead.agentId || '',
+      'deal-lead-id':      lead._docId || lead.id || '',
+      'deal-district':     lead.district || lead.zone || '',
+      'deal-type':         lead.action === 'Gukodesha' ? 'rental' : 'sale',
+      'deal-agreed-price': lead.budgetMax || lead.budgetMin || ''
+    };
+    Object.keys(fields).forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el && fields[id]) el.value = fields[id];
+    });
+
+    // Mark lead source in notes
+    var notesEl = document.getElementById('deal-notes');
+    if (notesEl && !notesEl.value) {
+      notesEl.value = (curLang === 'rw' ? 'Ivuye kuri Lead: ' : 'Converted from Lead: ') + (lead.clientName || '') + ' — ' + (lead._docId || lead.id || '');
+    }
+
+    showToast(curLang==='rw' ? 'Deal yuzuzwa kuva kuri lead!' : 'Deal pre-filled from lead!', 'success');
+  }, 350);
+}
+
+/* ── Update lead detail button states ────────────────── */
+(function() {
+  var _origOpenDetail = typeof _openLeadDetailWithData !== 'undefined' ? _openLeadDetailWithData : null;
+  if (_origOpenDetail) {
+    window._openLeadDetailWithData = function(lead) {
+      _origOpenDetail(lead);
+      _updateLeadDetailButtons(lead);
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Patch after script loads
+    setTimeout(function() {
+      if (typeof _openLeadDetailWithData === 'function') {
+        var orig = _openLeadDetailWithData;
+        _openLeadDetailWithData = function(lead) {
+          orig(lead);
+          _updateLeadDetailButtons(lead);
+        };
+      }
+    }, 2000);
+  });
+})();
+
+function _updateLeadDetailButtons(lead) {
+  var stage       = (lead && lead.pipelineStage) || 'new';
+  var isClosed    = stage === 'closed_won' || stage === 'closed_lost';
+  var isWon       = stage === 'closed_won';
+  var isLost      = stage === 'closed_lost';
+  var canConvert  = ['offer_submitted','negotiation','due_diligence','financing','contract','closing','closed_won'].indexOf(stage) > -1;
+
+  var advBtn     = document.getElementById('ld-advance-btn');
+  var wonBtn     = document.getElementById('ld-close-won-btn');
+  var lostBtn    = document.getElementById('ld-close-lost-btn');
+  var convBtn    = document.getElementById('ld-convert-deal-btn');
+
+  if (advBtn)  advBtn.style.display  = isClosed ? 'none' : '';
+  if (wonBtn)  wonBtn.style.display  = isWon    ? 'none' : '';
+  if (lostBtn) lostBtn.style.display = isLost   ? 'none' : '';
+  if (convBtn) convBtn.style.display = canConvert ? '' : 'none';
+}
 </script>
 </body></html>
