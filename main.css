@@ -3380,3 +3380,16 @@ html,body{overscroll-behavior-x:none}
   .br-grid { grid-template-columns: 1fr; }
   .br-district-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ── Testimonials Section ───────────────────────── */
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-top:2rem}
+.testi-card{background:#fff;border-radius:16px;padding:1.5rem 1.6rem;border:1.5px solid var(--border);box-shadow:0 2px 12px rgba(13,59,140,.06);display:flex;flex-direction:column;gap:.9rem;transition:var(--tr)}
+.testi-card:hover{box-shadow:0 6px 24px rgba(13,59,140,.12);transform:translateY(-2px)}
+.testi-stars{color:var(--gold);font-size:1rem;letter-spacing:.1em}
+.testi-text{font-size:.88rem;color:var(--dark);line-height:1.75;flex:1;font-style:italic}
+.testi-author{display:flex;align-items:center;gap:.75rem;padding-top:.75rem;border-top:1px solid var(--border)}
+.testi-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.82rem;flex-shrink:0}
+.testi-author strong{display:block;font-size:.88rem;color:var(--dark)}
+.testi-author span{font-size:.75rem;color:var(--muted)}
+@media(max-width:768px){.testi-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.testi-grid{grid-template-columns:1fr}}

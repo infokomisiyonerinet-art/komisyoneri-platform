@@ -2976,7 +2976,7 @@ html,body{overscroll-behavior-x:none}
         <div class="f-card fc2">
           <div class="f-icon" style="background:rgba(22,87,204,.1)"><svg viewBox="0 0 24 24" stroke="#1657CC"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
           <h3 data-rw="Virtual Tours 3D/VR" data-en="Virtual Tours 3D/VR">Virtual Tours 3D/VR</h3>
-          <p data-rw="Reba inzu mu 3D cyangwa VR utajya ahandi — ukoresha telefoni', 'error' cyangwa mudasobwa yawe." data-en="Tour properties in 3D or VR from home — using your smartphone or computer.">Reba inzu mu 3D cyangwa VR utajya ahandi — ukoresha telefoni', 'error' cyangwa mudasobwa yawe.</p>
+          <p data-rw="Reba inzu mu 3D cyangwa VR utajya ahandi — ukoresha telefoni cyangwa mudasobwa yawe." data-en="Tour properties in 3D or VR from home — using your smartphone or computer.">Reba inzu mu 3D cyangwa VR utajya ahandi — ukoresha telefoni cyangwa mudasobwa yawe.</p>
           <span class="f-link" onclick="go('detail')" style="cursor:pointer"><span data-rw="Gerageza 3D →" data-en="Try 3D →">Gerageza 3D →</span><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
         </div>
         <div class="f-card fc3">
@@ -3021,8 +3021,34 @@ html,body{overscroll-behavior-x:none}
     </div></div>
   </section>
 
+  <!-- TESTIMONIALS -->
+  <section class="section section-light" id="testimonials-section">
+    <div class="wrap">
+      <div class="eyebrow tag-green" data-rw="Ibivugwa n'Abakiliya" data-en="What Clients Say">Ibivugwa n'Abakiliya</div>
+      <h2 class="h2" style="margin-top:.35rem" data-rw="Abakiliya Bacu Bavuga Iki?" data-en="Trusted by Rwandans Across the Country">Abakiliya Bacu Bavuga Iki?</h2>
+      <div id="testimonials-grid" class="testi-grid">
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-text" data-rw="Naronse inzu yanjye y'inzozi mu gihe gito cyane binyuze kuri KOMISIYONERI. Umukomisiyoneri wabo yampaniye neza kandi amakuru yose yari yizewe." data-en="I found my dream home in no time through KOMISIYONERI. Their agent guided me perfectly and all the information was verified.">Naronse inzu yanjye y'inzozi mu gihe gito cyane binyuze kuri KOMISIYONERI. Umukomisiyoneri wabo yampaniye neza kandi amakuru yose yari yizewe.</p>
+          <div class="testi-author"><div class="testi-av" style="background:linear-gradient(135deg,var(--navy),var(--blue))">AM</div><div><strong>Amina M.</strong><span>Kigali — Gasabo</span></div></div>
+        </div>
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-text" data-rw="Nagurije ubutaka bwanjye bwa kampani binyuze kuri KOMISIYONERI mu minsi 3. Platform ni iy'ubumenyi n'inzobere, kandi imikorere yabo ni yizewe." data-en="I sold my commercial land through KOMISIYONERI in 3 days. The platform is professional and their process is completely trustworthy.">Nagurije ubutaka bwanjye bwa kampani binyuze kuri KOMISIYONERI mu minsi 3. Platform ni iy'ubumenyi n'inzobere, kandi imikorere yabo ni yizewe.</p>
+          <div class="testi-author"><div class="testi-av" style="background:linear-gradient(135deg,var(--gold),#e09b18)">JN</div><div><strong>Jean-Pierre N.</strong><span>Nyarugenge — Promoteur</span></div></div>
+        </div>
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-text" data-rw="Nashoye imari mu nzu za apartimanı binyuze kuri KOMISIYONERI. AI analytics yabufashije cyane gusobanukirwa ahantu hakunzwe n'abashoramari mu Rwanda." data-en="I invested in apartments through KOMISIYONERI. The AI analytics helped me understand the best investment districts in Rwanda.">Nashoye imari mu nzu za apartimanı binyuze kuri KOMISIYONERI. AI analytics yabufashije cyane gusobanukirwa ahantu hakunzwe n'abashoramari mu Rwanda.</p>
+          <div class="testi-author"><div class="testi-av" style="background:linear-gradient(135deg,#16A34A,#12874a)">SK</div><div><strong>Sarah K.</strong><span>Kicukiro — Investor</span></div></div>
+        </div>
+      </div>
+      <div id="testimonials-live" style="display:none"></div>
+    </div>
+  </section>
+
   <!-- ROLES -->
-  <section class="section section-light">
+  <section class="section">
     <div class="wrap">
       <div class="eyebrow" data-rw="Utumiwa Bwacu" data-en="Who We Serve">Utumiwa Bwacu</div>
       <h2 class="h2" style="margin-top:.35rem" data-rw="Ni nde ukoresha KOMISIYONERI?" data-en="Who Uses KOMISIYONERI?">Ni nde ukoresha KOMISIYONERI?</h2>
@@ -3743,19 +3769,19 @@ html,body{overscroll-behavior-x:none}
       <div class="kpis">
         <div class="kpi">
           <div class="kpi-top"><div><span class="kpi-v" id="dash-kpi-listings">0</span><div class="kpi-l" data-rw="Imitungo Yanditswe" data-en="Active Listings">Active Listings</div></div><div class="kpi-icon ki-navy"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div></div>
-          <div class="delta d-up"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>+3 uku kwezi</div>
+          <div class="delta d-up" id="dash-delta-listings"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>—</div>
         </div>
         <div class="kpi">
           <div class="kpi-top"><div><span class="kpi-v" id="dash-kpi-sales">0</span><div class="kpi-l" data-rw="Igurishwa Ryagenze" data-en="Sales Closed">Sales Closed</div></div><div class="kpi-icon ki-green"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div></div>
-          <div class="delta d-up"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>+1 vs last month</div>
+          <div class="delta d-up" id="dash-delta-sales"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>—</div>
         </div>
         <div class="kpi">
           <div class="kpi-top"><div><span class="kpi-v" id="dash-kpi-commission">0</span><div class="kpi-l" data-rw="Komisiyoni (RWF)" data-en="Commission (RWF)">Komisiyoni</div></div><div class="kpi-icon ki-gold"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div></div>
-          <div class="delta d-up"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>+18%</div>
+          <div class="delta d-up" id="dash-delta-commission"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>—</div>
         </div>
         <div class="kpi">
           <div class="kpi-top"><div><span class="kpi-v" id="dash-kpi-leads">0</span><div class="kpi-l" data-rw="Abakiliya Basha" data-en="New Inquiries">New Inquiries</div></div><div class="kpi-icon ki-blue"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div></div>
-          <div class="delta d-up"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>+7 uyu munsi</div>
+          <div class="delta d-up" id="dash-delta-leads"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>—</div>
         </div>
       </div>
       <div class="dash-grid">
@@ -3776,32 +3802,17 @@ html,body{overscroll-behavior-x:none}
         </div>
         <!-- Activity -->
         <div class="dc">
-          <div class="dc-hdr"><span class="dc-title" data-rw="Ibikorwa Biheruka" data-en="Recent Activity">Ibikorwa Biheruka</span></div>
-          <div class="act">
-            <div class="act-ic ai-green"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-            <div class="act-t"><strong data-rw="Igurishwa Ryagenze — 85M RWF" data-en="Sale Completed — 85M RWF">Igurishwa Ryagenze — 85M RWF</strong><span data-rw="Villa Musanze — amafaranga yarinzwe" data-en="Villa Musanze — payment received">Villa Musanze — amafaranga yarinzwe</span></div>
-          </div>
-          <div class="act">
-            <div class="act-ic ai-blue"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
-            <div class="act-t"><strong data-rw="Ikibazo Gishya — Sylvie M." data-en="New Inquiry — Sylvie M.">Ikibazo Gishya — Sylvie M.</strong><span data-rw="Apartimanı Niboye — ibasaba gukiranurwa" data-en="Apartment Niboye — kodesha inquiry">Apartimanı Niboye — ibasabwa gukiranurwa</span></div>
-          </div>
-          <div class="act">
-            <div class="act-ic ai-gold"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
-            <div class="act-t"><strong data-rw="Imitungo Mishya Yanditswe" data-en="New Listing Added">Imitungo Mishya Yanditswe</strong><span data-rw="Studio Remera — irishye neza" data-en="Studio Remera — listed successfully">Studio Remera — irishye neza</span></div>
-          </div>
-          <div class="act">
-            <div class="act-ic ai-blue"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
-            <div class="act-t"><strong data-rw="Umukiliya Mushya Yiyandikishije" data-en="New Client Registered">Umukiliya Mushya Yiyandikishije</strong><span data-rw="Patrick K. — Ushaka Villa i Kigali" data-en="Patrick K. — Looking for Villa in Kigali">Patrick K. — Ushaka Villa i Kigali</span></div>
-          </div>
-          <div class="act">
-            <div class="act-ic ai-green"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
-            <div class="act-t"><strong data-rw="Amafaranga Yarinzwe — 450K RWF" data-en="Payment Received — 450K RWF">Amafaranga Yarinzwe — 450K RWF</strong><span data-rw="Gukodesha — Apartimanı Niboye — Ukwezi kwa 1" data-en="Rent — Apartment Niboye — Month 1">Gukodesha — Apartimanı Niboye</span></div>
-          </div>
+          <div class="dc-hdr"><span class="dc-title" data-rw="Ibikorwa Biheruka" data-en="Recent Activity">Ibikorwa Biheruka</span><button class="dc-action" onclick="loadDashboardActivity()" data-rw="Vugurura" data-en="Refresh">Refresh</button></div>
+          <div id="dash-activity-list" style="min-height:120px"><div style="padding:1.2rem;text-align:center;color:var(--muted);font-size:.82rem">Loading...</div></div>
           <!-- Quick actions -->
           <div style="padding:1.1rem 1.4rem;border-top:1px solid var(--border);display:flex;gap:.6rem;flex-wrap:wrap">
             <button class="btn btn-navy btn-sm" onclick="openAddProperty()">
               <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               <span data-rw="Andika Imitungo" data-en="Add Listing">Andika Imitungo</span>
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="go('crm')">
+              <svg viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              <span data-rw="CRM" data-en="CRM">CRM</span>
             </button>
             <button class="btn btn-outline btn-sm" onclick="go('analytics')">
               <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -21203,11 +21214,276 @@ function submitSiteForm() {
           .get().then(function(snap) {
             var badge = document.getElementById('crm-sidebar-count');
             if (badge) badge.textContent = snap.size;
-            var dashKpi = document.getElementById('dash-kpi-leads');
-            if (dashKpi) dashKpi.textContent = snap.size;
           }).catch(function(){});
       }
     }, 2500);
+  });
+})();
+
+// ═══════════════════════════════════════════════════════
+//  LIVE DASHBOARD — Firestore KPIs + Activity Feed
+// ═══════════════════════════════════════════════════════
+
+/* Override loadAgentDashboard to use Firestore instead of localStorage */
+function loadAgentDashboard() {
+  if (!currentUser) return;
+  var cu = currentUser;
+
+  // Personalize welcome
+  var wn = document.getElementById('dash-welcome-name');
+  if (wn) wn.textContent = (curLang==='rw' ? 'Murakaza neza, ' : 'Welcome back, ') + (cu.name || 'Agent') + '!';
+
+  var now = new Date();
+  var thirtyDaysAgo = new Date(now.getTime() - 30*24*60*60*1000);
+  var sixtyDaysAgo  = new Date(now.getTime() - 60*24*60*60*1000);
+  var ts30  = firebase.firestore.Timestamp.fromDate(thirtyDaysAgo);
+  var ts60  = firebase.firestore.Timestamp.fromDate(sixtyDaysAgo);
+
+  /* Helper: set delta badge text + class */
+  function setDelta(id, cur, prev, suffix) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    suffix = suffix || '';
+    if (prev === 0 && cur === 0) { el.innerHTML = '<svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>—'; el.className='delta'; return; }
+    var diff = cur - prev;
+    var pct  = prev > 0 ? Math.round(diff/prev*100) : (cur > 0 ? 100 : 0);
+    var sign = diff >= 0 ? '+' : '';
+    var cls  = diff >= 0 ? 'd-up' : 'd-dn';
+    var arrow = diff >= 0
+      ? '<svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>'
+      : '<svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>';
+    el.innerHTML = arrow + sign + (suffix === '%' ? pct + '%' : diff + ' ' + suffix);
+    el.className = 'delta ' + cls;
+  }
+
+  /* Active Listings (my properties approved) */
+  var propQuery = cu.role === 'agent'
+    ? db.collection('properties').where('agentId','==',cu.uid).where('isActive','==',true).where('status','==','approved')
+    : db.collection('properties').where('isActive','==',true).where('status','==','approved');
+  propQuery.get().then(function(snap) {
+    var el = document.getElementById('dash-kpi-listings');
+    if (el) el.textContent = snap.size;
+    var badge = document.getElementById('dash-sidebar-listings');
+    if (badge) badge.textContent = snap.size;
+    /* Render listing rows (normalize status casing for renderDashboardListings) */
+    var props = [];
+    snap.forEach(function(d){
+      var x = d.data(); x._id = d.id;
+      if (x.status) x.status = x.status.charAt(0).toUpperCase() + x.status.slice(1);
+      props.push(x);
+    });
+    renderDashboardListings(props);
+  }).catch(function(){});
+
+  /* New Leads (current 30d vs prev 30d) */
+  var leadsQuery = cu.role === 'agent'
+    ? db.collection('leads').where('agentId','==',cu.uid).where('isActive','==',true)
+    : db.collection('leads').where('isActive','==',true);
+  leadsQuery.get().then(function(snap) {
+    var cur30=0, prev30=0;
+    snap.forEach(function(d) {
+      var ts = d.data().createdAt;
+      if (!ts) return;
+      var dt = ts.toDate ? ts.toDate() : new Date(ts);
+      if (dt >= thirtyDaysAgo) cur30++;
+      else if (dt >= sixtyDaysAgo) prev30++;
+    });
+    var el = document.getElementById('dash-kpi-leads');
+    if (el) el.textContent = cur30;
+    var badge = document.getElementById('crm-sidebar-count');
+    if (badge) badge.textContent = snap.size;
+    setDelta('dash-delta-leads', cur30, prev30, curLang==='rw'?'uku kwezi':'this month');
+  }).catch(function(){});
+
+  /* Deals closed (my deals closed_won this 30d vs prev 30d) */
+  var dealsQuery = cu.role === 'agent'
+    ? db.collection('deals').where('agentId','==',cu.uid).where('isActive','==',true)
+    : db.collection('deals').where('isActive','==',true);
+  dealsQuery.get().then(function(snap) {
+    var closedCur=0, closedPrev=0, dealIds=[];
+    snap.forEach(function(d) {
+      var x = d.data();
+      dealIds.push(d.id);
+      if (x.pipelineStage === 'closed_won') {
+        var ts = x.closedAt || x.updatedAt;
+        if (!ts) return;
+        var dt = ts.toDate ? ts.toDate() : new Date(ts);
+        if (dt >= thirtyDaysAgo) closedCur++;
+        else if (dt >= sixtyDaysAgo) closedPrev++;
+      }
+    });
+    var el = document.getElementById('dash-kpi-sales');
+    if (el) el.textContent = closedCur;
+    var badge = document.getElementById('deals-sidebar-count');
+    if (badge) badge.textContent = snap.size;
+    setDelta('dash-delta-sales', closedCur, closedPrev, curLang==='rw'?'uku kwezi':'this month');
+  }).catch(function(){});
+
+  /* Commissions (current month vs prev month) */
+  var monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  var prevMonthStart = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  var tsMonth = firebase.firestore.Timestamp.fromDate(monthStart);
+  var tsPrevMonth = firebase.firestore.Timestamp.fromDate(prevMonthStart);
+  var commQuery = cu.role === 'agent'
+    ? db.collection('commissions').where('agentId','==',cu.uid).where('isActive','==',true)
+    : db.collection('commissions').where('isActive','==',true);
+  commQuery.get().then(function(snap) {
+    var curComm=0, prevComm=0;
+    snap.forEach(function(d) {
+      var x = d.data();
+      var ts = x.createdAt;
+      if (!ts) return;
+      var dt = ts.toDate ? ts.toDate() : new Date(ts);
+      var share = cu.role === 'agent' ? (x.agentShare || 0) : (x.totalCommission || 0);
+      if (dt >= monthStart) curComm += share;
+      else if (dt >= prevMonthStart) prevComm += share;
+    });
+    var badge = document.getElementById('comm-sidebar-count');
+    if (badge) badge.textContent = snap.size;
+    var dispCur = curComm >= 1000000 ? (curComm/1000000).toFixed(1)+'M'
+                : curComm >= 1000    ? Math.round(curComm/1000)+'K'
+                : String(Math.round(curComm));
+    var el = document.getElementById('dash-kpi-commission');
+    if (el) el.textContent = dispCur || '0';
+    setDelta('dash-delta-commission', curComm, prevComm, '%');
+  }).catch(function(){});
+
+  /* Upcoming visits */
+  var visitQuery = cu.role === 'agent'
+    ? db.collection('viewings').where('agentId','==',cu.uid).where('isActive','==',true)
+    : db.collection('viewings').where('isActive','==',true);
+  visitQuery.where('scheduledAt','>=',firebase.firestore.Timestamp.fromDate(now)).orderBy('scheduledAt','asc').limit(8).get().then(function(snap) {
+    var bookings = [];
+    snap.forEach(function(d) {
+      var x = d.data();
+      var dt = x.scheduledAt ? (x.scheduledAt.toDate ? x.scheduledAt.toDate() : new Date(x.scheduledAt)) : null;
+      bookings.push({
+        date: dt ? dt.toISOString().slice(0,10) : '',
+        time: dt ? dt.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}) : '',
+        name: x.clientName || 'Client',
+        phone: x.clientPhone || '',
+        propTitle: x.propertyTitle || (curLang==='rw'?'Imitungo':'Property')
+      });
+    });
+    renderDashboardBookings(bookings);
+  }).catch(function(){
+    renderDashboardBookings([]);
+  });
+
+  /* Load activity feed */
+  loadDashboardActivity();
+}
+
+function loadDashboardActivity() {
+  var container = document.getElementById('dash-activity-list');
+  if (!container) return;
+  container.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--muted);font-size:.8rem">Loading...</div>';
+
+  var ACT_ICONS = {
+    'deal_created'     : { bg:'ai-green', svg:'<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' },
+    'deal_updated'     : { bg:'ai-blue',  svg:'<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' },
+    'lead_created'     : { bg:'ai-blue',  svg:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>' },
+    'property_created' : { bg:'ai-gold',  svg:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
+    'property_updated' : { bg:'ai-gold',  svg:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
+    'commission_paid'  : { bg:'ai-green', svg:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>' },
+    'user_created'     : { bg:'ai-blue',  svg:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>' },
+    'default'          : { bg:'ai-blue',  svg:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>' }
+  };
+
+  function timeAgo(dt) {
+    var diff = Math.floor((Date.now() - dt.getTime()) / 1000);
+    if (diff < 60) return diff + 's';
+    if (diff < 3600) return Math.floor(diff/60) + 'm';
+    if (diff < 86400) return Math.floor(diff/3600) + 'h';
+    return Math.floor(diff/86400) + 'd';
+  }
+
+  db.collection('auditlogs').orderBy('createdAt','desc').limit(8).get().then(function(snap) {
+    if (snap.empty) {
+      /* Fall back: show recent leads from Firestore */
+      db.collection('leads').where('isActive','==',true).orderBy('createdAt','desc').limit(6).get().then(function(lSnap) {
+        if (lSnap.empty) {
+          container.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:.82rem">' + (curLang==='rw'?'Nta bikorwa biraboneka':'No recent activity yet') + '</div>';
+          return;
+        }
+        var html = '';
+        lSnap.forEach(function(d) {
+          var x = d.data();
+          var dt = x.createdAt ? (x.createdAt.toDate ? x.createdAt.toDate() : new Date(x.createdAt)) : new Date();
+          var ico = ACT_ICONS['lead_created'];
+          html += '<div class="act"><div class="act-ic '+ico.bg+'"><svg viewBox="0 0 24 24">'+ico.svg+'</svg></div>'
+            + '<div class="act-t"><strong>' + (curLang==='rw'?'Lead Nshya':'New Lead') + '</strong>'
+            + '<span>' + escapeHtml(x.clientName||x.clientEmail||'Client') + ' · ' + timeAgo(dt) + '</span></div></div>';
+        });
+        container.innerHTML = html;
+      }).catch(function(){ container.innerHTML = '<div style="padding:1rem;color:var(--muted);font-size:.8rem;text-align:center">—</div>'; });
+      return;
+    }
+
+    var html = '';
+    snap.forEach(function(d) {
+      var x = d.data();
+      var action = x.action || 'updated';
+      var dt = x.createdAt ? (x.createdAt.toDate ? x.createdAt.toDate() : new Date(x.createdAt)) : new Date();
+      var ico = ACT_ICONS[action] || ACT_ICONS['default'];
+      var label = action.replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
+      var detail = escapeHtml(x.collection || '') + (x.docId ? ' #'+escapeHtml(String(x.docId).slice(-6)) : '');
+      html += '<div class="act"><div class="act-ic '+ico.bg+'"><svg viewBox="0 0 24 24">'+ico.svg+'</svg></div>'
+        + '<div class="act-t"><strong>' + label + '</strong>'
+        + '<span>' + detail + ' · ' + timeAgo(dt) + '</span></div></div>';
+    });
+    container.innerHTML = html;
+  }).catch(function() {
+    container.innerHTML = '<div style="padding:1rem;color:var(--muted);font-size:.8rem;text-align:center">—</div>';
+  });
+}
+
+/* Load home page testimonials from reviews collection */
+function loadHomeTestimonials() {
+  var grid = document.getElementById('testimonials-grid');
+  var live = document.getElementById('testimonials-live');
+  if (!grid || !live) return;
+  db.collection('reviews').where('isActive','==',true).orderBy('createdAt','desc').limit(6).get().then(function(snap) {
+    if (snap.size < 2) return; /* keep curated static ones if fewer than 2 real reviews */
+    var html = '';
+    snap.forEach(function(d) {
+      var x = d.data();
+      var stars = Math.min(5, Math.max(1, Math.round(x.rating||5)));
+      var starStr = '';
+      for (var i=0;i<stars;i++) starStr+='★';
+      var ini = (x.reviewerName||'A').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2)||'RW';
+      var colors = ['linear-gradient(135deg,var(--navy),var(--blue))','linear-gradient(135deg,var(--gold),#e09b18)','linear-gradient(135deg,#16A34A,#12874a)'];
+      var ci = html.split('testi-card').length % 3;
+      html += '<div class="testi-card">'
+        + '<div class="testi-stars">' + starStr + '</div>'
+        + '<p class="testi-text">' + escapeHtml(x.comment||x.text||'') + '</p>'
+        + '<div class="testi-author"><div class="testi-av" style="background:'+colors[ci]+'">'+ini+'</div>'
+        + '<div><strong>' + escapeHtml(x.reviewerName||'Anonymous') + '</strong><span>' + escapeHtml(x.district||x.location||'Rwanda') + '</span></div></div></div>';
+    });
+    grid.style.display = 'none';
+    live.style.display = 'grid';
+    live.className = 'testi-grid';
+    live.innerHTML = html;
+  }).catch(function(){});
+}
+
+/* Hook dashboard loading on navigation */
+(function() {
+  var _goOrig2 = go;
+  go = function(name) {
+    _goOrig2(name);
+    if (name === 'dashboard') {
+      setTimeout(function() {
+        if (typeof currentUser !== 'undefined' && currentUser) loadAgentDashboard();
+      }, 150);
+    }
+    if (name === 'home') {
+      setTimeout(loadHomeTestimonials, 500);
+    }
+  };
+  /* Also run testimonials on initial page load */
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(loadHomeTestimonials, 1200);
   });
 })();
 
