@@ -22388,5 +22388,288 @@ function filterAgentsPage() {
   if (countEl) countEl.textContent = filtered.length;
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   PHASE 10 — Bug Fixes + Lead-to-Deal Conversion
+   1. Fix loadLiveHomeStats composite index
+   2. Override openMyProps → Firestore-backed
+   3. Override adminDeleteAll → Firestore batch soft-delete
+   4. Inject "Convert to Deal" button into lead detail
+   5. convertLeadToDeal() — creates deal + commission from lead
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Fix 1: Remove composite index (status + isActive) from hero stats query */
+function loadLiveHomeStats() {
+  var elListings = document.getElementById('hero-stat-listings');
+  var elClients  = document.getElementById('hero-stat-clients');
+  var elAgents   = document.getElementById('hero-stat-agents');
+  if (!elListings && !elClients && !elAgents) return;
+  if (typeof db === 'undefined') return;
+
+  db.collection('properties')
+    .where('status', 'in', ['approved', 'Approved'])
+    .get().then(function(snap) {
+      var active = 0;
+      snap.forEach(function(d) { if (d.data().isActive !== false) active++; });
+      if (elListings && active > 0) elListings.textContent = active + '+';
+    }).catch(function(){});
+
+  db.collection('users').where('isActive', '==', true).get().then(function(snap) {
+    if (elClients && snap.size > 3) elClients.textContent = snap.size + '+';
+  }).catch(function(){});
+
+  db.collection('users').where('role', 'in', ['agent', 'Agent']).get().then(function(snap) {
+    if (elAgents && snap.size > 0) elAgents.textContent = snap.size + '+';
+  }).catch(function(){});
+}
+
+/* Fix 2: openMyProps — Firestore-backed (queries by agentId, merges localStorage) */
+function _renderMyPropsList(mine, list) {
+  if (!list) return;
+  if (mine.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">'
+      + '<div style="font-size:2rem;margin-bottom:.5rem">&#127968;</div>'
+      + '<div>' + (typeof t === 'function' ? t('noMyProps') : 'No properties yet') + '</div>'
+      + '<button class="btn btn-navy btn-sm" style="margin-top:1rem" onclick="openAddProperty()">'
+      + (typeof t === 'function' ? t('addProp') : 'Add Property') + '</button>'
+      + '</div>';
+    return;
+  }
+  list.innerHTML = mine.map(function(prop) {
+    var st = (prop.status || 'Pending').charAt(0).toUpperCase() + (prop.status || 'Pending').slice(1);
+    var statusColor = st === 'Approved' ? '#27A84A' : st === 'Rejected' ? '#e53e3e' : '#F5A623';
+    var statusIcon  = st === 'Approved' ? '&#9989;' : st === 'Rejected' ? '&#10060;' : '&#9203;';
+    var priceDisplay = prop.price ? Number(prop.price).toLocaleString() + ' RWF' : '—';
+    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.9rem;margin-bottom:.7rem">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">'
+      + '<div style="flex:1">'
+      + '<div style="font-weight:700;color:var(--navy)">' + (prop.type || '') + ' — ' + (prop.district || '') + '</div>'
+      + '<div style="font-size:.82rem;color:var(--muted);margin:.2rem 0">' + (prop.service || '') + ' | ' + priceDisplay + '</div>'
+      + (prop.desc ? '<div style="font-size:.78rem;color:#555;font-style:italic">' + prop.desc.substring(0, 60) + '...</div>' : '')
+      + '</div>'
+      + '<div style="text-align:center;flex-shrink:0">'
+      + '<div style="font-size:1.3rem">' + statusIcon + '</div>'
+      + '<div style="font-size:.65rem;font-weight:700;color:' + statusColor + '">' + st + '</div>'
+      + '</div>'
+      + '</div></div>';
+  }).join('');
+}
+
+function openMyProps() {
+  if (!currentUser) { go('auth'); return; }
+  var m = document.getElementById('my-props-modal');
+  if (m) m.style.display = 'flex';
+  var list = document.getElementById('my-props-list');
+  if (!list) return;
+
+  list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)"><div style="font-size:2rem">&#9203;</div>'
+    + '<div style="margin-top:.5rem">' + (curLang === 'rw' ? 'Gutegura...' : 'Loading...') + '</div></div>';
+
+  var uid   = currentUser.uid   || '';
+  var email = currentUser.email || '';
+
+  if (typeof db === 'undefined') {
+    var lsAll = [];
+    try { lsAll = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+    _renderMyPropsList(lsAll.filter(function(p) { return p.ownerEmail === email; }), list);
+    return;
+  }
+
+  db.collection('properties').where('agentId', '==', uid).where('isActive', '==', true).get()
+    .then(function(snap) {
+      var mine = [];
+      snap.forEach(function(doc) { mine.push(_normalizePropDoc(doc.data(), doc.id)); });
+      var fsIds = {};
+      mine.forEach(function(p) { fsIds[String(p.id)] = true; });
+      var lsProps = [];
+      try { lsProps = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+      lsProps.forEach(function(p) {
+        if (p.ownerEmail === email && !fsIds[String(p.id || '')]) mine.push(p);
+      });
+      _renderMyPropsList(mine, list);
+    }).catch(function() {
+      var lsAll = [];
+      try { lsAll = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+      _renderMyPropsList(lsAll.filter(function(p) { return p.ownerEmail === email; }), list);
+    });
+}
+
+/* Fix 3: adminDeleteAll — Firestore batch soft-delete + localStorage cleanup */
+function adminDeleteAll(status) {
+  var labelMap = {
+    approved: curLang === 'rw' ? 'Emejwe' : 'Approved',
+    rejected: curLang === 'rw' ? 'Byanzwe' : 'Rejected',
+    pending:  curLang === 'rw' ? 'Bitegereje' : 'Pending'
+  };
+  var label = labelMap[status] || (curLang === 'rw' ? 'Byose' : 'All');
+  if (!confirm((curLang === 'rw' ? 'Guhanagura BYOSE: ' : 'Delete ALL: ') + label + '?')) return;
+
+  var toDelete = (typeof _adminAllProps !== 'undefined' ? _adminAllProps : []).filter(function(p) {
+    return status === 'all' || (p.status || '').toLowerCase() === status.toLowerCase();
+  });
+  if (toDelete.length === 0) {
+    showToast(curLang === 'rw' ? 'Nta kintu cyabonetse' : 'Nothing to delete', 'info');
+    return;
+  }
+
+  var doFinish = function() {
+    var ls = [];
+    try { ls = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+    var delIds = {};
+    toDelete.forEach(function(p) { delIds[String(p.id || p._fsId || '')] = true; });
+    ls = ls.filter(function(p) { return !delIds[String(p.id || '')]; });
+    try { localStorage.setItem('km_properties', JSON.stringify(ls)); } catch(e) {}
+    if (typeof invalidatePropsCache === 'function') invalidatePropsCache();
+    showToast((curLang === 'rw' ? 'Byahanaguwe: ' : 'Deleted: ') + toDelete.length, 'success');
+    if (typeof logAudit === 'function') {
+      logAudit('admin.deleteAll', 'properties', status, { count: toDelete.length }, null);
+    }
+    if (typeof adminRender === 'function') adminRender(typeof adminCurrentFilter !== 'undefined' ? adminCurrentFilter : 'all');
+    if (typeof loadApprovedProperties === 'function') loadApprovedProperties();
+  };
+
+  if (typeof db !== 'undefined') {
+    var batch = db.batch();
+    var now   = firebase.firestore.FieldValue.serverTimestamp();
+    var uid   = currentUser ? currentUser.uid : 'system';
+    var fsCount = 0;
+    toDelete.forEach(function(p) {
+      var fsId = p._fsId || (p.id && String(p.id).length > 15 ? p.id : null);
+      if (fsId) {
+        batch.update(db.collection('properties').doc(fsId), { isActive: false, updatedAt: now, updatedBy: uid });
+        fsCount++;
+      }
+    });
+    if (fsCount > 0) {
+      batch.commit().then(doFinish).catch(function(err) {
+        console.warn('[adminDeleteAll] Firestore error:', err);
+        doFinish();
+      });
+    } else {
+      doFinish();
+    }
+  } else {
+    doFinish();
+  }
+}
+
+/* Fix 4: Inject "Convert to Deal" button into lead detail modal footer */
+(function() {
+  var _origOpenLeadDetailWithData = _openLeadDetailWithData;
+  _openLeadDetailWithData = function(lead) {
+    _origOpenLeadDetailWithData(lead);
+    var lateStages = ['offer_submitted', 'negotiation', 'due_diligence', 'financing', 'contract', 'closing'];
+    var stage = lead.pipelineStage || 'new';
+    var footer = document.querySelector('#lead-detail-modal .modal > div:last-of-type');
+    var existingBtn = document.getElementById('ld-convert-btn');
+    if (existingBtn) existingBtn.remove();
+    if (lateStages.indexOf(stage) > -1) {
+      var btn = document.createElement('button');
+      btn.id = 'ld-convert-btn';
+      btn.className = 'btn';
+      btn.style.cssText = 'background:var(--gold);color:#fff;border:none;border-radius:20px;padding:.55rem 1.1rem;font-size:.82rem;font-weight:700;cursor:pointer;margin-top:.6rem;width:100%;justify-content:center;display:flex;gap:.35rem;align-items:center';
+      btn.innerHTML = (curLang === 'rw' ? '&#128198; Hindura Deal' : '&#128198; Convert to Deal');
+      var leadId = lead._docId || lead.id || '';
+      btn.onclick = function() { convertLeadToDeal(leadId); };
+      var modal = document.getElementById('lead-detail-modal');
+      if (modal) {
+        var inner = modal.querySelector('.modal');
+        if (inner) inner.appendChild(btn);
+      }
+    }
+  };
+})();
+
+/* Fix 5: convertLeadToDeal — creates deal + commission record from lead */
+function convertLeadToDeal(leadId) {
+  if (!leadId) return;
+  var lead = null;
+  for (var i = 0; i < _crmLeads.length; i++) {
+    if ((_crmLeads[i]._docId || _crmLeads[i].id) === leadId) { lead = _crmLeads[i]; break; }
+  }
+  if (!lead) { showToast(curLang === 'rw' ? 'Lead ntiyabonetse' : 'Lead not found', 'error'); return; }
+  if (typeof db === 'undefined') { showToast('Firebase ntabwo ihuye', 'error'); return; }
+
+  var uid       = currentUser ? currentUser.uid : '';
+  var agentName = currentUser ? (currentUser.displayName || currentUser.name || currentUser.email || '') : '';
+  var clientName  = lead.clientName || lead.name || '';
+  var clientPhone = lead.clientPhone || lead.phone || '';
+  var dealType    = (lead.action || lead.type || 'sale').toLowerCase() === 'gukodesha' ? 'rental' : 'sale';
+  var agreedPrice = parseInt(lead.budgetMax || lead.budgetMin || 0);
+  var defaultRate = dealType === 'rental' ? 0.0833 : 0.04;
+  var commAmt     = agreedPrice * defaultRate;
+  var agentShare  = Math.round(commAmt * 0.60);
+  var coShare     = Math.round(commAmt * 0.40);
+
+  if (!confirm((curLang === 'rw'
+    ? 'Gufungura Deal ya: ' + clientName + '\nAgaciro: ' + agreedPrice.toLocaleString() + ' RWF\nObutumwa bw\'Umukozi: ' + agentShare.toLocaleString() + ' RWF\nEmeza?'
+    : 'Open Deal for: ' + clientName + '\nValue: ' + agreedPrice.toLocaleString() + ' RWF\nAgent Share: ' + agentShare.toLocaleString() + ' RWF\nConfirm?'
+  ))) return;
+
+  db.collection('deals').add({
+    id:             '',
+    leadId:         leadId,
+    propertyId:     lead.propertyId || '',
+    propertyTitle:  lead.propertyTitle || (lead.zone || lead.district || ''),
+    clientId:       lead.clientId || '',
+    clientName:     clientName,
+    clientPhone:    clientPhone,
+    sellerId:       lead.agentId || uid,
+    agentId:        uid,
+    agentName:      agentName,
+    dealType:       dealType,
+    agreedPrice:    agreedPrice,
+    commissionRate: defaultRate,
+    pipelineStage:  'contract',
+    offerId:        '',
+    notes:          'Converted from CRM lead: ' + leadId,
+    milestones:     {},
+    closedAt:       null,
+    isActive:       true,
+    status:         'contract',
+    createdAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:      uid,
+    updatedBy:      uid
+  }).then(function(dealRef) {
+    dealRef.update({ id: dealRef.id });
+    logAudit('deal.converted.from.lead', 'deals', dealRef.id, { leadId: leadId },
+      { clientName: clientName, agreedPrice: agreedPrice });
+
+    db.collection('commissions').add({
+      id:              '',
+      dealId:          dealRef.id,
+      agentId:         uid,
+      agentName:       agentName,
+      clientName:      clientName,
+      dealType:        dealType,
+      dealValue:       agreedPrice,
+      commissionRate:  defaultRate,
+      totalCommission: Math.round(commAmt),
+      agentShare:      agentShare,
+      companyShare:    coShare,
+      approvedBy:      '',
+      paidAt:          null,
+      status:          'pending',
+      isActive:        true,
+      createdAt:       firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:       firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy:       uid,
+      updatedBy:       uid
+    }).then(function(commRef) {
+      commRef.update({ id: commRef.id });
+      logAudit('commission.created', 'commissions', commRef.id, null,
+        { dealId: dealRef.id, agentShare: agentShare });
+    }).catch(function(e) { console.warn('[Commission] create error:', e); });
+
+    updateLeadStage(leadId, 'contract');
+    showToast(curLang === 'rw' ? 'Deal ifunguwe neza!' : 'Deal opened successfully!', 'success');
+    closeLeadDetail();
+    if (typeof loadDeals === 'function') loadDeals();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa — ongera ugerageze' : 'Error creating deal', 'error');
+    console.error('[convertLeadToDeal] error:', err);
+  });
+}
+
 </script>
 </body></html>
