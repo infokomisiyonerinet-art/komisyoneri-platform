@@ -6129,6 +6129,15 @@ html,body{overscroll-behavior-x:none}
       <button class="btn btn-outline" style="flex-shrink:0;padding:.48rem 1rem;font-size:.82rem" onclick="saveLeadFollowUp()" data-rw="Bika" data-en="Set">Set</button>
     </div>
 
+    <!-- Activity Feed (viewings + deals linked to this lead) -->
+    <div style="margin-bottom:.9rem">
+      <button onclick="_toggleLeadActivity()" style="background:none;border:none;padding:0;cursor:pointer;display:flex;align-items:center;gap:.4rem;font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;margin-bottom:.4rem;width:100%;text-align:left" id="ld-activity-toggle">
+        <span data-rw="IBIKORWA BYASHIZE" data-en="ACTIVITY">ACTIVITY</span>
+        <svg id="ld-activity-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div id="ld-activity-feed" style="display:none"></div>
+    </div>
+
     <!-- Advance Stage + Quick Actions -->
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem">
       <button class="btn btn-navy" id="ld-advance-btn" style="flex:1;min-width:120px;justify-content:center;font-size:.82rem" onclick="advanceLeadStage()">
@@ -24058,6 +24067,135 @@ function _updateLeadDetailButtons(lead) {
 }
 
 /* ══════════════════════════════════════════════════════
+   LEAD ACTIVITY FEED — viewings + deals linked to lead
+══════════════════════════════════════════════════════ */
+
+var _leadActivityLoaded = false;
+
+function _resetLeadActivityFeed() {
+  _leadActivityLoaded = false;
+  var feed = document.getElementById('ld-activity-feed');
+  var chev = document.getElementById('ld-activity-chevron');
+  if (feed) { feed.style.display = 'none'; feed.innerHTML = ''; }
+  if (chev) { chev.style.transform = ''; }
+}
+
+function _toggleLeadActivity() {
+  var feed    = document.getElementById('ld-activity-feed');
+  var chev    = document.getElementById('ld-activity-chevron');
+  var leadId  = (document.getElementById('ld-lead-id') || {}).value || '';
+  if (!feed) return;
+  var open = feed.style.display !== 'none';
+  if (open) {
+    feed.style.display = 'none';
+    if (chev) chev.style.transform = '';
+  } else {
+    feed.style.display = 'block';
+    if (chev) chev.style.transform = 'rotate(180deg)';
+    if (!_leadActivityLoaded && leadId) {
+      _loadLeadActivityFeed(leadId);
+    }
+  }
+}
+
+function _loadLeadActivityFeed(leadId) {
+  var feed = document.getElementById('ld-activity-feed');
+  if (!feed || typeof db === 'undefined') return;
+  feed.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.78rem;padding:.5rem">' + (curLang==='rw' ? 'Gutegura...' : 'Loading activity...') + '</div>';
+  _leadActivityLoaded = true;
+
+  var viewings = [];
+  var deals    = [];
+  var pending  = 2;
+
+  function done() {
+    pending--;
+    if (pending === 0) _renderLeadActivityFeed(viewings, deals);
+  }
+
+  db.collection('viewings').where('leadId','==',leadId).where('isActive','==',true)
+    .orderBy('scheduledAt','asc').limit(10).get()
+    .then(function(snap) {
+      snap.forEach(function(doc) { var d = doc.data(); d._docId = doc.id; viewings.push(d); });
+      done();
+    }).catch(done);
+
+  db.collection('deals').where('leadId','==',leadId).where('isActive','==',true)
+    .orderBy('createdAt','asc').limit(5).get()
+    .then(function(snap) {
+      snap.forEach(function(doc) { var d = doc.data(); d._docId = doc.id; deals.push(d); });
+      done();
+    }).catch(done);
+}
+
+function _renderLeadActivityFeed(viewings, deals) {
+  var feed = document.getElementById('ld-activity-feed');
+  if (!feed) return;
+
+  var items = [];
+
+  viewings.forEach(function(v) {
+    var dt = v.scheduledAt ? (v.scheduledAt.toDate ? v.scheduledAt.toDate() : new Date(v.scheduledAt)) : null;
+    var dtStr = dt ? dt.toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' }) : '—';
+    var statusColor = v.status === 'completed' ? '#16A34A' : v.status === 'cancelled' ? '#DC2626' : '#F59E0B';
+    items.push({
+      sort: dt ? dt.getTime() : 0,
+      html: '<div style="display:flex;gap:.6rem;align-items:flex-start;padding:.45rem 0;border-bottom:1px solid var(--light)">'
+        + '<div style="width:28px;height:28px;border-radius:50%;background:#7C3AED1a;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.85rem">&#128197;</div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:.78rem;font-weight:700;color:var(--navy)">' + (curLang==='rw' ? 'Inzibutso' : 'Viewing') + ' — ' + dtStr + '</div>'
+        + '<div style="display:flex;gap:.4rem;align-items:center;margin-top:.1rem">'
+        + '<span style="font-size:.68rem;font-weight:700;color:' + statusColor + ';background:' + statusColor + '1a;padding:.1rem .35rem;border-radius:10px">' + (v.status || 'scheduled') + '</span>'
+        + (v.agentCheckIn ? '<span style="font-size:.68rem;color:#16A34A">&#10003; GPS check-in</span>' : '')
+        + '</div>'
+        + '</div>'
+        + '</div>'
+    });
+  });
+
+  deals.forEach(function(d) {
+    var dt = d.createdAt ? (d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt)) : null;
+    var dtStr = dt ? dt.toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' }) : '—';
+    var stage = d.pipelineStage || 'new';
+    var stageC  = stage === 'closed_won' ? '#16A34A' : stage === 'closed_lost' ? '#DC2626' : '#C9A84C';
+    var stageBg = stage === 'closed_won' ? '#16A34A1a' : stage === 'closed_lost' ? '#DC26261a' : '#C9A84C1a';
+    items.push({
+      sort: dt ? dt.getTime() : 0,
+      html: '<div style="display:flex;gap:.6rem;align-items:flex-start;padding:.45rem 0;border-bottom:1px solid var(--light)">'
+        + '<div style="width:28px;height:28px;border-radius:50%;background:#C9A84C1a;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.85rem">&#128188;</div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:.78rem;font-weight:700;color:var(--navy)">' + (curLang==='rw' ? 'Deal' : 'Deal') + ' — ' + dtStr + '</div>'
+        + '<div style="display:flex;gap:.4rem;align-items:center;margin-top:.1rem">'
+        + '<span style="font-size:.68rem;font-weight:700;color:' + stageC + ';background:' + stageBg + ';padding:.1rem .35rem;border-radius:10px">' + stage.replace(/_/g,' ') + '</span>'
+        + (d.agreedPrice ? '<span style="font-size:.68rem;color:var(--muted)">RWF ' + Number(d.agreedPrice).toLocaleString() + '</span>' : '')
+        + '</div>'
+        + '</div>'
+        + '</div>'
+    });
+  });
+
+  if (items.length === 0) {
+    feed.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.78rem;padding:.7rem">'
+      + (curLang==='rw' ? 'Nta bikorwa bisangwa kuri uyu lead.' : 'No linked viewings or deals yet.') + '</div>';
+    return;
+  }
+
+  items.sort(function(a,b) { return a.sort - b.sort; });
+  feed.innerHTML = items.map(function(it) { return it.html; }).join('');
+}
+
+/* Patch: reset activity feed each time a lead detail opens */
+(function() {
+  var _origUpdateBtns = typeof _updateLeadDetailButtons !== 'undefined' ? _updateLeadDetailButtons : null;
+  if (_origUpdateBtns) {
+    _updateLeadDetailButtons = function(lead) {
+      _origUpdateBtns(lead);
+      _resetLeadActivityFeed();
+    };
+  }
+})();
+
+/* ══════════════════════════════════════════════════════
    DEAL DETAIL — CLOSE WON / CLOSE LOST / QUICK CONTACT
 ══════════════════════════════════════════════════════ */
 
@@ -24439,6 +24577,7 @@ var _inboxConversations = [];
 var _threadMessages = [];
 var _inboxUnread = 0;
 var _allStaffUsers = [];
+var _threadUnsub = null;
 
 /* ── Helpers ── */
 function _convId(uidA, uidB) {
@@ -24581,6 +24720,7 @@ function openThread(toId, toName) {
 }
 
 function closeThread() {
+  if (_threadUnsub) { try { _threadUnsub(); } catch(e){} _threadUnsub = null; }
   var panel = document.getElementById('thread-panel');
   if (panel) panel.style.display = 'none';
   _threadToId = '';
@@ -24593,18 +24733,35 @@ function loadThreadMessages() {
   var msgEl = document.getElementById('thread-messages');
   if (msgEl) msgEl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.8rem;padding:1rem">' + (curLang==='rw' ? 'Gutegura...' : 'Loading...') + '</div>';
 
+  if (_threadUnsub) { try { _threadUnsub(); } catch(e){} _threadUnsub = null; }
+
   var cid = _convId(currentUser.uid, _threadToId);
-  db.collection('messages')
+  var toId = _threadToId;
+  var uid  = currentUser.uid;
+
+  _threadUnsub = db.collection('messages')
     .where('conversationId','==',cid)
     .where('isActive','==',true)
     .orderBy('createdAt','asc')
     .limit(80)
-    .get()
-    .then(function(snap) {
+    .onSnapshot(function(snap) {
       _threadMessages = [];
       snap.forEach(function(doc){ var d = doc.data(); d._docId = doc.id; _threadMessages.push(d); });
       renderThreadMessages();
-    }).catch(function(){
+      /* Auto-mark newly arrived messages as read */
+      var batch = db.batch();
+      var hasUnread = false;
+      snap.docChanges().forEach(function(change) {
+        if (change.type === 'added') {
+          var d = change.doc.data();
+          if (d.toId === uid && !d.read) {
+            batch.update(change.doc.ref, { read: true, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: uid });
+            hasUnread = true;
+          }
+        }
+      });
+      if (hasUnread) batch.commit().catch(function(){});
+    }, function() {
       if (msgEl) msgEl.innerHTML = '<div style="text-align:center;color:var(--error);font-size:.8rem;padding:1rem">Error loading thread</div>';
     });
 }
