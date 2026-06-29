@@ -21852,5 +21852,98 @@ function loadLiveHomeStats() {
   };
 })();
 
+/* ══════════════════════════════════════════════════════════════════════
+   PHASE 8 — Firestore-Backed Agents Directory
+   Overrides loadAgentsPage() and filterAgentsPage() so the public
+   agents listing reads from Cloud Firestore instead of localStorage.
+   ══════════════════════════════════════════════════════════════════════ */
+
+var _fsAgents = []; /* module-level cache shared by load + filter */
+
+/* Map a Firestore user doc (role=agent) to the card-renderer format */
+function _normalizeAgentDoc(data, docId) {
+  var isVerified = data.isVerified || data.verified || false;
+  return {
+    id:           docId,
+    name:         data.displayName || data.name || data.email || 'Agent',
+    email:        data.email || '',
+    phone:        data.phone || '',
+    zone:         data.district || data.zone || data.branchId || '',
+    experience:   String(data.experience || data.yearsExp || '0'),
+    transport:    data.transport || '',
+    languages:    Array.isArray(data.languages) ? data.languages : ['Kinyarwanda'],
+    status:       isVerified ? 'Active' : 'Pending Verification',
+    rating:       data.rating || 0,
+    deals:        data.deals || data.dealCount || 0,
+    isDemo:       false
+  };
+}
+
+/* Update the three stat chips at the top of the agents page */
+function _updateAgentStats(agents) {
+  var active = agents.filter(function(a) { return a.status === 'Active'; });
+  var zoneSet = {};
+  agents.forEach(function(a) { if (a.zone) zoneSet[a.zone] = true; });
+  var tc = document.getElementById('agents-total-count');
+  var ac = document.getElementById('agents-active-count');
+  var zc = document.getElementById('agents-zones-count');
+  if (tc) tc.textContent = agents.length;
+  if (ac) ac.textContent = active.length;
+  if (zc) zc.textContent = Object.keys(zoneSet).length;
+}
+
+/* Override loadAgentsPage — last function declaration wins */
+function loadAgentsPage() {
+  var grid = document.getElementById('agents-page-grid');
+  if (!grid) return;
+
+  grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">'
+    + '<div class="es-icon" style="font-size:2rem">&#9203;</div>'
+    + '<div class="es-title">' + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Gutegereza...' : 'Loading agents...') + '</div></div>';
+
+  db.collection('users')
+    .where('role', 'in', ['agent', 'Agent'])
+    .where('isActive', '==', true)
+    .limit(60)
+    .get()
+    .then(function(snap) {
+      var agents = [];
+      snap.forEach(function(doc) { agents.push(_normalizeAgentDoc(doc.data(), doc.id)); });
+      if (agents.length === 0) {
+        agents = getDemoAgents().map(function(a) { a.isDemo = true; return a; });
+      }
+      _fsAgents = agents;
+      try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e) {}
+      _updateAgentStats(agents);
+      renderAgentsGrid(agents);
+    })
+    .catch(function(err) {
+      console.warn('[K-REOS] loadAgentsPage Firestore error:', err);
+      var fallback = [];
+      try { fallback = JSON.parse(localStorage.getItem('km_agents') || '[]'); } catch(e) {}
+      if (fallback.length === 0) fallback = getDemoAgents();
+      _fsAgents = fallback;
+      _updateAgentStats(fallback);
+      renderAgentsGrid(fallback);
+    });
+}
+
+/* Override filterAgentsPage to use _fsAgents cache */
+function filterAgentsPage() {
+  var inp = document.getElementById('agent-search-inp');
+  var sel = document.getElementById('agent-zone-filter');
+  var search = (inp ? inp.value : '').toLowerCase();
+  var zone   = sel ? sel.value : '';
+  var base   = _fsAgents.length > 0 ? _fsAgents : getDemoAgents();
+  var filtered = base.filter(function(a) {
+    var matchSearch = !search || (a.name || '').toLowerCase().includes(search) || (a.zone || '').toLowerCase().includes(search);
+    var matchZone   = !zone  || a.zone === zone;
+    return matchSearch && matchZone;
+  });
+  renderAgentsGrid(filtered);
+  var countEl = document.getElementById('agents-total-count');
+  if (countEl) countEl.textContent = filtered.length;
+}
+
 </script>
 </body></html>
