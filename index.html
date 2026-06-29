@@ -151,6 +151,16 @@
 <link rel="dns-prefetch" href="https://www.google-analytics.com">
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://browser.sentry-cdn.com">
+<!-- LCP image: hero background is the first paint — preload eliminates the render-blocking fetch -->
+<link rel="preload" href="/images/kigali-skyline.jpg" as="image" fetchpriority="high">
+<!-- Complete Firebase SDK preload set — storage + analytics were absent from original list -->
+<link rel="preload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js" as="script">
+<link rel="preload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js" as="script">
+<!-- EmailJS preload — contact form dependency, fetched early to avoid waterfall -->
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" as="script">
+<!-- Google Maps embed: property detail map panel -->
+<link rel="preconnect" href="https://maps.google.com">
+<link rel="dns-prefetch" href="https://maps.google.com">
 
 <!-- ── GOOGLE FONTS — combined single request, non-blocking (print→all swap trick) ── -->
 <link rel="stylesheet" media="print" onload="this.media='all'"
@@ -2328,7 +2338,7 @@ html,body{overscroll-behavior-x:none}
 <div id="online-bar" class="online-bar">✅ Internet yagarutse!</div>
 <nav class="topnav" role="navigation" aria-label="Urubuga rw'ingenzi">
   <div class="topnav-logo" onclick="go('home')">
-    <img src="/images/logo.png" width="63" height="42" decoding="async" style="height:42px;width:auto;object-fit:contain" alt="KOMISIYONERI Logo" onerror="this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.style.display='flex')">
+    <img src="/images/logo.png" width="63" height="42" decoding="async" fetchpriority="high" style="height:42px;width:auto;object-fit:contain" alt="KOMISIYONERI Logo" onerror="this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.style.display='flex')">
     <div class="logo-text"><strong>KOMISIYONERI</strong><span>Connectpro Services</span></div>
   </div>
   <div class="topnav-links">
@@ -9883,6 +9893,16 @@ function renderQsSuggestions(query, boxId) {
   box.style.display = 'block';
 }
 
+// ── Debounce utility — wraps any fn so it fires only after typing stops ──
+function _kmDebounce(fn, ms) {
+  var t;
+  return function() {
+    var a = arguments, c = this;
+    clearTimeout(t);
+    t = setTimeout(function() { fn.apply(c, a); }, ms || 250);
+  };
+}
+
 // ── Debounce handlers ──
 var _qsT, _mqsT;
 function ksHandleInput() {
@@ -12614,6 +12634,7 @@ function filterAgentsPage() {
   });
   renderAgentsGrid(filtered);
 }
+filterAgentsPage = _kmDebounce(filterAgentsPage, 220);
 
 // ═══════════════════════════════════════════════════════════
 //  ADMIN — Switch Tabs (Listings / Agents / Deals)
@@ -17625,6 +17646,7 @@ function filterPartners() {
   _partnerFilter.q        = ((g('partners-search')         || {}).value || '').trim();
   renderPartnerList();
 }
+filterPartners = _kmDebounce(filterPartners, 220);
 
 /* ── Register ── */
 function openPartnerRegister() {
@@ -20221,6 +20243,7 @@ function filterCrmLeads() {
   _crmSearch = si ? si.value : '';
   renderCrmLeads();
 }
+filterCrmLeads = _kmDebounce(filterCrmLeads, 220);
 
 // ── Lead Detail Modal ─────────────────────────────────
 var _ldCurrentLead = null;
@@ -20579,6 +20602,7 @@ function filterSites() {
   });
   renderSitesGrid(filtered);
 }
+filterSites = _kmDebounce(filterSites, 220);
 
 function renderSitesGrid(sites) {
   var grid = document.getElementById('sites-grid');

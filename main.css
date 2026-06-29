@@ -3687,3 +3687,27 @@ img[loading="lazy"]:not([src]){opacity:0}
   .ticker-track{animation:none}
   .h-pulse,.ai-rec-dot{animation:none}
 }
+
+/* ══════════════════════════════════════
+   PERFORMANCE v7 — Rendering Optimizations
+══════════════════════════════════════ */
+
+/* Property cards: isolate layout + style recalcs so card grid repaints don't
+   cascade to the rest of the page. Safe — cards have no overflow-visible children. */
+.p-card{contain:layout style}
+
+/* Modal overlays: once open they're the only interactive layer;
+   contain their own paint to avoid repainting the page behind them */
+.modal-wrap{contain:layout style}
+
+/* Topnav is fixed and painted independently — promote to its own composite
+   layer so page scrolls don't trigger nav repaints */
+.topnav{transform:translateZ(0)}
+
+/* Explicitly declare transitions as specific properties instead of 'all'
+   for elements that are hovered frequently — avoids watching every property */
+.p-card,.card{transition:transform .22s cubic-bezier(.4,0,.2,1),box-shadow .22s cubic-bezier(.4,0,.2,1),border-color .22s cubic-bezier(.4,0,.2,1),opacity .22s cubic-bezier(.4,0,.2,1)}
+
+/* On hover: GPU hint for the transform about to happen */
+.p-card:hover,.card-hover:hover{will-change:transform}
+.p-card:not(:hover),.card-hover:not(:hover){will-change:auto}
