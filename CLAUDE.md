@@ -155,6 +155,17 @@ Improve. Simplify. Integrate. Optimize. Professionalize.
 ## 2. TECHNOLOGY STACK
 
 ```
+Priority Order
+
+1. Critical bug fixes
+2. Enterprise transformation and platform optimization
+3. Performance improvements
+4. Mobile-first improvements
+5. UX/UI modernization
+6. Search readiness
+7. Remaining roadmap phases
+
+Do not automatically continue roadmap phases if higher-priority enterprise optimization tasks have been assigned by the user.
 Frontend:   Vanilla HTML5 + CSS3 + JavaScript ES6+  (SPA — single index.html)
 Styling:    Custom CSS Variables                     (NO Tailwind, NO Bootstrap)
 Firebase:   Compat SDK v10.7.1 via CDN              (NO bundler, NO import/export)
