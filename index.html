@@ -4158,16 +4158,23 @@ html,body{overscroll-behavior-x:none}
     </div>
   </div>
   <div class="crm-wrap">
+    <!-- Header -->
     <div class="crm-header">
       <div>
         <p style="color:var(--muted);font-size:.82rem;margin-top:.2rem" data-rw="Kanda ku lead kugirango ubone ibirenzeho n'ukongeraho amakuru" data-en="Click any lead card to view details and update progress">Click any lead to view details and update progress</p>
       </div>
-      <button class="btn btn-navy btn-sm" onclick="openLead()">
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span data-rw="Ikibazo Gishya" data-en="New Lead">New Lead</span>
-      </button>
+      <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+        <div class="crm-view-toggle">
+          <button id="crm-vbtn-list" class="crm-vbtn active" onclick="toggleCrmView('list')" title="List View" data-rw="Urutonde" data-en="List">☰ List</button>
+          <button id="crm-vbtn-kanban" class="crm-vbtn" onclick="toggleCrmView('kanban')" title="Kanban Board" data-rw="Kanban" data-en="Kanban">⬛ Kanban</button>
+        </div>
+        <button class="btn btn-navy btn-sm" onclick="openLead()">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span data-rw="Ikibazo Gishya" data-en="New Lead">New Lead</span>
+        </button>
+      </div>
     </div>
-    <!-- Stats -->
+    <!-- Stats Row 1 -->
     <div class="crm-stats">
       <div class="crm-stat">
         <div class="crm-stat-v" id="crm-stat-total">0</div>
@@ -4186,20 +4193,41 @@ html,body{overscroll-behavior-x:none}
         <div class="crm-stat-l" data-rw="Byarangiye" data-en="Won">Won</div>
       </div>
     </div>
-    <!-- Filters -->
+    <!-- Stats Row 2 — Pipeline Value + Win Rate -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem">
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="crm-stat-pipeline" style="font-size:1rem;color:#7C3AED">RWF —</div>
+        <div class="crm-stat-l" data-rw="Agaciro k'Ingamba" data-en="Pipeline Value">Pipeline Value</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="crm-stat-winrate" style="color:#16A34A">—%</div>
+        <div class="crm-stat-l" data-rw="Igipimo Cyo Gutsinda" data-en="Win Rate">Win Rate</div>
+      </div>
+    </div>
+    <!-- Priority Filter Chips -->
+    <div class="crm-priority-filters">
+      <span class="crm-pf-label" data-rw="Importance:" data-en="Priority:">Priority:</span>
+      <button id="crm-pchip-all" class="crm-pchip crm-pchip-all active" onclick="filterCrmPriority('all')" data-rw="Zose" data-en="All">All</button>
+      <button id="crm-pchip-hot" class="crm-pchip crm-pchip-hot" onclick="filterCrmPriority('hot')">🔥 Hot</button>
+      <button id="crm-pchip-warm" class="crm-pchip crm-pchip-warm" onclick="filterCrmPriority('warm')">🌡️ Warm</button>
+      <button id="crm-pchip-cold" class="crm-pchip crm-pchip-cold" onclick="filterCrmPriority('cold')">🧊 Cold</button>
+    </div>
+    <!-- Stage + Search Filters -->
     <div class="crm-filters">
       <select id="crm-filter-stage" onchange="filterCrmLeads()">
         <option value="">-- Ingamba Zose / All Stages --</option>
       </select>
       <input type="text" id="crm-search" placeholder="Shakisha client... / Search..." oninput="filterCrmLeads()">
     </div>
-    <!-- Lead List -->
+    <!-- Lead List (default view) -->
     <div class="crm-list" id="crm-lead-list">
       <div class="crm-empty">
         <div class="crm-empty-icon">📋</div>
         <div class="crm-empty-title" data-rw="Gutegura leads..." data-en="Loading leads...">Loading leads...</div>
       </div>
     </div>
+    <!-- Kanban Board (hidden by default) -->
+    <div id="crm-kanban" class="crm-kanban" style="display:none"></div>
   </div>
 </div>
 
@@ -11067,7 +11095,10 @@ function submitLead() {
         budgetMin:     lead.budgetMin,
         budgetMax:     lead.budgetMax,
         notes:         lead.notes,
-        source:        'website',
+        source:      (function(){var u={};try{u=JSON.parse(sessionStorage.getItem('km_utm')||'{}');}catch(e){}return u.utm_source||'website';}()),
+        utmSource:   (function(){var u={};try{u=JSON.parse(sessionStorage.getItem('km_utm')||'{}');}catch(e){}return u.utm_source||'';}()),
+        utmMedium:   (function(){var u={};try{u=JSON.parse(sessionStorage.getItem('km_utm')||'{}');}catch(e){}return u.utm_medium||'';}()),
+        utmCampaign: (function(){var u={};try{u=JSON.parse(sessionStorage.getItem('km_utm')||'{}');}catch(e){}return u.utm_campaign||'';}()),
         pipelineStage: 'new',
         priority:      'normal',
         contactLog:    [],
@@ -19918,6 +19949,279 @@ function saveLeadFollowUp() {
 }
 
 /* ══════════════════════════════════════════════════════
+   CRM PHASE 2 ENHANCEMENTS
+   Kanban | Priority | Quick Actions | UTM | Days-in-Stage
+══════════════════════════════════════════════════════ */
+
+// ── Phase 2 State ──────────────────────────────────────
+var _crmView     = 'list';  // 'list' | 'kanban'
+var _crmPriority = 'all';   // 'all' | 'hot' | 'warm' | 'cold'
+
+// ── UTM Attribution Capture ────────────────────────────
+var _crmUtm = (function() {
+  var stored = {};
+  try { stored = JSON.parse(sessionStorage.getItem('km_utm') || '{}'); } catch(e) {}
+  if (!stored.utm_source) {
+    var params = new URLSearchParams(window.location.search);
+    var utm = {};
+    ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].forEach(function(k) {
+      if (params.get(k)) utm[k] = params.get(k);
+    });
+    if (Object.keys(utm).length) {
+      try { sessionStorage.setItem('km_utm', JSON.stringify(utm)); } catch(e) {}
+      return utm;
+    }
+  }
+  return stored;
+})();
+
+// ── Lead Priority ──────────────────────────────────────
+function getLeadPriority(lead) {
+  var hotStages  = ['offer_submitted','negotiation','due_diligence','financing','contract','closing'];
+  var warmStages = ['qualified','viewing_scheduled','viewing_completed','contacted'];
+  var stage = lead.pipelineStage || 'new';
+  if (hotStages.indexOf(stage) > -1) return 'hot';
+  if (warmStages.indexOf(stage) > -1) return 'warm';
+  var budget = parseInt(lead.budgetMax || lead.budgetMin || 0);
+  if (budget >= 50000000) return 'hot';
+  if (budget >= 15000000) return 'warm';
+  return 'cold';
+}
+
+// ── Days in Stage ──────────────────────────────────────
+function getDaysInStage(lead) {
+  var ref = null;
+  if (lead.stageChangedAt) {
+    ref = typeof lead.stageChangedAt.toDate === 'function'
+      ? lead.stageChangedAt.toDate() : new Date(lead.stageChangedAt);
+  } else if (lead.updatedAt) {
+    ref = typeof lead.updatedAt.toDate === 'function'
+      ? lead.updatedAt.toDate() : new Date(lead.updatedAt);
+  } else if (lead.createdAt) {
+    ref = typeof lead.createdAt.toDate === 'function'
+      ? lead.createdAt.toDate() : new Date(lead.createdAt);
+  }
+  if (!ref || isNaN(ref.getTime())) return 0;
+  return Math.max(0, Math.floor((Date.now() - ref.getTime()) / 86400000));
+}
+
+// ── View Toggle ────────────────────────────────────────
+function toggleCrmView(view) {
+  _crmView = view;
+  var listEl    = document.getElementById('crm-lead-list');
+  var kanbanEl  = document.getElementById('crm-kanban');
+  var btnList   = document.getElementById('crm-vbtn-list');
+  var btnKanban = document.getElementById('crm-vbtn-kanban');
+  if (!listEl || !kanbanEl) return;
+  if (view === 'kanban') {
+    listEl.style.display   = 'none';
+    kanbanEl.style.display = 'flex';
+    if (btnList)   btnList.classList.remove('active');
+    if (btnKanban) btnKanban.classList.add('active');
+    renderCrmKanban();
+  } else {
+    listEl.style.display   = '';
+    kanbanEl.style.display = 'none';
+    if (btnList)   btnList.classList.add('active');
+    if (btnKanban) btnKanban.classList.remove('active');
+    renderCrmLeads();
+  }
+}
+
+// ── Priority Filter ─────────────────────────────────────
+function filterCrmPriority(priority) {
+  _crmPriority = priority;
+  document.querySelectorAll('.crm-pchip').forEach(function(c) { c.classList.remove('active'); });
+  var chip = document.getElementById('crm-pchip-' + priority);
+  if (chip) chip.classList.add('active');
+  if (_crmView === 'kanban') renderCrmKanban();
+  else renderCrmLeads();
+}
+
+// ── Combined Lead Filter Helper ─────────────────────────
+function _getCrmFiltered() {
+  return _crmLeads.filter(function(l) {
+    var matchStage    = !_crmFilter || l.pipelineStage === _crmFilter;
+    var name          = (l.clientName || l.name || '').toLowerCase();
+    var phone         = (l.clientPhone || l.phone || '').toLowerCase();
+    var matchSearch   = !_crmSearch
+      || name.indexOf(_crmSearch.toLowerCase()) > -1
+      || phone.indexOf(_crmSearch.toLowerCase()) > -1;
+    var matchPriority = _crmPriority === 'all' || getLeadPriority(l) === _crmPriority;
+    return matchStage && matchSearch && matchPriority;
+  });
+}
+
+// ── Kanban Board Render ─────────────────────────────────
+function renderCrmKanban() {
+  var board = document.getElementById('crm-kanban');
+  if (!board) return;
+  var filtered = _getCrmFiltered();
+  // Show only first 12 stages on kanban (exclude closed_lost)
+  var visibleStages = CRM_STAGES.slice(0, 12);
+  var html = '';
+  visibleStages.forEach(function(stage) {
+    var cards = filtered.filter(function(l) {
+      return (l.pipelineStage || 'new') === stage.key;
+    });
+    var totalVal = cards.reduce(function(sum, l) {
+      return sum + parseInt(l.budgetMax || l.budgetMin || 0);
+    }, 0);
+    html += '<div class="crm-col">';
+    html += '<div class="crm-col-hdr">'
+      + '<span style="border-left:3px solid ' + stage.color + ';padding-left:.35rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px">'
+      + (curLang === 'rw' ? stage.labelRW : stage.labelEN) + '</span>'
+      + '<span class="crm-col-count">' + cards.length + '</span>'
+      + '</div>';
+    if (totalVal > 0) {
+      html += '<div class="crm-col-value">' + fmtRWF(totalVal) + '</div>';
+    }
+    if (cards.length === 0) {
+      html += '<div style="text-align:center;padding:1.5rem .5rem;color:var(--muted);font-size:.7rem">—</div>';
+    } else {
+      cards.forEach(function(lead) {
+        var leadId   = lead._docId || lead.id || '';
+        var name     = lead.clientName || lead.name || 'Ntazwi';
+        var phone    = lead.clientPhone || lead.phone || '';
+        var days     = getDaysInStage(lead);
+        var priority = getLeadPriority(lead);
+        var pLabels  = {hot: '🔥 Hot', warm: '🌡️ Warm', cold: '🧊 Cold'};
+        html += '<div class="crm-kcard" style="border-left-color:' + stage.color
+          + '" onclick="openLeadDetail(\'' + leadId + '\')">'
+          + '<div class="crm-kcard-name">' + name + '</div>'
+          + '<div class="crm-kcard-meta">'
+          + (phone ? '📞 ' + phone + '<br>' : '')
+          + (lead.zone || lead.district ? '📍 ' + (lead.zone || lead.district) : '')
+          + '</div>'
+          + '<div class="crm-kcard-footer">'
+          + '<span class="crm-priority crm-priority-' + priority + '">' + pLabels[priority] + '</span>'
+          + '<span class="crm-days-chip' + (days > 7 ? ' overdue' : '') + '">' + days + 'd</span>'
+          + '</div>'
+          + '</div>';
+      });
+    }
+    html += '</div>';
+  });
+  board.innerHTML = html;
+}
+
+// ── Enhanced renderCrmLeads (overrides original) ────────
+function renderCrmLeads() {
+  if (_crmView === 'kanban') { renderCrmKanban(); return; }
+  var list = document.getElementById('crm-lead-list');
+  if (!list) return;
+  var now      = Date.now();
+  var filtered = _getCrmFiltered();
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="crm-empty">'
+      + '<div class="crm-empty-icon">🔍</div>'
+      + '<div class="crm-empty-title">' + (curLang === 'rw' ? 'Nta leads zibonetse' : 'No leads found') + '</div>'
+      + '<div style="font-size:.78rem;color:var(--muted);margin-top:.3rem">'
+      + (curLang === 'rw' ? 'Hindura filters cyangwa wongere lead nshya' : 'Adjust filters or add a new lead') + '</div>'
+      + '</div>';
+    return;
+  }
+
+  var pLabels = {hot: '🔥 Hot', warm: '🌡️ Warm', cold: '🧊 Cold'};
+
+  list.innerHTML = filtered.map(function(lead) {
+    var stage      = getCrmStage(lead.pipelineStage || 'new');
+    var labelStage = curLang === 'rw' ? stage.labelRW : stage.labelEN;
+    var name       = lead.clientName || lead.name || 'Ntazwi';
+    var phone      = lead.clientPhone || lead.phone || '';
+    var zone       = lead.zone || lead.district || '—';
+    var intent     = lead.action || lead.type || '—';
+    var budMin     = lead.budgetMin ? parseInt(lead.budgetMin).toLocaleString() + ' RWF' : '';
+    var budMax     = lead.budgetMax ? parseInt(lead.budgetMax).toLocaleString() + ' RWF' : '';
+    var budget     = (budMin || budMax) ? (budMin || '?') + ' – ' + (budMax || '?') : '';
+    var agName     = lead.agentName || '';
+    var leadId     = lead._docId || lead.id || '';
+    var days       = getDaysInStage(lead);
+    var priority   = getLeadPriority(lead);
+    var waNum      = phone.replace(/[^0-9]/g, '');
+    var waMsg      = encodeURIComponent('Muraho ' + name + ', ndi KOMISIYONERI agent. Ndashaka kukwunganira mu gushakisha inzu. Mbwira tuganire?');
+
+    var cardClass = 'crm-card';
+    if (lead.nextFollowUp) {
+      var fuMs = 0;
+      if (typeof lead.nextFollowUp.toDate === 'function') {
+        fuMs = lead.nextFollowUp.toDate().getTime();
+      } else {
+        fuMs = new Date(lead.nextFollowUp).getTime();
+      }
+      if (fuMs > 0 && fuMs < now) cardClass += ' crm-overdue';
+      else if (fuMs > 0 && fuMs - now < 86400000) cardClass += ' crm-due-today';
+    }
+
+    var fuLabel = '';
+    if (lead.nextFollowUp) {
+      var fuD = typeof lead.nextFollowUp.toDate === 'function'
+        ? lead.nextFollowUp.toDate() : new Date(lead.nextFollowUp);
+      fuLabel = '<span title="Next follow-up">🔔 ' + fuD.toLocaleDateString() + '</span>';
+    }
+
+    return '<div class="' + cardClass + '" style="border-left-color:' + stage.color + '">'
+      + '<div class="crm-card-header" onclick="openLeadDetail(\'' + leadId + '\')" style="cursor:pointer">'
+      +   '<div class="crm-card-name">' + name
+      +     '<span class="crm-days-chip' + (days > 7 ? ' overdue' : '') + '">' + days + 'd</span>'
+      +   '</div>'
+      +   '<div style="display:flex;gap:.3rem;align-items:center;flex-shrink:0">'
+      +     '<span class="crm-priority crm-priority-' + priority + '">' + pLabels[priority] + '</span>'
+      +     '<span class="crm-stage-badge" style="background:' + stage.color + '">' + labelStage + '</span>'
+      +   '</div>'
+      + '</div>'
+      + '<div class="crm-card-meta" onclick="openLeadDetail(\'' + leadId + '\')" style="cursor:pointer">'
+      +   (phone ? '<span>📞 ' + phone + '</span>' : '')
+      +   '<span>📍 ' + zone + '</span>'
+      +   '<span>🏠 ' + intent + '</span>'
+      +   (budget ? '<span>💰 ' + budget + '</span>' : '')
+      +   (agName ? '<span>👔 ' + agName + '</span>' : '')
+      +   fuLabel
+      + '</div>'
+      + '<div class="crm-card-actions">'
+      +   (phone ? '<a class="crm-act-btn crm-act-btn-call" href="tel:' + phone + '" onclick="event.stopPropagation()">📞 '
+            + (curLang === 'rw' ? 'Hamagara' : 'Call') + '</a>' : '')
+      +   (waNum ? '<a class="crm-act-btn crm-act-btn-wa" href="https://wa.me/' + waNum + '?text=' + waMsg
+            + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">💬 WhatsApp</a>' : '')
+      +   '<button class="crm-act-btn" style="margin-left:auto" onclick="event.stopPropagation();openLeadDetail(\'' + leadId + '\')">'
+      +     (curLang === 'rw' ? 'Reba' : 'Details') + ' →'
+      +   '</button>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+// ── Enhanced updateCrmStats (overrides original) ────────
+function updateCrmStats() {
+  var total      = _crmLeads.length;
+  var newCt      = _crmLeads.filter(function(l) { return !l.pipelineStage || l.pipelineStage === 'new'; }).length;
+  var activeKeys = ['contacted','qualified','viewing_scheduled','viewing_completed',
+                    'offer_submitted','negotiation','due_diligence','financing','contract','closing'];
+  var active     = _crmLeads.filter(function(l) { return activeKeys.indexOf(l.pipelineStage) > -1; }).length;
+  var won        = _crmLeads.filter(function(l) { return l.pipelineStage === 'closed_won'; }).length;
+
+  var pipelineVal = _crmLeads.reduce(function(sum, l) {
+    if (l.pipelineStage === 'closed_won' || l.pipelineStage === 'closed_lost') return sum;
+    return sum + parseInt(l.budgetMax || l.budgetMin || 0);
+  }, 0);
+
+  var closedCt = _crmLeads.filter(function(l) {
+    return l.pipelineStage === 'closed_won' || l.pipelineStage === 'closed_lost';
+  }).length;
+  var winRate = closedCt > 0 ? Math.round((won / closedCt) * 100) : 0;
+
+  var e = document.getElementById.bind(document);
+  if (e('crm-stat-total'))    e('crm-stat-total').textContent    = total;
+  if (e('crm-stat-new'))      e('crm-stat-new').textContent      = newCt;
+  if (e('crm-stat-active'))   e('crm-stat-active').textContent   = active;
+  if (e('crm-stat-won'))      e('crm-stat-won').textContent      = won;
+  if (e('crm-stat-pipeline')) e('crm-stat-pipeline').textContent = fmtRWF(pipelineVal);
+  if (e('crm-stat-winrate'))  e('crm-stat-winrate').textContent  = winRate + '%';
+  if (e('dash-kpi-leads'))    e('dash-kpi-leads').textContent    = total;
+}
+
+/* ══════════════════════════════════════════════════════
    SITE DEVELOPMENT MODULE — Phase A JavaScript
    Collections: sites, plots, site_enquiries
 ══════════════════════════════════════════════════════ */
@@ -20663,16 +20967,15 @@ function submitSiteForm() {
   });
 }
 
-// ── Hook loadSites on page navigation ───────────────
+// ── Hook page loaders on navigation ─────────────────
 (function() {
-  var _origGo = window.go;
-  // Override go() to trigger module loaders
   var _realGo = typeof go === 'function' ? go : null;
   if (_realGo) {
     var _goOrig = go;
     go = function(name) {
       _goOrig(name);
-      if (name === 'sites')  { setTimeout(loadSites, 80); }
+      if (name === 'sites') { setTimeout(loadSites, 80); }
+      if (name === 'crm')   { setTimeout(loadCRM, 80); }
     };
   }
 })();
