@@ -21819,6 +21819,449 @@ function loadLiveHomeStats() {
   });
 })();
 
+/* ══════════════════════════════════════════════════════════════════════
+   PHASE 9 — Firestore-Backed Property Submission & Admin Approval
+   Overrides submitProperty(), adminRender(), adminApprove(),
+   adminReject(), adminDelete() so the entire property lifecycle
+   (submit → review → approve → publish) is persisted in Firestore.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Convert localStorage propData format to Firestore schema and write doc */
+function _savePropToFirestoreFS(propData, status, userId, isVerified) {
+  if (typeof db === 'undefined') return Promise.resolve(null);
+  var imgs = [propData.img1, propData.img2, propData.img3].filter(function(u) {
+    return u && u.length < 2000; /* skip base64 blobs — too large for Firestore */
+  });
+  var fsDoc = {
+    id:          '',
+    title:       propData.title       || '',
+    type:        propData.type        || '',
+    category:    propData.service === 'Gukodesha' ? 'rent' : 'sale',
+    district:    propData.district    || '',
+    sector:      propData.sector      || '',
+    price:       parseInt(propData.price)    || 0,
+    bedrooms:    parseInt(propData.beds)     || 0,
+    bathrooms:   parseInt(propData.baths)    || 0,
+    area:        propData.size        || '',
+    description: propData.desc        || '',
+    images:      imgs,
+    tour3dUrl:   propData.tour3dUrl   || '',
+    amenities:   propData.amenities   || [],
+    yearBuilt:   propData.yearBuilt   || '',
+    agentId:     userId               || '',
+    ownerId:     userId               || '',
+    ownerEmail:  propData.ownerEmail  || '',
+    ownerName:   propData.owner       || '',
+    contact:     propData.contact     || '',
+    verified:    !!isVerified,
+    featured:    false,
+    rating:      isVerified ? 5.0 : 0,
+    reviews:     0,
+    status:      status,
+    isActive:    true,
+    createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:   userId || '',
+    updatedBy:   userId || ''
+  };
+  if (propData.latitude && propData.longitude) {
+    fsDoc.coordinates = { lat: propData.latitude, lng: propData.longitude };
+  }
+  return db.collection('properties').add(fsDoc).then(function(ref) {
+    return ref.update({ id: ref.id }).then(function() { return ref.id; });
+  });
+}
+
+/* Finish agent submit: save to localStorage + reset button + toast */
+function _agentSubmitFinish(pd) {
+  var ps = []; try { ps = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+  ps.push(pd);
+  try { localStorage.setItem('km_properties', JSON.stringify(ps)); } catch(e){}
+  var sb = document.getElementById('submit-prop-btn'), sl = document.getElementById('submit-prop-label');
+  if (sb) { sb.disabled = false; sb.classList.remove('btn-loading'); if (sl) sl.textContent = (curLang==='rw'?'Ohereza Imitungo':'Submit Property'); }
+  closeAddProperty();
+  showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Admin azayisuzuma vuba.' : '✅ Property submitted for review!');
+}
+
+/* Base64 fallback that accepts a callback instead of always saving directly */
+function _submitPropertyBase64Compat(fileList, propData, callback) {
+  var images = [], done = 0;
+  fileList.forEach(function(f, i) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      images[i] = e.target.result; done++;
+      if (done === fileList.length) {
+        propData.img1 = images[0] || '';
+        propData.img2 = images[1] || '';
+        propData.img3 = images[2] || '';
+        callback();
+      }
+    };
+    reader.readAsDataURL(f.files[0]);
+  });
+}
+
+/* Override submitProperty — last declaration wins; adds Firestore writes */
+function submitProperty() {
+  var g = function(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+
+  if (!currentUser) {
+    showToast(curLang==='rw' ? 'Injira mbere yo gushyiraho imitungo!' : 'Please login first!', 'warn');
+    closeAddProperty(); go('auth'); return;
+  }
+  var isAdmin = (
+    currentUser.email === 'info.komisiyoneri.net@gmail.com' ||
+    currentUser.role  === 'Admin' || currentUser.role === 'admin' ||
+    currentUser.role  === 'super_admin'
+  );
+  if (!isAdmin && currentUser.role !== 'Agent' && currentUser.role !== 'agent') {
+    showToast(curLang==='rw'
+      ? '🔒 Agents bemewe gusa ni bo bashobora ohereza imitungo.'
+      : '🔒 Only approved agents can submit listings.', 'warn');
+    return;
+  }
+
+  /* ── EDIT MODE ── */
+  if (_editPropId) {
+    var editId = _editPropId;
+    var eProps = []; try { eProps = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+    var ei = -1;
+    for (var i=0; i<eProps.length; i++) { if (String(eProps[i].id)===String(editId)) { ei=i; break; } }
+    if (ei===-1) { showToast('Imitungo ntiboneka.'); closeAddProperty(); return; }
+    if (eProps[ei].status !== 'Pending') {
+      showToast(curLang==='rw'?'Imitungo yemejwe ntishobora guhindurwa.':'Only pending listings can be edited.','warn');
+      closeAddProperty(); return;
+    }
+    var u = eProps[ei];
+    u.type=g('prop-type')||u.type; u.service=g('prop-service')||u.service;
+    u.district=g('prop-district')||u.district; u.sector=g('prop-sector');
+    u.price=g('prop-price')||u.price; u.beds=g('prop-beds'); u.baths=g('prop-baths');
+    u.size=g('prop-size'); u.desc=g('prop-desc');
+    u.contact=g('prop-contact')||u.contact; u.phone=g('prop-contact')||u.phone;
+    u.title=g('prop-title')||(u.type+(u.district?' — '+u.district:''));
+    u.yearBuilt=g('prop-year'); u.titleDeed=g('prop-deed');
+    u.floors=g('prop-floors'); u.parking=g('prop-parking');
+    u.amenities=['garden','pool','garage','solar','fibre','security','generator'].filter(function(a){ var el=document.getElementById('am-'+a); return el&&el.checked; });
+    u.docLuc=g('prop-doc-luc'); u.docId=g('prop-doc-id'); u.docPermit=g('prop-doc-permit');
+    u.latitude=g('prop-lat')?parseFloat(g('prop-lat')):(u.latitude||null);
+    u.longitude=g('prop-lng')?parseFloat(g('prop-lng')):(u.longitude||null);
+    eProps[ei]=u;
+    try { localStorage.setItem('km_properties', JSON.stringify(eProps)); } catch(e){}
+    if (u._fsId && typeof db !== 'undefined') {
+      db.collection('properties').doc(u._fsId).update({
+        type:u.type, category:u.service==='Gukodesha'?'rent':'sale',
+        district:u.district, sector:u.sector||'', price:parseInt(u.price)||0,
+        bedrooms:parseInt(u.beds)||0, bathrooms:parseInt(u.baths)||0,
+        area:u.size||'', description:u.desc||'', title:u.title||'',
+        amenities:u.amenities||[],
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
+      }).catch(function(){});
+    }
+    closeAddProperty();
+    showToast(curLang==='rw'?'✅ Imitungo yahinduwe! Irasabwa kwemezwa.':'✅ Listing updated! Awaiting approval.');
+    return;
+  }
+
+  if (!g('prop-price')) { showToast(curLang==='rw'?'Shyira igiciro!':'Enter price!','error'); return; }
+  if (!g('prop-type'))  { showToast('Hitamo ubwoko!'); return; }
+  if (!g('prop-district')) { showToast('Hitamo akarere!'); return; }
+
+  /* ── ADMIN PATH ── */
+  if (isAdmin) {
+    var videoUrl = convertYouTubeURL(g('prop-video'));
+    var newProp = {
+      id:Date.now(), type:g('prop-type'), service:g('prop-service'),
+      district:g('prop-district'), sector:g('prop-sector'), price:g('prop-price'),
+      beds:g('prop-beds'), baths:g('prop-baths'), size:g('prop-size'), desc:g('prop-desc'),
+      contact:g('prop-contact')||'+250 783 177 254',
+      img1:g('prop-img1'), img2:g('prop-img2'), img3:g('prop-img3'),
+      video:videoUrl, tour3dUrl:g('prop-tour3d'),
+      title:g('prop-title')||(g('prop-type')+(g('prop-district')?' — '+g('prop-district'):'')),
+      phone:g('prop-contact')||'+250 783 177 254',
+      yearBuilt:g('prop-year'), titleDeed:g('prop-deed'), floors:g('prop-floors'), parking:g('prop-parking'),
+      amenities:['garden','pool','garage','solar','fibre','security','generator'].filter(function(a){ var el=document.getElementById('am-'+a); return el&&el.checked; }),
+      docLuc:g('prop-doc-luc'), docId:g('prop-doc-id'), docPermit:g('prop-doc-permit'),
+      latitude:g('prop-lat')?parseFloat(g('prop-lat')):null,
+      longitude:g('prop-lng')?parseFloat(g('prop-lng')):null,
+      owner:'KOMISIYONERI', ownerEmail:currentUser.email,
+      verified:true, rating:5.0, reviews:0,
+      date:new Date().toISOString(), status:'Approved'
+    };
+    var _adminFinish = function(fsId) {
+      if (fsId) newProp._fsId = fsId;
+      var ps=[]; try{ps=JSON.parse(localStorage.getItem('km_properties')||'[]');}catch(e){}
+      ps.push(newProp); try{localStorage.setItem('km_properties',JSON.stringify(ps));}catch(e){}
+      invalidatePropsCache();
+      closeAddProperty(); loadApprovedProperties();
+      logAudit('property.created', 'properties', fsId||String(newProp.id), null, {title:newProp.title, status:'approved'});
+      showToast('✅ Imitungo yashyizweho kandi yemejwe!');
+    };
+    _savePropToFirestoreFS(newProp, 'approved', currentUser.uid, true)
+      .then(_adminFinish).catch(function(){ _adminFinish(null); });
+    return;
+  }
+
+  /* ── AGENT PATH ── */
+  var file1El=document.getElementById('prop-file1');
+  var file2El=document.getElementById('prop-file2');
+  var file3El=document.getElementById('prop-file3');
+  if (!(file1El && file1El.files && file1El.files[0])) {
+    showToast(curLang==='rw'?'Shyiramo nibura ifoto imwe!':'Upload at least one photo!','error'); return;
+  }
+  showToast(curLang==='rw'?'Amafoto arakopiwa...':'Uploading photos...');
+  var _sb=document.getElementById('submit-prop-btn');
+  var _sl=document.getElementById('submit-prop-label');
+  if(_sb){_sb.disabled=true;_sb.classList.add('btn-loading');if(_sl)_sl.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Kopiwa...':'Uploading...');}
+
+  var propId=Date.now();
+  var fileList=[file1El,file2El,file3El].filter(function(f){return f&&f.files&&f.files[0];});
+  var pd={
+    id:propId, type:g('prop-type'), service:g('prop-service'),
+    district:g('prop-district'), sector:g('prop-sector'), price:g('prop-price'),
+    beds:g('prop-beds'), baths:g('prop-baths'), size:g('prop-size'), desc:g('prop-desc'),
+    contact:g('prop-contact')||(currentUser.phone||'+250 783 177 254'),
+    img1:'', img2:'', img3:'', video:'', tour3dUrl:'',
+    title:g('prop-title')||(g('prop-type')+(g('prop-district')?' — '+g('prop-district'):'')),
+    phone:g('prop-contact')||(currentUser.phone||'+250 783 177 254'),
+    yearBuilt:g('prop-year'), titleDeed:g('prop-deed'), floors:g('prop-floors'), parking:g('prop-parking'),
+    amenities:['garden','pool','garage','solar','fibre','security','generator'].filter(function(a){var el=document.getElementById('am-'+a);return el&&el.checked;}),
+    docLuc:g('prop-doc-luc'), docId:g('prop-doc-id'), docPermit:g('prop-doc-permit'),
+    latitude:g('prop-lat')?parseFloat(g('prop-lat')):null,
+    longitude:g('prop-lng')?parseFloat(g('prop-lng')):null,
+    owner:currentUser.name||currentUser.displayName||'', ownerEmail:currentUser.email,
+    date:new Date().toISOString(), status:'Pending'
+  };
+
+  var _doneUpload = function() {
+    _savePropToFirestoreFS(pd, 'pending', currentUser.uid, false).then(function(fsId) {
+      if (fsId) pd._fsId = fsId;
+      logAudit('property.submitted', 'properties', fsId||String(pd.id), null, {title:pd.title, status:'pending'});
+      _agentSubmitFinish(pd);
+    }).catch(function(){ _agentSubmitFinish(pd); });
+  };
+
+  if (typeof storage !== 'undefined' && storage) {
+    var ups = fileList.map(function(f,i) {
+      var file=f.files[0];
+      var ref=storage.ref('properties/'+propId+'/img'+(i+1)+'_'+file.name);
+      return ref.put(file).then(function(){return ref.getDownloadURL();}).then(function(url){pd['img'+(i+1)]=url;});
+    });
+    Promise.all(ups).then(_doneUpload).catch(function(err){
+      console.error('Storage upload failed, using base64:', err);
+      _submitPropertyBase64Compat(fileList, pd, _doneUpload);
+    });
+  } else {
+    _submitPropertyBase64Compat(fileList, pd, _doneUpload);
+  }
+}
+
+/* Admin panel globals */
+var _adminAllProps  = [];  /* cached from Firestore + localStorage */
+var _adminLoading  = false;
+
+/* Override adminRender — reads from Firestore, falls back to localStorage */
+function adminRender(filter) {
+  var list = document.getElementById('admin-list'); if (!list) return;
+  if (_adminLoading) return;
+  _adminLoading = true;
+
+  list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">&#9203; Loading from Firestore...</div>';
+
+  var fetchPropsPromise;
+  if (typeof db !== 'undefined') {
+    fetchPropsPromise = db.collection('properties').where('isActive','==',true).limit(200).get()
+      .then(function(snap) {
+        var fsProps = [];
+        snap.forEach(function(doc) {
+          var d = doc.data();
+          d._fsId = doc.id;
+          fsProps.push(d);
+        });
+        return fsProps;
+      });
+  } else {
+    fetchPropsPromise = Promise.resolve([]);
+  }
+
+  fetchPropsPromise.then(function(fsProps) {
+    /* Merge with localStorage (localStorage may have unsync'd pending items) */
+    var lsProps = [];
+    try { lsProps = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+    var fsPropFsIds = {};
+    fsProps.forEach(function(p) { if (p._fsId) fsPropFsIds[p._fsId] = true; });
+    var lsOnly = lsProps.filter(function(p) {
+      return !p._fsId || !fsPropFsIds[p._fsId];
+    });
+    _adminAllProps = fsProps.concat(lsOnly.map(function(p) {
+      p._source = 'local'; return p;
+    }));
+
+    /* Update tab counts */
+    ['pending','approved','rejected'].forEach(function(s) {
+      var el = document.getElementById('adm-count-'+s);
+      if (el) el.textContent = _adminAllProps.filter(function(p) {
+        return (p.status||'').toLowerCase()===s;
+      }).length;
+    });
+    var allEl = document.getElementById('adm-count-all');
+    if (allEl) allEl.textContent = _adminAllProps.length;
+
+    /* Update tab button styles */
+    ['all','pending','approved','rejected'].forEach(function(s) {
+      var btn = document.getElementById('adm-btn-'+s);
+      if (!btn) return;
+      if (s===filter) { btn.style.background='var(--navy)';btn.style.color='#fff';btn.style.border='none'; }
+      else { btn.style.background='#fff';btn.style.color='var(--dark)';btn.style.border='1.5px solid var(--border)'; }
+    });
+
+    var filtered = filter==='all' ? _adminAllProps : _adminAllProps.filter(function(p) {
+      return (p.status||'').toLowerCase()===filter.toLowerCase();
+    });
+
+    if (filtered.length===0) {
+      list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">Nta mitungo muri iri tsinda / No properties in this category</div>';
+      _adminLoading=false; return;
+    }
+
+    list.innerHTML = filtered.map(function(prop, i) {
+      /* resolve global index back to _adminAllProps for action buttons */
+      var globalIdx = _adminAllProps.indexOf(prop);
+      var fsId = prop._fsId || '';
+      var priceDisplay = prop.price ? Number(prop.price).toLocaleString()+' RWF' : '—';
+      var st = prop.status || 'Pending';
+      var statusColor = st.toLowerCase()==='approved'?'#27A84A':st.toLowerCase()==='rejected'?'#e53e3e':'#F5A623';
+      var imgs = (prop.images || []).filter(Boolean);
+      var thumbSrc = imgs[0] || prop.img1 || '';
+      var thumbHtml = thumbSrc ? '<img src="'+thumbSrc+'" style="width:60px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0" loading="lazy">' : '';
+      return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.8rem;background:#fafbff">'
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;flex-wrap:wrap">'
+        + thumbHtml
+        + '<div style="flex:1">'
+        + '<div style="font-weight:700;color:var(--navy);font-size:.95rem">'
+        +   escapeHtml(prop.title||prop.type||'')+' — '+escapeHtml(prop.district||'')+
+            (prop.sector?', '+escapeHtml(prop.sector):'')+'</div>'
+        + '<div style="font-size:.8rem;color:var(--muted);margin:.2rem 0">👤 '+escapeHtml(prop.ownerName||prop.owner||'')+' | 📧 '+escapeHtml(prop.ownerEmail||'—')+'</div>'
+        + (prop.contact?'<div style="font-size:.78rem;color:var(--muted)">📞 '+escapeHtml(prop.contact)+'</div>':'')
+        + '<div style="font-size:.85rem;margin:.4rem 0;font-weight:600">💰 '+priceDisplay+' ('+escapeHtml(prop.service||prop.category||'')+')</div>'
+        + (prop.description||prop.desc?'<div style="font-size:.78rem;color:#555;font-style:italic">'+escapeHtml((prop.description||prop.desc||'').substring(0,100))+'...</div>':'')
+        + '<div style="font-size:.72rem;color:var(--muted)">📅 '+(prop.date||'')+' '+(fsId?'<span style="background:#e0f2fe;color:#0369a1;padding:1px 5px;border-radius:4px;font-size:.65rem">FS ✓</span>':'<span style="background:#fef9c3;color:#78350f;padding:1px 5px;border-radius:4px;font-size:.65rem">LOCAL</span>')+'</div>'
+        + '</div>'
+        + '<div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">'
+        + '<div style="font-size:.7rem;font-weight:700;color:'+statusColor+';text-align:center">'+escapeHtml(st)+'</div>'
+        + (st.toLowerCase()!=='approved'?'<button onclick="_fsAdminApprove('+globalIdx+')" style="background:#27A84A;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">✅ Emeza</button>':'')
+        + (st.toLowerCase()!=='rejected'?'<button onclick="_fsAdminReject('+globalIdx+')" style="background:#e53e3e;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">❌ Kataa</button>':'')
+        + '<button onclick="_fsAdminDelete('+globalIdx+')" style="background:#718096;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem">🗑️ Siba</button>'
+        + '</div></div></div>';
+    }).join('');
+    _adminLoading = false;
+  }).catch(function(err) {
+    console.warn('[Admin] Firestore fetch failed, using localStorage:', err);
+    _adminLoading = false;
+    /* fall back to original localStorage render */
+    var lsFallback = [];
+    try { lsFallback = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+    _adminAllProps = lsFallback;
+    list.innerHTML = lsFallback.length === 0
+      ? '<div style="text-align:center;padding:2rem;color:var(--muted)">Nta mitungo</div>'
+      : '<div style="text-align:center;padding:1rem;color:var(--warning)">⚠ Firestore ntiboneka — mbona kuri localStorage</div>';
+  });
+}
+
+/* Approve a property by _adminAllProps index — writes to Firestore */
+function _fsAdminApprove(idx) {
+  var prop = _adminAllProps[idx]; if (!prop) return;
+  var fsId = prop._fsId;
+  var doApprove = function(docId) {
+    prop.status = 'Approved'; prop._fsId = docId;
+    if (typeof db !== 'undefined' && docId) {
+      db.collection('properties').doc(docId).update({
+        status:'approved',
+        approvedBy:currentUser.uid,
+        approvedAt:firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
+        updatedBy:currentUser.uid
+      }).then(function() {
+        logAudit('property.approved','properties',docId,{status:'pending'},{status:'approved'});
+        showToast('✅ Imitungo yemejwe! Igaragara muri Listings.');
+        invalidatePropsCache();
+        loadApprovedProperties();
+        adminRender(adminCurrentFilter);
+      }).catch(function(){ showToast('Imitungo yemejwe kuri server ariko Firestore yakubye!','warn'); adminRender(adminCurrentFilter); });
+    } else {
+      showToast('✅ Imitungo yemejwe (localStorage gusa).'); adminRender(adminCurrentFilter);
+    }
+    /* Also update localStorage entry */
+    var ls=[]; try{ls=JSON.parse(localStorage.getItem('km_properties')||'[]');}catch(e){}
+    var li=ls.findIndex(function(p){return String(p.id)===String(prop.id||prop._fsId);});
+    if(li>=0){ls[li].status='Approved';ls[li]._fsId=docId;}
+    try{localStorage.setItem('km_properties',JSON.stringify(ls));}catch(e){}
+  };
+  if (fsId) {
+    doApprove(fsId);
+  } else {
+    /* Property only in localStorage — push to Firestore first */
+    _savePropToFirestoreFS(prop, 'approved', (prop.agentId||currentUser.uid), false)
+      .then(function(newId) { doApprove(newId); })
+      .catch(function() { doApprove(null); });
+  }
+}
+
+/* Reject a property */
+function _fsAdminReject(idx) {
+  var prop = _adminAllProps[idx]; if (!prop) return;
+  var fsId = prop._fsId;
+  prop.status = 'Rejected';
+  if (typeof db !== 'undefined' && fsId) {
+    db.collection('properties').doc(fsId).update({
+      status:'rejected', updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
+    }).then(function() {
+      logAudit('property.rejected','properties',fsId,{status:'pending'},{status:'rejected'});
+    }).catch(function(){});
+  }
+  var ls=[]; try{ls=JSON.parse(localStorage.getItem('km_properties')||'[]');}catch(e){}
+  var li=ls.findIndex(function(p){return String(p.id)===String(prop.id||prop._fsId);});
+  if(li>=0) ls[li].status='Rejected'; try{localStorage.setItem('km_properties',JSON.stringify(ls));}catch(e){}
+  showToast('❌ Imitungo yananiwe.'); adminRender(adminCurrentFilter);
+}
+
+/* Soft-delete a property */
+function _fsAdminDelete(idx) {
+  var prop = _adminAllProps[idx]; if (!prop) return;
+  if (!confirm(t('delConfirm')||'Confirm delete?')) return;
+  var fsId = prop._fsId;
+  if (typeof db !== 'undefined' && fsId) {
+    db.collection('properties').doc(fsId).update({
+      isActive:false, updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
+    }).then(function() {
+      logAudit('property.deleted','properties',fsId,{isActive:true},{isActive:false});
+    }).catch(function(){});
+  }
+  var ls=[]; try{ls=JSON.parse(localStorage.getItem('km_properties')||'[]');}catch(e){}
+  ls=ls.filter(function(p){return String(p.id)!==String(prop.id||prop._fsId);});
+  try{localStorage.setItem('km_properties',JSON.stringify(ls));}catch(e){}
+  _adminAllProps.splice(idx,1);
+  invalidatePropsCache();
+  showToast(t('deleted')||'Deleted'); adminRender(adminCurrentFilter);
+}
+
+/* Override openAdmin to trigger Firestore-backed adminRender */
+(function() {
+  var _origOpenAdmin = openAdmin;
+  openAdmin = function() {
+    var isAdmin = currentUser && (
+      currentUser.email === 'info.komisiyoneri.net@gmail.com' ||
+      currentUser.email === 'admin@komisiyoneri.com' ||
+      currentUser.role  === 'Admin' || currentUser.role === 'admin' ||
+      currentUser.role  === 'super_admin'
+    );
+    if (!isAdmin) {
+      showToast(curLang==='rw' ? 'Ntabwo wemerewe! Admin gusa.' : 'Access denied. Admin only.', 'error'); return;
+    }
+    var m = document.getElementById('admin-modal'); if (m) m.style.display = 'flex';
+    adminRender('pending');
+  };
+})();
+
 /* Override openPropDetail — fetch from Firestore when not in localStorage cache */
 (function() {
   var _origDetail = openPropDetail;
