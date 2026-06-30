@@ -3803,7 +3803,7 @@ html,body{overscroll-behavior-x:none}
       <div class="dn"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span data-rw="Imitungo Yanjye" data-en="My Listings">Imitungo Yanjye</span><span class="ds-badge" id="dash-sidebar-listings">0</span></div>
       <div class="dn" onclick="go('listings')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span data-rw="Shakisha" data-en="Search">Shakisha</span></div>
       <div class="dn" onclick="go('analytics')"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Analytics</span></div>
-      <div class="dn"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Abakiliya" data-en="Clients">Abakiliya</span><span class="ds-badge">5</span></div>
+      <div class="dn" onclick="go('clients')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Abakiliya" data-en="Clients">Abakiliya</span><span class="ds-badge" id="clients-sidebar-count">0</span></div>
       <div class="dn" onclick="go('crm')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><span data-rw="CRM — Leads" data-en="CRM — Leads">CRM — Leads</span><span class="ds-badge" id="crm-sidebar-count">0</span></div>
       <div class="dn" onclick="go('deals')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5a1 1 0 00-1-1H3a1 1 0 00-1 1v6c0 .552.448 1 1 1"/><path d="M3 12v6a1 1 0 001 1h16a1 1 0 001-1v-6"/></svg><span data-rw="Deals" data-en="Deals">Deals</span><span class="ds-badge" id="deals-sidebar-count">0</span></div>
       <div class="dn" onclick="go('viewings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span data-rw="Gahunda y'Inzibutso" data-en="Viewings Calendar">Viewings Calendar</span><span class="ds-badge" id="viewings-sidebar-count">0</span></div>
@@ -4461,6 +4461,111 @@ html,body{overscroll-behavior-x:none}
         <div class="crm-empty-icon">&#128197;</div>
         <div class="crm-empty-title" data-rw="Gutegura inzibutso..." data-en="Loading viewings...">Loading viewings...</div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PAGE: CLIENTS DIRECTORY
+════════════════════════════════════ -->
+<div class="page" id="page-clients">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">&#128101; Clients</div>
+      <h1 class="h1" data-rw="Inkoranyamazina y'Abakiliya" data-en="Client Directory">Client Directory</h1>
+      <p style="color:rgba(255,255,255,.82);font-size:.85rem" data-rw="Reba abakiliya bawe bose, gukurikirana ibibazo, no gutegura inzibutso" data-en="View all your clients, track inquiries, and manage relationships">View all your clients, track inquiries, and manage relationships</p>
+    </div>
+  </div>
+  <div class="crm-wrap">
+    <div class="crm-header">
+      <div>
+        <p style="color:var(--muted);font-size:.82rem" data-rw="Kanda ku mukiliya kugirango ubone amakuru ye yose" data-en="Click any client to view their full history">Click any client to view their full history</p>
+      </div>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <input type="text" id="clients-search" placeholder="Search clients..." oninput="filterClients()" style="padding:.45rem .75rem;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;width:200px;outline:none">
+      </div>
+    </div>
+    <!-- Stats -->
+    <div class="crm-stats">
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="cli-stat-total">0</div>
+        <div class="crm-stat-l" data-rw="Abakiliya Bose" data-en="Total Clients">Total Clients</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="cli-stat-active" style="color:#1249B3">0</div>
+        <div class="crm-stat-l" data-rw="Bafite Leads" data-en="With Active Leads">Active Leads</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="cli-stat-followup" style="color:#DC2626">0</div>
+        <div class="crm-stat-l" data-rw="Guhamagarwa Uyu Munsi" data-en="Follow-up Today">Follow-up Today</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="cli-stat-deals" style="color:#16A34A">0</div>
+        <div class="crm-stat-l" data-rw="Deals Zarasojwe" data-en="Deals Closed">Deals Closed</div>
+      </div>
+    </div>
+    <!-- Filter chips -->
+    <div class="crm-priority-filters" style="margin-bottom:.8rem">
+      <button class="cpf active" id="clf-chip-all" onclick="setClientsFilter('all')" data-rw="Bose" data-en="All">All</button>
+      <button class="cpf" id="clf-chip-active" onclick="setClientsFilter('active')" data-rw="Bafite Leads" data-en="Active Leads">Active Leads</button>
+      <button class="cpf" id="clf-chip-followup" onclick="setClientsFilter('followup')" data-rw="Guhamagarwa" data-en="Follow-up Due">Follow-up Due</button>
+      <button class="cpf" id="clf-chip-closed" onclick="setClientsFilter('closed')" data-rw="Deals Zarasojwe" data-en="Closed Won">Closed Won</button>
+    </div>
+    <!-- Client list -->
+    <div class="crm-list" id="clients-list">
+      <div class="crm-empty">
+        <div class="crm-empty-icon">&#128101;</div>
+        <div class="crm-empty-title" data-rw="Gutegura abakiliya..." data-en="Loading clients...">Loading clients...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === CLIENT DETAIL MODAL === -->
+<div class="modal-wrap" id="client-detail-modal" style="display:none" onclick="if(event.target===this)closeModal('client-detail-modal')">
+  <div class="modal" style="max-width:620px;width:95%;max-height:90vh;overflow-y:auto">
+    <div class="modal-hdr">
+      <h3 id="cdm-client-name" style="margin:0;font-size:1.05rem;color:var(--navy)">Client</h3>
+      <button class="modal-close" onclick="closeModal('client-detail-modal')">&#10005;</button>
+    </div>
+    <div style="padding:1.2rem">
+      <!-- Contact info -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1.2rem">
+        <div style="background:var(--light);border-radius:8px;padding:.75rem">
+          <div style="font-size:.68rem;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:.08em;margin-bottom:.3rem" data-rw="Telefone" data-en="Phone">Phone</div>
+          <div id="cdm-phone" style="font-weight:600;font-size:.92rem;color:var(--navy)">—</div>
+        </div>
+        <div style="background:var(--light);border-radius:8px;padding:.75rem">
+          <div style="font-size:.68rem;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:.08em;margin-bottom:.3rem" data-rw="Ahantu" data-en="Zone/District">Zone</div>
+          <div id="cdm-zone" style="font-weight:600;font-size:.92rem;color:var(--navy)">—</div>
+        </div>
+        <div style="background:var(--light);border-radius:8px;padding:.75rem">
+          <div style="font-size:.68rem;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:.08em;margin-bottom:.3rem" data-rw="Leads" data-en="Total Leads">Leads</div>
+          <div id="cdm-lead-count" style="font-weight:700;font-size:1.1rem;color:var(--navy)">0</div>
+        </div>
+        <div style="background:var(--light);border-radius:8px;padding:.75rem">
+          <div style="font-size:.68rem;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:.08em;margin-bottom:.3rem" data-rw="Ibiciro" data-en="Budget">Budget</div>
+          <div id="cdm-budget" style="font-weight:600;font-size:.85rem;color:var(--navy)">—</div>
+        </div>
+      </div>
+      <!-- Quick actions -->
+      <div style="display:flex;gap:.5rem;margin-bottom:1.2rem;flex-wrap:wrap">
+        <a id="cdm-call-btn" href="#" class="btn btn-navy btn-sm" style="text-decoration:none">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          <span data-rw="Hamagara" data-en="Call">Call</span>
+        </a>
+        <button class="btn btn-outline btn-sm" id="cdm-open-lead-btn" onclick="">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10"/></svg>
+          <span data-rw="Fungura CRM" data-en="Open in CRM">Open in CRM</span>
+        </button>
+        <button class="btn btn-outline btn-sm" id="cdm-schedule-btn" onclick="">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span data-rw="Teganya Inzibutso" data-en="Schedule Viewing">Schedule Viewing</span>
+        </button>
+      </div>
+      <!-- Leads timeline -->
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.1em;margin-bottom:.6rem" data-rw="Amakuru ya Leads" data-en="Lead History">Lead History</div>
+      <div id="cdm-leads-list" style="display:flex;flex-direction:column;gap:.5rem"></div>
     </div>
   </div>
 </div>
@@ -12881,6 +12986,9 @@ go = function(page) {
   }
   if(page === 'viewings') {
     setTimeout(loadViewings, 150);
+  }
+  if(page === 'clients') {
+    setTimeout(loadClients, 150);
   }
   if(page === 'verification') {
     setTimeout(loadVerifications, 150);
@@ -23776,6 +23884,273 @@ function _ensureViewingDetailModal(v, viewingId) {
     + '</div>';
 
   m.style.display = 'flex';
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   CLIENTS DIRECTORY — Phase 2.5
+   Deduplicated client book built from leads collection
+   ══════════════════════════════════════════════════════════════════════ */
+
+var _clientsRaw    = [];   /* all leads fetched */
+var _clientsMap    = {};   /* phone → {name, phone, leads:[], zone, budget} */
+var _clientsList   = [];   /* sorted array of client objects */
+var _clientsFilter = 'all';
+
+function loadClients() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var el = g('clients-list');
+  if (!el) return;
+  el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#9203;</div><div class="crm-empty-title">Loading clients...</div></div>';
+
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+  var q = isAdmin
+    ? db.collection('leads').where('isActive','==',true).orderBy('createdAt','desc').limit(500)
+    : db.collection('leads').where('agentId','==',currentUser.uid).where('isActive','==',true).orderBy('createdAt','desc').limit(500);
+
+  q.get().then(function(snap) {
+    _clientsRaw  = [];
+    _clientsMap  = {};
+    snap.forEach(function(d) { var l = d.data(); l._docId = d.id; _clientsRaw.push(l); });
+
+    /* Deduplicate by clientPhone (fallback clientId, fallback name) */
+    _clientsRaw.forEach(function(l) {
+      var key = (l.clientPhone||'').trim() || (l.clientId||'') || (l.clientName||'unknown');
+      if (!key) return;
+      if (!_clientsMap[key]) {
+        _clientsMap[key] = {
+          key:       key,
+          name:      l.clientName   || 'Unknown',
+          phone:     l.clientPhone  || '',
+          zone:      l.zone         || l.district || '',
+          budget:    l.budgetMax    || l.budget   || 0,
+          leads:     [],
+          latestLead: null
+        };
+      }
+      _clientsMap[key].leads.push(l);
+      if (!_clientsMap[key].latestLead ||
+          (l.createdAt && _clientsMap[key].latestLead.createdAt &&
+           l.createdAt.seconds > _clientsMap[key].latestLead.createdAt.seconds)) {
+        _clientsMap[key].latestLead = l;
+        if (l.clientName)   _clientsMap[key].name  = l.clientName;
+        if (l.clientPhone)  _clientsMap[key].phone = l.clientPhone;
+        if (l.zone||l.district) _clientsMap[key].zone = l.zone||l.district;
+        if (l.budgetMax||l.budget) _clientsMap[key].budget = l.budgetMax||l.budget||0;
+      }
+    });
+
+    _clientsList = Object.values(_clientsMap).sort(function(a,b) {
+      var aT = (a.latestLead && a.latestLead.createdAt) ? a.latestLead.createdAt.seconds||0 : 0;
+      var bT = (b.latestLead && b.latestLead.createdAt) ? b.latestLead.createdAt.seconds||0 : 0;
+      return bT - aT;
+    });
+
+    _updateClientsStats();
+    renderClientsList();
+
+    /* Update sidebar badge */
+    var sb = g('clients-sidebar-count');
+    if (sb) sb.textContent = _clientsList.length > 0 ? _clientsList.length : '0';
+  }).catch(function() {
+    if (el) el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#9888;</div><div class="crm-empty-title">Unable to load clients</div></div>';
+  });
+}
+
+function _updateClientsStats() {
+  var today = new Date(); today.setHours(0,0,0,0);
+  var totalC = _clientsList.length;
+  var activeC = 0, followC = 0, dealsC = 0;
+  _clientsList.forEach(function(c) {
+    var hasActiveLead = c.leads.some(function(l) {
+      return l.pipelineStage && l.pipelineStage !== 'closed_won' && l.pipelineStage !== 'closed_lost';
+    });
+    if (hasActiveLead) activeC++;
+    var hasFU = c.leads.some(function(l) {
+      if (!l.nextFollowUp) return false;
+      var fuD = l.nextFollowUp.toDate ? l.nextFollowUp.toDate() : new Date(l.nextFollowUp);
+      fuD.setHours(0,0,0,0);
+      return fuD <= today;
+    });
+    if (hasFU) followC++;
+    var hasDeal = c.leads.some(function(l) { return l.pipelineStage === 'closed_won'; });
+    if (hasDeal) dealsC++;
+  });
+  if (g('cli-stat-total'))   g('cli-stat-total').textContent   = totalC;
+  if (g('cli-stat-active'))  g('cli-stat-active').textContent  = activeC;
+  if (g('cli-stat-followup'))g('cli-stat-followup').textContent= followC;
+  if (g('cli-stat-deals'))   g('cli-stat-deals').textContent   = dealsC;
+}
+
+function setClientsFilter(f) {
+  _clientsFilter = f;
+  ['all','active','followup','closed'].forEach(function(k) {
+    var btn = g('clf-chip-' + k);
+    if (btn) btn.classList.toggle('active', k === f);
+  });
+  renderClientsList();
+}
+
+function filterClients() {
+  renderClientsList();
+}
+
+function renderClientsList() {
+  var el = g('clients-list');
+  if (!el) return;
+  var q  = ((g('clients-search')||{}).value||'').toLowerCase();
+  var today = new Date(); today.setHours(0,0,0,0);
+
+  var list = _clientsList.filter(function(c) {
+    if (q && (c.name+c.phone+c.zone).toLowerCase().indexOf(q) < 0) return false;
+    if (_clientsFilter === 'active') {
+      return c.leads.some(function(l) {
+        return l.pipelineStage && l.pipelineStage !== 'closed_won' && l.pipelineStage !== 'closed_lost';
+      });
+    }
+    if (_clientsFilter === 'followup') {
+      return c.leads.some(function(l) {
+        if (!l.nextFollowUp) return false;
+        var fuD = l.nextFollowUp.toDate ? l.nextFollowUp.toDate() : new Date(l.nextFollowUp);
+        fuD.setHours(0,0,0,0);
+        return fuD <= today;
+      });
+    }
+    if (_clientsFilter === 'closed') {
+      return c.leads.some(function(l) { return l.pipelineStage === 'closed_won'; });
+    }
+    return true;
+  });
+
+  if (!list.length) {
+    el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#128101;</div>'
+      + '<div class="crm-empty-title" data-rw="Nta bakiliya bafite iki gipimo" data-en="No clients match this filter">No clients match this filter</div></div>';
+    if (typeof switchLang !== 'undefined') switchLang(currentLang);
+    return;
+  }
+
+  var STAGE_LABELS = {
+    'new':'New','contacted':'Contacted','qualified':'Qualified',
+    'viewing_scheduled':'Viewing Scheduled','viewing_completed':'Viewing Done',
+    'offer_submitted':'Offer Out','negotiation':'Negotiating',
+    'due_diligence':'Due Diligence','financing':'Financing',
+    'contract':'Contract','closing':'Closing',
+    'closed_won':'Closed Won','closed_lost':'Closed Lost'
+  };
+  var STAGE_COLORS = {
+    'new':'#64748B','contacted':'#1249B3','qualified':'#7C3AED',
+    'viewing_scheduled':'#0891B2','viewing_completed':'#0891B2',
+    'offer_submitted':'#D97706','negotiation':'#EA580C',
+    'due_diligence':'#9333EA','financing':'#0D3B8C',
+    'contract':'#0D9488','closing':'#059669',
+    'closed_won':'#16A34A','closed_lost':'#DC2626'
+  };
+
+  el.innerHTML = list.map(function(c) {
+    var ll = c.latestLead;
+    var stage = (ll && ll.pipelineStage) || 'new';
+    var stageLabel = STAGE_LABELS[stage] || stage;
+    var stageColor = STAGE_COLORS[stage] || '#64748B';
+    var budget = c.budget ? Math.round(Number(c.budget)).toLocaleString() + ' RWF' : '—';
+    var leadCount = c.leads.length;
+    var hasFU = c.leads.some(function(l) {
+      if (!l.nextFollowUp) return false;
+      var fuD = l.nextFollowUp.toDate ? l.nextFollowUp.toDate() : new Date(l.nextFollowUp);
+      fuD.setHours(0,0,0,0);
+      return fuD <= today;
+    });
+    var ini = (c.name||'?').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2)||'CL';
+    var avatarColors = ['linear-gradient(135deg,var(--navy),var(--blue))','linear-gradient(135deg,#7C3AED,#9333EA)','linear-gradient(135deg,var(--gold),#e09b18)','linear-gradient(135deg,#0891B2,#0D9488)'];
+    var aci = Math.abs((c.name||'').charCodeAt(0)||0) % avatarColors.length;
+    var safeKey = escapeHtml(c.key);
+
+    return '<div class="deal-card" onclick="openClientDetail(\'' + safeKey + '\')" style="cursor:pointer">'
+      + '<div style="display:flex;align-items:center;gap:.75rem">'
+      + '<div style="width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:#fff;background:' + avatarColors[aci] + '">' + ini + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-weight:700;font-size:.88rem;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(c.name) + (hasFU ? ' <span style="background:#DC2626;color:#fff;font-size:.6rem;padding:.1rem .35rem;border-radius:10px;margin-left:.3rem">Follow-up</span>' : '') + '</div>'
+      + '<div style="font-size:.75rem;color:var(--muted);margin-top:.1rem">'
+      + (c.phone ? '<a href="tel:' + escapeHtml(c.phone) + '" onclick="event.stopPropagation()" style="color:var(--blue);text-decoration:none">' + escapeHtml(c.phone) + '</a>' : '&#8212;')
+      + (c.zone ? ' &nbsp;&#183;&nbsp; &#128205; ' + escapeHtml(c.zone) : '') + '</div>'
+      + '</div>'
+      + '<div style="text-align:right;flex-shrink:0">'
+      + '<span style="background:' + stageColor + ';color:#fff;font-size:.65rem;font-weight:700;padding:.2rem .5rem;border-radius:10px;display:block;margin-bottom:.3rem">' + escapeHtml(stageLabel) + '</span>'
+      + '<span style="font-size:.72rem;color:var(--muted)">' + leadCount + ' lead' + (leadCount!==1?'s':'') + '</span>'
+      + (budget !== '—' ? '<br><span style="font-size:.68rem;color:var(--muted)">' + budget + '</span>' : '')
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function openClientDetail(clientKey) {
+  var c = _clientsMap[clientKey];
+  if (!c) return;
+
+  var nm = g('cdm-client-name'); if (nm) nm.textContent = c.name || 'Client';
+  var ph = g('cdm-phone');       if (ph) ph.textContent = c.phone || '—';
+  var zn = g('cdm-zone');        if (zn) zn.textContent = c.zone  || '—';
+  var lc = g('cdm-lead-count');  if (lc) lc.textContent = c.leads.length;
+  var bg = g('cdm-budget');
+  if (bg) bg.textContent = c.budget ? Math.round(Number(c.budget)).toLocaleString() + ' RWF' : '—';
+
+  var callBtn = g('cdm-call-btn');
+  if (callBtn) callBtn.href = c.phone ? 'tel:' + c.phone : '#';
+
+  /* "Open in CRM" — go to first lead */
+  var openLeadBtn = g('cdm-open-lead-btn');
+  if (openLeadBtn && c.leads.length) {
+    var firstLead = c.leads[0];
+    var fid = firstLead._docId || firstLead.id || '';
+    openLeadBtn.onclick = function() {
+      closeModal('client-detail-modal');
+      go('crm');
+      if (fid && typeof openLeadDetail === 'function') {
+        setTimeout(function() { openLeadDetail(fid); }, 600);
+      }
+    };
+  } else if (openLeadBtn) { openLeadBtn.style.display = 'none'; }
+
+  /* "Schedule Viewing" */
+  var schedBtn = g('cdm-schedule-btn');
+  if (schedBtn && c.leads.length) {
+    var fl = c.leads[0];
+    var fLeadId = fl._docId || fl.id || '';
+    schedBtn.onclick = function() {
+      closeModal('client-detail-modal');
+      if (typeof openViewingScheduler === 'function') openViewingScheduler(fLeadId);
+    };
+  } else if (schedBtn) { schedBtn.style.display = 'none'; }
+
+  /* Leads timeline */
+  var ll = g('cdm-leads-list');
+  if (ll) {
+    var STAGE_COLORS2 = {
+      'new':'#64748B','contacted':'#1249B3','qualified':'#7C3AED',
+      'viewing_scheduled':'#0891B2','offer_submitted':'#D97706',
+      'negotiation':'#EA580C','closed_won':'#16A34A','closed_lost':'#DC2626'
+    };
+    ll.innerHTML = c.leads.map(function(l) {
+      var st = l.pipelineStage || 'new';
+      var stC = STAGE_COLORS2[st] || '#64748B';
+      var stL = (st||'').replace(/_/g,' ').replace(/\b\w/g,function(ch){return ch.toUpperCase();});
+      var dt = l.createdAt ? (l.createdAt.toDate ? l.createdAt.toDate() : new Date(l.createdAt)) : null;
+      var dStr = dt ? dt.toLocaleDateString() : '';
+      var prop = escapeHtml(l.propertyTitle || l.zone || l.district || 'Lead');
+      var lid  = l._docId || l.id || '';
+      return '<div style="display:flex;gap:.6rem;align-items:flex-start;padding:.6rem;background:var(--light);border-radius:8px;border-left:3px solid ' + stC + '">'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-weight:600;font-size:.82rem;color:var(--navy)">' + prop + '</div>'
+        + '<div style="font-size:.72rem;color:var(--muted);margin-top:.15rem">' + (l.action||l.type||'—') + (dStr ? ' &nbsp;&#183;&nbsp; ' + dStr : '') + '</div>'
+        + '</div>'
+        + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem">'
+        + '<span style="background:' + stC + ';color:#fff;font-size:.62rem;padding:.15rem .4rem;border-radius:8px;font-weight:700">' + stL + '</span>'
+        + (lid ? '<button onclick="event.stopPropagation();closeModal(\'client-detail-modal\');go(\'crm\');setTimeout(function(){openLeadDetail(\'' + lid + '\')},600)" style="background:transparent;border:1px solid var(--border);border-radius:6px;padding:.2rem .45rem;font-size:.68rem;cursor:pointer;color:var(--navy)">Open</button>' : '')
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  openModal('client-detail-modal');
 }
 
 /* ══════════════════════════════════════════════════════════════════════
