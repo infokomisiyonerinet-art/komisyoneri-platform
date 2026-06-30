@@ -8809,7 +8809,23 @@ function updateNavForUser(user) {
   }
   var dashBtn = document.getElementById('nl-dashboard');
   var _r = (user.role || '').toLowerCase();
-  if(dashBtn) dashBtn.style.display = ['agent','admin','staff','ceo','super_admin','owner','partner','investor'].indexOf(_r) !== -1 ? '' : 'none';
+  var _dashRoles = ['agent','admin','staff','ceo','super_admin','owner','partner','investor','client'];
+  if (dashBtn) {
+    dashBtn.style.display = _dashRoles.indexOf(_r) !== -1 ? '' : 'none';
+    /* Clients see "My Portal" label on the nav button */
+    var dashLabel = dashBtn.querySelector('[data-en]');
+    if (dashLabel) {
+      if (_r === 'client') {
+        dashLabel.setAttribute('data-rw', 'Portal Yanjye');
+        dashLabel.setAttribute('data-en', 'My Portal');
+        dashLabel.textContent = curLang === 'rw' ? 'Portal Yanjye' : 'My Portal';
+      } else {
+        dashLabel.setAttribute('data-rw', 'Dashboard');
+        dashLabel.setAttribute('data-en', 'Dashboard');
+        dashLabel.textContent = curLang === 'rw' ? 'Dashboard' : 'Dashboard';
+      }
+    }
+  }
 }
 
 function loadAgentDashboard() {
@@ -9570,12 +9586,17 @@ function go(name) {
       return;
     } else {
       var _dr = (currentUser.role || '').toLowerCase();
-      var _dAllowed = ['agent','admin','staff','ceo','super_admin','owner','partner','investor'];
-      if (_dAllowed.indexOf(_dr) === -1) {
-        showToast(curLang==='rw' ? 'Injira nk\'umukozi wa KOMISIYONERI!' : 'Authorized accounts only!', 'warn');
-        return;
+      /* Clients have their own portal — redirect transparently */
+      if (_dr === 'client') {
+        name = 'customer';
+      } else {
+        var _dAllowed = ['agent','admin','staff','ceo','super_admin','owner','partner','investor'];
+        if (_dAllowed.indexOf(_dr) === -1) {
+          showToast(curLang==='rw' ? 'Injira nk\'umukozi wa KOMISIYONERI!' : 'Authorized accounts only!', 'warn');
+          return;
+        }
+        loadAgentDashboard();
       }
-      loadAgentDashboard();
     }
   }
   // Hide all pages, deactivate all nav links
