@@ -3806,6 +3806,7 @@ html,body{overscroll-behavior-x:none}
       <div class="dn"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Abakiliya" data-en="Clients">Abakiliya</span><span class="ds-badge">5</span></div>
       <div class="dn" onclick="go('crm')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><span data-rw="CRM — Leads" data-en="CRM — Leads">CRM — Leads</span><span class="ds-badge" id="crm-sidebar-count">0</span></div>
       <div class="dn" onclick="go('deals')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5a1 1 0 00-1-1H3a1 1 0 00-1 1v6c0 .552.448 1 1 1"/><path d="M3 12v6a1 1 0 001 1h16a1 1 0 001-1v-6"/></svg><span data-rw="Deals" data-en="Deals">Deals</span><span class="ds-badge" id="deals-sidebar-count">0</span></div>
+      <div class="dn" onclick="go('viewings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span data-rw="Gahunda y'Inzibutso" data-en="Viewings Calendar">Viewings Calendar</span><span class="ds-badge" id="viewings-sidebar-count">0</span></div>
       <div class="ds-section" data-rw="SERIVISI" data-en="SERVICES">SERIVISI</div>
       <div class="dn" onclick="go('verification')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg><span data-rw="Kugenzura" data-en="Verification">Verification</span><span class="ds-badge" id="verif-sidebar-count">0</span></div>
       <div class="dn" onclick="go('documents')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span data-rw="Dosiye / Vault" data-en="Document Vault">Document Vault</span><span class="ds-badge" id="docs-sidebar-count">0</span></div>
@@ -4402,6 +4403,65 @@ html,body{overscroll-behavior-x:none}
     </div>
     <!-- Deal Kanban Board (hidden by default) -->
     <div id="deal-kanban" class="crm-kanban" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PAGE: VIEWINGS CALENDAR (Phase 7)
+════════════════════════════════════ -->
+<div class="page" id="page-viewings">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">&#128197; Viewings</div>
+      <h1 class="h1" data-rw="Gahunda y'Inzibutso" data-en="Viewings Calendar">Viewings Calendar</h1>
+      <p style="color:rgba(255,255,255,.82);font-size:.85rem" data-rw="Gukurikirana inzibutso zose — shyiraho, injira, uzuze raporo" data-en="Track all property viewings — schedule, check in, complete reports">Track all property viewings</p>
+    </div>
+  </div>
+  <div class="crm-wrap">
+    <div class="crm-header">
+      <div>
+        <p style="color:var(--muted);font-size:.82rem" data-rw="Kanda ku nzibutso kugirango ubone ibirenzeho" data-en="Click any viewing to view details and take action">Click any viewing to view details</p>
+      </div>
+      <button class="btn btn-navy btn-sm" onclick="openViewingScheduler('')">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-rw="Shyiraho Inzibutso" data-en="Schedule Viewing">Schedule Viewing</span>
+      </button>
+    </div>
+    <!-- Stats bar -->
+    <div class="crm-stats">
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="view-stat-total">0</div>
+        <div class="crm-stat-l" data-rw="Zose" data-en="Total">Total</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="view-stat-upcoming" style="color:var(--blue)">0</div>
+        <div class="crm-stat-l" data-rw="Ziteganijwe" data-en="Upcoming">Upcoming</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="view-stat-today" style="color:var(--gold)">0</div>
+        <div class="crm-stat-l" data-rw="Uyu Munsi" data-en="Today">Today</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="view-stat-done" style="color:#16A34A">0</div>
+        <div class="crm-stat-l" data-rw="Zarangiye" data-en="Completed">Done</div>
+      </div>
+    </div>
+    <!-- Status filter chips -->
+    <div class="crm-priority-filters" style="margin-bottom:.65rem">
+      <span class="crm-pf-label" data-rw="Imiterere:" data-en="Status:">Status:</span>
+      <button id="vf-chip-all"       class="crm-pchip crm-pchip-all active" onclick="filterViewingStatus('all')" data-rw="Zose" data-en="All">All</button>
+      <button id="vf-chip-scheduled" class="crm-pchip crm-pchip-warm"       onclick="filterViewingStatus('scheduled')" data-rw="Ziteganijwe" data-en="Scheduled">Scheduled</button>
+      <button id="vf-chip-in_progress" class="crm-pchip" onclick="filterViewingStatus('in_progress')" style="background:#7C3AED20;color:#7C3AED;border:1px solid #7C3AED40" data-rw="Irakora" data-en="In Progress">In Progress</button>
+      <button id="vf-chip-completed"  class="crm-pchip crm-pchip-hot" onclick="filterViewingStatus('completed')" style="background:#16A34A20;color:#16A34A;border:1px solid #16A34A40" data-rw="Zarangiye" data-en="Completed">Completed</button>
+      <button id="vf-chip-cancelled"  class="crm-pchip crm-pchip-cold" onclick="filterViewingStatus('cancelled')" data-rw="Zahagaritswe" data-en="Cancelled">Cancelled</button>
+    </div>
+    <!-- Viewings list -->
+    <div class="crm-list" id="viewings-list">
+      <div class="crm-empty">
+        <div class="crm-empty-icon">&#128197;</div>
+        <div class="crm-empty-title" data-rw="Gutegura inzibutso..." data-en="Loading viewings...">Loading viewings...</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -12818,6 +12878,9 @@ go = function(page) {
   }
   if(page === 'commissions') {
     setTimeout(loadCommissions, 150);
+  }
+  if(page === 'viewings') {
+    setTimeout(loadViewings, 150);
   }
   if(page === 'verification') {
     setTimeout(loadVerifications, 150);
@@ -23450,6 +23513,270 @@ function checkInViewingGPS(viewingId) {
     }
   };
 })();
+
+/* ══════════════════════════════════════════════════════════════════════
+   VIEWINGS CALENDAR PAGE
+   Dedicated page for listing, filtering, and managing all viewings
+   ══════════════════════════════════════════════════════════════════════ */
+
+var _viewings = [];
+var _viewingsFilter = 'all';
+
+function loadViewings() {
+  var list = document.getElementById('viewings-list');
+  if (!list) return;
+  if (typeof db === 'undefined' || !currentUser) return;
+
+  list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#8987;</div>'
+    + '<div class="crm-empty-title">' + (curLang==='rw'?'Gutegura...':'Loading...') + '</div></div>';
+
+  var isAdminRole = ['admin','staff','ceo','super_admin'].indexOf((currentUser.role||'').toLowerCase()) > -1;
+  var query = isAdminRole
+    ? db.collection('viewings').where('isActive','==',true).orderBy('scheduledAt','desc').limit(200)
+    : db.collection('viewings').where('agentId','==',currentUser.uid).where('isActive','==',true).orderBy('scheduledAt','desc').limit(200);
+
+  query.get().then(function(snap) {
+    _viewings = [];
+    snap.forEach(function(doc) {
+      var d = doc.data(); d._docId = doc.id;
+      _viewings.push(d);
+    });
+    _updateViewingsStats();
+    renderViewingsList();
+  }).catch(function(err) {
+    list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#9888;</div>'
+      + '<div class="crm-empty-title">' + (curLang==='rw'?'Habaye ikosa':'Error loading viewings') + '</div></div>';
+    console.error('[Viewings] load error:', err);
+  });
+}
+
+function _updateViewingsStats() {
+  var now = new Date();
+  var todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var todayEnd   = new Date(todayStart.getTime() + 86400000);
+
+  var total    = _viewings.length;
+  var upcoming = 0; var today = 0; var done = 0;
+  _viewings.forEach(function(v) {
+    var dt = v.scheduledAt && v.scheduledAt.toDate ? v.scheduledAt.toDate() : null;
+    if (v.status === 'completed') done++;
+    if (dt && dt >= now && v.status !== 'cancelled' && v.status !== 'completed') upcoming++;
+    if (dt && dt >= todayStart && dt < todayEnd) today++;
+  });
+
+  var e = function(id) { return document.getElementById(id); };
+  if (e('view-stat-total'))    e('view-stat-total').textContent    = total;
+  if (e('view-stat-upcoming')) e('view-stat-upcoming').textContent = upcoming;
+  if (e('view-stat-today'))    e('view-stat-today').textContent    = today;
+  if (e('view-stat-done'))     e('view-stat-done').textContent     = done;
+  var badge = document.getElementById('viewings-sidebar-count');
+  if (badge) badge.textContent = upcoming > 0 ? upcoming : '';
+}
+
+function filterViewingStatus(status) {
+  _viewingsFilter = status;
+  ['all','scheduled','in_progress','completed','cancelled'].forEach(function(s) {
+    var btn = document.getElementById('vf-chip-' + s);
+    if (btn) btn.classList.toggle('active', s === status);
+  });
+  renderViewingsList();
+}
+
+function renderViewingsList() {
+  var list = document.getElementById('viewings-list');
+  if (!list) return;
+  var now = new Date();
+  var filtered = _viewingsFilter === 'all'
+    ? _viewings
+    : _viewings.filter(function(v) { return v.status === _viewingsFilter; });
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#128197;</div>'
+      + '<div class="crm-empty-title">'
+      + (curLang==='rw'?'Nta nzibutso zibonetse':'No viewings found') + '</div></div>';
+    return;
+  }
+
+  var SC = { scheduled:'#1249B3', in_progress:'#7C3AED', completed:'#16A34A', cancelled:'#DC2626' };
+  var SL = { scheduled:'Scheduled', in_progress:'In Progress', completed:'Completed', cancelled:'Cancelled' };
+
+  list.innerHTML = filtered.map(function(v) {
+    var docId  = v._docId || v.id || '';
+    var dt     = v.scheduledAt && v.scheduledAt.toDate ? v.scheduledAt.toDate() : null;
+    var status = v.status || 'scheduled';
+    var sColor = SC[status] || '#64748B';
+    var sLabel = SL[status] || status;
+    var isPast   = dt && dt < now;
+    var isToday  = dt && dt.toDateString() === now.toDateString();
+    var dtStr  = dt
+      ? dt.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'})
+        + ' ' + dt.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})
+      : '&#8212;';
+    var dateColor = isToday ? '#DC2626' : (isPast && status==='scheduled' ? '#F59E0B' : 'var(--navy)');
+
+    var canAct = currentUser && (currentUser.uid === v.agentId
+      || ['admin','staff','super_admin'].indexOf((currentUser.role||'').toLowerCase()) > -1);
+    var actionBtn = '';
+    if (canAct && status === 'scheduled') {
+      actionBtn = '<button onclick="event.stopPropagation();_viewingPageCheckIn(\'' + docId + '\')"'
+        + ' style="background:var(--navy);color:#fff;border:none;border-radius:6px;padding:.28rem .6rem;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap"'
+        + ' data-rw="Injira" data-en="Check In">Check In</button>';
+    } else if (canAct && status === 'in_progress') {
+      actionBtn = '<button onclick="event.stopPropagation();_viewingPageComplete(\'' + docId + '\')"'
+        + ' style="background:#16A34A;color:#fff;border:none;border-radius:6px;padding:.28rem .6rem;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap"'
+        + ' data-rw="Rangiza" data-en="Complete">Complete</button>';
+    }
+
+    return '<div class="deal-card" onclick="openViewingDetailPanel(\'' + docId + '\')" style="cursor:pointer;border-left:3px solid ' + sColor + '">'
+      + '<div class="deal-card-header">'
+      + '<div class="deal-card-title">' + escapeHtml(v.propertyTitle || (curLang==='rw'?'Imitungo':'Property')) + '</div>'
+      + '<span style="background:' + sColor + '20;color:' + sColor + ';border:1px solid ' + sColor + '40;border-radius:20px;padding:.15rem .6rem;font-size:.65rem;font-weight:700">' + sLabel + '</span>'
+      + '</div>'
+      + '<div class="deal-card-meta">'
+      + '<span>&#128100; ' + escapeHtml(v.clientName || '&#8212;') + '</span>'
+      + (v.clientPhone ? '<span>&#128222; ' + escapeHtml(v.clientPhone) + '</span>' : '')
+      + (v.agentName   ? '<span>&#129309; ' + escapeHtml(v.agentName) + '</span>' : '')
+      + '</div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border)">'
+      + '<div style="font-size:.78rem;font-weight:700;color:' + dateColor + '">'
+      + (isToday ? '&#128276; Today &#8212; ' : '') + dtStr + '</div>'
+      + actionBtn
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function _viewingPageCheckIn(viewingId) {
+  if (typeof db === 'undefined' || !viewingId) return;
+  var uid = currentUser ? currentUser.uid : '';
+  var update = { status:'in_progress', agentCheckIn:firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:uid };
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      update.agentGPS = { lat:pos.coords.latitude, lng:pos.coords.longitude };
+      _applyViewingUpdate(viewingId, update, curLang==='rw'?'Washyize ikirindiro!':'Checked in!');
+    }, function() {
+      _applyViewingUpdate(viewingId, update, curLang==='rw'?'Washyize ikirindiro!':'Checked in!');
+    }, { timeout:6000 });
+  } else {
+    _applyViewingUpdate(viewingId, update, curLang==='rw'?'Washyize ikirindiro!':'Checked in!');
+  }
+}
+
+function _viewingPageComplete(viewingId) {
+  var outcome = window.prompt(curLang==='rw'?'Umusaruro w\'inzibutso (optional):':'Viewing outcome (optional):', '');
+  if (outcome === null) return;
+  var uid = currentUser ? currentUser.uid : '';
+  _applyViewingUpdate(viewingId, {
+    status:'completed', completedAt:firebase.firestore.FieldValue.serverTimestamp(),
+    'report.outcome': outcome || '',
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:uid
+  }, curLang==='rw'?'Inzibutso yarangiye!':'Viewing completed!');
+}
+
+function _applyViewingUpdate(viewingId, data, toastMsg) {
+  db.collection('viewings').doc(viewingId).update(data).then(function() {
+    showToast(toastMsg, 'success');
+    logAudit('viewing.' + (data.status || 'updated'), 'viewings', viewingId, {}, { status: data.status });
+    for (var i = 0; i < _viewings.length; i++) {
+      if ((_viewings[i]._docId || _viewings[i].id) === viewingId) {
+        if (data.status) _viewings[i].status = data.status;
+        if (data.agentCheckIn) _viewings[i].agentCheckIn = data.agentCheckIn;
+        if (data.agentGPS) _viewings[i].agentGPS = data.agentGPS;
+        break;
+      }
+    }
+    _updateViewingsStats();
+    renderViewingsList();
+  }).catch(function(err) {
+    showToast(curLang==='rw'?'Habaye ikosa':'Error updating viewing', 'error');
+    console.error('[Viewings] update error:', err);
+  });
+}
+
+function openViewingDetailPanel(viewingId) {
+  var v = null;
+  for (var i = 0; i < _viewings.length; i++) {
+    if ((_viewings[i]._docId || _viewings[i].id) === viewingId) { v = _viewings[i]; break; }
+  }
+  if (!v) return;
+  _ensureViewingDetailModal(v, viewingId);
+}
+
+function _cancelViewingFromPage(viewingId) {
+  if (!confirm(curLang==='rw'?'Hagarika inzibutso?':'Cancel this viewing?')) return;
+  var uid = currentUser ? currentUser.uid : '';
+  _applyViewingUpdate(viewingId, {
+    status:'cancelled', updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:uid
+  }, curLang==='rw'?'Inzibutso yahagaritswe':'Viewing cancelled');
+  var m = document.getElementById('vdp-modal');
+  if (m) m.style.display = 'none';
+}
+
+function _ensureViewingDetailModal(v, viewingId) {
+  var m = document.getElementById('vdp-modal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'vdp-modal';
+    m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:1rem';
+    m.addEventListener('click', function(e) { if (e.target === m) m.style.display = 'none'; });
+    document.body.appendChild(m);
+  }
+
+  var dt = v.scheduledAt && v.scheduledAt.toDate ? v.scheduledAt.toDate() : null;
+  var dtStr = dt ? dt.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+    + ' &#8212; ' + dt.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}) : '&#8212;';
+  var SC = { scheduled:'#1249B3', in_progress:'#7C3AED', completed:'#16A34A', cancelled:'#DC2626' };
+  var SL = { scheduled:'Scheduled', in_progress:'In Progress', completed:'Completed', cancelled:'Cancelled' };
+  var status = v.status || 'scheduled';
+  var sColor = SC[status] || '#64748B';
+
+  var canAct = currentUser && (currentUser.uid === v.agentId
+    || ['admin','staff','super_admin'].indexOf((currentUser.role||'').toLowerCase()) > -1);
+  var actBtns = '';
+  if (canAct && status === 'scheduled') {
+    actBtns += '<button class="btn btn-navy btn-sm" onclick="_viewingPageCheckIn(\'' + viewingId + '\');document.getElementById(\'vdp-modal\').style.display=\'none\'" data-rw="Injira" data-en="Check In">Check In</button>';
+    actBtns += '<button class="btn btn-sm" onclick="_cancelViewingFromPage(\'' + viewingId + '\')" style="color:#DC2626;border:1px solid #DC2626;border-radius:8px;padding:.38rem .8rem;font-size:.8rem;background:none;cursor:pointer" data-rw="Hagarika" data-en="Cancel">Cancel</button>';
+  }
+  if (canAct && status === 'in_progress') {
+    actBtns += '<button class="btn btn-sm" onclick="_viewingPageComplete(\'' + viewingId + '\');document.getElementById(\'vdp-modal\').style.display=\'none\'" style="background:#16A34A;color:#fff;border:none;border-radius:8px;padding:.38rem .8rem;font-size:.8rem;cursor:pointer" data-rw="Rangiza" data-en="Complete">Complete</button>';
+  }
+  if (v.leadId) {
+    actBtns += '<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'vdp-modal\').style.display=\'none\';go(\'crm\');setTimeout(function(){openLeadDetail(\'' + v.leadId + '\');},500)" data-rw="Reba Lead" data-en="Open Lead">Open Lead</button>';
+  }
+  actBtns += '<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'vdp-modal\').style.display=\'none\'">Close</button>';
+
+  var checkinInfo = v.agentCheckIn
+    ? '<div style="background:#16A34A15;border:1px solid #16A34A40;border-radius:8px;padding:.55rem .7rem;font-size:.78rem;color:#16A34A;font-weight:600">&#128205; '
+      + (curLang==='rw'?'Wageze &#8212; GPS':'Checked in &#8212; GPS')
+      + (v.agentGPS ? ' (' + (v.agentGPS.lat||'').toString().slice(0,8) + ', ' + (v.agentGPS.lng||'').toString().slice(0,8) + ')' : ' recorded')
+      + '</div>'
+    : '';
+
+  m.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.22)">'
+    + '<div style="padding:1.1rem 1.3rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#7C3AED,#A855F7);color:#fff">'
+    + '<div><div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;opacity:.8;margin-bottom:.1rem">VIEWING DETAIL</div>'
+    + '<h3 style="margin:0;font-size:.98rem;font-weight:700">' + escapeHtml(v.propertyTitle || (curLang==='rw'?'Imitungo':'Property')) + '</h3></div>'
+    + '<button onclick="document.getElementById(\'vdp-modal\').style.display=\'none\'" style="background:rgba(255,255,255,.18);border:none;cursor:pointer;border-radius:50%;width:29px;height:29px;font-size:1rem;color:#fff;display:flex;align-items:center;justify-content:center">&#215;</button>'
+    + '</div>'
+    + '<div style="padding:1.1rem;display:flex;flex-direction:column;gap:.65rem">'
+    + '<div style="background:' + sColor + '15;border:1px solid ' + sColor + '40;border-radius:8px;padding:.5rem .7rem;display:flex;align-items:center;gap:.5rem">'
+    + '<span style="font-size:.75rem;font-weight:800;color:' + sColor + '">' + (SL[status]||status).toUpperCase() + '</span></div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">'
+    + '<div style="background:var(--light);border-radius:8px;padding:.55rem .7rem"><div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem" data-rw="Umukiliya" data-en="Client">Client</div><div style="font-size:.83rem;font-weight:600;color:var(--navy)">' + escapeHtml(v.clientName||'&#8212;') + '</div></div>'
+    + '<div style="background:var(--light);border-radius:8px;padding:.55rem .7rem"><div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem" data-rw="Telefoni" data-en="Phone">Phone</div><div style="font-size:.83rem;font-weight:600;color:var(--navy)">' + escapeHtml(v.clientPhone||'&#8212;') + '</div></div>'
+    + '<div style="background:var(--light);border-radius:8px;padding:.55rem .7rem;grid-column:1/-1"><div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem">&#128197; <span data-rw="Itariki n\'isaha" data-en="Date &amp; Time">Date &amp; Time</span></div><div style="font-size:.84rem;font-weight:700;color:var(--navy)">' + dtStr + '</div></div>'
+    + '</div>'
+    + (v.agentName ? '<div style="font-size:.82rem;color:var(--muted)">&#129309; <span data-rw="Agent:" data-en="Agent:">Agent:</span> <strong style="color:var(--navy)">' + escapeHtml(v.agentName) + '</strong></div>' : '')
+    + (v.notes ? '<div style="background:var(--light);border-radius:8px;padding:.55rem .7rem"><div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem" data-rw="Amanotisi" data-en="Notes">Notes</div><div style="font-size:.82rem;color:var(--dark)">' + escapeHtml(v.notes) + '</div></div>' : '')
+    + (v.report && v.report.outcome ? '<div style="background:#16A34A15;border-radius:8px;padding:.55rem .7rem"><div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem" data-rw="Umusaruro" data-en="Outcome">Outcome</div><div style="font-size:.82rem;color:var(--dark)">' + escapeHtml(v.report.outcome) + '</div></div>' : '')
+    + checkinInfo
+    + '<div style="display:flex;gap:.5rem;flex-wrap:wrap;padding-top:.3rem">' + actBtns + '</div>'
+    + '</div>'
+    + '</div>';
+
+  m.style.display = 'flex';
+}
 
 /* ══════════════════════════════════════════════════════════════════════
    PHASE 10 — Bug Fixes + Lead-to-Deal Conversion
