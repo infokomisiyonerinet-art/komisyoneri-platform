@@ -24118,12 +24118,20 @@ function submitSiteForm() {
 function loadAgentDashboard() {
   if (!currentUser) return;
   var cu = currentUser;
-  var _cuRoleLower = (cu.role || '').toLowerCase();
-  var _isAgentRole = _cuRoleLower === 'agent';
+  var _cuRoleLower  = (cu.role || '').toLowerCase();
+  var _isAgentRole  = _cuRoleLower === 'agent';
+  var _isOwnerRole  = _cuRoleLower === 'owner';
+  var _isClientRole = _cuRoleLower === 'client';
+  var _isAdminRole  = ['super_admin','admin','ceo','staff'].indexOf(_cuRoleLower) !== -1;
 
-  // Personalize welcome
+  // Personalize welcome — adapt label by role
   var wn = document.getElementById('dash-welcome-name');
-  if (wn) wn.textContent = (curLang==='rw' ? 'Murakaza neza, ' : 'Welcome back, ') + (cu.name || cu.displayName || 'User') + '!';
+  var _roleGreet = _isOwnerRole
+    ? (curLang==='rw' ? 'Murakaza neza, Nyir\'Imitungo ' : 'Welcome, Property Owner ')
+    : _isClientRole
+    ? (curLang==='rw' ? 'Murakaza neza, ' : 'Welcome back, ')
+    : (curLang==='rw' ? 'Murakaza neza, ' : 'Welcome back, ');
+  if (wn) wn.textContent = _roleGreet + (cu.name || cu.displayName || 'User') + '!';
 
   var now = new Date();
   var thirtyDaysAgo = new Date(now.getTime() - 30*24*60*60*1000);
@@ -24148,29 +24156,42 @@ function loadAgentDashboard() {
     el.className = 'delta ' + cls;
   }
 
-  /* Active Listings (my properties approved) */
+  /* Active Listings — scoped by role */
   var propQuery = _isAgentRole
-    ? db.collection('properties').where('agentId','==',cu.uid).where('isActive','==',true).where('status','==','approved')
-    : db.collection('properties').where('isActive','==',true).where('status','==','approved');
-  propQuery.get().then(function(snap) {
-    var el = document.getElementById('dash-kpi-listings');
-    if (el) el.textContent = snap.size;
-    var badge = document.getElementById('dash-sidebar-listings');
-    if (badge) badge.textContent = snap.size;
-    /* Render listing rows (normalize status casing for renderDashboardListings) */
-    var props = [];
-    snap.forEach(function(d){
-      var x = d.data(); x._id = d.id;
-      if (x.status) x.status = x.status.charAt(0).toUpperCase() + x.status.slice(1);
-      props.push(x);
-    });
-    renderDashboardListings(props);
-  }).catch(function(){});
+    ? db.collection('properties').where('agentId','==',cu.uid)
+    : _isOwnerRole
+    ? db.collection('properties').where('ownerId','==',cu.uid)
+    : _isClientRole
+    ? null
+    : db.collection('properties').where('status','==','approved').limit(200);
 
-  /* New Leads (current 30d vs prev 30d) */
+  if (propQuery) {
+    propQuery.get().then(function(snap) {
+      var props = [];
+      snap.forEach(function(d){
+        var x = d.data();
+        if (x.isActive === false) return;
+        if ((_isAgentRole || _isAdminRole) && x.status && x.status.toLowerCase() !== 'approved') return;
+        x._id = d.id;
+        if (x.status) x.status = x.status.charAt(0).toUpperCase() + x.status.slice(1);
+        props.push(x);
+      });
+      var el = document.getElementById('dash-kpi-listings');
+      if (el) el.textContent = props.length;
+      var badge = document.getElementById('dash-sidebar-listings');
+      if (badge) badge.textContent = props.length;
+      renderDashboardListings(props);
+    }).catch(function(){});
+  }
+
+  /* New Leads — scoped by role */
   var leadsQuery = _isAgentRole
-    ? db.collection('leads').where('agentId','==',cu.uid).where('isActive','==',true)
-    : db.collection('leads').where('isActive','==',true);
+    ? db.collection('leads').where('agentId','==',cu.uid)
+    : _isOwnerRole
+    ? db.collection('leads').where('ownerId','==',cu.uid)
+    : _isClientRole
+    ? db.collection('leads').where('clientId','==',cu.uid)
+    : db.collection('leads');
   leadsQuery.get().then(function(snap) {
     var cur30=0, prev30=0;
     /* Weekly buckets for mini bar chart (0=Sun … 6=Sat) */
@@ -24180,6 +24201,7 @@ function loadAgentDashboard() {
     var phoneSet = {};
     snap.forEach(function(d) {
       var x = d.data();
+      if (x.isActive === false) return;
       var ts = x.createdAt;
       if (!ts) return;
       var dt = ts.toDate ? ts.toDate() : new Date(ts);
@@ -24192,7 +24214,7 @@ function loadAgentDashboard() {
     var el = document.getElementById('dash-kpi-leads');
     if (el) el.textContent = cur30;
     var badge = document.getElementById('crm-sidebar-count');
-    if (badge) badge.textContent = snap.size;
+    if (badge) badge.textContent = cur30;
     setDelta('dash-delta-leads', cur30, prev30, curLang==='rw'?'uku kwezi':'this month');
     /* Update clients sidebar badge */
     var cBadge = document.getElementById('clients-sidebar-count');
@@ -24201,15 +24223,20 @@ function loadAgentDashboard() {
     loadDashMiniBarChart(dayCounts, now.getDay());
   }).catch(function(){});
 
-  /* Deals closed (my deals closed_won this 30d vs prev 30d) */
+  /* Deals closed — scoped by role */
   var dealsQuery = _isAgentRole
-    ? db.collection('deals').where('agentId','==',cu.uid).where('isActive','==',true)
-    : db.collection('deals').where('isActive','==',true);
+    ? db.collection('deals').where('agentId','==',cu.uid)
+    : _isOwnerRole
+    ? db.collection('deals').where('sellerId','==',cu.uid)
+    : _isClientRole
+    ? db.collection('deals').where('clientId','==',cu.uid)
+    : db.collection('deals');
   dealsQuery.get().then(function(snap) {
-    var closedCur=0, closedPrev=0, dealIds=[];
+    var closedCur=0, closedPrev=0, total=0;
     snap.forEach(function(d) {
       var x = d.data();
-      dealIds.push(d.id);
+      if (x.isActive === false) return;
+      total++;
       if (x.pipelineStage === 'closed_won') {
         var ts = x.closedAt || x.updatedAt;
         if (!ts) return;
@@ -24221,7 +24248,7 @@ function loadAgentDashboard() {
     var el = document.getElementById('dash-kpi-sales');
     if (el) el.textContent = closedCur;
     var badge = document.getElementById('deals-sidebar-count');
-    if (badge) badge.textContent = snap.size;
+    if (badge) badge.textContent = total;
     setDelta('dash-delta-sales', closedCur, closedPrev, curLang==='rw'?'uku kwezi':'this month');
   }).catch(function(){});
 
@@ -24230,13 +24257,18 @@ function loadAgentDashboard() {
   var prevMonthStart = new Date(now.getFullYear(), now.getMonth()-1, 1);
   var tsMonth = firebase.firestore.Timestamp.fromDate(monthStart);
   var tsPrevMonth = firebase.firestore.Timestamp.fromDate(prevMonthStart);
-  var commQuery = _isAgentRole
-    ? db.collection('commissions').where('agentId','==',cu.uid).where('isActive','==',true)
-    : db.collection('commissions').where('isActive','==',true);
-  commQuery.get().then(function(snap) {
-    var curComm=0, prevComm=0;
+  var commQuery = (_isOwnerRole || _isClientRole)
+    ? null
+    : _isAgentRole
+    ? db.collection('commissions').where('agentId','==',cu.uid)
+    : db.collection('commissions');
+  if (commQuery) {
+   commQuery.get().then(function(snap) {
+    var curComm=0, prevComm=0, total=0;
     snap.forEach(function(d) {
       var x = d.data();
+      if (x.isActive === false) return;
+      total++;
       var ts = x.createdAt;
       if (!ts) return;
       var dt = ts.toDate ? ts.toDate() : new Date(ts);
@@ -24245,7 +24277,7 @@ function loadAgentDashboard() {
       else if (dt >= prevMonthStart) prevComm += share;
     });
     var badge = document.getElementById('comm-sidebar-count');
-    if (badge) badge.textContent = snap.size;
+    if (badge) badge.textContent = total;
     var dispCur = curComm >= 1000000 ? (curComm/1000000).toFixed(1)+'M'
                 : curComm >= 1000    ? Math.round(curComm/1000)+'K'
                 : String(Math.round(curComm));
@@ -24253,6 +24285,7 @@ function loadAgentDashboard() {
     if (el) el.textContent = dispCur || '0';
     setDelta('dash-delta-commission', curComm, prevComm, '%');
   }).catch(function(){});
+  } // end if (commQuery)
 
   /* Upcoming visits — single-field range+orderBy on scheduledAt; role+isActive filtered client-side */
   db.collection('viewings').where('scheduledAt','>=',firebase.firestore.Timestamp.fromDate(now)).orderBy('scheduledAt','asc').limit(30).get().then(function(snap) {
@@ -24260,7 +24293,9 @@ function loadAgentDashboard() {
     snap.forEach(function(d) {
       var x = d.data();
       if (x.isActive === false) return;
-      if (_isAgentRole && x.agentId !== cu.uid) return;
+      if (_isAgentRole  && x.agentId  !== cu.uid) return;
+      if (_isOwnerRole  && x.ownerId  !== cu.uid && x.agentId !== cu.uid) return;
+      if (_isClientRole && x.clientId !== cu.uid) return;
       var dt = x.scheduledAt ? (x.scheduledAt.toDate ? x.scheduledAt.toDate() : new Date(x.scheduledAt)) : null;
       bookings.push({
         date: dt ? dt.toISOString().slice(0,10) : '',
