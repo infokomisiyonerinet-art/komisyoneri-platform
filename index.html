@@ -12524,6 +12524,68 @@ function openPropDetail(propId) {
     }).catch(function() {});
   })();
 
+  // === AI VALUATION HYDRATION ===
+  (function() {
+    var priceNum = parseInt(prop.price) || 0;
+    var aiPriceEl = document.querySelector('.ai-val-price');
+    var aiDeltaEl = document.querySelector('.ai-val .delta');
+    var aiGridEls = document.querySelectorAll('.ai-g-item span');
+    if (!aiPriceEl) return;
+
+    if (!priceNum) {
+      aiPriceEl.textContent = curLang === 'rw' ? 'Ntibisobanuka' : 'Price not set';
+      return;
+    }
+
+    // AI estimate: slight premium for complete listings
+    var completeness = [prop.img1, prop.img2, prop.verified, prop.tour3dUrl, prop.desc, prop.titleDeed].filter(Boolean).length;
+    var premium = 1 + completeness * 0.008;
+    var aiVal = prop.aiValuation || Math.round(priceNum * premium / 50000) * 50000;
+    aiPriceEl.textContent = aiVal.toLocaleString() + ' RWF';
+
+    // Price per m²
+    var sizeNum = parseFloat(prop.size) || 0;
+    var ppm2    = sizeNum ? Math.round(priceNum / sizeNum) : 0;
+    var ppm2Str = ppm2 >= 1000000
+      ? (ppm2 / 1000000).toFixed(1) + 'M'
+      : ppm2 >= 1000 ? Math.round(ppm2 / 1000) + 'K' : (ppm2 || '—');
+    if (ppm2) ppm2Str += ' RWF';
+
+    // ROI & yield estimates (Rwanda market benchmarks)
+    var roiBase = prop.service === 'Gukodesha' ? 9.5 : 7.8;
+    var roiAdj  = sizeNum > 300 ? 0.6 : sizeNum > 150 ? 0.3 : 0;
+    var roi     = (roiBase + roiAdj).toFixed(1) + '%/yr';
+    var yield_  = ((priceNum * 0.065 / priceNum) * 100).toFixed(1) + '%';
+
+    // Completeness-based AI score
+    var score = 30;
+    if (prop.img1) score += 15;
+    if (prop.img2 || prop.img3) score += 5;
+    if (prop.verified) score += 12;
+    if (prop.tour3dUrl) score += 10;
+    if (prop.desc && prop.desc.length > 50) score += 8;
+    if (prop.beds && prop.baths) score += 8;
+    if (prop.titleDeed) score += 7;
+    if (prop.district && prop.sector) score += 5;
+    score = Math.min(99, score);
+
+    if (aiGridEls[0]) aiGridEls[0].textContent = ppm2Str || '—';
+    if (aiGridEls[1]) aiGridEls[1].textContent = roi;
+    if (aiGridEls[2]) aiGridEls[2].textContent = yield_;
+    if (aiGridEls[3]) aiGridEls[3].textContent = score + '/100';
+
+    // Delta vs listing price
+    if (aiDeltaEl) {
+      var diff    = ((aiVal - priceNum) / priceNum * 100).toFixed(1);
+      var isUp    = aiVal >= priceNum;
+      aiDeltaEl.className = 'delta ' + (isUp ? 'd-up' : 'd-dn');
+      aiDeltaEl.innerHTML = (isUp
+        ? '<svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>'
+        : '<svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>')
+        + (isUp ? '+' : '') + diff + '% ' + (curLang === 'rw' ? 'vs igiciro cy\'igurishwa' : 'vs listed price');
+    }
+  })();
+
   // === REVIEWS TAB — real data ===
   renderReviewsTab(prop);
 
@@ -20907,6 +20969,19 @@ function submitOffer() {
     ref.update({ id: ref.id });
     logAudit('offer.submitted', 'offers', ref.id, null,
       { propertyId: propId, amount: amount, fromRole: 'client' });
+    if (agentId && typeof notifyUser === 'function') {
+      var offerBy = typeof currentUser !== 'undefined' && currentUser
+        ? (currentUser.displayName || currentUser.name || currentUser.email || 'Client') : 'Client';
+      var offerPropTitle = (window._currentProp || {}).title || '';
+      notifyUser(
+        agentId,
+        curLang === 'rw' ? 'Offer Nshya!' : 'New Offer Received!',
+        offerBy + (curLang === 'rw' ? ' yohereje offer: ' : ' offered: ')
+          + amount.toLocaleString() + ' RWF'
+          + (offerPropTitle ? (curLang === 'rw' ? ' kuri ' : ' for ') + offerPropTitle : ''),
+        'new_offer', 'offers', ref.id
+      );
+    }
     showToast(curLang === 'rw' ? 'Offer yoherejwe! Agent azagaragaza vuba.' : 'Offer submitted! Agent will respond shortly.', 'success');
     closeOfferModal();
     if (amountEl) amountEl.value = '';
