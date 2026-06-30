@@ -3873,8 +3873,8 @@ html,body{overscroll-behavior-x:none}
         <div class="dc">
           <div class="dc-hdr"><span class="dc-title" data-rw="Imitungo Yanjye" data-en="My Listings">Imitungo Yanjye</span><button class="dc-action" onclick="go('listings')" data-rw="Reba Yose" data-en="View All">Reba Yose</button></div>
           <div id="dash-listings-rows"></div>
-          <!-- mini bar chart -->
-          <div class="mini-bars">
+          <!-- mini bar chart — populated by loadDashMiniBarChart() -->
+          <div class="mini-bars" id="dash-minibars">
             <div class="mb-col"><div class="mb-bar" style="height:30px"></div><span class="mb-lbl">Mon</span></div>
             <div class="mb-col"><div class="mb-bar" style="height:48px"></div><span class="mb-lbl">Tue</span></div>
             <div class="mb-col"><div class="mb-bar" style="height:36px"></div><span class="mb-lbl">Wed</span></div>
@@ -22127,18 +22127,32 @@ function loadAgentDashboard() {
     : db.collection('leads').where('isActive','==',true);
   leadsQuery.get().then(function(snap) {
     var cur30=0, prev30=0;
+    /* Weekly buckets for mini bar chart (0=Sun … 6=Sat) */
+    var weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay()); weekStart.setHours(0,0,0,0);
+    var dayCounts = [0,0,0,0,0,0,0];
+    /* Client deduplication for sidebar badge */
+    var phoneSet = {};
     snap.forEach(function(d) {
-      var ts = d.data().createdAt;
+      var x = d.data();
+      var ts = x.createdAt;
       if (!ts) return;
       var dt = ts.toDate ? ts.toDate() : new Date(ts);
       if (dt >= thirtyDaysAgo) cur30++;
       else if (dt >= sixtyDaysAgo) prev30++;
+      if (dt >= weekStart) dayCounts[dt.getDay()]++;
+      var pk = (x.clientPhone||'').trim() || x.clientId || '';
+      if (pk) phoneSet[pk] = true;
     });
     var el = document.getElementById('dash-kpi-leads');
     if (el) el.textContent = cur30;
     var badge = document.getElementById('crm-sidebar-count');
     if (badge) badge.textContent = snap.size;
     setDelta('dash-delta-leads', cur30, prev30, curLang==='rw'?'uku kwezi':'this month');
+    /* Update clients sidebar badge */
+    var cBadge = document.getElementById('clients-sidebar-count');
+    if (cBadge) cBadge.textContent = Object.keys(phoneSet).length || '0';
+    /* Render mini bar chart */
+    loadDashMiniBarChart(dayCounts, now.getDay());
   }).catch(function(){});
 
   /* Deals closed (my deals closed_won this 30d vs prev 30d) */
@@ -22344,6 +22358,28 @@ function loadDashboardActivity() {
   }).catch(function() {
     container.innerHTML = '<div style="padding:1rem;color:var(--muted);font-size:.8rem;text-align:center">—</div>';
   });
+}
+
+/* Render weekly leads mini bar chart in dashboard */
+function loadDashMiniBarChart(dayCounts, todayDow) {
+  var el = document.getElementById('dash-minibars');
+  if (!el) return;
+  /* dayCounts: array[7] indexed 0=Sun,1=Mon,...,6=Sat */
+  var dayLabels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var maxCount = Math.max.apply(null, dayCounts.concat([1]));
+  var minH = 6, maxH = 58;
+  var html = '';
+  for (var i = 0; i < 7; i++) {
+    var h = maxCount > 0 ? Math.round((dayCounts[i] / maxCount) * (maxH - minH) + minH) : minH;
+    var isToday = (i === todayDow);
+    var barStyle = 'height:' + h + 'px;' + (isToday ? 'background:linear-gradient(to top,#7A5500,var(--gold))' : '');
+    var lblStyle = isToday ? 'font-weight:700;color:var(--navy)' : '';
+    html += '<div class="mb-col" title="' + dayCounts[i] + ' leads">'
+      + '<div class="mb-bar" style="' + barStyle + '"></div>'
+      + '<span class="mb-lbl" style="' + lblStyle + '">' + dayLabels[i] + '</span>'
+      + '</div>';
+  }
+  el.innerHTML = html;
 }
 
 /* Load home page testimonials from reviews collection */
