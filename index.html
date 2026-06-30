@@ -20348,17 +20348,16 @@ function loadCommissions() {
 
   var query;
   if (isAdmin) {
-    query = db.collection('commissions').where('isActive','==',true)
-              .orderBy('createdAt','desc').limit(200);
+    query = db.collection('commissions').orderBy('createdAt','desc').limit(200);
   } else if (typeof currentUser !== 'undefined' && currentUser) {
-    query = db.collection('commissions').where('isActive','==',true)
-              .where('agentId','==',currentUser.uid).limit(200);
+    query = db.collection('commissions').where('agentId','==',currentUser.uid).limit(200);
   } else { return; }
 
   query.get().then(function(snap) {
     _commissions = [];
     snap.forEach(function(doc) {
       var d = doc.data();
+      if (d.isActive === false) return;
       d._docId = doc.id;
       _commissions.push(d);
     });
