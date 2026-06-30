@@ -10443,8 +10443,9 @@ var origGo = go;
 go = function(page) {
   origGo(page);
   if (page === 'listings') {
-    if (!_myListingsMode) { _listPage = 1; _listFiltered = null; }
-    setTimeout(loadApprovedProperties, 100);
+    /* Skip reset + reload when applyAndSearch is driving the navigation */
+    if (!_myListingsMode && !window._filtersActive) { _listPage = 1; _listFiltered = null; }
+    if (!window._filtersActive) setTimeout(loadApprovedProperties, 100);
   }
 };
 
@@ -23550,7 +23551,7 @@ function _renderApprovedGrids(filtered) {
   var pageItems = all.slice(start, start + _listPageSize);
 
   grids.forEach(function(grid) {
-    grid.querySelectorAll('.user-prop-card, .sk-init').forEach(function(el) { el.remove(); });
+    grid.querySelectorAll('.user-prop-card, .sk-init, .similar-results-note').forEach(function(el) { el.remove(); });
     var emp = grid.querySelector('.empty-listings'); if (emp) emp.remove();
     if (all.length === 0) {
       var d = document.createElement('div');
@@ -23634,6 +23635,52 @@ function goToListPage(n) {
   _renderApprovedGrids();
   var listHdr = document.querySelector('#page-listings .list-body');
   if (listHdr) listHdr.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* Override applyAndSearch — integrates hero/modal search with pagination system */
+function applyAndSearch() {
+  var approved = getApprovedProps();
+  var filtered  = applySearchFilters(approved);
+  window._filtersActive = true;
+  closeSearch();
+  go('listings');
+  kmTrack('search', { query: window._qs_query || '', results: filtered.length });
+  setTimeout(function() {
+    if (filtered.length > 0) {
+      _listPage = 1;
+      _renderApprovedGrids(filtered);
+    } else {
+      /* Zero results: clear pagination and show closest matches */
+      _listPage = 1;
+      _listFiltered = [];
+      var qText = window._qs_query || (function() {
+        var el = document.getElementById('sm-quick-search'); return el ? el.value.trim() : '';
+      })();
+      var similar = approved.map(function(p) { return { p: p, s: kmScore(qText || '', p) }; })
+        .sort(function(a, b) { return b.s - a.s; }).slice(0, 6);
+      var grids = document.querySelectorAll('#p-grid-main');
+      grids.forEach(function(grid) {
+        grid.querySelectorAll('.user-prop-card, .sk-init, .empty-listings, .similar-results-note').forEach(function(el) { el.remove(); });
+        var note = document.createElement('div');
+        note.className = 'similar-results-note';
+        note.style.cssText = 'grid-column:1/-1';
+        note.innerHTML = '<span>&#128269; ' + (curLang === 'rw' ? 'Nta mitungo ihuye — hano ni imitungo ifanana:' : 'No exact match — showing closest results:') + '</span>'
+          + '&nbsp;<button onclick="resetSearch()" class="btn btn-navy btn-sm" style="margin:0">' + (curLang === 'rw' ? 'Siba' : 'Clear') + ' &#8594;</button>';
+        grid.appendChild(note);
+        similar.forEach(function(x) {
+          var w = document.createElement('div');
+          w.className = 'user-prop-card';
+          w.setAttribute('data-pid', String(x.p.id));
+          w.innerHTML = renderUserPropCard(x.p);
+          grid.appendChild(w);
+        });
+      });
+      var countEl = document.getElementById('listings-count');
+      if (countEl) countEl.textContent = 0;
+      var pag = document.getElementById('listings-pagination');
+      if (pag) pag.innerHTML = '';
+    }
+  }, 150);
 }
 
 /* Override — last function declaration wins, replaces original at line ~9719 */
