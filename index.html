@@ -21430,6 +21430,19 @@ function updateCrmStats() {
                     'offer_submitted','negotiation','due_diligence','financing','contract','closing'];
   var active = _crmLeads.filter(function(l){ return activeKeys.indexOf(l.pipelineStage) > -1; }).length;
   var won    = _crmLeads.filter(function(l){ return l.pipelineStage === 'closed_won'; }).length;
+  var lost   = _crmLeads.filter(function(l){ return l.pipelineStage === 'closed_lost'; }).length;
+
+  // Pipeline value: sum of budgetMax for all non-closed leads
+  var pipelineVal = 0;
+  _crmLeads.forEach(function(l) {
+    if (l.pipelineStage !== 'closed_won' && l.pipelineStage !== 'closed_lost') {
+      var bMax = parseFloat(l.budgetMax || l.budget || 0);
+      if (!isNaN(bMax) && bMax > 0) pipelineVal += bMax;
+    }
+  });
+
+  // Win rate: won / (won + lost) * 100
+  var winRate = (won + lost) > 0 ? Math.round(won / (won + lost) * 100) : null;
 
   var e = document.getElementById.bind(document);
   if(e('crm-stat-total')) e('crm-stat-total').textContent = total;
@@ -21437,6 +21450,22 @@ function updateCrmStats() {
   if(e('crm-stat-active'))e('crm-stat-active').textContent = active;
   if(e('crm-stat-won'))   e('crm-stat-won').textContent   = won;
   if(e('dash-kpi-leads')) e('dash-kpi-leads').textContent = total;
+
+  var pipeEl = e('crm-stat-pipeline');
+  if (pipeEl) {
+    if (pipelineVal > 0) {
+      var pM = pipelineVal / 1000000;
+      pipeEl.textContent = 'RWF ' + (pM >= 1000 ? (pM / 1000).toFixed(1) + 'B' : Math.round(pM) + 'M');
+    } else {
+      pipeEl.textContent = 'RWF —';
+    }
+  }
+
+  var wrEl = e('crm-stat-winrate');
+  if (wrEl) {
+    wrEl.textContent = winRate !== null ? winRate + '%' : '—%';
+    if (winRate !== null) wrEl.style.color = winRate >= 50 ? '#16A34A' : winRate >= 25 ? '#F59E0B' : '#DC2626';
+  }
 }
 
 function updateCrmSidebarBadge() {
