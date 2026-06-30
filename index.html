@@ -4024,6 +4024,7 @@ html,body{overscroll-behavior-x:none}
           <button onclick="switchAdminTab('listings')" id="adm-tab-listings" class="btn btn-navy btn-sm" style="font-size:.75rem">🏠 Imitungo</button>
           <button onclick="switchAdminTab('agents')" id="adm-tab-agents" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">👔 Agents</button>
           <button onclick="switchAdminTab('deals')" id="adm-tab-deals" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">💰 Deals</button>
+          <button onclick="switchAdminTab('referrals')" id="adm-tab-referrals" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">🔗 Referrals <span id="adm-ref-badge" style="background:var(--gold);color:#fff;border-radius:8px;padding:0 5px;font-size:.65rem;margin-left:2px"></span></button>
           <button onclick="switchAdminTab('platform')" id="adm-tab-platform" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">⚙️ Platform</button>
         </div>
         <!-- Listings sub-tabs -->
@@ -4038,6 +4039,23 @@ html,body{overscroll-behavior-x:none}
       <div id="admin-list"></div>
       <div id="admin-agents-panel" style="display:none;padding:.5rem 0"><div id="admin-agents-list"></div></div>
       <div id="admin-deals-panel" style="display:none;padding:.5rem 0"><div id="admin-deals-list"></div></div>
+      <div id="admin-referrals-panel" style="display:none;padding:.5rem 0">
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.8rem">
+          <select id="adm-ref-status-filter" onchange="loadAdminReferrals()" class="off-filter" style="font-size:.78rem">
+            <option value="">All Statuses</option>
+            <option value="registered">Registered</option>
+            <option value="qualified">Qualified</option>
+            <option value="rewarded">Rewarded</option>
+          </select>
+          <div style="flex:1"></div>
+          <div style="display:grid;grid-template-columns:repeat(3,auto);gap:.5rem">
+            <div style="background:var(--light);border-radius:8px;padding:.4rem .8rem;text-align:center"><div id="adm-ref-stat-reg" style="font-size:1.1rem;font-weight:800;color:var(--navy)">0</div><div style="font-size:.62rem;color:var(--muted)">Registered</div></div>
+            <div style="background:var(--light);border-radius:8px;padding:.4rem .8rem;text-align:center"><div id="adm-ref-stat-qual" style="font-size:1.1rem;font-weight:800;color:#16A34A">0</div><div style="font-size:.62rem;color:var(--muted)">Qualified</div></div>
+            <div style="background:var(--light);border-radius:8px;padding:.4rem .8rem;text-align:center"><div id="adm-ref-stat-rwd" style="font-size:1.1rem;font-weight:800;color:var(--gold)">0</div><div style="font-size:.62rem;color:var(--muted)">Rewarded</div></div>
+          </div>
+        </div>
+        <div id="adm-ref-list"></div>
+      </div>
       <div id="admin-platform-panel" style="display:none;padding:.5rem 0"></div>
     </div>
   </div>
@@ -12622,7 +12640,7 @@ function switchAdminTab(tab) {
   adminCurrentTab = tab;
 
   // Update tab buttons
-  ['listings','agents','deals','platform'].forEach(function(t) {
+  ['listings','agents','deals','referrals','platform'].forEach(function(t) {
     var btn = document.getElementById('adm-tab-'+t);
     if(!btn) return;
     if(t === tab) {
@@ -12637,17 +12655,115 @@ function switchAdminTab(tab) {
   var listingsFilters = document.getElementById('adm-listings-filters');
   var agentsPanel = document.getElementById('admin-agents-panel');
   var dealsPanel = document.getElementById('admin-deals-panel');
+  var referralsPanel = document.getElementById('admin-referrals-panel');
   var platformPanel = document.getElementById('admin-platform-panel');
 
   if(listingsPanel) listingsPanel.style.display = tab === 'listings' ? 'block' : 'none';
   if(listingsFilters) listingsFilters.style.display = tab === 'listings' ? 'flex' : 'none';
   if(agentsPanel) agentsPanel.style.display = tab === 'agents' ? 'block' : 'none';
   if(dealsPanel) dealsPanel.style.display = tab === 'deals' ? 'block' : 'none';
+  if(referralsPanel) referralsPanel.style.display = tab === 'referrals' ? 'block' : 'none';
   if(platformPanel) platformPanel.style.display = tab === 'platform' ? 'block' : 'none';
 
   if(tab === 'agents') renderAdminAgents();
   if(tab === 'deals') renderAdminDeals();
+  if(tab === 'referrals') loadAdminReferrals();
   if(tab === 'platform') renderAdminPlatform();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ADMIN REFERRAL MANAGEMENT
+// ═══════════════════════════════════════════════════════════
+
+var _adminReferrals = [];
+
+function loadAdminReferrals() {
+  var el = document.getElementById('adm-ref-list');
+  if (!el || typeof db === 'undefined') return;
+  el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⏳</div><div class="crm-empty-title">Loading...</div></div>';
+  var statusFilter = (document.getElementById('adm-ref-status-filter') || {}).value || '';
+  var q = db.collection('referrals').where('isActive','==',true).orderBy('createdAt','desc').limit(200);
+  q.get().then(function(snap) {
+    _adminReferrals = [];
+    snap.forEach(function(d) { var r = d.data(); r._docId = d.id; _adminReferrals.push(r); });
+    if (statusFilter) _adminReferrals = _adminReferrals.filter(function(r){ return r.status === statusFilter; });
+    renderAdminReferrals();
+    var reg  = _adminReferrals.filter(function(r){ return r.status === 'registered'; }).length;
+    var qual = _adminReferrals.filter(function(r){ return r.status === 'qualified'; }).length;
+    var rwd  = _adminReferrals.filter(function(r){ return r.status === 'rewarded'; }).length;
+    var statReg  = document.getElementById('adm-ref-stat-reg');
+    var statQual = document.getElementById('adm-ref-stat-qual');
+    var statRwd  = document.getElementById('adm-ref-stat-rwd');
+    if (statReg)  statReg.textContent  = reg;
+    if (statQual) statQual.textContent = qual;
+    if (statRwd)  statRwd.textContent  = rwd;
+    var badge = document.getElementById('adm-ref-badge');
+    if (badge) badge.textContent = qual > 0 ? qual : '';
+  }).catch(function() {
+    el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#9888;&#65039;</div><div class="crm-empty-title">Error loading referrals</div></div>';
+  });
+}
+
+function renderAdminReferrals() {
+  var el = document.getElementById('adm-ref-list');
+  if (!el) return;
+  if (!_adminReferrals.length) {
+    el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#128279;</div><div class="crm-empty-title">No referrals yet</div><div class="crm-empty-sub">Referrals will appear here once users register via referral links.</div></div>';
+    return;
+  }
+  var statusColor = { registered:'var(--muted)', qualified:'#16A34A', rewarded:'var(--gold)' };
+  var html = '<div style="display:flex;flex-direction:column;gap:.5rem">';
+  _adminReferrals.forEach(function(r) {
+    var ts = '';
+    try { ts = r.createdAt && r.createdAt.toDate ? r.createdAt.toDate().toLocaleDateString() : ''; } catch(e){}
+    var statusBg = { registered:'#F1F5F9', qualified:'#DCFCE7', rewarded:'#FEF9C3' };
+    var sc = statusColor[r.status] || 'var(--muted)';
+    var sb = statusBg[r.status] || '#F1F5F9';
+    html += '<div style="background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:.75rem 1rem;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">'
+      + '<div style="flex:1;min-width:140px">'
+      + '<div style="font-size:.82rem;font-weight:700;color:var(--dark)">' + escapeHtml(r.referredEmail || r.referredUserId || 'Unknown') + '</div>'
+      + '<div style="font-size:.7rem;color:var(--muted)">Referred by: <span style="color:var(--navy);font-weight:600">' + escapeHtml(r.referrerCode || r.referrerId || '—') + '</span></div>'
+      + (ts ? '<div style="font-size:.65rem;color:var(--muted);margin-top:.1rem">' + ts + '</div>' : '')
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">'
+      + (r.rewardAmount ? '<span style="font-size:.75rem;font-weight:700;color:var(--gold)">' + parseInt(r.rewardAmount).toLocaleString() + ' RWF</span>' : '')
+      + '<span style="background:' + sb + ';color:' + sc + ';border-radius:12px;padding:.2rem .7rem;font-size:.7rem;font-weight:700;text-transform:capitalize">' + escapeHtml(r.status || 'registered') + '</span>';
+    if (r.status === 'qualified') {
+      html += '<button class="btn btn-sm" onclick="openRewardReferral(\'' + (r._docId||r.id) + '\')" style="font-size:.7rem;background:var(--gold);color:#fff;border:none">&#127873; Reward</button>';
+    }
+    html += '</div></div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function openRewardReferral(refId) {
+  var amount = prompt(curLang === 'rw' ? 'Injiza umubare w\'inguzanyo (RWF):' : 'Enter reward amount (RWF):', '50000');
+  if (amount === null) return;
+  var amt = parseInt(amount) || 0;
+  if (amt <= 0) { showToast(curLang === 'rw' ? 'Umubare ntabwo ari ngombwa' : 'Invalid reward amount', 'error'); return; }
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'admin';
+  db.collection('referrals').doc(refId).update({
+    status:       'rewarded',
+    rewardAmount: amt,
+    rewardPaidAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy:    uid
+  }).then(function() {
+    logAudit('referral.rewarded', 'referrals', refId, null, { rewardAmount: amt });
+    /* Notify referrer */
+    var ref = _adminReferrals.filter(function(r){ return (r._docId||r.id) === refId; })[0];
+    if (ref && ref.referrerId && typeof notifyUser === 'function') {
+      notifyUser(ref.referrerId,
+        curLang === 'rw' ? '&#127873; Inguzanyo Yawe Yatanzwe!' : '&#127873; Referral Reward Sent!',
+        (curLang === 'rw'
+          ? 'Wahawe inguzanyo ya ' + amt.toLocaleString() + ' RWF bitewe n\'itumizwa ryawe. Murakoze!'
+          : 'You have been rewarded ' + amt.toLocaleString() + ' RWF for your successful referral. Thank you!'),
+        'referral_rewarded', 'referrals', refId);
+    }
+    showToast(curLang === 'rw' ? 'Inguzanyo yatanzwe!' : 'Reward marked successfully!', 'success');
+    loadAdminReferrals();
+  }).catch(function() { showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error updating referral', 'error'); });
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -13657,11 +13773,14 @@ function _fsNotifTimeAgo(ts) {
 }
 
 function _fsNotifIcon(type) {
-  if (type === 'lead_assigned' || type === 'lead')        return '&#128197;';
-  if (type === 'deal_update'   || type === 'deal')        return '&#128188;';
-  if (type === 'viewing_confirmed' || type === 'viewing') return '&#127968;';
-  if (type === 'commission_approved' || type === 'commission') return '&#128176;';
-  if (type === 'document_shared'  || type === 'document') return '&#128196;';
+  if (type === 'lead_assigned' || type === 'lead' || type === 'lead_followup') return '&#128197;';
+  if (type === 'deal_update'   || type === 'deal' || type === 'deal_stage' || type === 'deal_closed') return '&#128188;';
+  if (type === 'viewing_confirmed' || type === 'viewing')  return '&#127968;';
+  if (type === 'commission_approved' || type === 'commission' || type === 'commission_calculated') return '&#128176;';
+  if (type === 'document_shared'  || type === 'document')  return '&#128196;';
+  if (type === 'task_assigned' || type === 'task_due')     return '&#9989;';
+  if (type === 'service_assigned' || type === 'service_completed') return '&#128203;';
+  if (type === 'referral_qualified' || type === 'referral_rewarded') return '&#127873;';
   if (type === 'message')                                  return '&#9993;';
   return '&#128276;';
 }
@@ -13710,6 +13829,8 @@ function _handleNotifClick(collection, relatedId) {
   } else if (collection === 'services') {
     go('verifications');
     setTimeout(function() { if (relatedId && typeof openVerificationDetail === 'function') openVerificationDetail(relatedId); }, 600);
+  } else if (collection === 'referrals') {
+    openReferralPanel();
   } else if (collection === 'messages') {
     if (typeof openInbox === 'function') openInbox();
   } else {
@@ -19234,6 +19355,36 @@ function autoCalculateCommission(dealId, deal) {
       }
       var badge = document.getElementById('comm-sidebar-count');
       if (badge) badge.textContent = parseInt(badge.textContent || 0) + 1;
+      /* Auto-qualify referral if client was referred */
+      if (deal.clientId && typeof db !== 'undefined') {
+        db.collection('referrals')
+          .where('referredUserId','==',deal.clientId)
+          .where('isActive','==',true)
+          .where('status','==','registered')
+          .limit(1).get()
+          .then(function(rSnap) {
+            if (rSnap.empty) return;
+            var rDoc = rSnap.docs[0];
+            var rData = rDoc.data();
+            return rDoc.ref.update({
+              status:      'qualified',
+              qualifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
+              dealId:      dealId,
+              updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
+              updatedBy:   uid
+            }).then(function() {
+              logAudit('referral.qualified', 'referrals', rDoc.id, { status:'registered' }, { status:'qualified', dealId: dealId });
+              if (typeof notifyUser === 'function' && rData.referrerId) {
+                notifyUser(rData.referrerId,
+                  curLang === 'rw' ? '&#127881; Itumizwa Ryawe Ryemejwe!' : '&#127881; Your Referral Qualified!',
+                  (curLang === 'rw'
+                    ? 'Umuntu watumije yashyize umugati warangiye. Uzahabwa inguzanyo vuba!'
+                    : 'Someone you referred just completed a deal! You will receive your referral reward soon.'),
+                  'referral_qualified', 'referrals', rDoc.id);
+              }
+            });
+          }).catch(function(e){ console.warn('[Referral] qualification check error:', e); });
+      }
     })
     .catch(function(err) { console.error('[Commission] auto-calc error:', err); });
 }
