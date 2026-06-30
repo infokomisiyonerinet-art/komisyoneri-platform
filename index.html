@@ -9495,9 +9495,16 @@ async function handleRegister() {
     try { await fb.sendEmailVerification(); } catch(e){}
     var locEl  = document.getElementById('reg-location');
     var prefEl = document.getElementById('reg-preference');
+    /* Map UI role tabs to canonical RBAC roles */
+    var roleEl = document.querySelector('.rt.active');
+    var roleLabel = roleEl ? roleEl.getAttribute('data-en') || roleEl.textContent : '';
+    var canonRole = 'client';
+    if (/owner/i.test(roleLabel)) canonRole = 'owner';
+    /* Agents go through approval — mark pending until reviewed */
+    if (/agent/i.test(roleLabel)) canonRole = 'agent';
     var user = {
       uid: fb.uid, name: name, phone: phone, email: email,
-      role: 'client',
+      role: canonRole,
       location: locEl  ? locEl.value.trim() : '',
       preference: prefEl ? prefEl.value : 'Kugura',
       provider: 'email', emailVerified: false,
@@ -9507,9 +9514,9 @@ async function handleRegister() {
     if (typeof db !== 'undefined') {
       db.collection('users').doc(fb.uid).set({
         id: fb.uid, uid: fb.uid, displayName: name, email: email,
-        phone: phone, role: 'client',
+        phone: phone, role: canonRole,
         location: user.location, preference: user.preference,
-        isActive: true, status: 'active',
+        isActive: true, status: canonRole === 'agent' ? 'pending' : 'active',
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         createdBy: fb.uid, updatedBy: fb.uid
