@@ -8336,10 +8336,19 @@ document.querySelectorAll('.thumb').forEach(th => {
   th.addEventListener('click', () => {
     th.closest('.det-thumbs')?.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
     th.classList.add('active');
-    const colors = ['g1','g2','g3','g4','g5','g7'];
-    const hero = document.querySelector('.det-hero-bg');
+    var hero = document.querySelector('.det-hero-bg');
     if (hero) {
-      hero.className = 'det-hero-bg ' + (colors[Array.from(th.parentElement.children).indexOf(th)] || 'g1');
+      var imgUrl = th.getAttribute('data-img');
+      if (imgUrl) {
+        hero.style.backgroundImage = 'url(' + imgUrl + ')';
+        hero.style.backgroundSize = 'cover';
+        hero.style.backgroundPosition = 'center';
+      } else {
+        var colors = ['g1','g2','g3','g4','g5','g7'];
+        var idx = Array.from(th.parentElement.children).indexOf(th);
+        hero.className = 'det-hero-bg ' + (colors[idx] || 'g1');
+        hero.style.backgroundImage = '';
+      }
     }
   });
 });
@@ -12309,6 +12318,30 @@ function openPropDetail(propId) {
       heroBg.querySelector('svg') && (heroBg.querySelector('svg').style.display='');
     }
   }
+
+  // === THUMBNAIL GALLERY ===
+  (function() {
+    var imgs = [prop.img1, prop.img2, prop.img3].filter(Boolean);
+    var thumbEls = document.querySelectorAll('.det-thumbs .thumb');
+    var gradients = ['g1','g2','g3','g4','g5'];
+    thumbEls.forEach(function(th, i) {
+      if (imgs[i]) {
+        th.setAttribute('data-img', imgs[i]);
+        th.style.backgroundImage = 'url(' + imgs[i] + ')';
+        th.style.backgroundSize = 'cover';
+        th.style.backgroundPosition = 'center';
+        if (th.querySelector('svg')) th.querySelector('svg').style.display = 'none';
+        th.className = 'thumb' + (i === 0 ? ' active' : '');
+        th.style.display = '';
+      } else {
+        th.removeAttribute('data-img');
+        th.style.backgroundImage = '';
+        if (th.querySelector('svg')) th.querySelector('svg').style.display = '';
+        th.className = 'thumb ' + gradients[i];
+        th.style.display = imgs.length > 0 ? 'none' : '';
+      }
+    });
+  })();
 
   // === TITLE + PRICE (hero overlay) ===
   var titleEl = document.getElementById('det-prop-title');
