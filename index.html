@@ -6571,6 +6571,9 @@ html,body{overscroll-behavior-x:none}
         <label data-rw="Igiciro (RWF)" data-en="Target Price (RWF)">Target Price (RWF)</label>
         <input type="number" id="cd-price" placeholder="e.g. 50000000" min="0" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
       </div>
+      <input type="hidden" id="cd-lead-id" value="">
+      <input type="hidden" id="cd-agent-id" value="">
+      <input type="hidden" id="cd-agent-name-h" value="">
       <button id="cd-submit-btn" class="btn btn-navy" style="width:100%;justify-content:center" onclick="createNewDeal()">
         <span id="cd-submit-lbl" data-rw="Fungura Deal" data-en="Open Deal">Open Deal</span>
       </button>
@@ -20003,11 +20006,16 @@ function submitCounterOffer() {
 // ── Create New Deal (manual) ──────────────────────────
 function openCreateDeal() {
   var m = document.getElementById('create-deal-modal');
-  if (m) m.style.display = 'flex';
-  if (typeof currentUser !== 'undefined' && currentUser) {
-    var n = document.getElementById('cd-client-name');
-    if (n && !n.value) n.value = '';
-  }
+  if (!m) return;
+  /* Reset all fields on fresh open */
+  ['cd-prop-title','cd-client-name','cd-client-phone','cd-price',
+   'cd-lead-id','cd-agent-id','cd-agent-name-h'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  var typeEl = document.getElementById('cd-deal-type');
+  if (typeEl) typeEl.value = 'sale';
+  m.style.display = 'flex';
 }
 
 function createNewDeal() {
@@ -20016,6 +20024,9 @@ function createNewDeal() {
   var phoneEl  = document.getElementById('cd-client-phone');
   var typeEl   = document.getElementById('cd-deal-type');
   var priceEl  = document.getElementById('cd-price');
+  var leadIdEl = document.getElementById('cd-lead-id');
+  var agentIdEl= document.getElementById('cd-agent-id');
+  var agentNhEl= document.getElementById('cd-agent-name-h');
   var sbBtn    = document.getElementById('cd-submit-btn');
   var sbLbl    = document.getElementById('cd-submit-lbl');
 
@@ -20024,6 +20035,9 @@ function createNewDeal() {
   var clientPhone = phoneEl  ? phoneEl.value.trim()   : '';
   var dealType    = typeEl   ? typeEl.value           : 'sale';
   var price       = priceEl  ? parseInt(priceEl.value) || 0 : 0;
+  var leadId      = leadIdEl ? leadIdEl.value.trim()  : '';
+  var pickedAgent = agentIdEl ? agentIdEl.value.trim() : '';
+  var pickedAgentNm = agentNhEl ? agentNhEl.value.trim() : '';
 
   if (!propTitle)   { showToast(curLang === 'rw' ? 'Shyira izina ry\'imitungo!' : 'Enter property name!', 'error'); return; }
   if (!clientName)  { showToast(curLang === 'rw' ? 'Shyira amazina y\'umukiliya!' : 'Enter client name!', 'error'); return; }
@@ -20034,28 +20048,29 @@ function createNewDeal() {
   if (typeof db === 'undefined') { showToast('Firebase ntabwo ihuye', 'error'); return; }
 
   var uid       = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : '';
-  var agentName = typeof currentUser !== 'undefined' && currentUser
-    ? (currentUser.displayName || currentUser.name || '') : '';
-
+  var agentId   = pickedAgent || uid;
+  var agentName = pickedAgentNm || (typeof currentUser !== 'undefined' && currentUser
+    ? (currentUser.displayName || currentUser.name || '') : '');
   var defaultRate = dealType === 'rental' ? 0.0833 : 0.04;
+  var notesVal  = leadId ? ((curLang === 'rw' ? 'Ivuye kuri Lead: ' : 'Converted from Lead: ') + clientName + ' — ' + leadId) : '';
 
   db.collection('deals').add({
     id:             '',
-    leadId:         '',
+    leadId:         leadId,
     propertyId:     '',
     propertyTitle:  propTitle,
     clientId:       '',
     clientName:     clientName,
     clientPhone:    clientPhone,
     sellerId:       '',
-    agentId:        uid,
+    agentId:        agentId,
     agentName:      agentName,
     dealType:       dealType,
     agreedPrice:    price,
     commissionRate: defaultRate,
     pipelineStage:  'new',
     offerId:        '',
-    notes:          '',
+    notes:          notesVal,
     milestones:     {},
     closedAt:       null,
     isActive:       true,
@@ -20067,12 +20082,22 @@ function createNewDeal() {
   }).then(function(ref) {
     ref.update({ id: ref.id });
     logAudit('deal.created', 'deals', ref.id, null,
-      { propertyTitle: propTitle, clientName: clientName, dealType: dealType });
+      { propertyTitle: propTitle, clientName: clientName, dealType: dealType, leadId: leadId });
+    /* Link lead to deal if converted */
+    if (leadId && typeof db !== 'undefined') {
+      db.collection('leads').doc(leadId).update({ dealId: ref.id, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(function(){});
+    }
+    /* Notify the agent if someone else created this deal for them */
+    if (agentId && agentId !== uid && typeof notifyUser === 'function') {
+      notifyUser(agentId, curLang==='rw' ? 'Deal Nshya!' : 'New Deal Assigned!',
+        (curLang==='rw' ? 'Deal nshya: ' : 'New deal opened: ') + propTitle + ' — ' + clientName,
+        'deal_assigned', 'deals', ref.id);
+    }
     showToast(curLang === 'rw' ? 'Deal ifunguwe!' : 'Deal opened!', 'success');
     document.getElementById('create-deal-modal').style.display = 'none';
     if (sbBtn) { sbBtn.disabled = false; if(sbLbl) sbLbl.textContent = curLang === 'rw' ? 'Fungura Deal' : 'Open Deal'; }
-    // Clear form
-    [propEl, clientEl, phoneEl, priceEl].forEach(function(el) { if(el) el.value = ''; });
+    /* Clear form + hidden fields */
+    [propEl, clientEl, phoneEl, priceEl, leadIdEl, agentIdEl, agentNhEl].forEach(function(el) { if(el) el.value = ''; });
     loadDeals();
   }).catch(function(err) {
     showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error creating deal', 'error');
@@ -25781,29 +25806,26 @@ function _convertLeadToDealData(lead) {
   if (typeof openCreateDeal !== 'function') { showToast('Deal module not ready', 'error'); return; }
   openCreateDeal();
 
-  // Pre-fill the deal creation form from lead data
+  // Pre-fill the deal creation form from lead data (using cd-* IDs)
   setTimeout(function() {
     var fields = {
-      'deal-client-name':  lead.clientName || lead.name || '',
-      'deal-client-phone': lead.clientPhone || lead.phone || '',
-      'deal-agent-name':   lead.agentName || '',
-      'deal-agent-id':     lead.agentId || '',
-      'deal-lead-id':      lead._docId || lead.id || '',
-      'deal-district':     lead.district || lead.zone || '',
-      'deal-type':         lead.action === 'Gukodesha' ? 'rental' : 'sale',
-      'deal-agreed-price': lead.budgetMax || lead.budgetMin || ''
+      'cd-client-name':  lead.clientName || lead.name || '',
+      'cd-client-phone': lead.clientPhone || lead.phone || '',
+      'cd-deal-type':    lead.action === 'Gukodesha' ? 'rental' : 'sale',
+      'cd-price':        lead.budgetMax || lead.budgetMin || '',
+      'cd-lead-id':      lead._docId || lead.id || '',
+      'cd-agent-id':     lead.agentId || '',
+      'cd-agent-name-h': lead.agentName || ''
     };
     Object.keys(fields).forEach(function(id) {
       var el = document.getElementById(id);
-      if (el && fields[id]) el.value = fields[id];
+      if (el && fields[id] !== undefined) el.value = fields[id];
     });
-
-    // Mark lead source in notes
-    var notesEl = document.getElementById('deal-notes');
-    if (notesEl && !notesEl.value) {
-      notesEl.value = (curLang === 'rw' ? 'Ivuye kuri Lead: ' : 'Converted from Lead: ') + (lead.clientName || '') + ' — ' + (lead._docId || lead.id || '');
+    /* Auto-fill property title from lead district + action */
+    var ptEl = document.getElementById('cd-prop-title');
+    if (ptEl && !ptEl.value && (lead.district || lead.zone)) {
+      ptEl.value = (lead.action || 'Property') + ' — ' + (lead.district || lead.zone);
     }
-
     showToast(curLang==='rw' ? 'Deal yuzuzwa kuva kuri lead!' : 'Deal pre-filled from lead!', 'success');
   }, 350);
 }
