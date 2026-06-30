@@ -11752,6 +11752,37 @@ function submitLead() {
           logAudit('lead.created', 'leads', ref.id, null, { clientName: lead.clientName, zone: lead.zone, pipelineStage: 'new' });
         }
         if (typeof updateCrmSidebarBadge === 'function') updateCrmSidebarBadge();
+        /* In-app notification to assigned agent */
+        var _agId = lead.assignedAgent || '';
+        if (_agId && typeof notifyUser === 'function') {
+          notifyUser(_agId,
+            curLang === 'rw' ? 'Lead Nshya Yaguhaye!' : 'New Lead Assigned!',
+            (lead.clientName || 'Client') + (curLang === 'rw' ? ' asaba agent i ' : ' needs an agent in ') + (lead.zone || ''),
+            'lead_assigned', 'leads', ref.id);
+        }
+        /* Firestore-based agent lookup if no localStorage agent found */
+        if (!_agId && lead.zone && typeof db !== 'undefined') {
+          db.collection('users')
+            .where('role', '==', 'agent')
+            .where('isActive', '==', true)
+            .where('status', '==', 'active')
+            .limit(5)
+            .get()
+            .then(function(agSnap) {
+              if (agSnap.empty) return;
+              var firstAgent = agSnap.docs[0];
+              var agData = firstAgent.data();
+              var agUid  = firstAgent.id;
+              /* Update lead with Firestore agent */
+              ref.update({ agentId: agUid, agentName: agData.displayName || agData.email || '', updatedAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(function(){});
+              if (typeof notifyUser === 'function') {
+                notifyUser(agUid,
+                  curLang === 'rw' ? 'Lead Nshya Yaguhaye!' : 'New Lead Assigned!',
+                  (lead.clientName || 'Client') + (curLang === 'rw' ? ' asaba agent i ' : ' needs an agent in ') + (lead.zone || ''),
+                  'lead_assigned', 'leads', ref.id);
+              }
+            }).catch(function(){});
+        }
       }).catch(function(fsErr) { console.warn('[Lead] Firestore save failed:', fsErr); });
     }
   } catch(fsE) { console.warn('[Lead] Firestore error:', fsE); }
