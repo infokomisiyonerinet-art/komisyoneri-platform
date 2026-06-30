@@ -16662,9 +16662,10 @@ function loadStaffDirectory() {
   if (typeof db === 'undefined' || !currentUser) return;
   var el = g('hr-staff-list');
   if (el) el.innerHTML = '<div class="off-loading">Loading staff...</div>';
-  db.collection('users').where('isActive','==',true).orderBy('displayName').limit(200).get().then(function(snap) {
+  db.collection('users').where('isActive','==',true).limit(200).get().then(function(snap) {
     _hrStaff = [];
     snap.forEach(function(d) { var u = d.data(); u.id = d.id; _hrStaff.push(u); });
+    _hrStaff.sort(function(a,b){ return (a.displayName||a.name||'').localeCompare(b.displayName||b.name||''); });
     filterStaff();
   }).catch(function() {
     if (el) el.innerHTML = '<div class="off-empty">Unable to load staff directory.</div>';
@@ -16740,7 +16741,7 @@ function openStaffProfile(uid) {
       if (actBtnEl) actBtnEl.textContent = u.isActive === false ? 'Activate' : 'Suspend';
       var actEl = g('sp-activity');
       if (actEl) actEl.textContent = 'Loading activity...';
-      db.collection('tasks').where('assignedTo','==',uid).where('isActive','==',true).orderBy('createdAt','desc').limit(5).get().then(function(snap) {
+      db.collection('tasks').where('assignedTo','==',uid).where('isActive','==',true).limit(10).get().then(function(snap) {
         if (!snap.size) { if (actEl) actEl.textContent = 'No recent tasks assigned.'; return; }
         var html = snap.docs.map(function(d) {
           var t = d.data();
@@ -16842,7 +16843,7 @@ function loadPayroll() {
   if (!mv) { var now = new Date(); mv = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0'); }
   var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
   var q = isAdmin
-    ? db.collection('payroll').where('period','==',mv).where('isActive','==',true).orderBy('createdAt','desc').limit(200)
+    ? db.collection('payroll').where('period','==',mv).where('isActive','==',true).limit(200)
     : db.collection('payroll').where('period','==',mv).where('userId','==',currentUser.uid).where('isActive','==',true).limit(5);
   q.get().then(function(snap) {
     _payrollList = [];
@@ -17253,10 +17254,11 @@ function loadTasks() {
   var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
   var q = isAdmin
     ? db.collection('tasks').where('isActive', '==', true).orderBy('createdAt', 'desc').limit(100)
-    : db.collection('tasks').where('assignedTo', '==', currentUser.uid).where('isActive', '==', true).orderBy('createdAt', 'desc').limit(100);
+    : db.collection('tasks').where('assignedTo', '==', currentUser.uid).where('isActive', '==', true).limit(100);
   q.get().then(function(snap) {
     _tasks = [];
     snap.forEach(function(d) { var t = d.data(); t.id = d.id; _tasks.push(t); });
+    _tasks.sort(function(a,b){ var ta=a.createdAt&&a.createdAt.seconds?a.createdAt.seconds:0; var tb=b.createdAt&&b.createdAt.seconds?b.createdAt.seconds:0; return tb-ta; });
     filterTasks();
     _checkTaskDueNotifications(_tasks);
   }).catch(function() {
@@ -17532,11 +17534,11 @@ function loadAttendance() {
   var endDate   = mv + '-' + String(new Date(yr, mo, 0).getDate()).padStart(2,'0');
   var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
   var q = isAdmin
-    ? db.collection('attendance').where('date','>=',startDate).where('date','<=',endDate).where('isActive','==',true).orderBy('date','desc').limit(300)
-    : db.collection('attendance').where('userId','==',currentUser.uid).where('date','>=',startDate).where('date','<=',endDate).where('isActive','==',true).orderBy('date','desc').limit(100);
+    ? db.collection('attendance').where('date','>=',startDate).where('date','<=',endDate).orderBy('date','desc').limit(300)
+    : db.collection('attendance').where('date','>=',startDate).where('date','<=',endDate).orderBy('date','desc').limit(200);
   q.get().then(function(snap) {
     _attendanceList = [];
-    snap.forEach(function(d) { var a = d.data(); a.id = d.id; _attendanceList.push(a); });
+    snap.forEach(function(d) { var a = d.data(); a.id = d.id; if (a.isActive !== false && (isAdmin || a.userId === currentUser.uid)) _attendanceList.push(a); });
     renderAttendance(_attendanceList);
   }).catch(function() {
     if (el) el.innerHTML = '<div class="off-empty">Unable to load attendance records.</div>';
@@ -17648,7 +17650,7 @@ function loadLeaves() {
   var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
   var q = isAdmin
     ? db.collection('leaves').where('isActive','==',true).orderBy('createdAt','desc').limit(100)
-    : db.collection('leaves').where('userId','==',currentUser.uid).where('isActive','==',true).orderBy('createdAt','desc').limit(50);
+    : db.collection('leaves').where('userId','==',currentUser.uid).where('isActive','==',true).limit(50);
   q.get().then(function(snap) {
     _leavesAll = [];
     var annualD = 0, sickD = 0, emergD = 0;
@@ -23822,9 +23824,7 @@ function loadDashFollowups(cu, isAgentRole) {
   tomorrow.setHours(23, 59, 59, 999);
   var tsTomorrow = firebase.firestore.Timestamp.fromDate(tomorrow);
 
-  var query = isAgentRole
-    ? db.collection('leads').where('agentId','==',cu.uid).where('isActive','==',true).where('nextFollowUp','<=',tsTomorrow).orderBy('nextFollowUp','asc').limit(10)
-    : db.collection('leads').where('isActive','==',true).where('nextFollowUp','<=',tsTomorrow).orderBy('nextFollowUp','asc').limit(10);
+  var query = db.collection('leads').where('nextFollowUp','<=',tsTomorrow).orderBy('nextFollowUp','asc').limit(50);
 
   query.get().then(function(snap) {
     if (snap.empty) { wrap.style.display = 'none'; return; }
@@ -23832,7 +23832,9 @@ function loadDashFollowups(cu, isAgentRole) {
     var items = [];
     snap.forEach(function(doc) {
       var l = doc.data(); l._docId = doc.id;
+      if (l.isActive === false) return;
       if (l.pipelineStage === 'closed_won' || l.pipelineStage === 'closed_lost') return;
+      if (isAgentRole && l.agentId !== cu.uid) return;
       var fuTs = l.nextFollowUp;
       if (!fuTs) return;
       var fuMs = fuTs.toDate ? fuTs.toDate().getTime() : new Date(fuTs).getTime();
@@ -25631,7 +25633,7 @@ function loadViewings() {
   var isAdminRole = ['admin','staff','ceo','super_admin'].indexOf((currentUser.role||'').toLowerCase()) > -1;
   var query = isAdminRole
     ? db.collection('viewings').where('isActive','==',true).orderBy('scheduledAt','desc').limit(200)
-    : db.collection('viewings').where('agentId','==',currentUser.uid).where('isActive','==',true).orderBy('scheduledAt','desc').limit(200);
+    : db.collection('viewings').where('agentId','==',currentUser.uid).where('isActive','==',true).limit(200);
 
   query.get().then(function(snap) {
     _viewings = [];
@@ -25639,6 +25641,7 @@ function loadViewings() {
       var d = doc.data(); d._docId = doc.id;
       _viewings.push(d);
     });
+    _viewings.sort(function(a,b){ var ta=a.scheduledAt&&a.scheduledAt.seconds?a.scheduledAt.seconds:0; var tb=b.scheduledAt&&b.scheduledAt.seconds?b.scheduledAt.seconds:0; return tb-ta; });
     _updateViewingsStats();
     renderViewingsList();
   }).catch(function(err) {
@@ -25895,7 +25898,7 @@ function loadClients() {
   var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
   var q = isAdmin
     ? db.collection('leads').where('isActive','==',true).orderBy('createdAt','desc').limit(500)
-    : db.collection('leads').where('agentId','==',currentUser.uid).where('isActive','==',true).orderBy('createdAt','desc').limit(500);
+    : db.collection('leads').where('agentId','==',currentUser.uid).where('isActive','==',true).limit(500);
 
   q.get().then(function(snap) {
     _clientsRaw  = [];
@@ -27065,14 +27068,19 @@ function _loadAlAgentDropdown() {
   var sel = document.getElementById('al-agent-select');
   if (!sel || typeof db === 'undefined') return;
   sel.innerHTML = '<option value="">-- ' + (curLang==='rw' ? 'Ntabwo Bagenewe' : 'Unassigned') + ' --</option>';
-  db.collection('users').where('role','==','agent').where('isActive','==',true).orderBy('displayName').limit(80).get()
+  db.collection('users').where('role','==','agent').where('isActive','==',true).limit(80).get()
     .then(function(snap) {
+      var agents = [];
       snap.forEach(function(d) {
-        var u = d.data();
+        var u = d.data(); u._uid = d.id;
+        agents.push(u);
+      });
+      agents.sort(function(a,b){ return (a.displayName||a.name||'').localeCompare(b.displayName||b.name||''); });
+      agents.forEach(function(u) {
         var opt = document.createElement('option');
-        opt.value = d.id;
-        opt.dataset.name = u.displayName || u.name || u.email || d.id;
-        opt.textContent = (u.displayName || u.name || u.email || d.id);
+        opt.value = u._uid;
+        opt.dataset.name = u.displayName || u.name || u.email || u._uid;
+        opt.textContent = (u.displayName || u.name || u.email || u._uid);
         sel.appendChild(opt);
       });
     }).catch(function() {});
