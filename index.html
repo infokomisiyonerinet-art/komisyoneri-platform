@@ -3386,14 +3386,7 @@ html,body{overscroll-behavior-x:none}
         <!-- Listings zishyirwa na JS ziva kuri localStorage -->
       </div>
       
-      <div class="pagination">
-        <button class="btn btn-navy btn-sm">1</button>
-        <button class="btn btn-outline btn-sm">2</button>
-        <button class="btn btn-outline btn-sm">3</button>
-        <span style="padding:.44rem .5rem;color:var(--muted)">...</span>
-        <button class="btn btn-outline btn-sm">8</button>
-        <button class="btn btn-outline btn-sm"><svg viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
-      </div>
+      <div class="pagination" id="listings-pagination"></div>
     </div>
   </div>
 </div>
@@ -10450,6 +10443,7 @@ var origGo = go;
 go = function(page) {
   origGo(page);
   if (page === 'listings') {
+    if (!_myListingsMode) { _listPage = 1; _listFiltered = null; }
     setTimeout(loadApprovedProperties, 100);
   }
 };
@@ -23235,7 +23229,7 @@ function loadAgentDashboard() {
   });
 
   /* Load activity feed */
-  loadDashboardActivity();
+  loadDashboardActivity(cu, _isAgentRole);
 
   /* Load follow-up reminders */
   loadDashFollowups(cu, _isAgentRole);
@@ -23300,38 +23294,91 @@ function loadDashFollowups(cu, isAgentRole) {
   });
 }
 
-function loadDashboardActivity() {
+function loadDashboardActivity(cu, isAgentRole) {
+  cu = cu || currentUser;
+  var _isAgent = typeof isAgentRole !== 'undefined' ? !!isAgentRole
+    : (cu && (cu.role || '').toLowerCase() === 'agent');
   var container = document.getElementById('dash-activity-list');
-  if (!container) return;
+  if (!container || !cu || typeof db === 'undefined') return;
   container.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--muted);font-size:.8rem">Loading...</div>';
 
   var ACT_ICONS = {
-    'deal_created'     : { bg:'ai-green', svg:'<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' },
-    'deal_updated'     : { bg:'ai-blue',  svg:'<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' },
-    'lead_created'     : { bg:'ai-blue',  svg:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>' },
-    'property_created' : { bg:'ai-gold',  svg:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
-    'property_updated' : { bg:'ai-gold',  svg:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
-    'commission_paid'  : { bg:'ai-green', svg:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>' },
-    'user_created'     : { bg:'ai-blue',  svg:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>' },
-    'default'          : { bg:'ai-blue',  svg:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>' }
+    'deal_created'      : { bg:'ai-green', svg:'<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' },
+    'deal_updated'      : { bg:'ai-blue',  svg:'<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' },
+    'lead_created'      : { bg:'ai-blue',  svg:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>' },
+    'lead_updated'      : { bg:'ai-blue',  svg:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>' },
+    'viewing_scheduled' : { bg:'ai-gold',  svg:'<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
+    'viewing_completed' : { bg:'ai-green', svg:'<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
+    'property_created'  : { bg:'ai-gold',  svg:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
+    'property_updated'  : { bg:'ai-gold',  svg:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
+    'commission_paid'   : { bg:'ai-green', svg:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>' },
+    'user_created'      : { bg:'ai-blue',  svg:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>' },
+    'user_approved'     : { bg:'ai-green', svg:'<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' },
+    'default'           : { bg:'ai-blue',  svg:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>' }
   };
 
   function timeAgo(dt) {
     var diff = Math.floor((Date.now() - dt.getTime()) / 1000);
-    if (diff < 60) return diff + 's';
-    if (diff < 3600) return Math.floor(diff/60) + 'm';
-    if (diff < 86400) return Math.floor(diff/3600) + 'h';
-    return Math.floor(diff/86400) + 'd';
+    if (diff < 60) return diff + 's ago';
+    if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+    return Math.floor(diff/86400) + 'd ago';
   }
 
+  function _noActivity() {
+    container.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:.82rem">'
+      + (curLang==='rw'?'Nta bikorwa biraboneka':'No recent activity yet') + '</div>';
+  }
+
+  if (_isAgent) {
+    /* Agent path: pull own leads + viewings, merge by recency */
+    var leadsP = db.collection('leads')
+      .where('agentId','==',cu.uid).where('isActive','==',true)
+      .orderBy('createdAt','desc').limit(6).get();
+    var viewsP = db.collection('viewings')
+      .where('agentId','==',cu.uid).where('isActive','==',true)
+      .limit(10).get();
+
+    Promise.all([leadsP, viewsP]).then(function(results) {
+      var items = [];
+      results[0].forEach(function(d) {
+        var x = d.data();
+        var dt = x.createdAt ? (x.createdAt.toDate ? x.createdAt.toDate() : new Date(x.createdAt)) : new Date();
+        var stage = (x.pipelineStage || 'new').replace(/_/g,' ');
+        items.push({ dt:dt, ico: ACT_ICONS['lead_created'],
+          label: curLang==='rw'?'Lead Nshya':'New Lead',
+          detail: escapeHtml(x.clientName||x.clientEmail||'Client') + ' &bull; ' + escapeHtml(stage) });
+      });
+      results[1].forEach(function(d) {
+        var x = d.data();
+        var dt = x.scheduledAt ? (x.scheduledAt.toDate ? x.scheduledAt.toDate() : new Date(x.scheduledAt))
+              : (x.createdAt  ? (x.createdAt.toDate  ? x.createdAt.toDate()  : new Date(x.createdAt))  : new Date());
+        var icoKey = x.status === 'completed' ? 'viewing_completed' : 'viewing_scheduled';
+        items.push({ dt:dt, ico: ACT_ICONS[icoKey],
+          label: curLang==='rw'?'Gusura':'Viewing',
+          detail: escapeHtml(x.propertyTitle||x.clientName||'Property') + ' &bull; ' + escapeHtml(x.status||'scheduled') });
+      });
+      items.sort(function(a,b){ return b.dt.getTime() - a.dt.getTime(); });
+      items = items.slice(0,8);
+      if (!items.length) { _noActivity(); return; }
+      var html = '';
+      items.forEach(function(item) {
+        html += '<div class="act"><div class="act-ic '+item.ico.bg+'"><svg viewBox="0 0 24 24">'+item.ico.svg+'</svg></div>'
+          + '<div class="act-t"><strong>' + item.label + '</strong>'
+          + '<span>' + item.detail + ' &bull; ' + timeAgo(item.dt) + '</span></div></div>';
+      });
+      container.innerHTML = html;
+    }).catch(function() {
+      container.innerHTML = '<div style="padding:1rem;color:var(--muted);font-size:.8rem;text-align:center">—</div>';
+    });
+    return;
+  }
+
+  /* Admin / staff path: auditlogs with lead fallback */
   db.collection('auditlogs').orderBy('createdAt','desc').limit(8).get().then(function(snap) {
     if (snap.empty) {
-      /* Fall back: show recent leads from Firestore */
       db.collection('leads').where('isActive','==',true).orderBy('createdAt','desc').limit(6).get().then(function(lSnap) {
-        if (lSnap.empty) {
-          container.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:.82rem">' + (curLang==='rw'?'Nta bikorwa biraboneka':'No recent activity yet') + '</div>';
-          return;
-        }
+        if (lSnap.empty) { _noActivity(); return; }
         var html = '';
         lSnap.forEach(function(d) {
           var x = d.data();
@@ -23339,13 +23386,12 @@ function loadDashboardActivity() {
           var ico = ACT_ICONS['lead_created'];
           html += '<div class="act"><div class="act-ic '+ico.bg+'"><svg viewBox="0 0 24 24">'+ico.svg+'</svg></div>'
             + '<div class="act-t"><strong>' + (curLang==='rw'?'Lead Nshya':'New Lead') + '</strong>'
-            + '<span>' + escapeHtml(x.clientName||x.clientEmail||'Client') + ' · ' + timeAgo(dt) + '</span></div></div>';
+            + '<span>' + escapeHtml(x.clientName||x.clientEmail||'Client') + ' &bull; ' + timeAgo(dt) + '</span></div></div>';
         });
         container.innerHTML = html;
       }).catch(function(){ container.innerHTML = '<div style="padding:1rem;color:var(--muted);font-size:.8rem;text-align:center">—</div>'; });
       return;
     }
-
     var html = '';
     snap.forEach(function(d) {
       var x = d.data();
@@ -23356,7 +23402,7 @@ function loadDashboardActivity() {
       var detail = escapeHtml(x.collection || '') + (x.docId ? ' #'+escapeHtml(String(x.docId).slice(-6)) : '');
       html += '<div class="act"><div class="act-ic '+ico.bg+'"><svg viewBox="0 0 24 24">'+ico.svg+'</svg></div>'
         + '<div class="act-t"><strong>' + label + '</strong>'
-        + '<span>' + detail + ' · ' + timeAgo(dt) + '</span></div></div>';
+        + '<span>' + detail + ' &bull; ' + timeAgo(dt) + '</span></div></div>';
     });
     container.innerHTML = html;
   }).catch(function() {
@@ -23489,14 +23535,24 @@ function _mergePropsToCache(fsProps) {
   return merged;
 }
 
+var _listPage     = 1;
+var _listPageSize = 12;
+var _listFiltered = null; /* null = use all approved props */
+
 /* Render approved props from localStorage cache into all #p-grid-main elements */
-function _renderApprovedGrids() {
+function _renderApprovedGrids(filtered) {
+  if (typeof filtered !== 'undefined') _listFiltered = filtered;
   var grids = document.querySelectorAll('#p-grid-main');
-  var approved = getApprovedProps();
+  var all = _listFiltered !== null ? _listFiltered : getApprovedProps();
+  var totalPages = Math.max(1, Math.ceil(all.length / _listPageSize));
+  if (_listPage > totalPages) _listPage = totalPages;
+  var start   = (_listPage - 1) * _listPageSize;
+  var pageItems = all.slice(start, start + _listPageSize);
+
   grids.forEach(function(grid) {
     grid.querySelectorAll('.user-prop-card, .sk-init').forEach(function(el) { el.remove(); });
     var emp = grid.querySelector('.empty-listings'); if (emp) emp.remove();
-    if (approved.length === 0) {
+    if (all.length === 0) {
       var d = document.createElement('div');
       d.className = 'empty-listings empty-state';
       d.innerHTML = '<div class="es-icon">&#127968;</div>'
@@ -23508,7 +23564,7 @@ function _renderApprovedGrids() {
         + (typeof t === 'function' ? t('demoBtn') : 'Demo') + '</button>';
       grid.appendChild(d);
     } else {
-      approved.forEach(function(prop) {
+      pageItems.forEach(function(prop) {
         var w = document.createElement('div');
         w.className = 'user-prop-card';
         w.setAttribute('data-pid', String(prop.id));
@@ -23518,7 +23574,66 @@ function _renderApprovedGrids() {
     }
   });
   var countEl = document.getElementById('listings-count');
-  if (countEl) countEl.textContent = approved.length;
+  if (countEl) countEl.textContent = all.length;
+  _renderListingsPagination(all.length, totalPages);
+}
+
+function _renderListingsPagination(total, totalPages) {
+  var pag = document.getElementById('listings-pagination');
+  if (!pag) return;
+  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+
+  var cur = _listPage;
+  var html = '';
+
+  /* Prev button */
+  if (cur > 1) {
+    html += '<button class="btn btn-outline btn-sm" onclick="goToListPage(' + (cur-1) + ')">'
+      + '<svg viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>';
+  }
+
+  /* Page numbers — show max 5 pages with ellipsis */
+  var pages = [];
+  if (totalPages <= 7) {
+    for (var i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (cur > 3) pages.push('...');
+    var lo = Math.max(2, cur - 1), hi = Math.min(totalPages - 1, cur + 1);
+    for (var p = lo; p <= hi; p++) pages.push(p);
+    if (cur < totalPages - 2) pages.push('...');
+    pages.push(totalPages);
+  }
+
+  pages.forEach(function(pg) {
+    if (pg === '...') {
+      html += '<span style="padding:.44rem .4rem;color:var(--muted)">…</span>';
+    } else {
+      var cls = pg === cur ? 'btn btn-navy btn-sm' : 'btn btn-outline btn-sm';
+      html += '<button class="' + cls + '" onclick="goToListPage(' + pg + ')">' + pg + '</button>';
+    }
+  });
+
+  /* Next button */
+  if (cur < totalPages) {
+    html += '<button class="btn btn-outline btn-sm" onclick="goToListPage(' + (cur+1) + ')">'
+      + '<svg viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>';
+  }
+
+  /* Page info */
+  var label = curLang === 'rw'
+    ? ('Urupapuro ' + cur + ' / ' + totalPages)
+    : ('Page ' + cur + ' of ' + totalPages);
+  html = '<span style="font-size:.72rem;color:var(--muted);margin-right:.5rem">' + label + '</span>' + html;
+
+  pag.innerHTML = html;
+}
+
+function goToListPage(n) {
+  _listPage = n;
+  _renderApprovedGrids();
+  var listHdr = document.querySelector('#page-listings .list-body');
+  if (listHdr) listHdr.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 /* Override — last function declaration wins, replaces original at line ~9719 */
@@ -23753,25 +23868,21 @@ function setListingView(view) {
   }
 }
 
-/* Sort currently rendered property cards */
+/* Sort underlying data and re-render from page 1 */
 function sortListings(value) {
-  var grids = document.querySelectorAll('#p-grid-main');
-  grids.forEach(function(grid) {
-    var cards = Array.prototype.slice.call(grid.querySelectorAll('.user-prop-card'));
-    if (cards.length < 2) return;
-    var approved = getApprovedProps();
-    var propMap = {};
-    approved.forEach(function(p) { propMap[String(p.id)] = p; });
-    cards.sort(function(a, b) {
-      var pa = propMap[a.getAttribute('data-pid')] || {};
-      var pb = propMap[b.getAttribute('data-pid')] || {};
-      if (value === 'price-asc')  return (parseInt(pa.price)||0) - (parseInt(pb.price)||0);
-      if (value === 'price-desc') return (parseInt(pb.price)||0) - (parseInt(pa.price)||0);
-      if (value === 'featured')   return (pb.featured ? 1 : 0) - (pa.featured ? 1 : 0);
-      return 0; /* newest: Firestore already ordered */
-    });
-    cards.forEach(function(c) { grid.appendChild(c); });
+  var data = _listFiltered !== null ? _listFiltered : getApprovedProps();
+  data.sort(function(a, b) {
+    if (value === 'price-asc')  return (parseInt(a.price)||0) - (parseInt(b.price)||0);
+    if (value === 'price-desc') return (parseInt(b.price)||0) - (parseInt(a.price)||0);
+    if (value === 'newest') {
+      var ta = a.createdAt ? (a.createdAt.seconds||0) : 0;
+      var tb = b.createdAt ? (b.createdAt.seconds||0) : 0;
+      return tb - ta;
+    }
+    return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
   });
+  _listPage = 1;
+  _renderApprovedGrids(data);
 }
 
 /* Apply sidebar filters to the listings grid */
@@ -23840,37 +23951,25 @@ function applySidebarFilters() {
     return true;
   });
 
-  /* Render */
-  var grids = document.querySelectorAll('#p-grid-main');
-  grids.forEach(function(grid) {
-    grid.querySelectorAll('.user-prop-card, .empty-listings, .similar-results-note').forEach(function(el) { el.remove(); });
-    if (filtered.length === 0) {
-      var d = document.createElement('div');
-      d.className = 'empty-listings empty-state';
-      d.style.cssText = 'grid-column:1/-1';
-      d.innerHTML = '<div class="es-icon">&#128270;</div>'
-        + '<div class="es-title">' + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Nta mitungo ihuye' : 'No matching properties') + '</div>'
-        + '<div class="es-sub">' + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Gerageza guhindura filters' : 'Try adjusting your filters') + '</div>'
-        + '<button onclick="resetSidebarFilters()" class="btn btn-outline btn-sm" style="margin-top:.6rem">'
-        + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Siba Filters' : 'Reset Filters') + '</button>';
-      grid.appendChild(d);
-    } else {
-      filtered.forEach(function(prop) {
-        var w = document.createElement('div');
-        w.className = 'user-prop-card';
-        w.setAttribute('data-pid', String(prop.id));
-        w.innerHTML = renderUserPropCard(prop);
-        grid.appendChild(w);
-      });
-    }
-  });
-
-  var countEl = document.getElementById('listings-count');
-  if (countEl) countEl.textContent = filtered.length;
-
-  /* Re-apply current sort */
+  /* Re-apply current sort before rendering */
   var sortEl = document.getElementById('filt-sort');
-  if (sortEl && sortEl.value && sortEl.value !== 'featured') sortListings(sortEl.value);
+  if (sortEl && sortEl.value && sortEl.value !== 'featured') {
+    var sv = sortEl.value;
+    filtered.sort(function(a, b) {
+      if (sv === 'price-asc')  return (parseInt(a.price)||0) - (parseInt(b.price)||0);
+      if (sv === 'price-desc') return (parseInt(b.price)||0) - (parseInt(a.price)||0);
+      if (sv === 'newest') {
+        var ta = a.createdAt ? (a.createdAt.seconds||0) : 0;
+        var tb = b.createdAt ? (b.createdAt.seconds||0) : 0;
+        return tb - ta;
+      }
+      return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
+    });
+  }
+
+  /* Reset to page 1 and render with pagination */
+  _listPage = 1;
+  _renderApprovedGrids(filtered);
 
   if (fBtn) {
     fBtn.disabled = false;
@@ -23892,6 +23991,8 @@ function resetSidebarFilters() {
     }
   }
   var sortEl = document.getElementById('filt-sort'); if (sortEl) sortEl.value = 'featured';
+  _listPage = 1;
+  _listFiltered = null;
   loadApprovedProperties();
 }
 
