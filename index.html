@@ -9402,12 +9402,42 @@ async function handleLogin() {
       uid: fb.uid,
       name: fb.displayName || profile.name || email.split('@')[0],
       email: fb.email,
-      role: profile.role || 'Buyer',
+      role: profile.role || 'client',
       phone: profile.phone || '',
       avatar: fb.photoURL || profile.avatar || '',
       provider: 'email',
       emailVerified: fb.emailVerified
     };
+    /* Refresh role from Firestore so admin-assigned roles take effect immediately */
+    if (typeof db !== 'undefined') {
+      try {
+        var fsDoc = await db.collection('users').doc(fb.uid).get();
+        if (fsDoc.exists) {
+          var fsData = fsDoc.data();
+          if (fsData.role) user.role = fsData.role;
+          if (fsData.displayName) user.name = fsData.displayName;
+          if (fsData.phone) user.phone = fsData.phone;
+          if (fsData.branchId) user.branchId = fsData.branchId;
+          /* Update localStorage cache */
+          try {
+            var _us = JSON.parse(localStorage.getItem('km_users')||'[]');
+            var _idx = _us.findIndex(function(u){ return u.email===email; });
+            if (_idx >= 0) { _us[_idx] = Object.assign(_us[_idx], { role: user.role, name: user.name, phone: user.phone }); }
+            else { _us.push({ email: user.email, role: user.role, name: user.name, phone: user.phone, uid: user.uid }); }
+            localStorage.setItem('km_users', JSON.stringify(_us));
+          } catch(e){}
+        } else {
+          /* First login — create Firestore user doc */
+          db.collection('users').doc(fb.uid).set({
+            id: fb.uid, uid: fb.uid, displayName: user.name, email: user.email,
+            phone: user.phone, role: user.role, isActive: true,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdBy: fb.uid, updatedBy: fb.uid, status: 'active'
+          }, { merge: true }).catch(function(){});
+        }
+      } catch(e){ console.warn('[Login] Firestore role sync failed:', e); }
+    }
     saveUser(user);
     kmTrack('login',{method:user.provider||'email'});
     showToast((curLang==='rw'?'Murakaza neza, ':'Welcome, ')+user.name+'! 🎉');
@@ -9465,15 +9495,26 @@ async function handleRegister() {
     try { await fb.sendEmailVerification(); } catch(e){}
     var locEl  = document.getElementById('reg-location');
     var prefEl = document.getElementById('reg-preference');
-    var roleEl = document.querySelector('.rt.active');
     var user = {
       uid: fb.uid, name: name, phone: phone, email: email,
-      role: roleEl ? roleEl.textContent.trim() : 'Buyer',
+      role: 'client',
       location: locEl  ? locEl.value.trim() : '',
       preference: prefEl ? prefEl.value : 'Kugura',
       provider: 'email', emailVerified: false,
       date: new Date().toISOString()
     };
+    /* Create canonical Firestore user document */
+    if (typeof db !== 'undefined') {
+      db.collection('users').doc(fb.uid).set({
+        id: fb.uid, uid: fb.uid, displayName: name, email: email,
+        phone: phone, role: 'client',
+        location: user.location, preference: user.preference,
+        isActive: true, status: 'active',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: fb.uid, updatedBy: fb.uid
+      }, { merge: true }).catch(function(){});
+    }
     var users = [];
     try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
     if (!users.find(function(u){ return u.email===email; })) {
