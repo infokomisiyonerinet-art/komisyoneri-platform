@@ -13313,10 +13313,10 @@ function loadAdminReferrals() {
   if (!el || typeof db === 'undefined') return;
   el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⏳</div><div class="crm-empty-title">Loading...</div></div>';
   var statusFilter = (document.getElementById('adm-ref-status-filter') || {}).value || '';
-  var q = db.collection('referrals').where('isActive','==',true).orderBy('createdAt','desc').limit(200);
+  var q = db.collection('referrals').orderBy('createdAt','desc').limit(200);
   q.get().then(function(snap) {
     _adminReferrals = [];
-    snap.forEach(function(d) { var r = d.data(); r._docId = d.id; _adminReferrals.push(r); });
+    snap.forEach(function(d) { var r = d.data(); if (r.isActive === false) return; r._docId = d.id; _adminReferrals.push(r); });
     if (statusFilter) _adminReferrals = _adminReferrals.filter(function(r){ return r.status === statusFilter; });
     renderAdminReferrals();
     var reg  = _adminReferrals.filter(function(r){ return r.status === 'registered'; }).length;
@@ -14769,10 +14769,11 @@ function loadBranchKPIs() {
 }
 
 function fetchBranches(cb) {
-  db.collection('branches').where('isActive','==',true).orderBy('createdAt','desc').get().then(function(snap) {
+  db.collection('branches').orderBy('createdAt','desc').get().then(function(snap) {
     _branches = [];
     snap.forEach(function(d) {
       var data = d.data();
+      if (data.isActive === false) return;
       data.id = d.id;
       _branches.push(data);
     });
@@ -16158,9 +16159,9 @@ function loadAccountingStats() {
     if (g('ac-stat-outstanding')) g('ac-stat-outstanding').textContent = outstanding;
   }).catch(function(){});
 
-  db.collection('expenses').where('isActive','==',true).where('date','>=',mStart).where('date','<=',mEnd).limit(500).get().then(function(snap) {
+  db.collection('expenses').where('date','>=',mStart).where('date','<=',mEnd).orderBy('date').limit(500).get().then(function(snap) {
     var total = 0;
-    snap.forEach(function(d) { total += (d.data().amount||0); });
+    snap.forEach(function(d) { var ex=d.data(); if(ex.isActive===false) return; total += (ex.amount||0); });
     if (g('ac-stat-expenses')) g('ac-stat-expenses').textContent = fmtMRwf(total);
   }).catch(function(){});
 }
@@ -16181,9 +16182,9 @@ function switchAccountingTab(tab) {
 function loadInvoices() {
   if (typeof db === 'undefined' || !currentUser) return;
   var el = g('ac-invoices-list'); if (el) el.innerHTML = '<div class="off-loading">Loading invoices...</div>';
-  db.collection('invoices').where('isActive','==',true).orderBy('createdAt','desc').limit(100).get().then(function(snap) {
+  db.collection('invoices').orderBy('createdAt','desc').limit(100).get().then(function(snap) {
     _invoices = [];
-    snap.forEach(function(d) { var inv = d.data(); inv.id = d.id; _invoices.push(inv); });
+    snap.forEach(function(d) { var inv = d.data(); if (inv.isActive === false) return; inv.id = d.id; _invoices.push(inv); });
     checkOverdueInvoices();
     filterInvoices();
   }).catch(function() { if (el) el.innerHTML = '<div class="off-empty">Unable to load invoices.</div>'; });
@@ -16413,9 +16414,9 @@ function updateInvStatus(id, newStatus) {
 function loadExpenses() {
   if (typeof db === 'undefined' || !currentUser) return;
   var el = g('ac-expenses-list'); if (el) el.innerHTML = '<div class="off-loading">Loading expenses...</div>';
-  db.collection('expenses').where('isActive','==',true).orderBy('createdAt','desc').limit(200).get().then(function(snap) {
+  db.collection('expenses').orderBy('createdAt','desc').limit(200).get().then(function(snap) {
     _expenses = [];
-    snap.forEach(function(d) { var ex = d.data(); ex.id = d.id; _expenses.push(ex); });
+    snap.forEach(function(d) { var ex = d.data(); if (ex.isActive === false) return; ex.id = d.id; _expenses.push(ex); });
     filterExpenses();
   }).catch(function() { if (el) el.innerHTML = '<div class="off-empty">Unable to load expenses.</div>'; });
 }
@@ -17079,13 +17080,13 @@ function loadPerformance() {
   var promises = usersToQuery.map(function(u) {
     return Promise.all([
       db.collection('tasks').where('assignedTo','==',u.id).where('isActive','==',true).limit(100).get(),
-      db.collection('attendance').where('userId','==',u.id).where('date','>=',mv+'-01').where('date','<=',mv+'-31').where('isActive','==',true).limit(31).get(),
+      db.collection('attendance').where('date','>=',mv+'-01').where('date','<=',mv+'-31').orderBy('date').limit(100).get(),
       db.collection('leaves').where('userId','==',u.id).where('status','==','approved').where('isActive','==',true).limit(20).get()
     ]).then(function(results) {
       var taskSnap = results[0], attSnap = results[1], leaveSnap = results[2];
       var tasksTotal = taskSnap.size;
       var tasksDone  = 0; taskSnap.forEach(function(d){ if(d.data().status==='done') tasksDone++; });
-      var totalHours = 0; attSnap.forEach(function(d){ totalHours += (d.data().hoursWorked||0); });
+      var totalHours = 0; attSnap.forEach(function(d){ var att=d.data(); if(att.userId!==u.id||att.isActive===false) return; totalHours += (att.hoursWorked||0); });
       var leaveDays  = 0; leaveSnap.forEach(function(d){ leaveDays += (d.data().days||0); });
       return { user: u, tasksTotal: tasksTotal, tasksDone: tasksDone, totalHours: totalHours, leaveDays: leaveDays };
     });
@@ -17261,11 +17262,11 @@ function loadTasks() {
   if (el) el.innerHTML = '<div class="off-loading">Loading tasks...</div>';
   var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
   var q = isAdmin
-    ? db.collection('tasks').where('isActive', '==', true).orderBy('createdAt', 'desc').limit(100)
-    : db.collection('tasks').where('assignedTo', '==', currentUser.uid).where('isActive', '==', true).limit(100);
+    ? db.collection('tasks').orderBy('createdAt', 'desc').limit(100)
+    : db.collection('tasks').where('assignedTo', '==', currentUser.uid).limit(100);
   q.get().then(function(snap) {
     _tasks = [];
-    snap.forEach(function(d) { var t = d.data(); t.id = d.id; _tasks.push(t); });
+    snap.forEach(function(d) { var t = d.data(); if (t.isActive === false) return; t.id = d.id; _tasks.push(t); });
     _tasks.sort(function(a,b){ var ta=a.createdAt&&a.createdAt.seconds?a.createdAt.seconds:0; var tb=b.createdAt&&b.createdAt.seconds?b.createdAt.seconds:0; return tb-ta; });
     filterTasks();
     _checkTaskDueNotifications(_tasks);
@@ -17348,13 +17349,15 @@ function _loadTaskAssigneeDropdown(selectedUid) {
     return;
   }
   sel.innerHTML = '<option value="">-- ' + (curLang === 'rw' ? 'Ntabwo Bagenewe' : 'Unassigned') + ' --</option>';
-  db.collection('users').where('isActive', '==', true).orderBy('displayName').limit(100).get()
+  db.collection('users').limit(100).get()
     .then(function(snap) {
-      snap.forEach(function(d) {
-        var u = d.data();
+      var users = [];
+      snap.forEach(function(d) { var u = d.data(); if (u.isActive === false) return; u._id = d.id; users.push(u); });
+      users.sort(function(a,b){ return (a.displayName||a.name||'').localeCompare(b.displayName||b.name||''); });
+      users.forEach(function(u) {
         var opt = document.createElement('option');
-        opt.value = d.id;
-        opt.textContent = (u.displayName || u.name || u.email || d.id)
+        opt.value = u._id;
+        opt.textContent = (u.displayName || u.name || u.email || u._id)
           + (u.role ? ' (' + u.role + ')' : '');
         sel.appendChild(opt);
       });
@@ -17657,13 +17660,13 @@ function loadLeaves() {
   var el = g('off-leave-list'); if (el) el.innerHTML = '<div class="off-loading">Loading leave requests...</div>';
   var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
   var q = isAdmin
-    ? db.collection('leaves').where('isActive','==',true).orderBy('createdAt','desc').limit(100)
-    : db.collection('leaves').where('userId','==',currentUser.uid).where('isActive','==',true).limit(50);
+    ? db.collection('leaves').orderBy('createdAt','desc').limit(100)
+    : db.collection('leaves').where('userId','==',currentUser.uid).limit(50);
   q.get().then(function(snap) {
     _leavesAll = [];
     var annualD = 0, sickD = 0, emergD = 0;
     snap.forEach(function(d) {
-      var lv = d.data(); lv.id = d.id; _leavesAll.push(lv);
+      var lv = d.data(); if (lv.isActive === false) return; lv.id = d.id; _leavesAll.push(lv);
       if (!isAdmin && lv.userId === currentUser.uid && lv.status === 'approved') {
         if (lv.type === 'annual')    annualD += (lv.days||0);
         else if (lv.type === 'sick') sickD  += (lv.days||0);
@@ -17810,14 +17813,14 @@ function loadSchedule() {
   var endD    = new Date(today); endD.setDate(today.getDate() + 7);
   var endTs   = firebase.firestore.Timestamp.fromDate(endD);
   var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
-  var q = isAdmin
-    ? db.collection('tasks').where('isActive','==',true).where('dueAt','>=',startTs).where('dueAt','<=',endTs).limit(100)
-    : db.collection('tasks').where('assignedTo','==',currentUser.uid).where('isActive','==',true).where('dueAt','>=',startTs).where('dueAt','<=',endTs).limit(100);
+  var q = db.collection('tasks').where('dueAt','>=',startTs).where('dueAt','<=',endTs).orderBy('dueAt').limit(200);
   q.get().then(function(snap) {
     var byDay = {};
     days.forEach(function(d) { byDay[d.toISOString().slice(0,10)] = []; });
     snap.forEach(function(doc) {
       var t = doc.data(); t.id = doc.id;
+      if (t.isActive === false) return;
+      if (!isAdmin && t.assignedTo !== currentUser.uid) return;
       if (t.dueAt) { var k = t.dueAt.toDate().toISOString().slice(0,10); if (byDay[k]) byDay[k].push(t); }
     });
     var DN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -19183,15 +19186,15 @@ function loadDocuments() {
 
   var query;
   if (isAdmin) {
-    query = db.collection('documents').where('isActive','==',true).orderBy('createdAt','desc').limit(200);
+    query = db.collection('documents').orderBy('createdAt','desc').limit(200);
   } else if (typeof currentUser !== 'undefined' && currentUser) {
-    query = db.collection('documents').where('isActive','==',true)
-              .where('clientId','==',currentUser.uid).orderBy('createdAt','desc').limit(200);
+    query = db.collection('documents').where('clientId','==',currentUser.uid).limit(200);
   } else { return; }
 
   query.get().then(function(snap) {
     _documents = [];
-    snap.forEach(function(doc) { var d = doc.data(); d._docId = doc.id; _documents.push(d); });
+    snap.forEach(function(doc) { var d = doc.data(); if (d.isActive === false) return; d._docId = doc.id; _documents.push(d); });
+    _documents.sort(function(a,b){ var ta=a.createdAt&&a.createdAt.seconds?a.createdAt.seconds:0; var tb=b.createdAt&&b.createdAt.seconds?b.createdAt.seconds:0; return tb-ta; });
     renderDocumentList();
     updateDocumentStats();
   }).catch(function(err) {
@@ -19718,15 +19721,15 @@ function loadVerifications() {
 
   var query;
   if (isAdmin) {
-    query = db.collection('services').where('isActive','==',true).orderBy('createdAt','desc').limit(200);
+    query = db.collection('services').orderBy('createdAt','desc').limit(200);
   } else if (typeof currentUser !== 'undefined' && currentUser) {
-    query = db.collection('services').where('isActive','==',true)
-              .where('requestedBy','==',currentUser.uid).orderBy('createdAt','desc').limit(200);
+    query = db.collection('services').where('requestedBy','==',currentUser.uid).limit(200);
   } else { return; }
 
   query.get().then(function(snap) {
     _verifications = [];
-    snap.forEach(function(doc) { var d = doc.data(); d._docId = doc.id; _verifications.push(d); });
+    snap.forEach(function(doc) { var d = doc.data(); if (d.isActive === false) return; d._docId = doc.id; _verifications.push(d); });
+    _verifications.sort(function(a,b){ var ta=a.createdAt&&a.createdAt.seconds?a.createdAt.seconds:0; var tb=b.createdAt&&b.createdAt.seconds?b.createdAt.seconds:0; return tb-ta; });
     renderVerificationList();
     updateVerificationStats();
   }).catch(function(err) {
@@ -20845,7 +20848,7 @@ function loadDeals() {
 
   var query;
   if (isAdminOrStaff) {
-    query = db.collection('deals').where('isActive','==',true).orderBy('createdAt','desc').limit(200);
+    query = db.collection('deals').orderBy('createdAt','desc').limit(200);
   } else if (typeof currentUser !== 'undefined' && currentUser) {
     query = db.collection('deals').where('isActive','==',true)
       .where('agentId','==',currentUser.uid).limit(200);
@@ -20856,7 +20859,7 @@ function loadDeals() {
   query.get().then(function(snap) {
     _deals = [];
     snap.forEach(function(doc) {
-      var d = doc.data(); d._docId = doc.id; _deals.push(d);
+      var d = doc.data(); if (d.isActive === false) return; d._docId = doc.id; _deals.push(d);
     });
     _deals.sort(function(a, b) {
       var ta = a.createdAt && a.createdAt.seconds ? a.createdAt.seconds : 0;
@@ -21031,16 +21034,18 @@ function _loadDealOffers(dealId) {
     tl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.78rem;padding:.5rem" data-rw="Nta offers irahari" data-en="No offers yet">No offers yet</div>';
     return;
   }
-  db.collection('offers').where('dealId','==',dealId).orderBy('createdAt','asc').get()
+  db.collection('offers').where('dealId','==',dealId).limit(50).get()
     .then(function(snap) {
       if (snap.empty) {
         tl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.78rem;padding:.5rem">'
           + (curLang === 'rw' ? 'Nta offers irahari' : 'No offers yet') + '</div>';
         return;
       }
+      var offerDocs = []; snap.forEach(function(doc){ offerDocs.push(doc); });
+      offerDocs.sort(function(a,b){ var ta=a.data().createdAt&&a.data().createdAt.seconds?a.data().createdAt.seconds:0; var tb=b.data().createdAt&&b.data().createdAt.seconds?b.data().createdAt.seconds:0; return ta-tb; });
       var html = '';
       var pendingId = '';
-      snap.forEach(function(doc) {
+      offerDocs.forEach(function(doc) {
         var o = doc.data();
         var cls = 'offer-entry ' + (o.fromRole === 'client' ? 'client' : 'agent');
         if (o.status === 'accepted') cls += ' offer-accepted';
@@ -23962,10 +23967,11 @@ function loadDashboardActivity(cu, isAgentRole) {
   /* Admin / staff path: auditlogs with lead fallback */
   db.collection('auditlogs').orderBy('createdAt','desc').limit(8).get().then(function(snap) {
     if (snap.empty) {
-      db.collection('leads').where('isActive','==',true).orderBy('createdAt','desc').limit(6).get().then(function(lSnap) {
-        if (lSnap.empty) { _noActivity(); return; }
+      db.collection('leads').orderBy('createdAt','desc').limit(10).get().then(function(lSnap) {
+        var activeLeads = []; lSnap.forEach(function(d){ if(d.data().isActive!==false) activeLeads.push(d); });
+        if (!activeLeads.length) { _noActivity(); return; }
         var html = '';
-        lSnap.forEach(function(d) {
+        activeLeads.slice(0,6).forEach(function(d) {
           var x = d.data();
           var dt = x.createdAt ? (x.createdAt.toDate ? x.createdAt.toDate() : new Date(x.createdAt)) : new Date();
           var ico = ACT_ICONS['lead_created'];
@@ -24022,10 +24028,11 @@ function loadHomeTestimonials() {
   var grid = document.getElementById('testimonials-grid');
   var live = document.getElementById('testimonials-live');
   if (!grid || !live) return;
-  db.collection('reviews').where('isActive','==',true).orderBy('createdAt','desc').limit(6).get().then(function(snap) {
-    if (snap.size < 2) return; /* keep curated static ones if fewer than 2 real reviews */
+  db.collection('reviews').orderBy('createdAt','desc').limit(10).get().then(function(snap) {
+    var activeRevs = []; snap.forEach(function(d){ if(d.data().isActive!==false) activeRevs.push(d); });
+    if (activeRevs.length < 2) return; /* keep curated static ones if fewer than 2 real reviews */
     var html = '';
-    snap.forEach(function(d) {
+    activeRevs.slice(0,6).forEach(function(d) {
       var x = d.data();
       var stars = Math.min(5, Math.max(1, Math.round(x.rating||5)));
       var starStr = '';
@@ -25640,13 +25647,13 @@ function loadViewings() {
 
   var isAdminRole = ['admin','staff','ceo','super_admin'].indexOf((currentUser.role||'').toLowerCase()) > -1;
   var query = isAdminRole
-    ? db.collection('viewings').where('isActive','==',true).orderBy('scheduledAt','desc').limit(200)
-    : db.collection('viewings').where('agentId','==',currentUser.uid).where('isActive','==',true).limit(200);
+    ? db.collection('viewings').orderBy('scheduledAt','desc').limit(200)
+    : db.collection('viewings').where('agentId','==',currentUser.uid).limit(200);
 
   query.get().then(function(snap) {
     _viewings = [];
     snap.forEach(function(doc) {
-      var d = doc.data(); d._docId = doc.id;
+      var d = doc.data(); if (d.isActive === false) return; d._docId = doc.id;
       _viewings.push(d);
     });
     _viewings.sort(function(a,b){ var ta=a.scheduledAt&&a.scheduledAt.seconds?a.scheduledAt.seconds:0; var tb=b.scheduledAt&&b.scheduledAt.seconds?b.scheduledAt.seconds:0; return tb-ta; });
@@ -25905,13 +25912,13 @@ function loadClients() {
 
   var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
   var q = isAdmin
-    ? db.collection('leads').where('isActive','==',true).orderBy('createdAt','desc').limit(500)
-    : db.collection('leads').where('agentId','==',currentUser.uid).where('isActive','==',true).limit(500);
+    ? db.collection('leads').orderBy('createdAt','desc').limit(500)
+    : db.collection('leads').where('agentId','==',currentUser.uid).limit(500);
 
   q.get().then(function(snap) {
     _clientsRaw  = [];
     _clientsMap  = {};
-    snap.forEach(function(d) { var l = d.data(); l._docId = d.id; _clientsRaw.push(l); });
+    snap.forEach(function(d) { var l = d.data(); if (l.isActive === false) return; l._docId = d.id; _clientsRaw.push(l); });
 
     /* Deduplicate by clientPhone (fallback clientId, fallback name) */
     _clientsRaw.forEach(function(l) {
