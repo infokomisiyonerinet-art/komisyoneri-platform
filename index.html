@@ -15336,9 +15336,10 @@ function biListingsPerMonth() {
   var counts = new Array(12).fill(0);
   var yStart = firebase.firestore.Timestamp.fromDate(new Date(year,0,1));
   var yEnd   = firebase.firestore.Timestamp.fromDate(new Date(year+1,0,1));
-  db.collection('properties').where('isActive','==',true).where('createdAt','>=',yStart).where('createdAt','<',yEnd).get().then(function(snap) {
+  db.collection('properties').where('createdAt','>=',yStart).where('createdAt','<',yEnd).orderBy('createdAt').get().then(function(snap) {
     snap.forEach(function(d) {
-      var ts = d.data().createdAt; var dt = ts ? (ts.toDate ? ts.toDate() : new Date(ts)) : new Date();
+      var pd = d.data(); if (pd.isActive === false) return;
+      var ts = pd.createdAt; var dt = ts ? (ts.toDate ? ts.toDate() : new Date(ts)) : new Date();
       counts[dt.getMonth()]++;
     });
     var max = Math.max.apply(null, counts.concat([1]));
@@ -15418,9 +15419,10 @@ function biLeadsPerMonth() {
   var counts = new Array(12).fill(0);
   var yStart = firebase.firestore.Timestamp.fromDate(new Date(year,0,1));
   var yEnd   = firebase.firestore.Timestamp.fromDate(new Date(year+1,0,1));
-  db.collection('leads').where('isActive','==',true).where('createdAt','>=',yStart).where('createdAt','<',yEnd).get().then(function(snap) {
+  db.collection('leads').where('createdAt','>=',yStart).where('createdAt','<',yEnd).orderBy('createdAt').get().then(function(snap) {
     snap.forEach(function(d) {
-      var ts = d.data().createdAt; var dt = ts ? (ts.toDate ? ts.toDate() : new Date(ts)) : new Date();
+      var ld = d.data(); if (ld.isActive === false) return;
+      var ts = ld.createdAt; var dt = ts ? (ts.toDate ? ts.toDate() : new Date(ts)) : new Date();
       counts[dt.getMonth()]++;
     });
     var max = Math.max.apply(null, counts.concat([1]));
@@ -15539,10 +15541,11 @@ function biRevForecast() {
   var now = new Date();
   var threeMonthsAgo = new Date(now.getFullYear(), now.getMonth()-3, 1);
   var ts = firebase.firestore.Timestamp.fromDate(threeMonthsAgo);
-  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('createdAt','>=',ts).get().then(function(snap) {
+  db.collection('invoices').where('createdAt','>=',ts).orderBy('createdAt').get().then(function(snap) {
     var monthly = {};
     snap.forEach(function(d) {
       var data = d.data();
+      if (data.isActive === false || data.status !== 'paid') return;
       var dt = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt)) : new Date();
       var key = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
       monthly[key] = (monthly[key]||0) + (data.totalAmount||0);
@@ -15609,12 +15612,12 @@ function biTargets() {
         return '<tr><td>'+m.label+'</td><td>'+m.fmt(m.last)+'</td><td style="font-weight:700">'+m.fmt(m.curr)+'</td><td style="color:'+color+';font-weight:700">'+arrow+' '+Math.abs(delta)+'%</td></tr>';
       }).join('') + '</tbody></table>';
   }
-  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('createdAt','>=',tsThis).get().then(function(s){ s.forEach(function(d){data.thisRev+=(d.data().totalAmount||0);}); finish(); }).catch(finish);
-  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('createdAt','>=',tsLast).where('createdAt','<',tsThis).get().then(function(s){ s.forEach(function(d){data.lastRev+=(d.data().totalAmount||0);}); finish(); }).catch(finish);
-  db.collection('leads').where('isActive','==',true).where('createdAt','>=',tsThis).get().then(function(s){ data.thisLeads=s.size; finish(); }).catch(finish);
-  db.collection('leads').where('isActive','==',true).where('createdAt','>=',tsLast).where('createdAt','<',tsThis).get().then(function(s){ data.lastLeads=s.size; finish(); }).catch(finish);
-  db.collection('deals').where('isActive','==',true).where('createdAt','>=',tsThis).get().then(function(s){ data.thisDeals=s.size; finish(); }).catch(finish);
-  db.collection('deals').where('isActive','==',true).where('createdAt','>=',tsLast).where('createdAt','<',tsThis).get().then(function(s){ data.lastDeals=s.size; finish(); }).catch(finish);
+  db.collection('invoices').where('createdAt','>=',tsThis).orderBy('createdAt').get().then(function(s){ s.forEach(function(d){ var inv=d.data(); if(inv.isActive!==false&&inv.status==='paid') data.thisRev+=(inv.totalAmount||0); }); finish(); }).catch(finish);
+  db.collection('invoices').where('createdAt','>=',tsLast).where('createdAt','<',tsThis).orderBy('createdAt').get().then(function(s){ s.forEach(function(d){ var inv=d.data(); if(inv.isActive!==false&&inv.status==='paid') data.lastRev+=(inv.totalAmount||0); }); finish(); }).catch(finish);
+  db.collection('leads').where('createdAt','>=',tsThis).orderBy('createdAt').get().then(function(s){ var cnt=0; s.forEach(function(d){ if(d.data().isActive!==false) cnt++; }); data.thisLeads=cnt; finish(); }).catch(finish);
+  db.collection('leads').where('createdAt','>=',tsLast).where('createdAt','<',tsThis).orderBy('createdAt').get().then(function(s){ var cnt=0; s.forEach(function(d){ if(d.data().isActive!==false) cnt++; }); data.lastLeads=cnt; finish(); }).catch(finish);
+  db.collection('deals').where('createdAt','>=',tsThis).orderBy('createdAt').get().then(function(s){ var cnt=0; s.forEach(function(d){ if(d.data().isActive!==false) cnt++; }); data.thisDeals=cnt; finish(); }).catch(finish);
+  db.collection('deals').where('createdAt','>=',tsLast).where('createdAt','<',tsThis).orderBy('createdAt').get().then(function(s){ var cnt=0; s.forEach(function(d){ if(d.data().isActive!==false) cnt++; }); data.lastDeals=cnt; finish(); }).catch(finish);
 }
 
 /* ── SIDEBAR BADGE ── */
@@ -15682,15 +15685,14 @@ function loadExecKPIs() {
   var monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   var ts = firebase.firestore.Timestamp.fromDate(monthStart);
 
-  db.collection('invoices').where('status','==','paid').where('isActive','==',true)
-    .where('createdAt','>=',ts).get().then(function(snap) {
-      var total = 0;
-      snap.forEach(function(d) { total += (d.data().totalAmount || 0); });
-      var el = g('exec-kpi-rev');
-      if (el) el.textContent = fmtRWF(total);
-    }).catch(function(){});
+  db.collection('invoices').where('createdAt','>=',ts).orderBy('createdAt','desc').limit(200).get().then(function(snap) {
+    var total = 0;
+    snap.forEach(function(d) { var inv = d.data(); if (inv.isActive !== false && inv.status === 'paid') total += (inv.totalAmount || 0); });
+    var el = g('exec-kpi-rev');
+    if (el) el.textContent = fmtRWF(total);
+  }).catch(function(){});
 
-  db.collection('deals').where('isActive','==',true).get().then(function(snap) {
+  db.collection('deals').where('isActive','==',true).limit(500).get().then(function(snap) {
     var active = 0;
     snap.forEach(function(d) {
       var s = d.data().pipelineStage || '';
@@ -15700,24 +15702,28 @@ function loadExecKPIs() {
     if (el) el.textContent = active;
   }).catch(function(){});
 
-  db.collection('properties').where('isActive','==',true).where('status','==','approved').get().then(function(snap) {
+  db.collection('properties').where('isActive','==',true).limit(500).get().then(function(snap) {
+    var approved = 0;
+    snap.forEach(function(d){ if (d.data().status === 'approved' || d.data().status === 'Approved') approved++; });
     var el = g('exec-kpi-props');
-    if (el) el.textContent = snap.size;
+    if (el) el.textContent = approved;
   }).catch(function(){});
 
-  db.collection('users').where('role','==','agent').where('isActive','==',true).get().then(function(snap) {
+  db.collection('users').where('role','==','agent').where('isActive','==',true).limit(200).get().then(function(snap) {
     var el = g('exec-kpi-agents');
     if (el) el.textContent = snap.size;
   }).catch(function(){});
 
-  db.collection('leads').where('isActive','==',true).where('createdAt','>=',ts).get().then(function(snap) {
+  db.collection('leads').where('createdAt','>=',ts).orderBy('createdAt','desc').limit(500).get().then(function(snap) {
+    var cnt = 0;
+    snap.forEach(function(d){ if (d.data().isActive !== false) cnt++; });
     var el = g('exec-kpi-leads');
-    if (el) el.textContent = snap.size;
+    if (el) el.textContent = cnt;
   }).catch(function(){});
 
-  db.collection('commissions').where('isActive','==',true).where('createdAt','>=',ts).get().then(function(snap) {
+  db.collection('commissions').where('createdAt','>=',ts).orderBy('createdAt','desc').limit(200).get().then(function(snap) {
     var total = 0;
-    snap.forEach(function(d) { total += (d.data().totalCommission || 0); });
+    snap.forEach(function(d) { var c = d.data(); if (c.isActive !== false) total += (c.totalCommission || 0); });
     var el = g('exec-kpi-comm');
     if (el) el.textContent = fmtRWF(total);
   }).catch(function(){});
@@ -15841,19 +15847,21 @@ function loadExecRevChart() {
   }
   var yStart = firebase.firestore.Timestamp.fromDate(new Date(year, 0, 1));
   var yEnd   = firebase.firestore.Timestamp.fromDate(new Date(year + 1, 0, 1));
-  db.collection('invoices').where('status','==','paid').where('isActive','==',true)
-    .where('createdAt','>=',yStart).where('createdAt','<',yEnd).get().then(function(snap) {
+  db.collection('invoices').where('createdAt','>=',yStart).where('createdAt','<',yEnd).orderBy('createdAt').get().then(function(snap) {
       snap.forEach(function(d) {
-        var dt = d.data().createdAt ? (d.data().createdAt.toDate ? d.data().createdAt.toDate() : new Date()) : new Date();
-        revData[dt.getMonth()] += (d.data().totalAmount || 0);
+        var inv = d.data();
+        if (inv.isActive === false || inv.status !== 'paid') return;
+        var dt = inv.createdAt ? (inv.createdAt.toDate ? inv.createdAt.toDate() : new Date()) : new Date();
+        revData[dt.getMonth()] += (inv.totalAmount || 0);
       });
       renderChart();
     }).catch(function() { renderChart(); });
-  db.collection('expenses').where('isActive','==',true)
-    .where('createdAt','>=',yStart).where('createdAt','<',yEnd).get().then(function(snap) {
+  db.collection('expenses').where('createdAt','>=',yStart).where('createdAt','<',yEnd).orderBy('createdAt').get().then(function(snap) {
       snap.forEach(function(d) {
-        var dt = d.data().createdAt ? (d.data().createdAt.toDate ? d.data().createdAt.toDate() : new Date()) : new Date();
-        expData[dt.getMonth()] += (d.data().amount || 0);
+        var exp = d.data();
+        if (exp.isActive === false) return;
+        var dt = exp.createdAt ? (exp.createdAt.toDate ? exp.createdAt.toDate() : new Date()) : new Date();
+        expData[dt.getMonth()] += (exp.amount || 0);
       });
       renderChart();
     }).catch(function() { renderChart(); });
@@ -16010,11 +16018,11 @@ function loadExecAttRate() {
   var now = new Date();
   var thirtyAgo = new Date(now.getTime() - 30 * 24 * 3600 * 1000);
   var ts = firebase.firestore.Timestamp.fromDate(thirtyAgo);
-  db.collection('attendance').where('isActive','==',true).where('createdAt','>=',ts).get().then(function(snap) {
-    var checkouts = 0;
-    snap.forEach(function(d) { if (d.data().checkOut) checkouts++; });
-    var rate = snap.size > 0 ? Math.round((checkouts / snap.size) * 100) : 0;
-    container.innerHTML = '<div class="exec-ring-wrap"><div class="exec-ring-val" style="color:var(--success)">' + rate + '%</div><div class="exec-ring-lbl">Staff check-ins (30d)</div><div class="exec-ring-sub">' + snap.size + ' records</div></div>';
+  db.collection('attendance').where('createdAt','>=',ts).orderBy('createdAt').get().then(function(snap) {
+    var checkouts = 0, total = 0;
+    snap.forEach(function(d) { var att=d.data(); if(att.isActive===false) return; total++; if (att.checkOut) checkouts++; });
+    var rate = total > 0 ? Math.round((checkouts / total) * 100) : 0;
+    container.innerHTML = '<div class="exec-ring-wrap"><div class="exec-ring-val" style="color:var(--success)">' + rate + '%</div><div class="exec-ring-lbl">Staff check-ins (30d)</div><div class="exec-ring-sub">' + total + ' records</div></div>';
   }).catch(function() {
     container.innerHTML = '<div class="exec-empty">Attendance data unavailable</div>';
   });
