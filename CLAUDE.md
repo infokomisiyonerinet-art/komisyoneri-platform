@@ -51,3 +51,4 @@ Never optimize a single module in isolation if a better ecosystem-wide solution 
 - Low-quality code
 
 Whenever a higher-quality enterprise solution exists, Claude should replace the lower-quality implementation.
+If there is any conflict between preserving existing code and achieving the enterprise architecture, prioritize the enterprise architecture while preserving production data and business logic.
