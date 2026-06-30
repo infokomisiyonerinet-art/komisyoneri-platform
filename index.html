@@ -11987,8 +11987,39 @@ function openPropDetail(propId) {
     prop = props2.find(function(p){ return String(p.id) === String(propId); });
   }
 
+  if(!prop && typeof db !== 'undefined') {
+    // Firestore fallback — fetch property by document ID for deep-linked URLs
+    db.collection('properties').doc(String(propId)).get().then(function(doc) {
+      if (doc.exists && doc.data().isActive !== false) {
+        var fsProp = typeof _normalizePropDoc === 'function'
+          ? _normalizePropDoc(doc.data(), doc.id)
+          : Object.assign({ id: doc.id }, doc.data());
+        // Cache in localStorage so subsequent calls work
+        var ls = []; try { ls = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+        if (!ls.find(function(p) { return String(p.id) === String(doc.id); })) {
+          ls.push(fsProp);
+          try { localStorage.setItem('km_properties', JSON.stringify(ls)); } catch(e) {}
+        }
+        openPropDetail(propId); // re-invoke now that cache is warm
+      } else {
+        showToast(typeof curLang !== 'undefined' && curLang === 'rw'
+          ? 'Imitungo ntiboneka — gerageza nanone!'
+          : 'Property not found — please try again!');
+        go('listings');
+      }
+    }).catch(function() {
+      showToast(typeof curLang !== 'undefined' && curLang === 'rw'
+        ? 'Imitungo ntiboneka — gerageza nanone!'
+        : 'Property not found — please try again!');
+      go('listings');
+    });
+    return;
+  }
+
   if(!prop) {
-    showToast('Imitungo ntiboneka — gerageza nanone!');
+    showToast(typeof curLang !== 'undefined' && curLang === 'rw'
+      ? 'Imitungo ntiboneka — gerageza nanone!'
+      : 'Property not found — please try again!');
     go('listings');
     return;
   }
@@ -13646,11 +13677,29 @@ function _markAllFsNotifsRead() {
 
 function _handleNotifClick(collection, relatedId) {
   closeNotifPanel();
-  if (collection === 'leads')   { go('crm');   setTimeout(function() { if (typeof openLeadDetail === 'function') openLeadDetail(relatedId); }, 600); }
-  else if (collection === 'deals')   { go('deals'); }
-  else if (collection === 'viewings'){ go('crm'); }
-  else if (collection === 'messages'){ if (typeof openInbox === 'function') openInbox(); }
-  else { go('dashboard'); }
+  if (collection === 'leads') {
+    go('crm');
+    setTimeout(function() { if (typeof openLeadDetail === 'function') openLeadDetail(relatedId); }, 600);
+  } else if (collection === 'deals') {
+    go('deals');
+    setTimeout(function() { if (typeof openDealDetail === 'function') openDealDetail(relatedId); }, 600);
+  } else if (collection === 'commissions') {
+    go('commissions');
+    setTimeout(function() { if (typeof openCommissionDetail === 'function') openCommissionDetail(relatedId); }, 600);
+  } else if (collection === 'properties') {
+    if (typeof goMyListings === 'function') goMyListings();
+    else go('listings');
+  } else if (collection === 'viewings') {
+    go('dashboard');
+    setTimeout(function() {
+      var tab = document.getElementById('dash-tab-calendar');
+      if (tab) tab.click();
+    }, 400);
+  } else if (collection === 'messages') {
+    if (typeof openInbox === 'function') openInbox();
+  } else {
+    go('dashboard');
+  }
 }
 
 /* Override openNotifPanel to render Firestore notifications when available */
@@ -16841,6 +16890,19 @@ function loadCustomerPortal() {
   if(g('cust-avatar-initials')) g('cust-avatar-initials').textContent = initials;
   if(g('cust-hero-name')) g('cust-hero-name').textContent = cu.displayName || cu.email || 'Welcome';
   if(g('cust-role-chip')) g('cust-role-chip').textContent = (cu.role || 'client').replace(/_/g,' ');
+
+  /* Member since — from Firebase auth metadata */
+  var msSince = g('cust-member-since');
+  if (msSince) {
+    var regDate = cu.metadata && cu.metadata.creationTime
+      ? new Date(cu.metadata.creationTime)
+      : (cu.createdAt && cu.createdAt.toDate ? cu.createdAt.toDate() : null);
+    if (regDate) {
+      var opts = { year: 'numeric', month: 'long' };
+      msSince.textContent = (curLang === 'rw' ? 'Nzanditse kuva: ' : 'Member since: ')
+        + regDate.toLocaleDateString(curLang === 'rw' ? 'fr-RW' : 'en-RW', opts);
+    }
+  }
 
   loadCustDeals(cu.uid);
   loadCustDocs(cu.uid);
