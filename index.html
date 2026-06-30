@@ -2354,6 +2354,58 @@ html,body{overscroll-behavior-x:none}
         <button onclick="closeNotifPanel();requestNotifPermission();" id="notif-enable-btn" style="font-size:.72rem;background:none;border:none;color:var(--blue);cursor:pointer;font-weight:600">⚙️ Enable / Manage Notifications</button>
       </div>
     </div>
+    <!-- Messages Inbox Button -->
+    <button id="inbox-bell" onclick="openInbox()" style="position:relative;background:none;border:1.5px solid var(--border);border-radius:8px;padding:.38rem .5rem;cursor:pointer;width:38px;height:38px;font-size:1.05rem;line-height:1;display:none" aria-label="Messages" title="Messages">
+      ✉️
+      <span id="inbox-badge" style="display:none;position:absolute;top:2px;right:2px;background:#7C3AED;color:#fff;border-radius:50%;font-size:.55rem;font-weight:700;width:14px;height:14px;align-items:center;justify-content:center">0</span>
+    </button>
+    <!-- Messages Inbox Panel (slide-in drawer) -->
+    <div id="inbox-panel" style="display:none;position:fixed;top:0;right:0;bottom:0;width:min(360px,100vw);background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:10001;flex-direction:column;overflow:hidden">
+      <div style="background:var(--navy);color:#fff;padding:.85rem 1rem;display:flex;align-items:center;gap:.6rem;flex-shrink:0">
+        <button onclick="closeInbox()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;line-height:1;padding:.1rem .3rem;border-radius:4px;flex-shrink:0">&#8592;</button>
+        <span style="font-weight:700;font-size:.95rem;flex:1" data-rw="Ubutumwa" data-en="Messages">Messages</span>
+        <button onclick="openCompose()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:.3rem .6rem;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap" data-rw="Ohereza" data-en="Compose">+ Compose</button>
+      </div>
+      <div id="inbox-list" style="flex:1;overflow-y:auto"></div>
+    </div>
+    <!-- Message Thread Panel (layered over inbox panel) -->
+    <div id="thread-panel" style="display:none;position:fixed;top:0;right:0;bottom:0;width:min(360px,100vw);background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:10002;flex-direction:column;overflow:hidden">
+      <div style="background:var(--navy);color:#fff;padding:.85rem 1rem;display:flex;align-items:center;gap:.6rem;flex-shrink:0">
+        <button onclick="closeThread()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;line-height:1;padding:.1rem .3rem;border-radius:4px;flex-shrink:0">&#8592;</button>
+        <div style="flex:1;min-width:0">
+          <div id="thread-name" style="font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+          <div id="thread-role" style="font-size:.7rem;opacity:.7"></div>
+        </div>
+      </div>
+      <div id="thread-messages" style="flex:1;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.5rem"></div>
+      <div style="flex-shrink:0;padding:.6rem;border-top:1px solid var(--border);display:flex;gap:.4rem;background:#fff">
+        <textarea id="thread-compose" rows="2" placeholder="Andika ubutumwa... / Type a message..." style="flex:1;resize:none;border:1.5px solid var(--border);border-radius:8px;padding:.5rem .7rem;font-family:'DM Sans',sans-serif;font-size:.84rem;outline:none;line-height:1.4" onkeydown="if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){sendThreadMessage()}"></textarea>
+        <button onclick="sendThreadMessage()" style="background:var(--navy);color:#fff;border:none;border-radius:8px;padding:.5rem .8rem;font-weight:700;cursor:pointer;font-size:.8rem;align-self:flex-end;flex-shrink:0">&#9658;</button>
+      </div>
+    </div>
+    <!-- Compose Modal -->
+    <div id="compose-modal" style="display:none;position:fixed;inset:0;background:rgba(10,15,30,.55);z-index:10003;align-items:center;justify-content:center;padding:1rem">
+      <div style="background:#fff;border-radius:14px;width:100%;max-width:400px;overflow:hidden">
+        <div style="background:var(--navy);padding:.85rem 1rem;display:flex;align-items:center;justify-content:space-between">
+          <span style="color:#fff;font-weight:700;font-size:.9rem" data-rw="Ubutumwa Bushya" data-en="New Message">New Message</span>
+          <button onclick="closeCompose()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer">&#10005;</button>
+        </div>
+        <div style="padding:1rem">
+          <label style="font-size:.72rem;font-weight:700;letter-spacing:.1em;color:var(--navy);display:block;margin-bottom:.3rem" data-rw="OHEREZA KWA" data-en="SEND TO">SEND TO</label>
+          <select id="compose-to" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.84rem;box-sizing:border-box;margin-bottom:.7rem">
+            <option value="">-- Hitamo umuntu / Select user --</option>
+          </select>
+          <label style="font-size:.72rem;font-weight:700;letter-spacing:.1em;color:var(--navy);display:block;margin-bottom:.3rem" data-rw="UBUTUMWA" data-en="MESSAGE">MESSAGE</label>
+          <textarea id="compose-content" rows="4" style="width:100%;resize:none;border:1.5px solid var(--border);border-radius:8px;padding:.55rem .7rem;font-family:'DM Sans',sans-serif;font-size:.84rem;box-sizing:border-box;outline:none" placeholder="Andika ubutumwa... / Write your message..."></textarea>
+        </div>
+        <div style="padding:.6rem 1rem 1rem;display:flex;gap:.5rem;justify-content:flex-end">
+          <button onclick="closeCompose()" class="btn btn-outline" style="font-size:.84rem" data-rw="Gusubira" data-en="Cancel">Cancel</button>
+          <button onclick="submitCompose()" class="btn btn-navy" style="font-size:.84rem" data-rw="Ohereza" data-en="Send">Send</button>
+        </div>
+      </div>
+    </div>
+    <!-- Inbox backdrop -->
+    <div id="inbox-backdrop" onclick="closeInbox()" style="display:none;position:fixed;inset:0;background:rgba(10,15,30,.4);z-index:10000"></div>
     <button onclick="toggleHamburger()" id="hamburger-btn" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:.38rem .5rem;cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;width:38px;height:38px" aria-label="Menu">
       <span id="hb1" style="display:block;width:18px;height:2px;background:var(--navy);border-radius:2px;transition:.3s"></span>
       <span id="hb2" style="display:block;width:18px;height:2px;background:var(--navy);border-radius:2px;transition:.3s"></span>
@@ -3748,12 +3800,13 @@ html,body{overscroll-behavior-x:none}
       <div class="ds-logo"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span>KOMISIYONERI</span></div>
       <div class="ds-section" data-rw="URUBUGA" data-en="MAIN">URUBUGA</div>
       <div class="dn active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span data-rw="Overview" data-en="Overview">Overview</span></div>
-      <div class="dn"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span data-rw="Imitungo Yanjye" data-en="My Listings">Imitungo Yanjye</span><span class="ds-badge" id="dash-sidebar-listings">0</span></div>
+      <div class="dn" onclick="goMyListings()"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span data-rw="Imitungo Yanjye" data-en="My Listings">Imitungo Yanjye</span><span class="ds-badge" id="dash-sidebar-listings">0</span></div>
       <div class="dn" onclick="go('listings')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span data-rw="Shakisha" data-en="Search">Shakisha</span></div>
       <div class="dn" onclick="go('analytics')"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Analytics</span></div>
-      <div class="dn"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Abakiliya" data-en="Clients">Abakiliya</span><span class="ds-badge">5</span></div>
+      <div class="dn" onclick="go('clients')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Abakiliya" data-en="Clients">Abakiliya</span><span class="ds-badge" id="clients-sidebar-count">0</span></div>
       <div class="dn" onclick="go('crm')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><span data-rw="CRM — Leads" data-en="CRM — Leads">CRM — Leads</span><span class="ds-badge" id="crm-sidebar-count">0</span></div>
       <div class="dn" onclick="go('deals')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5a1 1 0 00-1-1H3a1 1 0 00-1 1v6c0 .552.448 1 1 1"/><path d="M3 12v6a1 1 0 001 1h16a1 1 0 001-1v-6"/></svg><span data-rw="Deals" data-en="Deals">Deals</span><span class="ds-badge" id="deals-sidebar-count">0</span></div>
+      <div class="dn" onclick="go('viewings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span data-rw="Gahunda y'Inzibutso" data-en="Viewings Calendar">Viewings Calendar</span><span class="ds-badge" id="viewings-sidebar-count">0</span></div>
       <div class="ds-section" data-rw="SERIVISI" data-en="SERVICES">SERIVISI</div>
       <div class="dn" onclick="go('verification')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg><span data-rw="Kugenzura" data-en="Verification">Verification</span><span class="ds-badge" id="verif-sidebar-count">0</span></div>
       <div class="dn" onclick="go('documents')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span data-rw="Dosiye / Vault" data-en="Document Vault">Document Vault</span><span class="ds-badge" id="docs-sidebar-count">0</span></div>
@@ -3761,7 +3814,7 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="go('financing')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg><span data-rw="Inguzanyo" data-en="Financing">Financing</span><span class="ds-badge" id="fin-sidebar-count">0</span></div>
       <div class="ds-section" data-rw="IMARI" data-en="FINANCE">IMARI</div>
       <div class="dn" onclick="go('commissions')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span data-rw="Komisiyoni" data-en="Commissions">Komisiyoni</span><span class="ds-badge" id="comm-sidebar-count">0</span></div>
-      <div class="dn"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-rw="Kwishyura" data-en="Payments">Kwishyura</span></div>
+      <div class="dn" onclick="showToast('MTN MoMo &amp; Airtel Money integration coming soon!','info')"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-rw="Kwishyura" data-en="Payments">Kwishyura</span></div>
       <div class="dn" onclick="go('accounting')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg><span data-rw="Ibarura ry'Imari" data-en="Accounting">Accounting</span><span class="ds-badge" id="ac-sidebar-count"></span></div>
       <div class="ds-section" data-rw="WATEJA" data-en="MY PORTAL">WATEJA</div>
       <div class="dn" onclick="go('customer')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Portal Yanjye" data-en="My Portal">My Portal</span><span class="ds-badge" id="cust-sidebar-badge"></span></div>
@@ -3773,8 +3826,8 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="go('bi')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg><span data-rw="Ubushakashatsi bw'Amakuru" data-en="Business Intelligence">Business Intelligence</span><span class="ds-badge" id="bi-sidebar-badge"></span></div>
       <div class="dn" onclick="go('branches')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-rw="Amashami y'Igihugu" data-en="Branch Network">Branch Network</span><span class="ds-badge" id="branch-sidebar-badge"></span></div>
       <div class="ds-section" data-rw="KONTI" data-en="ACCOUNT">KONTI</div>
-      <div class="dn"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Profil" data-en="Profile">Profil</span></div>
-      <div class="dn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-rw="Igenamiterere" data-en="Settings">Igenamiterere</span></div>
+      <div class="dn" onclick="openProfile()"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Profil" data-en="Profile">Profil</span></div>
+      <div class="dn" onclick="openProfile()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-rw="Igenamiterere" data-en="Settings">Igenamiterere</span></div>
     </aside>
     <main class="dash-content">
       <div class="dash-welcome">
@@ -3800,13 +3853,28 @@ html,body{overscroll-behavior-x:none}
           <div class="delta d-up" id="dash-delta-leads"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>—</div>
         </div>
       </div>
+      <!-- Today's Agenda — Follow-up Reminders -->
+      <div id="dash-agenda-wrap" style="display:none;margin-bottom:1.2rem">
+        <div class="dc" style="border-left:3px solid #DC2626">
+          <div class="dc-hdr">
+            <span class="dc-title" style="display:flex;align-items:center;gap:.4rem">
+              <span style="font-size:.95rem">&#128276;</span>
+              <span data-rw="Igihe cyo Gusubira Kuri Ababuza" data-en="Follow-up Due Today">Follow-up Due Today</span>
+              <span id="dash-agenda-count" style="background:#DC2626;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700">0</span>
+            </span>
+            <button class="dc-action" onclick="go('crm')" data-rw="Gura CRM" data-en="Open CRM">Open CRM</button>
+          </div>
+          <div id="dash-agenda-list" style="padding:.4rem .8rem 0"></div>
+        </div>
+      </div>
+
       <div class="dash-grid">
         <!-- My Listings -->
         <div class="dc">
           <div class="dc-hdr"><span class="dc-title" data-rw="Imitungo Yanjye" data-en="My Listings">Imitungo Yanjye</span><button class="dc-action" onclick="go('listings')" data-rw="Reba Yose" data-en="View All">Reba Yose</button></div>
           <div id="dash-listings-rows"></div>
-          <!-- mini bar chart -->
-          <div class="mini-bars">
+          <!-- mini bar chart — populated by loadDashMiniBarChart() -->
+          <div class="mini-bars" id="dash-minibars">
             <div class="mb-col"><div class="mb-bar" style="height:30px"></div><span class="mb-lbl">Mon</span></div>
             <div class="mb-col"><div class="mb-bar" style="height:48px"></div><span class="mb-lbl">Tue</span></div>
             <div class="mb-col"><div class="mb-bar" style="height:36px"></div><span class="mb-lbl">Wed</span></div>
@@ -4231,13 +4299,21 @@ html,body{overscroll-behavior-x:none}
         <div class="crm-stat-l" data-rw="Igipimo Cyo Gutsinda" data-en="Win Rate">Win Rate</div>
       </div>
     </div>
+    <!-- Pipeline Funnel -->
+    <div id="crm-funnel-wrap" style="margin-bottom:.8rem">
+      <button onclick="_toggleCrmFunnel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:#F4F6FB;border:1px solid var(--border);border-radius:8px;padding:.42rem .7rem;cursor:pointer;font-size:.78rem;font-weight:700;color:var(--navy)">
+        <span>&#128202; <span data-rw="Funnel y'Ingamba" data-en="Pipeline Funnel">Pipeline Funnel</span></span>
+        <svg id="crm-funnel-chev" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" style="transition:transform .22s ease;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div id="crm-funnel-body" style="display:none;padding:.5rem 0 .2rem;overflow:hidden"></div>
+    </div>
     <!-- Priority Filter Chips -->
     <div class="crm-priority-filters">
       <span class="crm-pf-label" data-rw="Importance:" data-en="Priority:">Priority:</span>
       <button id="crm-pchip-all" class="crm-pchip crm-pchip-all active" onclick="filterCrmPriority('all')" data-rw="Zose" data-en="All">All</button>
-      <button id="crm-pchip-hot" class="crm-pchip crm-pchip-hot" onclick="filterCrmPriority('hot')">🔥 Hot</button>
-      <button id="crm-pchip-warm" class="crm-pchip crm-pchip-warm" onclick="filterCrmPriority('warm')">🌡️ Warm</button>
-      <button id="crm-pchip-cold" class="crm-pchip crm-pchip-cold" onclick="filterCrmPriority('cold')">🧊 Cold</button>
+      <button id="crm-pchip-hot" class="crm-pchip crm-pchip-hot" onclick="filterCrmPriority('hot')">&#128293; Hot</button>
+      <button id="crm-pchip-warm" class="crm-pchip crm-pchip-warm" onclick="filterCrmPriority('warm')">&#127777;&#65039; Warm</button>
+      <button id="crm-pchip-cold" class="crm-pchip crm-pchip-cold" onclick="filterCrmPriority('cold')">&#129482; Cold</button>
     </div>
     <!-- Stage + Search Filters -->
     <div class="crm-filters">
@@ -4271,8 +4347,12 @@ html,body{overscroll-behavior-x:none}
   </div>
   <div class="crm-wrap">
     <div class="crm-header">
-      <div>
-        <p style="color:var(--muted);font-size:.82rem" data-rw="Kanda ku deal kugirango ubone ibirenzeho" data-en="Click any deal to view details and take action">Click any deal to view details</p>
+      <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+        <p style="color:var(--muted);font-size:.82rem;margin:0" data-rw="Kanda ku deal kugirango ubone ibirenzeho" data-en="Click any deal to view details and take action">Click any deal to view details</p>
+        <div class="crm-view-toggle">
+          <button id="deal-vbtn-list"   class="crm-vbtn active" onclick="toggleDealView('list')"   title="List View"   data-rw="Urutonde" data-en="List">&#9776; List</button>
+          <button id="deal-vbtn-kanban" class="crm-vbtn"        onclick="toggleDealView('kanban')" title="Kanban Board" data-rw="Kanban"   data-en="Kanban">&#9632; Kanban</button>
+        </div>
       </div>
       <button class="btn btn-navy btn-sm" onclick="openCreateDeal()">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -4317,9 +4397,175 @@ html,body{overscroll-behavior-x:none}
     <!-- Deal List -->
     <div class="crm-list" id="deal-list">
       <div class="crm-empty">
-        <div class="crm-empty-icon">💼</div>
+        <div class="crm-empty-icon">&#128188;</div>
         <div class="crm-empty-title" data-rw="Gutegura deals..." data-en="Loading deals...">Loading deals...</div>
       </div>
+    </div>
+    <!-- Deal Kanban Board (hidden by default) -->
+    <div id="deal-kanban" class="crm-kanban" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PAGE: VIEWINGS CALENDAR (Phase 7)
+════════════════════════════════════ -->
+<div class="page" id="page-viewings">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">&#128197; Viewings</div>
+      <h1 class="h1" data-rw="Gahunda y'Inzibutso" data-en="Viewings Calendar">Viewings Calendar</h1>
+      <p style="color:rgba(255,255,255,.82);font-size:.85rem" data-rw="Gukurikirana inzibutso zose — shyiraho, injira, uzuze raporo" data-en="Track all property viewings — schedule, check in, complete reports">Track all property viewings</p>
+    </div>
+  </div>
+  <div class="crm-wrap">
+    <div class="crm-header">
+      <div>
+        <p style="color:var(--muted);font-size:.82rem" data-rw="Kanda ku nzibutso kugirango ubone ibirenzeho" data-en="Click any viewing to view details and take action">Click any viewing to view details</p>
+      </div>
+      <button class="btn btn-navy btn-sm" onclick="openViewingScheduler('')">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-rw="Shyiraho Inzibutso" data-en="Schedule Viewing">Schedule Viewing</span>
+      </button>
+    </div>
+    <!-- Stats bar -->
+    <div class="crm-stats">
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="view-stat-total">0</div>
+        <div class="crm-stat-l" data-rw="Zose" data-en="Total">Total</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="view-stat-upcoming" style="color:var(--blue)">0</div>
+        <div class="crm-stat-l" data-rw="Ziteganijwe" data-en="Upcoming">Upcoming</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="view-stat-today" style="color:var(--gold)">0</div>
+        <div class="crm-stat-l" data-rw="Uyu Munsi" data-en="Today">Today</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="view-stat-done" style="color:#16A34A">0</div>
+        <div class="crm-stat-l" data-rw="Zarangiye" data-en="Completed">Done</div>
+      </div>
+    </div>
+    <!-- Status filter chips -->
+    <div class="crm-priority-filters" style="margin-bottom:.65rem">
+      <span class="crm-pf-label" data-rw="Imiterere:" data-en="Status:">Status:</span>
+      <button id="vf-chip-all"       class="crm-pchip crm-pchip-all active" onclick="filterViewingStatus('all')" data-rw="Zose" data-en="All">All</button>
+      <button id="vf-chip-scheduled" class="crm-pchip crm-pchip-warm"       onclick="filterViewingStatus('scheduled')" data-rw="Ziteganijwe" data-en="Scheduled">Scheduled</button>
+      <button id="vf-chip-in_progress" class="crm-pchip" onclick="filterViewingStatus('in_progress')" style="background:#7C3AED20;color:#7C3AED;border:1px solid #7C3AED40" data-rw="Irakora" data-en="In Progress">In Progress</button>
+      <button id="vf-chip-completed"  class="crm-pchip crm-pchip-hot" onclick="filterViewingStatus('completed')" style="background:#16A34A20;color:#16A34A;border:1px solid #16A34A40" data-rw="Zarangiye" data-en="Completed">Completed</button>
+      <button id="vf-chip-cancelled"  class="crm-pchip crm-pchip-cold" onclick="filterViewingStatus('cancelled')" data-rw="Zahagaritswe" data-en="Cancelled">Cancelled</button>
+    </div>
+    <!-- Viewings list -->
+    <div class="crm-list" id="viewings-list">
+      <div class="crm-empty">
+        <div class="crm-empty-icon">&#128197;</div>
+        <div class="crm-empty-title" data-rw="Gutegura inzibutso..." data-en="Loading viewings...">Loading viewings...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PAGE: CLIENTS DIRECTORY
+════════════════════════════════════ -->
+<div class="page" id="page-clients">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">&#128101; Clients</div>
+      <h1 class="h1" data-rw="Inkoranyamazina y'Abakiliya" data-en="Client Directory">Client Directory</h1>
+      <p style="color:rgba(255,255,255,.82);font-size:.85rem" data-rw="Reba abakiliya bawe bose, gukurikirana ibibazo, no gutegura inzibutso" data-en="View all your clients, track inquiries, and manage relationships">View all your clients, track inquiries, and manage relationships</p>
+    </div>
+  </div>
+  <div class="crm-wrap">
+    <div class="crm-header">
+      <div>
+        <p style="color:var(--muted);font-size:.82rem" data-rw="Kanda ku mukiliya kugirango ubone amakuru ye yose" data-en="Click any client to view their full history">Click any client to view their full history</p>
+      </div>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <input type="text" id="clients-search" placeholder="Search clients..." oninput="filterClients()" style="padding:.45rem .75rem;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;width:200px;outline:none">
+      </div>
+    </div>
+    <!-- Stats -->
+    <div class="crm-stats">
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="cli-stat-total">0</div>
+        <div class="crm-stat-l" data-rw="Abakiliya Bose" data-en="Total Clients">Total Clients</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="cli-stat-active" style="color:#1249B3">0</div>
+        <div class="crm-stat-l" data-rw="Bafite Leads" data-en="With Active Leads">Active Leads</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="cli-stat-followup" style="color:#DC2626">0</div>
+        <div class="crm-stat-l" data-rw="Guhamagarwa Uyu Munsi" data-en="Follow-up Today">Follow-up Today</div>
+      </div>
+      <div class="crm-stat">
+        <div class="crm-stat-v" id="cli-stat-deals" style="color:#16A34A">0</div>
+        <div class="crm-stat-l" data-rw="Deals Zarasojwe" data-en="Deals Closed">Deals Closed</div>
+      </div>
+    </div>
+    <!-- Filter chips -->
+    <div class="crm-priority-filters" style="margin-bottom:.8rem">
+      <button class="cpf active" id="clf-chip-all" onclick="setClientsFilter('all')" data-rw="Bose" data-en="All">All</button>
+      <button class="cpf" id="clf-chip-active" onclick="setClientsFilter('active')" data-rw="Bafite Leads" data-en="Active Leads">Active Leads</button>
+      <button class="cpf" id="clf-chip-followup" onclick="setClientsFilter('followup')" data-rw="Guhamagarwa" data-en="Follow-up Due">Follow-up Due</button>
+      <button class="cpf" id="clf-chip-closed" onclick="setClientsFilter('closed')" data-rw="Deals Zarasojwe" data-en="Closed Won">Closed Won</button>
+    </div>
+    <!-- Client list -->
+    <div class="crm-list" id="clients-list">
+      <div class="crm-empty">
+        <div class="crm-empty-icon">&#128101;</div>
+        <div class="crm-empty-title" data-rw="Gutegura abakiliya..." data-en="Loading clients...">Loading clients...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === CLIENT DETAIL MODAL === -->
+<div class="modal-wrap" id="client-detail-modal" style="display:none" onclick="if(event.target===this)closeModal('client-detail-modal')">
+  <div class="modal" style="max-width:620px;width:95%;max-height:90vh;overflow-y:auto">
+    <div class="modal-hdr">
+      <h3 id="cdm-client-name" style="margin:0;font-size:1.05rem;color:var(--navy)">Client</h3>
+      <button class="modal-close" onclick="closeModal('client-detail-modal')">&#10005;</button>
+    </div>
+    <div style="padding:1.2rem">
+      <!-- Contact info -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1.2rem">
+        <div style="background:var(--light);border-radius:8px;padding:.75rem">
+          <div style="font-size:.68rem;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:.08em;margin-bottom:.3rem" data-rw="Telefone" data-en="Phone">Phone</div>
+          <div id="cdm-phone" style="font-weight:600;font-size:.92rem;color:var(--navy)">—</div>
+        </div>
+        <div style="background:var(--light);border-radius:8px;padding:.75rem">
+          <div style="font-size:.68rem;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:.08em;margin-bottom:.3rem" data-rw="Ahantu" data-en="Zone/District">Zone</div>
+          <div id="cdm-zone" style="font-weight:600;font-size:.92rem;color:var(--navy)">—</div>
+        </div>
+        <div style="background:var(--light);border-radius:8px;padding:.75rem">
+          <div style="font-size:.68rem;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:.08em;margin-bottom:.3rem" data-rw="Leads" data-en="Total Leads">Leads</div>
+          <div id="cdm-lead-count" style="font-weight:700;font-size:1.1rem;color:var(--navy)">0</div>
+        </div>
+        <div style="background:var(--light);border-radius:8px;padding:.75rem">
+          <div style="font-size:.68rem;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:.08em;margin-bottom:.3rem" data-rw="Ibiciro" data-en="Budget">Budget</div>
+          <div id="cdm-budget" style="font-weight:600;font-size:.85rem;color:var(--navy)">—</div>
+        </div>
+      </div>
+      <!-- Quick actions -->
+      <div style="display:flex;gap:.5rem;margin-bottom:1.2rem;flex-wrap:wrap">
+        <a id="cdm-call-btn" href="#" class="btn btn-navy btn-sm" style="text-decoration:none">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          <span data-rw="Hamagara" data-en="Call">Call</span>
+        </a>
+        <button class="btn btn-outline btn-sm" id="cdm-open-lead-btn" onclick="">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10"/></svg>
+          <span data-rw="Fungura CRM" data-en="Open in CRM">Open in CRM</span>
+        </button>
+        <button class="btn btn-outline btn-sm" id="cdm-schedule-btn" onclick="">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span data-rw="Teganya Inzibutso" data-en="Schedule Viewing">Schedule Viewing</span>
+        </button>
+      </div>
+      <!-- Leads timeline -->
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.1em;margin-bottom:.6rem" data-rw="Amakuru ya Leads" data-en="Lead History">Lead History</div>
+      <div id="cdm-leads-list" style="display:flex;flex-direction:column;gap:.5rem"></div>
     </div>
   </div>
 </div>
@@ -6044,6 +6290,25 @@ html,body{overscroll-behavior-x:none}
         <div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem" data-rw="Inkomoko" data-en="Source">Source</div>
         <div id="ld-source" style="font-size:.84rem;font-weight:600;color:var(--navy)">—</div>
       </div>
+      <!-- Agent assignment (full-width row) -->
+      <div style="background:var(--light);border-radius:8px;padding:.6rem .7rem;grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:.5rem">
+        <div>
+          <div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem" data-rw="Agent" data-en="Agent">Agent</div>
+          <div id="ld-agent-name" style="font-size:.84rem;font-weight:600;color:var(--navy)">—</div>
+        </div>
+        <button id="ld-reassign-btn" onclick="_openLeadReassignPanel()" style="display:none;background:var(--navy);color:#fff;border:none;border-radius:6px;padding:.3rem .65rem;font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0" data-rw="Hindura Agent" data-en="Reassign">Reassign</button>
+      </div>
+    </div>
+    <!-- Reassign Agent inline panel (admin/staff only) -->
+    <div id="ld-reassign-panel" style="display:none;border:1.5px solid var(--navy);border-radius:10px;padding:.7rem;margin-bottom:.85rem;background:#EEF2FF">
+      <div style="font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:.45rem" data-rw="Shyiraho Agent Mushya" data-en="Assign New Agent">Assign New Agent</div>
+      <select id="ld-reassign-select" style="width:100%;padding:.48rem .7rem;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:.82rem;margin-bottom:.45rem;box-sizing:border-box">
+        <option value="">-- <span data-rw="Hitamo Agent" data-en="Select Agent">Select Agent</span> --</option>
+      </select>
+      <div style="display:flex;gap:.4rem">
+        <button class="btn btn-navy" style="flex:1;justify-content:center;font-size:.78rem;padding:.42rem" onclick="_saveLeadReassign()" data-rw="Emeza" data-en="Confirm">Confirm</button>
+        <button class="btn btn-outline" style="flex-shrink:0;font-size:.78rem;padding:.42rem .7rem" onclick="document.getElementById('ld-reassign-panel').style.display='none'" data-rw="Siba" data-en="Cancel">Cancel</button>
+      </div>
     </div>
 
     <!-- Contact Log -->
@@ -6077,14 +6342,26 @@ html,body{overscroll-behavior-x:none}
       <button class="btn btn-outline" style="flex-shrink:0;padding:.48rem 1rem;font-size:.82rem" onclick="saveLeadFollowUp()" data-rw="Bika" data-en="Set">Set</button>
     </div>
 
+    <!-- Activity Feed (viewings + deals linked to this lead) -->
+    <div style="margin-bottom:.9rem">
+      <button onclick="_toggleLeadActivity()" style="background:none;border:none;padding:0;cursor:pointer;display:flex;align-items:center;gap:.4rem;font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;margin-bottom:.4rem;width:100%;text-align:left" id="ld-activity-toggle">
+        <span data-rw="IBIKORWA BYASHIZE" data-en="ACTIVITY">ACTIVITY</span>
+        <svg id="ld-activity-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div id="ld-activity-feed" style="display:none"></div>
+    </div>
+
     <!-- Advance Stage + Quick Actions -->
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem">
       <button class="btn btn-navy" id="ld-advance-btn" style="flex:1;min-width:120px;justify-content:center;font-size:.82rem" onclick="advanceLeadStage()">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         <span id="ld-advance-lbl" data-rw="Jya Imbere" data-en="Advance Stage">Advance Stage</span>
       </button>
+      <button class="btn" id="ld-schedule-viewing-btn" style="flex:1;min-width:110px;justify-content:center;font-size:.82rem;background:#7C3AED;color:#fff;border:none" onclick="openViewingScheduler(document.getElementById('ld-lead-id').value)">
+        &#128197; <span data-rw="Shyiraho Gusura" data-en="Schedule Viewing">Schedule Viewing</span>
+      </button>
       <button class="btn" id="ld-convert-deal-btn" style="flex:1;min-width:110px;justify-content:center;font-size:.82rem;background:var(--gold);color:var(--dark)" onclick="convertLeadToDeal(document.getElementById('ld-lead-id').value)">
-        💼 <span data-rw="Kora Deal" data-en="Convert to Deal">Convert to Deal</span>
+        &#128188; <span data-rw="Kora Deal" data-en="Convert to Deal">Convert to Deal</span>
       </button>
     </div>
     <div style="display:flex;gap:.5rem">
@@ -8679,14 +8956,27 @@ function closeEditProfile() {
 }
 
 function saveEditProfile() {
-  var g = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
+  var gv = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
   if (window._profileNewPhoto) currentUser.photo = window._profileNewPhoto;
-  currentUser.phone = g('edit-phone');
-  currentUser.location = g('edit-location');
+  currentUser.phone    = gv('edit-phone');
+  currentUser.location = gv('edit-location');
   var prefEl = document.getElementById('edit-preference');
   if (prefEl) currentUser.preference = prefEl.value;
   saveUser(currentUser);
-  // sync to km_users array
+  /* Persist to Firestore users collection if uid exists */
+  if (typeof db !== 'undefined' && currentUser && currentUser.uid) {
+    var fsUpdate = {
+      phone:      currentUser.phone    || '',
+      location:   currentUser.location || '',
+      preference: currentUser.preference || '',
+      updatedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy:  currentUser.uid
+    };
+    if (currentUser.photo) fsUpdate.photoURL = currentUser.photo;
+    db.collection('users').doc(currentUser.uid).set(fsUpdate, { merge: true }).catch(function(){});
+    logAudit('profile_updated', 'users', currentUser.uid, {}, fsUpdate);
+  }
+  /* Sync to km_users localStorage array */
   var users = [];
   try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
   users = users.map(function(u) {
@@ -8699,7 +8989,7 @@ function saveEditProfile() {
     return u;
   });
   try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
-  showToast(curLang==='rw'?'✅ Profile yawe yavuguruwe!':'✅ Profile updated!');
+  showToast(curLang==='rw'?'Profile yawe yavuguruwe!':'Profile updated!', 'success');
   closeEditProfile();
 }
 
@@ -10079,8 +10369,12 @@ function submitBooking() {
   // Firestore — write to viewings collection (all 7 standard fields)
   try {
     if (typeof db !== 'undefined' && typeof firebase !== 'undefined') {
-      var _vUid = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.uid : '';
+      var _vUid     = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.uid : '';
       var _vAgentId = (cur && cur.agentId) ? cur.agentId : '';
+      /* Build scheduledAt Timestamp so viewings appear in agent calendar queries */
+      var _vSchedAt = firebase.firestore.Timestamp.fromDate(
+        new Date(bk.date + 'T' + (bk.time || '09:00:00'))
+      );
       db.collection('viewings').add({
         id:             '',
         propertyId:     cur.id || bk.propId || '',
@@ -10090,11 +10384,11 @@ function submitBooking() {
         clientPhone:    bk.phone,
         agentId:        _vAgentId,
         agentName:      cur.agentName || '',
+        scheduledAt:    _vSchedAt,
         scheduledDate:  bk.date,
         scheduledTime:  bk.time || '',
         note:           bk.note || '',
         leadId:         '',
-        status:         'scheduled',
         report:         {},
         status:         'scheduled',
         isActive:       true,
@@ -10108,6 +10402,46 @@ function submitBooking() {
           logAudit('viewing.scheduled', 'viewings', vRef.id, null,
             { clientName: bk.name, propertyId: cur.id || '', date: bk.date });
         }
+        /* Auto-create CRM lead so viewing appears in agent CRM pipeline */
+        var _autoLead = {
+          id:            '',
+          clientId:      _vUid,
+          clientName:    bk.name,
+          clientPhone:   bk.phone,
+          propertyId:    cur.id || bk.propId || '',
+          propertyTitle: bk.propTitle || '',
+          agentId:       _vAgentId,
+          source:        'Platform Booking',
+          type:          (cur.service === 'Gukodesha') ? 'Rental' : 'Purchase',
+          budget:        parseInt(cur.price) || 0,
+          pipelineStage: 'viewing_scheduled',
+          priority:      'medium',
+          note:          bk.note || '',
+          nextFollowUp:  null,
+          contactLog:    [],
+          viewingId:     vRef.id,
+          status:        'viewing_scheduled',
+          isActive:      true,
+          createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+          createdBy:     _vUid || 'anonymous',
+          updatedBy:     _vUid || 'anonymous'
+        };
+        db.collection('leads').add(_autoLead).then(function(lRef) {
+          lRef.update({ id: lRef.id });
+          vRef.update({ leadId: lRef.id });
+          if (typeof logAudit === 'function') {
+            logAudit('lead.created', 'leads', lRef.id, null,
+              { clientName: bk.name, source: 'Platform Booking', stage: 'viewing_scheduled' });
+          }
+          /* Notify agent of new viewing + lead */
+          if (typeof notifyUser === 'function' && _vAgentId) {
+            notifyUser(_vAgentId,
+              '&#128197; ' + (curLang === 'rw' ? 'Inzibutso Nshya!' : 'New Viewing Request!'),
+              escapeHtml(bk.name) + (curLang === 'rw' ? ' basabye inzibutso ya ' : ' requested a viewing for ') + escapeHtml(bk.propTitle || 'imitungo') + (curLang === 'rw' ? ' kuri ' : ' on ') + bk.date + (bk.time ? ' ' + bk.time : '') + '.',
+              'viewing_confirmed', 'viewings', vRef.id);
+          }
+        }).catch(function(lErr) { console.warn('[Lead auto-create] error:', lErr); });
       }).catch(function(vErr) { console.warn('[Viewing] Firestore save failed:', vErr); });
     }
   } catch(vE) { console.warn('[Viewing] error:', vE); }
@@ -10157,6 +10491,48 @@ function submitMessage() {
   try{msgs=JSON.parse(localStorage.getItem('km_messages')||'[]');}catch(e){}
   msgs.push({id:'MSG-'+Date.now(),name:name.value,phone:(phone||{}).value||'',email:(document.getElementById('msg-email')||{}).value||'',text:text.value,date:new Date().toISOString(),status:'unread'});
   try{localStorage.setItem('km_messages',JSON.stringify(msgs));}catch(e){}
+  /* Save enquiry to Firestore as CRM lead (stage: contacted) + notify agent */
+  if (typeof db !== 'undefined' && typeof firebase !== 'undefined') {
+    var _mCur  = window._currentProp || {};
+    var _mUid  = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.uid : '';
+    var _mAgId = _mCur.agentId || _mCur.ownerId || '';
+    var _mLead = {
+      id:            '',
+      clientId:      _mUid,
+      clientName:    name.value,
+      clientPhone:   (phone || {}).value || '',
+      clientEmail:   (document.getElementById('msg-email') || {}).value || '',
+      propertyId:    _mCur.id || '',
+      propertyTitle: _mCur.title || _mCur.titleEN || '',
+      agentId:       _mAgId,
+      source:        'Platform Message',
+      type:          _mCur.service === 'Gukodesha' ? 'Rental' : 'Purchase',
+      budget:        parseInt(_mCur.price) || 0,
+      note:          text.value,
+      pipelineStage: 'contacted',
+      priority:      'medium',
+      nextFollowUp:  null,
+      contactLog:    [],
+      status:        'contacted',
+      isActive:      true,
+      createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy:     _mUid || 'anonymous',
+      updatedBy:     _mUid || 'anonymous'
+    };
+    db.collection('leads').add(_mLead).then(function(lRef) {
+      lRef.update({ id: lRef.id });
+      if (typeof logAudit === 'function') {
+        logAudit('lead.created', 'leads', lRef.id, null, { clientName: name.value, source: 'Platform Message', stage: 'contacted' });
+      }
+      if (typeof notifyUser === 'function' && _mAgId) {
+        notifyUser(_mAgId,
+          '&#128172; ' + (curLang === 'rw' ? 'Ubutumwa Ushya!' : 'New Visitor Enquiry!'),
+          escapeHtml(name.value) + (curLang === 'rw' ? ' yoherejwe message ku: ' : ' sent an enquiry about: ') + escapeHtml(_mCur.title || _mCur.titleEN || 'imitungo') + '.',
+          'system', 'leads', lRef.id);
+      }
+    }).catch(function(lErr) { console.warn('[Lead enquiry] error:', lErr); });
+  }
   // Open WhatsApp with message
   var waText = 'KOMISIYONERI+Platform+-+'+encodeURIComponent(name.value)+'-+Tel:+'+encodeURIComponent((phone||{}).value||'N/A')+'-+'+encodeURIComponent(text.value);
   closeMsgOwner();
@@ -11611,8 +11987,39 @@ function openPropDetail(propId) {
     prop = props2.find(function(p){ return String(p.id) === String(propId); });
   }
 
+  if(!prop && typeof db !== 'undefined') {
+    // Firestore fallback — fetch property by document ID for deep-linked URLs
+    db.collection('properties').doc(String(propId)).get().then(function(doc) {
+      if (doc.exists && doc.data().isActive !== false) {
+        var fsProp = typeof _normalizePropDoc === 'function'
+          ? _normalizePropDoc(doc.data(), doc.id)
+          : Object.assign({ id: doc.id }, doc.data());
+        // Cache in localStorage so subsequent calls work
+        var ls = []; try { ls = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+        if (!ls.find(function(p) { return String(p.id) === String(doc.id); })) {
+          ls.push(fsProp);
+          try { localStorage.setItem('km_properties', JSON.stringify(ls)); } catch(e) {}
+        }
+        openPropDetail(propId); // re-invoke now that cache is warm
+      } else {
+        showToast(typeof curLang !== 'undefined' && curLang === 'rw'
+          ? 'Imitungo ntiboneka — gerageza nanone!'
+          : 'Property not found — please try again!');
+        go('listings');
+      }
+    }).catch(function() {
+      showToast(typeof curLang !== 'undefined' && curLang === 'rw'
+        ? 'Imitungo ntiboneka — gerageza nanone!'
+        : 'Property not found — please try again!');
+      go('listings');
+    });
+    return;
+  }
+
   if(!prop) {
-    showToast('Imitungo ntiboneka — gerageza nanone!');
+    showToast(typeof curLang !== 'undefined' && curLang === 'rw'
+      ? 'Imitungo ntiboneka — gerageza nanone!'
+      : 'Property not found — please try again!');
     go('listings');
     return;
   }
@@ -12145,6 +12552,7 @@ function renderAgentsGrid(agents) {
     return;
   }
 
+  var _agViewListTxt = (typeof curLang !== 'undefined' && curLang === 'rw') ? 'Reba Imitungo' : 'View Listings';
   grid.innerHTML = agents.map(function(agent) {
     var isActive = agent.status === 'Active';
     var isPending = agent.status === 'Pending Verification';
@@ -12174,10 +12582,11 @@ function renderAgentsGrid(agents) {
       +   '</div>'
       +   '<div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">🌐 ' + (langs||'Kinyarwanda') + '</div>'
       +   '<div style="font-size:.75rem;color:var(--muted);margin-bottom:.7rem">' + transport + ' · Uburambe: ' + (agent.experience==='0'?'Mushya':agent.experience+'yr+') + '</div>'
-      +   '<div style="display:flex;gap:.4rem">'
-      +     '<a href="tel:' + (agent.phone||'') + '" style="flex:1;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">📞 Hamagara</a>'
-      +     '<a href="https://wa.me/' + (agent.phone||'').replace(/[^0-9]/g,'') + '?text=' + encodeURIComponent('Muraho! Ndabona kuri KOMISIYONERI ndashaka agent. Ni wowe '+agent.name+'?') + '" target="_blank" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">💬 WhatsApp</a>'
+      +   '<div style="display:flex;gap:.4rem;flex-wrap:wrap">'
+      +     '<a href="tel:' + (agent.phone||'') + '" style="flex:1;min-width:80px;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">&#128222; Hamagara</a>'
+      +     '<a href="https://wa.me/' + (agent.phone||'').replace(/[^0-9]/g,'') + '?text=' + encodeURIComponent('Muraho! Ndabona kuri KOMISIYONERI ndashaka agent.') + '" target="_blank" style="flex:1;min-width:80px;background:#25D366;color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">&#128172; WhatsApp</a>'
       +   '</div>'
+      +   '<button onclick="goAgentListings(' + JSON.stringify(agent.id||'') + ',' + JSON.stringify(agent.name||'Agent') + ')" style="width:100%;margin-top:.45rem;background:var(--light);color:var(--navy);border:1.5px solid var(--navy);border-radius:8px;padding:.45rem;font-size:.76rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.35rem">&#127968; ' + _agViewListTxt + ' (' + (agent.deals||0) + ')</button>'
       + '</div>'
       + '</div>';
   }).join('');
@@ -12707,6 +13116,12 @@ go = function(page) {
   if(page === 'commissions') {
     setTimeout(loadCommissions, 150);
   }
+  if(page === 'viewings') {
+    setTimeout(loadViewings, 150);
+  }
+  if(page === 'clients') {
+    setTimeout(loadClients, 150);
+  }
   if(page === 'verification') {
     setTimeout(loadVerifications, 150);
   }
@@ -13179,6 +13594,230 @@ go = function(page) {
       }, 1500);
     });
   } catch(e){ console.error('Sync error:',e); }
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     NOTIFICATION CENTER — Firestore-backed real-time panel
+════════════════════════════════════════════════════════ -->
+<script>
+// ── Firestore Notification Center ──────────────────────────────────────
+var _fsNotifUnsub  = null;
+var _fsNotifList   = [];    // [{_docId, title, body, type, relatedId, relatedCollection, read, createdAt}]
+var _fsNotifUnread = 0;
+
+function _fsNotifSetBadge(count) {
+  _fsNotifUnread = Math.max(0, count);
+  var badge = document.getElementById('notif-badge');
+  if (!badge) return;
+  if (_fsNotifUnread > 0) { badge.style.display = 'flex'; badge.textContent = _fsNotifUnread > 9 ? '9+' : String(_fsNotifUnread); }
+  else { badge.style.display = 'none'; }
+}
+
+function _startFsNotifListener(uid) {
+  if (_fsNotifUnsub) { try { _fsNotifUnsub(); } catch(e){} _fsNotifUnsub = null; }
+  if (typeof db === 'undefined' || !uid) return;
+  _fsNotifUnsub = db.collection('notifications')
+    .where('userId','==',uid)
+    .where('isActive','==',true)
+    .orderBy('createdAt','desc')
+    .limit(20)
+    .onSnapshot(function(snap) {
+      _fsNotifList = [];
+      var unread = 0;
+      snap.forEach(function(doc) {
+        var d = doc.data(); d._docId = doc.id;
+        _fsNotifList.push(d);
+        if (!d.read) unread++;
+      });
+      _fsNotifSetBadge(unread);
+    }, function(err) { /* index building or permission error — fail silently */ });
+}
+
+function _stopFsNotifListener() {
+  if (_fsNotifUnsub) { try { _fsNotifUnsub(); } catch(e){} _fsNotifUnsub = null; }
+  _fsNotifList   = [];
+  _fsNotifUnread = 0;
+  _fsNotifSetBadge(0);
+}
+
+function _fsNotifTimeAgo(ts) {
+  if (!ts) return '';
+  var ms = ts.toDate ? ts.toDate().getTime() : new Date(ts).getTime();
+  var s = Math.floor((Date.now() - ms) / 1000);
+  if (s < 60)    return curLang === 'rw' ? 'Vuba' : 'now';
+  if (s < 3600)  return Math.floor(s / 60) + 'm';
+  if (s < 86400) return Math.floor(s / 3600) + 'h';
+  return Math.floor(s / 86400) + 'd';
+}
+
+function _fsNotifIcon(type) {
+  if (type === 'lead_assigned' || type === 'lead')        return '&#128197;';
+  if (type === 'deal_update'   || type === 'deal')        return '&#128188;';
+  if (type === 'viewing_confirmed' || type === 'viewing') return '&#127968;';
+  if (type === 'commission_approved' || type === 'commission') return '&#128176;';
+  if (type === 'document_shared'  || type === 'document') return '&#128196;';
+  if (type === 'message')                                  return '&#9993;';
+  return '&#128276;';
+}
+
+function _markAllFsNotifsRead() {
+  if (!currentUser || typeof db === 'undefined') return;
+  var uid = currentUser.uid;
+  var toMark = _fsNotifList.filter(function(n) { return !n.read && n._docId; });
+  if (toMark.length === 0) return;
+  var batch = db.batch();
+  toMark.forEach(function(n) {
+    batch.update(db.collection('notifications').doc(n._docId), {
+      read: true, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: uid
+    });
+  });
+  batch.commit().catch(function(){});
+}
+
+function _handleNotifClick(collection, relatedId) {
+  closeNotifPanel();
+  if (collection === 'leads') {
+    go('crm');
+    setTimeout(function() { if (typeof openLeadDetail === 'function') openLeadDetail(relatedId); }, 600);
+  } else if (collection === 'deals') {
+    go('deals');
+    setTimeout(function() { if (typeof openDealDetail === 'function') openDealDetail(relatedId); }, 600);
+  } else if (collection === 'commissions') {
+    go('commissions');
+    setTimeout(function() { if (typeof openCommissionDetail === 'function') openCommissionDetail(relatedId); }, 600);
+  } else if (collection === 'properties') {
+    if (typeof goMyListings === 'function') goMyListings();
+    else go('listings');
+  } else if (collection === 'viewings') {
+    go('dashboard');
+    setTimeout(function() {
+      var tab = document.getElementById('dash-tab-calendar');
+      if (tab) tab.click();
+    }, 400);
+  } else if (collection === 'messages') {
+    if (typeof openInbox === 'function') openInbox();
+  } else {
+    go('dashboard');
+  }
+}
+
+/* Override openNotifPanel to render Firestore notifications when available */
+(function() {
+  var _origOpen = window.openNotifPanel;
+  window.openNotifPanel = function() {
+    var panel = document.getElementById('notif-panel');
+    var list  = document.getElementById('notif-list');
+    if (!panel) { if (_origOpen) _origOpen(); return; }
+
+    if (_fsNotifList.length === 0) {
+      if (_origOpen) { _origOpen(); return; }
+    }
+
+    _markAllFsNotifsRead();
+    _fsNotifSetBadge(0);
+
+    if (list) {
+      list.innerHTML = _fsNotifList.map(function(n) {
+        var unread = !n.read;
+        var bg     = unread ? 'var(--light)' : '#fff';
+        var icon   = _fsNotifIcon(n.type || '');
+        var ts     = _fsNotifTimeAgo(n.createdAt);
+        var hasLink = n.relatedId && n.relatedCollection;
+        return '<div style="padding:.72rem 1rem;border-bottom:1px solid var(--light);background:' + bg + ';'
+          + (hasLink ? 'cursor:pointer' : '') + '"'
+          + (hasLink ? ' onclick="_handleNotifClick(' + JSON.stringify(n.relatedCollection) + ',' + JSON.stringify(n.relatedId) + ')"' : '')
+          + '>'
+          + '<div style="display:flex;align-items:flex-start;gap:.5rem">'
+          + '<span style="font-size:.92rem;flex-shrink:0;margin-top:.06rem">' + icon + '</span>'
+          + '<div style="flex:1;min-width:0">'
+          + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.3rem">'
+          + '<span style="font-weight:' + (unread ? '700' : '600') + ';font-size:.82rem;color:var(--navy);line-height:1.25">' + escapeHtml(n.title || '') + '</span>'
+          + '<span style="font-size:.65rem;color:var(--muted);white-space:nowrap;flex-shrink:0;margin-top:.1rem">' + ts + '</span>'
+          + '</div>'
+          + '<div style="font-size:.78rem;color:var(--dark);margin-top:.12rem;line-height:1.35">' + escapeHtml(n.body || '') + '</div>'
+          + '</div></div></div>';
+      }).join('');
+    }
+
+    panel.style.display = 'block';
+    setTimeout(function() {
+      document.addEventListener('click', function _fsNotifOutside(e) {
+        var p    = document.getElementById('notif-panel');
+        var bell = document.getElementById('notif-bell');
+        if (p && !p.contains(e.target) && bell && !bell.contains(e.target)) {
+          p.style.display = 'none';
+          document.removeEventListener('click', _fsNotifOutside);
+        }
+      });
+    }, 10);
+  };
+})();
+
+/* Override kmNotify to also persist notification to Firestore */
+(function() {
+  var _origKmNotify = window.kmNotify;
+  window.kmNotify = function(title, body, tag, options) {
+    if (_origKmNotify) _origKmNotify(title, body, tag);
+    if (!currentUser || typeof db === 'undefined') return;
+    var opts = options || {};
+    db.collection('notifications').add({
+      id:                '',
+      userId:            currentUser.uid,
+      title:             title || '',
+      body:              body  || '',
+      type:              opts.type              || 'system',
+      relatedId:         opts.relatedId         || '',
+      relatedCollection: opts.relatedCollection || '',
+      read:              false,
+      status:            'unread',
+      isActive:          true,
+      createdAt:         firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:         firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy:         currentUser.uid,
+      updatedBy:         currentUser.uid
+    }).then(function(ref) { ref.update({ id: ref.id }).catch(function(){}); }).catch(function(){});
+  };
+})();
+
+/* ─────────────────────────────────────────────────────────
+   Cross-user notification helper — writes to any target's feed
+   Called by workflow events: viewing scheduled, commission
+   approved/paid, lead assigned to agent.
+───────────────────────────────────────────────────────── */
+function notifyUser(targetUserId, title, body, type, relatedCollection, relatedId) {
+  if (!targetUserId || typeof db === 'undefined') return;
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+  db.collection('notifications').add({
+    id:                '',
+    userId:            targetUserId,
+    title:             title || '',
+    body:              body  || '',
+    type:              type  || 'system',
+    relatedId:         relatedId         || '',
+    relatedCollection: relatedCollection || '',
+    read:              false,
+    status:            'unread',
+    isActive:          true,
+    createdAt:         firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:         firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:         uid,
+    updatedBy:         uid
+  }).then(function(ref) { ref.update({ id: ref.id }).catch(function(){}); }).catch(function(){});
+}
+
+/* Extend updateNavForUser to start/stop Firestore notification listener on login/logout */
+(function() {
+  var _origNav = typeof updateNavForUser !== 'undefined' ? updateNavForUser : null;
+  if (!_origNav) return;
+  updateNavForUser = function(user) {
+    _origNav(user);
+    if (user && user.uid) {
+      setTimeout(function() { _startFsNotifListener(user.uid); }, 1500);
+    } else {
+      _stopFsNotifListener();
+    }
+  };
 })();
 </script>
 
@@ -16252,6 +16891,19 @@ function loadCustomerPortal() {
   if(g('cust-hero-name')) g('cust-hero-name').textContent = cu.displayName || cu.email || 'Welcome';
   if(g('cust-role-chip')) g('cust-role-chip').textContent = (cu.role || 'client').replace(/_/g,' ');
 
+  /* Member since — from Firebase auth metadata */
+  var msSince = g('cust-member-since');
+  if (msSince) {
+    var regDate = cu.metadata && cu.metadata.creationTime
+      ? new Date(cu.metadata.creationTime)
+      : (cu.createdAt && cu.createdAt.toDate ? cu.createdAt.toDate() : null);
+    if (regDate) {
+      var opts = { year: 'numeric', month: 'long' };
+      msSince.textContent = (curLang === 'rw' ? 'Nzanditse kuva: ' : 'Member since: ')
+        + regDate.toLocaleDateString(curLang === 'rw' ? 'fr-RW' : 'en-RW', opts);
+    }
+  }
+
   loadCustDeals(cu.uid);
   loadCustDocs(cu.uid);
   loadCustViewings(cu.uid);
@@ -18710,6 +19362,21 @@ function submitCommissionDecision(approved) {
     renderCommissionList();
     updateCommissionStats();
     closeCommissionDetail();
+    /* Notify the agent of approval/rejection */
+    var _notifComm = null;
+    for (var ci = 0; ci < _commissions.length; ci++) {
+      if ((_commissions[ci]._docId||_commissions[ci].id)===id) { _notifComm=_commissions[ci]; break; }
+    }
+    if (typeof notifyUser === 'function' && _notifComm && _notifComm.agentId) {
+      var _commAmt = (_notifComm.totalCommission||0).toLocaleString();
+      notifyUser(_notifComm.agentId,
+        approved ? (curLang==='rw'?'Komisiyoni Yemejwe!':'Commission Approved!')
+                 : (curLang==='rw'?'Komisiyoni Yanzwe':'Commission Rejected'),
+        approved
+          ? (curLang==='rw'?'Komisiyoni ya '+_commAmt+' RWF yemejwe.':'Commission of '+_commAmt+' RWF has been approved.')
+          : (curLang==='rw'?'Icyifuzo cya komisiyoni cyanzwe.':'Your commission request was not approved.'),
+        approved ? 'commission_approved' : 'system', 'commissions', id);
+    }
   }).catch(function(err) {
     showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error updating commission', 'error');
     console.error('[Commission] approval error:', err);
@@ -18737,6 +19404,18 @@ function markCommissionPaid(id) {
     renderCommissionList();
     updateCommissionStats();
     closeCommissionDetail();
+    /* Notify the agent that payment has been made */
+    var _paidComm = null;
+    for (var pi = 0; pi < _commissions.length; pi++) {
+      if ((_commissions[pi]._docId||_commissions[pi].id)===id) { _paidComm=_commissions[pi]; break; }
+    }
+    if (typeof notifyUser === 'function' && _paidComm && _paidComm.agentId) {
+      var _paidAmt = (_paidComm.totalCommission||0).toLocaleString();
+      notifyUser(_paidComm.agentId,
+        curLang==='rw'?'&#128176; Komisiyoni Yishyuwe!':'&#128176; Commission Paid!',
+        curLang==='rw'?'Komisiyoni ya '+_paidAmt+' RWF yishyuwe. Urashimire!':'Commission of '+_paidAmt+' RWF has been paid. Thank you!',
+        'commission_paid', 'commissions', id);
+    }
   }).catch(function(err) {
     showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error marking paid', 'error');
     console.error('[Commission] paid error:', err);
@@ -19070,7 +19749,7 @@ function filterDeals() {
   var si = document.getElementById('deal-search');
   _dealFilter = sf ? sf.value : '';
   _dealSearch = si ? si.value : '';
-  renderDealList();
+  if (typeof _dealView !== 'undefined' && _dealView === 'kanban') renderDealKanban(); else renderDealList();
 }
 
 // ── Deal Detail Modal ─────────────────────────────────
@@ -19202,6 +19881,25 @@ function advanceDealStage() {
     }).then(function() {
       showToast((curLang === 'rw' ? 'Deal yafunguwe ku: ' : 'Deal moved to: ') + label, 'success');
       logAudit('deal.stage.changed', 'deals', dealId, { pipelineStage: curKey }, { pipelineStage: nextKey });
+      /* Notify client on closed_won; notify agent if moved by admin/staff on milestones */
+      if (typeof notifyUser === 'function' && _ddCurrentDeal) {
+        if (nextKey === 'closed_won' && _ddCurrentDeal.clientId) {
+          notifyUser(_ddCurrentDeal.clientId,
+            curLang === 'rw' ? '&#127881; Deal Yarangiye!' : '&#127881; Deal Closed Successfully!',
+            curLang === 'rw' ? 'Umuganho warangiye neza. Murakoze guhitamo KOMISIYONERI!' : 'Your transaction was completed successfully. Thank you for choosing KOMISIYONERI!',
+            'deal_closed', 'deals', dealId);
+        }
+        var _advRole = currentUser ? (currentUser.role || '').toLowerCase() : '';
+        var _advMilestones = ['offer_submitted','negotiation','contract','closing','closed_won'];
+        if (_ddCurrentDeal.agentId && _ddCurrentDeal.agentId !== (currentUser ? currentUser.uid : '')
+            && ['admin','staff','super_admin'].indexOf(_advRole) > -1
+            && _advMilestones.indexOf(nextKey) > -1) {
+          notifyUser(_ddCurrentDeal.agentId,
+            curLang === 'rw' ? '&#128203; Deal Inzira: ' + label : '&#128203; Deal Stage: ' + label,
+            curLang === 'rw' ? 'Deal yawe yafuguye ku: ' + label + '.' : 'Your deal has been moved to: ' + label + '.',
+            'deal_stage', 'deals', dealId);
+        }
+      }
       if (nextKey === 'closed_won' && typeof autoCalculateCommission === 'function') {
         setTimeout(function() { autoCalculateCommission(dealId, _ddCurrentDeal); }, 500);
       }
@@ -19893,6 +20591,12 @@ function _openLeadDetailWithData(lead) {
   if(e('ld-zone'))   e('ld-zone').textContent   = zone;
   if(e('ld-budget')) e('ld-budget').textContent = budMin + ' – ' + budMax;
   if(e('ld-source')) e('ld-source').textContent = src;
+  if(e('ld-agent-name')) e('ld-agent-name').textContent = lead.agentName || (curLang === 'rw' ? 'Ntashyizwaho' : 'Unassigned');
+  // Show reassign button for admin/staff
+  var _isAdminRole = typeof currentUser !== 'undefined' && currentUser &&
+    (['admin','super_admin','staff'].indexOf((currentUser.role || '').toLowerCase()) > -1);
+  if(e('ld-reassign-btn')) e('ld-reassign-btn').style.display = _isAdminRole ? '' : 'none';
+  if(e('ld-reassign-panel')) e('ld-reassign-panel').style.display = 'none';
 
   // Contact log
   var logEl = e('ld-contact-log');
@@ -19990,6 +20694,38 @@ function updateLeadStage(leadId, newStageKey) {
         { pipelineStage: oldStage },
         { pipelineStage: newStageKey }
       );
+      /* Notify agent if non-agent moved stage; notify client on key milestones */
+      if (typeof notifyUser === 'function' && _ldCurrentLead) {
+        var _lStageObj = typeof getCrmStage === 'function' ? getCrmStage(newStageKey) : {};
+        var _lLabel = curLang === 'rw' ? (_lStageObj.labelRW || newStageKey) : (_lStageObj.labelEN || newStageKey);
+        var _lCurRole = currentUser ? (currentUser.role || '').toLowerCase() : '';
+        if (_ldCurrentLead.agentId && _ldCurrentLead.agentId !== (currentUser ? currentUser.uid : '')
+            && ['admin','staff','super_admin'].indexOf(_lCurRole) > -1) {
+          notifyUser(_ldCurrentLead.agentId,
+            curLang === 'rw' ? '&#128203; Lead Yahinduwe: ' + _lLabel : '&#128203; Lead Stage: ' + _lLabel,
+            (curLang === 'rw' ? 'Lead ya ' : 'Lead for ') + escapeHtml(_ldCurrentLead.clientName || 'Client') + (curLang === 'rw' ? ' yafuguye ku: ' : ' moved to: ') + _lLabel + '.',
+            'lead_stage', 'leads', leadId);
+        }
+        var _lMilestones = ['offer_submitted','contract','closing','closed_won'];
+        if (_ldCurrentLead.clientId && _lMilestones.indexOf(newStageKey) > -1) {
+          var _lClientTitles = {
+            offer_submitted: curLang === 'rw' ? '&#128203; Offer Yoherejwe' : '&#128203; Offer Submitted',
+            contract:        curLang === 'rw' ? '&#128196; Amasezerano Ateguwe' : '&#128196; Contract Ready',
+            closing:         curLang === 'rw' ? '&#128273; Gufunga Bukomeza' : '&#128273; Closing Soon',
+            closed_won:      curLang === 'rw' ? '&#127881; Umuganho Warangiye!' : '&#127881; Transaction Complete!'
+          };
+          var _lClientBodies = {
+            offer_submitted: curLang === 'rw' ? 'Offer yawe yoherejwe kandi irimo gusuzumwa.' : 'Your offer has been submitted and is under review.',
+            contract:        curLang === 'rw' ? 'Amasezerano ateguwe — Twandikire kuyasoma.' : 'Your contract is ready — please contact us to review.',
+            closing:         curLang === 'rw' ? 'Intambwe ya nyuma igeze. Agent azakugezaho vuba.' : 'Final closing step started. Your agent will contact you shortly.',
+            closed_won:      curLang === 'rw' ? 'Murakoze guhitamo KOMISIYONERI. Umuganho warangiye neza!' : 'Thank you for choosing KOMISIYONERI. Your transaction completed successfully!'
+          };
+          notifyUser(_ldCurrentLead.clientId,
+            _lClientTitles[newStageKey] || _lLabel,
+            _lClientBodies[newStageKey] || _lLabel,
+            newStageKey === 'closed_won' ? 'deal_closed' : 'lead_stage', 'leads', leadId);
+        }
+      }
       // Update local caches
       if (_ldCurrentLead) _ldCurrentLead.pipelineStage = newStageKey;
       for (var i = 0; i < _crmLeads.length; i++) {
@@ -20391,6 +21127,82 @@ function toggleCrmView(view) {
   }
 }
 
+// ── Deal Kanban View ────────────────────────────────────
+var _dealView = 'list';
+
+function toggleDealView(view) {
+  _dealView = view;
+  var listEl    = document.getElementById('deal-list');
+  var kanbanEl  = document.getElementById('deal-kanban');
+  var btnList   = document.getElementById('deal-vbtn-list');
+  var btnKanban = document.getElementById('deal-vbtn-kanban');
+  if (!listEl || !kanbanEl) return;
+  if (view === 'kanban') {
+    listEl.style.display   = 'none';
+    kanbanEl.style.display = 'flex';
+    if (btnList)   btnList.classList.remove('active');
+    if (btnKanban) btnKanban.classList.add('active');
+    renderDealKanban();
+  } else {
+    listEl.style.display   = '';
+    kanbanEl.style.display = 'none';
+    if (btnList)   btnList.classList.add('active');
+    if (btnKanban) btnKanban.classList.remove('active');
+    renderDealList();
+  }
+}
+
+function renderDealKanban() {
+  var board = document.getElementById('deal-kanban');
+  if (!board) return;
+
+  /* Active deal stages only (exclude new lead stages) */
+  var DEAL_STAGES = CRM_STAGES.filter(function(s) {
+    return ['offer_submitted','negotiation','due_diligence','financing','contract','closing','closed_won','closed_lost'].indexOf(s.key) > -1;
+  });
+
+  var filtered = _deals.filter(function(d) {
+    var title  = (d.propertyTitle || '').toLowerCase();
+    var client = (d.clientName || '').toLowerCase();
+    return !_dealSearch
+      || title.indexOf(_dealSearch.toLowerCase())  > -1
+      || client.indexOf(_dealSearch.toLowerCase()) > -1;
+  });
+
+  board.innerHTML = DEAL_STAGES.map(function(stage) {
+    var cards = filtered.filter(function(d) { return (d.pipelineStage || 'new') === stage.key; });
+    var total = cards.reduce(function(s, d) { return s + (parseInt(d.agreedPrice) || 0); }, 0);
+    var totalStr = total >= 1000000 ? (total/1000000).toFixed(1) + 'M' : total > 0 ? total.toLocaleString() : '';
+    return '<div class="crm-col" style="min-width:220px">'
+      + '<div class="crm-col-hdr" style="border-top:3px solid ' + stage.color + '">'
+      +   '<span class="crm-col-name">' + (curLang==='rw' ? stage.labelRW : stage.labelEN) + '</span>'
+      +   '<span class="crm-col-count">' + cards.length + (totalStr ? ' &bull; ' + totalStr + ' RWF' : '') + '</span>'
+      + '</div>'
+      + (cards.length === 0
+          ? '<div style="padding:.8rem;text-align:center;color:var(--muted);font-size:.75rem">—</div>'
+          : cards.map(function(deal) {
+              var dealId = deal._docId || deal.id || '';
+              var days   = typeof getDaysInStage === 'function' ? getDaysInStage(deal) : 0;
+              var price  = deal.agreedPrice ? parseInt(deal.agreedPrice).toLocaleString() + ' RWF' : '—';
+              var ms     = deal.milestones || {};
+              var msDone = DEAL_MILESTONES.filter(function(m) { return ms[m.key] === true; }).length;
+              var msPct  = Math.round((msDone / DEAL_MILESTONES.length) * 100);
+              return '<div class="crm-card" onclick="openDealDetail(\'' + dealId + '\')" style="border-left:3px solid ' + stage.color + ';cursor:pointer">'
+                + '<div class="crm-card-header" style="cursor:pointer">'
+                +   '<div style="font-size:.82rem;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(deal.propertyTitle || 'Deal') + '</div>'
+                +   '<span class="crm-days-chip' + (days > 14 ? ' overdue' : '') + '">' + days + 'd</span>'
+                + '</div>'
+                + '<div style="font-size:.75rem;color:var(--muted);margin:.15rem 0">' + escapeHtml(deal.clientName || '—') + '</div>'
+                + '<div style="font-size:.78rem;font-weight:700;color:var(--navy);margin:.1rem 0">' + price + '</div>'
+                + '<div style="background:var(--light);border-radius:4px;overflow:hidden;height:4px;margin-top:.3rem">'
+                +   '<div style="background:' + stage.color + ';width:' + msPct + '%;height:100%;transition:width .3s ease"></div>'
+                + '</div>'
+                + '</div>';
+            }).join(''))
+      + '</div>';
+  }).join('');
+}
+
 // ── Priority Filter ─────────────────────────────────────
 function filterCrmPriority(priority) {
   _crmPriority = priority;
@@ -20582,6 +21394,164 @@ function updateCrmStats() {
   if (e('crm-stat-pipeline')) e('crm-stat-pipeline').textContent = fmtRWF(pipelineVal);
   if (e('crm-stat-winrate'))  e('crm-stat-winrate').textContent  = winRate + '%';
   if (e('dash-kpi-leads'))    e('dash-kpi-leads').textContent    = total;
+  renderCrmFunnel();
+}
+
+// ── CRM Pipeline Funnel ──────────────────────────────────────
+var _crmFunnelOpen = false;
+
+function _toggleCrmFunnel() {
+  var body = document.getElementById('crm-funnel-body');
+  var chev = document.getElementById('crm-funnel-chev');
+  if (!body) return;
+  _crmFunnelOpen = !_crmFunnelOpen;
+  body.style.display = _crmFunnelOpen ? 'block' : 'none';
+  if (chev) chev.style.transform = _crmFunnelOpen ? 'rotate(180deg)' : '';
+  if (_crmFunnelOpen) renderCrmFunnel();
+}
+
+function renderCrmFunnel() {
+  var body = document.getElementById('crm-funnel-body');
+  if (!body || !_crmFunnelOpen) return;
+  if (!_crmLeads || _crmLeads.length === 0) {
+    body.innerHTML = '<div style="padding:.4rem .5rem;font-size:.76rem;color:var(--muted);text-align:center">'
+      + (curLang === 'rw' ? 'Nta leads urahari.' : 'No leads to display.') + '</div>';
+    return;
+  }
+
+  var FUNNEL_STAGES = CRM_STAGES.filter(function(s) {
+    return s.key !== 'closed_won' && s.key !== 'closed_lost';
+  });
+  var wonLost = CRM_STAGES.filter(function(s) {
+    return s.key === 'closed_won' || s.key === 'closed_lost';
+  });
+  var allStages = FUNNEL_STAGES.concat(wonLost);
+  var total = _crmLeads.length;
+
+  var counts = {};
+  allStages.forEach(function(s) { counts[s.key] = 0; });
+  _crmLeads.forEach(function(l) {
+    var k = l.pipelineStage || 'new';
+    if (counts[k] !== undefined) counts[k]++;
+  });
+
+  var maxCount = Math.max.apply(null, allStages.map(function(s) { return counts[s.key]; }).concat([1]));
+
+  body.innerHTML = allStages.map(function(s) {
+    var cnt  = counts[s.key] || 0;
+    var pct  = total > 0 ? Math.round(cnt / total * 100) : 0;
+    var bPct = Math.round(cnt / maxCount * 100);
+    var lbl  = curLang === 'rw' ? s.labelRW : s.labelEN;
+    var isTerminal = s.key === 'closed_won' || s.key === 'closed_lost';
+    var barColor   = s.key === 'closed_won'  ? '#16A34A'
+                   : s.key === 'closed_lost' ? '#DC2626'
+                   : s.color;
+    return '<div style="display:grid;grid-template-columns:100px 1fr 36px 32px;align-items:center;gap:.35rem;'
+      + 'padding:.22rem .5rem;cursor:pointer;border-radius:5px;transition:background .15s"'
+      + ' onmouseover="this.style.background=\'#F4F6FB\'" onmouseout="this.style.background=\'\'"'
+      + ' onclick="filterCrmByStage(\'' + s.key + '\')">'
+      + '<span style="font-size:.71rem;color:' + (isTerminal ? barColor : 'var(--dark)') + ';font-weight:' + (isTerminal ? '700' : '500') + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + lbl + '">'
+      + lbl + '</span>'
+      + '<div style="background:#E8EDF5;border-radius:3px;height:8px;overflow:hidden">'
+      + '<div style="height:100%;border-radius:3px;background:' + barColor + ';width:' + bPct + '%;transition:width .4s ease"></div>'
+      + '</div>'
+      + '<span style="font-size:.72rem;font-weight:700;color:var(--navy);text-align:right">' + cnt + '</span>'
+      + '<span style="font-size:.65rem;color:var(--muted);text-align:right">' + pct + '%</span>'
+      + '</div>';
+  }).join('');
+}
+
+function filterCrmByStage(stageKey) {
+  var sel = document.getElementById('crm-filter-stage');
+  if (sel) { sel.value = stageKey; filterCrmLeads(); }
+}
+
+// ── Lead Agent Reassignment ──────────────────────────────────────────
+var _ldAgentList = [];
+
+function _openLeadReassignPanel() {
+  var panel = document.getElementById('ld-reassign-panel');
+  var sel   = document.getElementById('ld-reassign-select');
+  if (!panel || !sel) return;
+  panel.style.display = 'block';
+  sel.innerHTML = '<option value="">-- ' + (curLang === 'rw' ? 'Hitamo Agent' : 'Select Agent') + ' --</option>';
+  if (_ldAgentList.length > 0) {
+    _ldAgentList.forEach(function(a) {
+      var opt = document.createElement('option');
+      opt.value = a.uid; opt.textContent = (a.displayName || a.name || a.email || 'Agent') + ' (' + (a.role || 'agent') + ')';
+      sel.appendChild(opt);
+    });
+    return;
+  }
+  if (typeof db === 'undefined') return;
+  db.collection('users').where('role','==','agent').where('isActive','==',true)
+    .orderBy('createdAt','desc').limit(50).get()
+    .then(function(snap) {
+      _ldAgentList = [];
+      snap.forEach(function(doc) { var d = doc.data(); d._uid = doc.id; _ldAgentList.push(d); });
+      if (_ldAgentList.length === 0) {
+        // Also try admin + staff
+        sel.innerHTML = '<option value="">' + (curLang === 'rw' ? 'Nta agents babonetse' : 'No agents found') + '</option>';
+        return;
+      }
+      sel.innerHTML = '<option value="">-- ' + (curLang === 'rw' ? 'Hitamo Agent' : 'Select Agent') + ' --</option>';
+      _ldAgentList.forEach(function(a) {
+        var opt = document.createElement('option');
+        opt.value = a._uid || a.uid || ''; opt.textContent = (a.displayName || a.name || a.email || 'Agent');
+        sel.appendChild(opt);
+      });
+    }).catch(function() {
+      sel.innerHTML = '<option value="">' + (curLang === 'rw' ? 'Habaye ikosa' : 'Error loading agents') + '</option>';
+    });
+}
+
+function _saveLeadReassign() {
+  var sel    = document.getElementById('ld-reassign-select');
+  var panel  = document.getElementById('ld-reassign-panel');
+  var nameEl = document.getElementById('ld-agent-name');
+  var leadId = (document.getElementById('ld-lead-id') || {}).value || '';
+  if (!sel || !sel.value || !leadId) {
+    showToast(curLang === 'rw' ? 'Hitamo agent' : 'Please select an agent', 'error');
+    return;
+  }
+  var newAgentId  = sel.value;
+  var selOpt      = sel.options[sel.selectedIndex];
+  var newAgentName = selOpt ? selOpt.textContent.trim() : '';
+  if (typeof db === 'undefined' || !currentUser) return;
+  var uid = currentUser.uid;
+  db.collection('leads').doc(leadId).update({
+    agentId:   newAgentId,
+    agentName: newAgentName,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: uid
+  }).then(function() {
+    showToast(curLang === 'rw' ? 'Lead yashyiziwe agent nshya!' : 'Lead reassigned successfully!', 'success');
+    if (nameEl) nameEl.textContent = newAgentName;
+    if (panel)  panel.style.display = 'none';
+    logAudit('lead.agent.reassigned', 'leads', leadId,
+      { agentName: _ldCurrentLead ? _ldCurrentLead.agentName : '' },
+      { agentId: newAgentId, agentName: newAgentName }
+    );
+    if (_ldCurrentLead) { _ldCurrentLead.agentId = newAgentId; _ldCurrentLead.agentName = newAgentName; }
+    for (var i = 0; i < _crmLeads.length; i++) {
+      if ((_crmLeads[i]._docId || _crmLeads[i].id) === leadId) {
+        _crmLeads[i].agentId   = newAgentId;
+        _crmLeads[i].agentName = newAgentName;
+        break;
+      }
+    }
+    if (typeof renderCrmLeads === 'function') renderCrmLeads();
+    // Notify new agent
+    kmNotify(
+      curLang === 'rw' ? 'Lead Nshya Yashyikirijwe!' : 'New Lead Assigned!',
+      (curLang === 'rw' ? 'Lead ya ' : 'Lead from ') + (_ldCurrentLead ? (_ldCurrentLead.clientName || '') : ''),
+      'lead-reassign-' + leadId,
+      { type: 'lead_assigned', relatedId: leadId, relatedCollection: 'leads' }
+    );
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa reka ugerageze nanone' : 'Error saving — please retry', 'error');
+    console.error('[Reassign]', err);
+  });
 }
 
 /* ══════════════════════════════════════════════════════
@@ -21424,18 +22394,32 @@ function loadAgentDashboard() {
     : db.collection('leads').where('isActive','==',true);
   leadsQuery.get().then(function(snap) {
     var cur30=0, prev30=0;
+    /* Weekly buckets for mini bar chart (0=Sun … 6=Sat) */
+    var weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay()); weekStart.setHours(0,0,0,0);
+    var dayCounts = [0,0,0,0,0,0,0];
+    /* Client deduplication for sidebar badge */
+    var phoneSet = {};
     snap.forEach(function(d) {
-      var ts = d.data().createdAt;
+      var x = d.data();
+      var ts = x.createdAt;
       if (!ts) return;
       var dt = ts.toDate ? ts.toDate() : new Date(ts);
       if (dt >= thirtyDaysAgo) cur30++;
       else if (dt >= sixtyDaysAgo) prev30++;
+      if (dt >= weekStart) dayCounts[dt.getDay()]++;
+      var pk = (x.clientPhone||'').trim() || x.clientId || '';
+      if (pk) phoneSet[pk] = true;
     });
     var el = document.getElementById('dash-kpi-leads');
     if (el) el.textContent = cur30;
     var badge = document.getElementById('crm-sidebar-count');
     if (badge) badge.textContent = snap.size;
     setDelta('dash-delta-leads', cur30, prev30, curLang==='rw'?'uku kwezi':'this month');
+    /* Update clients sidebar badge */
+    var cBadge = document.getElementById('clients-sidebar-count');
+    if (cBadge) cBadge.textContent = Object.keys(phoneSet).length || '0';
+    /* Render mini bar chart */
+    loadDashMiniBarChart(dayCounts, now.getDay());
   }).catch(function(){});
 
   /* Deals closed (my deals closed_won this 30d vs prev 30d) */
@@ -21496,6 +22480,9 @@ function loadAgentDashboard() {
     ? db.collection('viewings').where('agentId','==',cu.uid).where('isActive','==',true)
     : db.collection('viewings').where('isActive','==',true);
   visitQuery.where('scheduledAt','>=',firebase.firestore.Timestamp.fromDate(now)).orderBy('scheduledAt','asc').limit(8).get().then(function(snap) {
+    /* Populate sidebar badge with upcoming viewings count */
+    var vBadge = document.getElementById('viewings-sidebar-count');
+    if (vBadge) vBadge.textContent = snap.size > 0 ? snap.size : '';
     var bookings = [];
     snap.forEach(function(d) {
       var x = d.data();
@@ -21515,6 +22502,68 @@ function loadAgentDashboard() {
 
   /* Load activity feed */
   loadDashboardActivity();
+
+  /* Load follow-up reminders */
+  loadDashFollowups(cu, _isAgentRole);
+}
+
+function loadDashFollowups(cu, isAgentRole) {
+  if (!cu || typeof db === 'undefined') return;
+  var wrap     = document.getElementById('dash-agenda-wrap');
+  var list     = document.getElementById('dash-agenda-list');
+  var countEl  = document.getElementById('dash-agenda-count');
+  if (!wrap || !list) return;
+
+  var tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(23, 59, 59, 999);
+  var tsTomorrow = firebase.firestore.Timestamp.fromDate(tomorrow);
+
+  var query = isAgentRole
+    ? db.collection('leads').where('agentId','==',cu.uid).where('isActive','==',true).where('nextFollowUp','<=',tsTomorrow).orderBy('nextFollowUp','asc').limit(10)
+    : db.collection('leads').where('isActive','==',true).where('nextFollowUp','<=',tsTomorrow).orderBy('nextFollowUp','asc').limit(10);
+
+  query.get().then(function(snap) {
+    if (snap.empty) { wrap.style.display = 'none'; return; }
+    var now = Date.now();
+    var items = [];
+    snap.forEach(function(doc) {
+      var l = doc.data(); l._docId = doc.id;
+      if (l.pipelineStage === 'closed_won' || l.pipelineStage === 'closed_lost') return;
+      var fuTs = l.nextFollowUp;
+      if (!fuTs) return;
+      var fuMs = fuTs.toDate ? fuTs.toDate().getTime() : new Date(fuTs).getTime();
+      items.push({ lead: l, fuMs: fuMs });
+    });
+    if (items.length === 0) { wrap.style.display = 'none'; return; }
+
+    wrap.style.display = 'block';
+    if (countEl) countEl.textContent = items.length;
+
+    list.innerHTML = items.map(function(it) {
+      var l       = it.lead;
+      var fuMs    = it.fuMs;
+      var isOverdue = fuMs < now;
+      var fuDate  = new Date(fuMs);
+      var fuStr   = isOverdue
+        ? (curLang==='rw' ? 'Yarengeje! ' : 'OVERDUE! ') + fuDate.toLocaleDateString()
+        : fuDate.toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+      var priority = l.priority || 'warm';
+      var prioColor = priority === 'hot' ? '#DC2626' : priority === 'warm' ? '#F59E0B' : '#64748B';
+      var stage   = (l.pipelineStage || 'new').replace(/_/g,' ');
+      var lid     = l._docId || '';
+      return '<div style="display:flex;align-items:center;gap:.6rem;padding:.45rem .3rem;border-bottom:1px solid var(--light);cursor:pointer" onclick="openLeadDetail(\'' + lid + '\')">'
+        + '<div style="width:8px;height:8px;border-radius:50%;background:' + prioColor + ';flex-shrink:0"></div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:.8rem;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(l.clientName || 'Client') + '</div>'
+        + '<div style="font-size:.7rem;color:var(--muted)">' + escapeHtml(stage) + ' &bull; ' + escapeHtml(l.clientPhone || '') + '</div>'
+        + '</div>'
+        + '<div style="font-size:.68rem;font-weight:700;color:' + (isOverdue ? '#DC2626' : '#F59E0B') + ';white-space:nowrap;text-align:right">' + fuStr + '</div>'
+        + '</div>';
+    }).join('');
+  }).catch(function(){
+    if (wrap) wrap.style.display = 'none';
+  });
 }
 
 function loadDashboardActivity() {
@@ -21579,6 +22628,28 @@ function loadDashboardActivity() {
   }).catch(function() {
     container.innerHTML = '<div style="padding:1rem;color:var(--muted);font-size:.8rem;text-align:center">—</div>';
   });
+}
+
+/* Render weekly leads mini bar chart in dashboard */
+function loadDashMiniBarChart(dayCounts, todayDow) {
+  var el = document.getElementById('dash-minibars');
+  if (!el) return;
+  /* dayCounts: array[7] indexed 0=Sun,1=Mon,...,6=Sat */
+  var dayLabels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var maxCount = Math.max.apply(null, dayCounts.concat([1]));
+  var minH = 6, maxH = 58;
+  var html = '';
+  for (var i = 0; i < 7; i++) {
+    var h = maxCount > 0 ? Math.round((dayCounts[i] / maxCount) * (maxH - minH) + minH) : minH;
+    var isToday = (i === todayDow);
+    var barStyle = 'height:' + h + 'px;' + (isToday ? 'background:linear-gradient(to top,#7A5500,var(--gold))' : '');
+    var lblStyle = isToday ? 'font-weight:700;color:var(--navy)' : '';
+    html += '<div class="mb-col" title="' + dayCounts[i] + ' leads">'
+      + '<div class="mb-bar" style="' + barStyle + '"></div>'
+      + '<span class="mb-lbl" style="' + lblStyle + '">' + dayLabels[i] + '</span>'
+      + '</div>';
+  }
+  el.innerHTML = html;
 }
 
 /* Load home page testimonials from reviews collection */
@@ -21749,6 +22820,168 @@ function loadApprovedProperties() {
       console.warn('[K-REOS] loadApprovedProperties error:', err);
       _renderApprovedGrids();
     });
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   MY LISTINGS — Agent-scoped filtered view (all statuses from Firestore)
+   ══════════════════════════════════════════════════════════════════════ */
+
+var _myListingsMode = false;
+
+function goMyListings() {
+  if (!currentUser) {
+    showToast(curLang === 'rw' ? 'Injira mbere!' : 'Please log in first!', 'warn');
+    return;
+  }
+  _myListingsMode = true;
+  go('listings');
+  var hdr = document.querySelector('#page-listings .list-hdr .wrap h1');
+  var sub = document.querySelector('#page-listings .list-hdr .wrap p');
+  if (hdr) hdr.textContent = curLang === 'rw' ? 'Imitungo Yanjye' : 'My Listings';
+  if (sub) {
+    sub.innerHTML = (curLang === 'rw'
+      ? 'Imitungo yawe yose — Yemejwe, Itegerejwe, Yananiwe.'
+      : 'All your property listings — Approved, Pending, Rejected.')
+      + ' <button onclick="exitMyListings()" style="margin-left:.6rem;padding:.18rem .7rem;font-size:.7rem;border:1.5px solid var(--navy);background:transparent;color:var(--navy);border-radius:20px;cursor:pointer;font-weight:600">'
+      + (curLang === 'rw' ? '&#8592; Imitungo Yose' : '&#8592; All Properties') + '</button>';
+  }
+  var grids = document.querySelectorAll('#p-grid-main');
+  var skHtml = '<div class="skeleton-card sk-init"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line sl-title"></div><div class="skeleton-line sl-sub"></div><div class="skeleton-line sl-price"></div></div></div>';
+  grids.forEach(function(grid) { grid.innerHTML = skHtml + skHtml + skHtml; });
+  if (typeof db !== 'undefined') {
+    db.collection('properties')
+      .where('agentId', '==', currentUser.uid)
+      .where('isActive', '==', true)
+      .orderBy('createdAt', 'desc')
+      .limit(100)
+      .get()
+      .then(function(snap) {
+        var props = [];
+        snap.forEach(function(doc) {
+          var d = doc.data();
+          if (!d.id) d.id = doc.id;
+          d._id = doc.id;
+          props.push(d);
+        });
+        _renderMyListingsGrid(props);
+      })
+      .catch(function(err) {
+        console.warn('[My Listings] Firestore error:', err);
+        var all = [];
+        try { all = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+        _renderMyListingsGrid(all.filter(function(p) {
+          return (p.agentId || p.createdBy) === currentUser.uid;
+        }));
+      });
+  } else {
+    var all = [];
+    try { all = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+    _renderMyListingsGrid(all.filter(function(p) {
+      return (p.agentId || p.createdBy) === currentUser.uid;
+    }));
+  }
+}
+
+function exitMyListings() {
+  _myListingsMode = false;
+  var hdr = document.querySelector('#page-listings .list-hdr .wrap h1');
+  var sub = document.querySelector('#page-listings .list-hdr .wrap p');
+  if (hdr) hdr.textContent = curLang === 'rw' ? 'Imitungo Yose' : 'All Properties';
+  if (sub) sub.textContent = curLang === 'rw'
+    ? 'Imitungo irenga 1,240 iraboneka mu Rwanda — Shakisha, Banya, Gura.'
+    : '1,240+ properties across Rwanda — Search, Filter, Buy or Rent.';
+  loadApprovedProperties();
+}
+
+/* Show all APPROVED listings for any given agent on the public listings page */
+function goAgentListings(agentId, agentName) {
+  if (!agentId) { showToast(curLang === 'rw' ? 'Agent ntaboneka' : 'Agent not found', 'warn'); return; }
+  _myListingsMode = true;
+  go('listings');
+  var safeName = escapeHtml(agentName || 'Agent');
+  var hdr = document.querySelector('#page-listings .list-hdr .wrap h1');
+  var sub = document.querySelector('#page-listings .list-hdr .wrap p');
+  if (hdr) hdr.textContent = curLang === 'rw' ? 'Imitungo ya ' + safeName : safeName + '\'s Listings';
+  if (sub) {
+    sub.innerHTML = (curLang === 'rw'
+      ? 'Imitungo yose yemejwe ya agent ' + safeName + '.'
+      : 'All approved listings by agent ' + safeName + '.')
+      + ' <button onclick="exitMyListings()" style="margin-left:.6rem;padding:.18rem .7rem;font-size:.7rem;border:1.5px solid var(--navy);background:transparent;color:var(--navy);border-radius:20px;cursor:pointer;font-weight:600">'
+      + (curLang === 'rw' ? '&#8592; Imitungo Yose' : '&#8592; All Properties') + '</button>';
+  }
+  var skHtml = '<div class="skeleton-card sk-init"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line sl-title"></div><div class="skeleton-line sl-sub"></div><div class="skeleton-line sl-price"></div></div></div>';
+  document.querySelectorAll('#p-grid-main').forEach(function(g) { g.innerHTML = skHtml + skHtml + skHtml; });
+  if (typeof db !== 'undefined') {
+    db.collection('properties')
+      .where('agentId', '==', agentId)
+      .where('isActive', '==', true)
+      .orderBy('createdAt', 'desc')
+      .limit(60)
+      .get()
+      .then(function(snap) {
+        var props = [];
+        snap.forEach(function(doc) {
+          var d = doc.data();
+          if ((d.status || '').toLowerCase() === 'approved') {
+            if (!d.id) d.id = doc.id;
+            d._id = doc.id;
+            props.push(d);
+          }
+        });
+        _renderMyListingsGrid(props);
+      })
+      .catch(function(err) {
+        console.warn('[AgentListings] Firestore error:', err);
+        var all = [];
+        try { all = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+        _renderMyListingsGrid(all.filter(function(p) {
+          return p.agentId === agentId && (p.status || '').toLowerCase() === 'approved';
+        }));
+      });
+  } else {
+    var all = [];
+    try { all = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+    _renderMyListingsGrid(all.filter(function(p) {
+      return p.agentId === agentId && (p.status || '').toLowerCase() === 'approved';
+    }));
+  }
+}
+
+function _renderMyListingsGrid(props) {
+  var grids = document.querySelectorAll('#p-grid-main');
+  var countEl = document.getElementById('listings-count');
+  if (countEl) countEl.textContent = props.length;
+  grids.forEach(function(grid) {
+    grid.querySelectorAll('.user-prop-card, .sk-init, .empty-listings').forEach(function(el) { el.remove(); });
+    if (!props.length) {
+      var d = document.createElement('div');
+      d.className = 'empty-listings empty-state';
+      d.innerHTML = '<div class="es-icon">&#127968;</div>'
+        + '<div class="es-title">' + (curLang === 'rw' ? 'Nta mitungo yawe' : 'No listings yet') + '</div>'
+        + '<div class="es-sub">' + (curLang === 'rw' ? 'Ongeramo imitungo nshya ukoresha buto hepfo.' : 'Add your first property listing using the button below.') + '</div>'
+        + '<button onclick="openAddProperty()" class="btn btn-navy btn-sm">'
+        + (curLang === 'rw' ? '+ Ongeramo' : '+ Add Listing') + '</button>';
+      grid.appendChild(d);
+      return;
+    }
+    props.forEach(function(prop) {
+      var status = (prop.status || 'Pending');
+      var statusNorm = status.toLowerCase();
+      var statusColor = statusNorm === 'approved' ? 'var(--success)' : statusNorm === 'rejected' ? 'var(--error)' : 'var(--warning)';
+      var statusLabel = statusNorm === 'approved'
+        ? (curLang === 'rw' ? 'Yemejwe' : 'Approved')
+        : statusNorm === 'rejected'
+          ? (curLang === 'rw' ? 'Yananiwe' : 'Rejected')
+          : (curLang === 'rw' ? 'Itegerejwe' : 'Pending');
+      var w = document.createElement('div');
+      w.className = 'user-prop-card';
+      w.setAttribute('data-pid', String(prop.id || prop._id || ''));
+      w.style.position = 'relative';
+      var badge = '<div style="position:absolute;top:.5rem;left:.5rem;z-index:10;background:' + statusColor + ';color:#fff;border-radius:20px;padding:.15rem .65rem;font-size:.62rem;font-weight:800;letter-spacing:.02em">' + statusLabel + '</div>';
+      w.innerHTML = badge + (typeof renderUserPropCard === 'function' ? renderUserPropCard(prop) : '');
+      grid.appendChild(w);
+    });
+  });
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -22326,6 +23559,12 @@ function _fsAdminApprove(idx) {
         updatedBy:currentUser.uid
       }).then(function() {
         logAudit('property.approved','properties',docId,{status:'pending'},{status:'approved'});
+        if (typeof notifyUser === 'function' && prop.agentId) {
+          notifyUser(prop.agentId,
+            '&#9989; Imitungo Yemejwe! / Property Approved!',
+            escapeHtml(prop.title || prop.titleEN || 'Imitungo') + (curLang === 'rw' ? ' yemejwe kandi igaragara muri Listings.' : ' has been approved and is now live.'),
+            'property_approved', 'properties', docId);
+        }
         showToast('✅ Imitungo yemejwe! Igaragara muri Listings.');
         invalidatePropsCache();
         loadApprovedProperties();
@@ -22360,12 +23599,18 @@ function _fsAdminReject(idx) {
       status:'rejected', updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
     }).then(function() {
       logAudit('property.rejected','properties',fsId,{status:'pending'},{status:'rejected'});
+      if (typeof notifyUser === 'function' && prop.agentId) {
+        notifyUser(prop.agentId,
+          '&#10060; Imitungo Ntiyemejwe / Property Not Approved',
+          escapeHtml(prop.title || prop.titleEN || 'Imitungo') + (curLang === 'rw' ? ' ntiyemejwe. Twandikire kugira ngo tugufashe.' : ' was not approved. Please contact admin for more details.'),
+          'system', 'properties', fsId);
+      }
     }).catch(function(){});
   }
   var ls=[]; try{ls=JSON.parse(localStorage.getItem('km_properties')||'[]');}catch(e){}
   var li=ls.findIndex(function(p){return String(p.id)===String(prop.id||prop._fsId);});
   if(li>=0) ls[li].status='Rejected'; try{localStorage.setItem('km_properties',JSON.stringify(ls));}catch(e){}
-  showToast('❌ Imitungo yananiwe.'); adminRender(adminCurrentFilter);
+  showToast('&#10060; Imitungo yananiwe.'); adminRender(adminCurrentFilter);
 }
 
 /* Soft-delete a property */
@@ -22654,6 +23899,16 @@ function saveScheduledViewing() {
     logAudit('viewing.scheduled', 'viewings', ref.id, null,
       { leadId: _vsLeadId, scheduledAt: scheduledAt.toISOString(), clientName: viewingDoc.clientName });
     showToast(curLang === 'rw' ? '&#128197; Gutekereza kwabitswe!' : '&#128197; Viewing scheduled!', 'success');
+    /* Notify the client that a viewing has been booked for them */
+    if (typeof notifyUser === 'function' && viewingDoc.clientId && viewingDoc.clientId !== uid) {
+      var _vsDateStr = scheduledAt.toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+      notifyUser(viewingDoc.clientId,
+        curLang==='rw' ? '&#128197; Inzibutso Yateganijwe' : '&#128197; Viewing Confirmed',
+        curLang==='rw'
+          ? 'Inzibutso y\'imitungo yateganijwe kuri '+_vsDateStr+'. Agent: '+viewingDoc.agentName+'.'
+          : 'Property viewing confirmed for '+_vsDateStr+'. Agent: '+viewingDoc.agentName+'.',
+        'viewing_confirmed', 'viewings', ref.id);
+    }
     closeViewingScheduler();
     if (saveBtn) { saveBtn.disabled = false; if (saveLbl) saveLbl.textContent = 'Schedule Viewing'; }
     loadMyViewings();
@@ -22856,6 +24111,537 @@ function checkInViewingGPS(viewingId) {
     }
   };
 })();
+
+/* ══════════════════════════════════════════════════════════════════════
+   VIEWINGS CALENDAR PAGE
+   Dedicated page for listing, filtering, and managing all viewings
+   ══════════════════════════════════════════════════════════════════════ */
+
+var _viewings = [];
+var _viewingsFilter = 'all';
+
+function loadViewings() {
+  var list = document.getElementById('viewings-list');
+  if (!list) return;
+  if (typeof db === 'undefined' || !currentUser) return;
+
+  list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#8987;</div>'
+    + '<div class="crm-empty-title">' + (curLang==='rw'?'Gutegura...':'Loading...') + '</div></div>';
+
+  var isAdminRole = ['admin','staff','ceo','super_admin'].indexOf((currentUser.role||'').toLowerCase()) > -1;
+  var query = isAdminRole
+    ? db.collection('viewings').where('isActive','==',true).orderBy('scheduledAt','desc').limit(200)
+    : db.collection('viewings').where('agentId','==',currentUser.uid).where('isActive','==',true).orderBy('scheduledAt','desc').limit(200);
+
+  query.get().then(function(snap) {
+    _viewings = [];
+    snap.forEach(function(doc) {
+      var d = doc.data(); d._docId = doc.id;
+      _viewings.push(d);
+    });
+    _updateViewingsStats();
+    renderViewingsList();
+  }).catch(function(err) {
+    list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#9888;</div>'
+      + '<div class="crm-empty-title">' + (curLang==='rw'?'Habaye ikosa':'Error loading viewings') + '</div></div>';
+    console.error('[Viewings] load error:', err);
+  });
+}
+
+function _updateViewingsStats() {
+  var now = new Date();
+  var todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var todayEnd   = new Date(todayStart.getTime() + 86400000);
+
+  var total    = _viewings.length;
+  var upcoming = 0; var today = 0; var done = 0;
+  _viewings.forEach(function(v) {
+    var dt = v.scheduledAt && v.scheduledAt.toDate ? v.scheduledAt.toDate() : null;
+    if (v.status === 'completed') done++;
+    if (dt && dt >= now && v.status !== 'cancelled' && v.status !== 'completed') upcoming++;
+    if (dt && dt >= todayStart && dt < todayEnd) today++;
+  });
+
+  var e = function(id) { return document.getElementById(id); };
+  if (e('view-stat-total'))    e('view-stat-total').textContent    = total;
+  if (e('view-stat-upcoming')) e('view-stat-upcoming').textContent = upcoming;
+  if (e('view-stat-today'))    e('view-stat-today').textContent    = today;
+  if (e('view-stat-done'))     e('view-stat-done').textContent     = done;
+  var badge = document.getElementById('viewings-sidebar-count');
+  if (badge) badge.textContent = upcoming > 0 ? upcoming : '';
+}
+
+function filterViewingStatus(status) {
+  _viewingsFilter = status;
+  ['all','scheduled','in_progress','completed','cancelled'].forEach(function(s) {
+    var btn = document.getElementById('vf-chip-' + s);
+    if (btn) btn.classList.toggle('active', s === status);
+  });
+  renderViewingsList();
+}
+
+function renderViewingsList() {
+  var list = document.getElementById('viewings-list');
+  if (!list) return;
+  var now = new Date();
+  var filtered = _viewingsFilter === 'all'
+    ? _viewings
+    : _viewings.filter(function(v) { return v.status === _viewingsFilter; });
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#128197;</div>'
+      + '<div class="crm-empty-title">'
+      + (curLang==='rw'?'Nta nzibutso zibonetse':'No viewings found') + '</div></div>';
+    return;
+  }
+
+  var SC = { scheduled:'#1249B3', in_progress:'#7C3AED', completed:'#16A34A', cancelled:'#DC2626' };
+  var SL = { scheduled:'Scheduled', in_progress:'In Progress', completed:'Completed', cancelled:'Cancelled' };
+
+  list.innerHTML = filtered.map(function(v) {
+    var docId  = v._docId || v.id || '';
+    var dt     = v.scheduledAt && v.scheduledAt.toDate ? v.scheduledAt.toDate() : null;
+    var status = v.status || 'scheduled';
+    var sColor = SC[status] || '#64748B';
+    var sLabel = SL[status] || status;
+    var isPast   = dt && dt < now;
+    var isToday  = dt && dt.toDateString() === now.toDateString();
+    var dtStr  = dt
+      ? dt.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'})
+        + ' ' + dt.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})
+      : '&#8212;';
+    var dateColor = isToday ? '#DC2626' : (isPast && status==='scheduled' ? '#F59E0B' : 'var(--navy)');
+
+    var canAct = currentUser && (currentUser.uid === v.agentId
+      || ['admin','staff','super_admin'].indexOf((currentUser.role||'').toLowerCase()) > -1);
+    var actionBtn = '';
+    if (canAct && status === 'scheduled') {
+      actionBtn = '<button onclick="event.stopPropagation();_viewingPageCheckIn(\'' + docId + '\')"'
+        + ' style="background:var(--navy);color:#fff;border:none;border-radius:6px;padding:.28rem .6rem;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap"'
+        + ' data-rw="Injira" data-en="Check In">Check In</button>';
+    } else if (canAct && status === 'in_progress') {
+      actionBtn = '<button onclick="event.stopPropagation();_viewingPageComplete(\'' + docId + '\')"'
+        + ' style="background:#16A34A;color:#fff;border:none;border-radius:6px;padding:.28rem .6rem;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap"'
+        + ' data-rw="Rangiza" data-en="Complete">Complete</button>';
+    }
+
+    return '<div class="deal-card" onclick="openViewingDetailPanel(\'' + docId + '\')" style="cursor:pointer;border-left:3px solid ' + sColor + '">'
+      + '<div class="deal-card-header">'
+      + '<div class="deal-card-title">' + escapeHtml(v.propertyTitle || (curLang==='rw'?'Imitungo':'Property')) + '</div>'
+      + '<span style="background:' + sColor + '20;color:' + sColor + ';border:1px solid ' + sColor + '40;border-radius:20px;padding:.15rem .6rem;font-size:.65rem;font-weight:700">' + sLabel + '</span>'
+      + '</div>'
+      + '<div class="deal-card-meta">'
+      + '<span>&#128100; ' + escapeHtml(v.clientName || '&#8212;') + '</span>'
+      + (v.clientPhone ? '<span>&#128222; ' + escapeHtml(v.clientPhone) + '</span>' : '')
+      + (v.agentName   ? '<span>&#129309; ' + escapeHtml(v.agentName) + '</span>' : '')
+      + '</div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border)">'
+      + '<div style="font-size:.78rem;font-weight:700;color:' + dateColor + '">'
+      + (isToday ? '&#128276; Today &#8212; ' : '') + dtStr + '</div>'
+      + actionBtn
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function _viewingPageCheckIn(viewingId) {
+  if (typeof db === 'undefined' || !viewingId) return;
+  var uid = currentUser ? currentUser.uid : '';
+  var update = { status:'in_progress', agentCheckIn:firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:uid };
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      update.agentGPS = { lat:pos.coords.latitude, lng:pos.coords.longitude };
+      _applyViewingUpdate(viewingId, update, curLang==='rw'?'Washyize ikirindiro!':'Checked in!');
+    }, function() {
+      _applyViewingUpdate(viewingId, update, curLang==='rw'?'Washyize ikirindiro!':'Checked in!');
+    }, { timeout:6000 });
+  } else {
+    _applyViewingUpdate(viewingId, update, curLang==='rw'?'Washyize ikirindiro!':'Checked in!');
+  }
+}
+
+function _viewingPageComplete(viewingId) {
+  var outcome = window.prompt(curLang==='rw'?'Umusaruro w\'inzibutso (optional):':'Viewing outcome (optional):', '');
+  if (outcome === null) return;
+  var uid = currentUser ? currentUser.uid : '';
+  _applyViewingUpdate(viewingId, {
+    status:'completed', completedAt:firebase.firestore.FieldValue.serverTimestamp(),
+    'report.outcome': outcome || '',
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:uid
+  }, curLang==='rw'?'Inzibutso yarangiye!':'Viewing completed!');
+}
+
+function _applyViewingUpdate(viewingId, data, toastMsg) {
+  db.collection('viewings').doc(viewingId).update(data).then(function() {
+    showToast(toastMsg, 'success');
+    logAudit('viewing.' + (data.status || 'updated'), 'viewings', viewingId, {}, { status: data.status });
+    for (var i = 0; i < _viewings.length; i++) {
+      if ((_viewings[i]._docId || _viewings[i].id) === viewingId) {
+        if (data.status) _viewings[i].status = data.status;
+        if (data.agentCheckIn) _viewings[i].agentCheckIn = data.agentCheckIn;
+        if (data.agentGPS) _viewings[i].agentGPS = data.agentGPS;
+        break;
+      }
+    }
+    _updateViewingsStats();
+    renderViewingsList();
+  }).catch(function(err) {
+    showToast(curLang==='rw'?'Habaye ikosa':'Error updating viewing', 'error');
+    console.error('[Viewings] update error:', err);
+  });
+}
+
+function openViewingDetailPanel(viewingId) {
+  var v = null;
+  for (var i = 0; i < _viewings.length; i++) {
+    if ((_viewings[i]._docId || _viewings[i].id) === viewingId) { v = _viewings[i]; break; }
+  }
+  if (!v) return;
+  _ensureViewingDetailModal(v, viewingId);
+}
+
+function _cancelViewingFromPage(viewingId) {
+  if (!confirm(curLang==='rw'?'Hagarika inzibutso?':'Cancel this viewing?')) return;
+  var uid = currentUser ? currentUser.uid : '';
+  _applyViewingUpdate(viewingId, {
+    status:'cancelled', updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:uid
+  }, curLang==='rw'?'Inzibutso yahagaritswe':'Viewing cancelled');
+  var m = document.getElementById('vdp-modal');
+  if (m) m.style.display = 'none';
+}
+
+function _ensureViewingDetailModal(v, viewingId) {
+  var m = document.getElementById('vdp-modal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'vdp-modal';
+    m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:1rem';
+    m.addEventListener('click', function(e) { if (e.target === m) m.style.display = 'none'; });
+    document.body.appendChild(m);
+  }
+
+  var dt = v.scheduledAt && v.scheduledAt.toDate ? v.scheduledAt.toDate() : null;
+  var dtStr = dt ? dt.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+    + ' &#8212; ' + dt.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}) : '&#8212;';
+  var SC = { scheduled:'#1249B3', in_progress:'#7C3AED', completed:'#16A34A', cancelled:'#DC2626' };
+  var SL = { scheduled:'Scheduled', in_progress:'In Progress', completed:'Completed', cancelled:'Cancelled' };
+  var status = v.status || 'scheduled';
+  var sColor = SC[status] || '#64748B';
+
+  var canAct = currentUser && (currentUser.uid === v.agentId
+    || ['admin','staff','super_admin'].indexOf((currentUser.role||'').toLowerCase()) > -1);
+  var actBtns = '';
+  if (canAct && status === 'scheduled') {
+    actBtns += '<button class="btn btn-navy btn-sm" onclick="_viewingPageCheckIn(\'' + viewingId + '\');document.getElementById(\'vdp-modal\').style.display=\'none\'" data-rw="Injira" data-en="Check In">Check In</button>';
+    actBtns += '<button class="btn btn-sm" onclick="_cancelViewingFromPage(\'' + viewingId + '\')" style="color:#DC2626;border:1px solid #DC2626;border-radius:8px;padding:.38rem .8rem;font-size:.8rem;background:none;cursor:pointer" data-rw="Hagarika" data-en="Cancel">Cancel</button>';
+  }
+  if (canAct && status === 'in_progress') {
+    actBtns += '<button class="btn btn-sm" onclick="_viewingPageComplete(\'' + viewingId + '\');document.getElementById(\'vdp-modal\').style.display=\'none\'" style="background:#16A34A;color:#fff;border:none;border-radius:8px;padding:.38rem .8rem;font-size:.8rem;cursor:pointer" data-rw="Rangiza" data-en="Complete">Complete</button>';
+  }
+  if (v.leadId) {
+    actBtns += '<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'vdp-modal\').style.display=\'none\';go(\'crm\');setTimeout(function(){openLeadDetail(\'' + v.leadId + '\');},500)" data-rw="Reba Lead" data-en="Open Lead">Open Lead</button>';
+  }
+  actBtns += '<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'vdp-modal\').style.display=\'none\'">Close</button>';
+
+  var checkinInfo = v.agentCheckIn
+    ? '<div style="background:#16A34A15;border:1px solid #16A34A40;border-radius:8px;padding:.55rem .7rem;font-size:.78rem;color:#16A34A;font-weight:600">&#128205; '
+      + (curLang==='rw'?'Wageze &#8212; GPS':'Checked in &#8212; GPS')
+      + (v.agentGPS ? ' (' + (v.agentGPS.lat||'').toString().slice(0,8) + ', ' + (v.agentGPS.lng||'').toString().slice(0,8) + ')' : ' recorded')
+      + '</div>'
+    : '';
+
+  m.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.22)">'
+    + '<div style="padding:1.1rem 1.3rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#7C3AED,#A855F7);color:#fff">'
+    + '<div><div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;opacity:.8;margin-bottom:.1rem">VIEWING DETAIL</div>'
+    + '<h3 style="margin:0;font-size:.98rem;font-weight:700">' + escapeHtml(v.propertyTitle || (curLang==='rw'?'Imitungo':'Property')) + '</h3></div>'
+    + '<button onclick="document.getElementById(\'vdp-modal\').style.display=\'none\'" style="background:rgba(255,255,255,.18);border:none;cursor:pointer;border-radius:50%;width:29px;height:29px;font-size:1rem;color:#fff;display:flex;align-items:center;justify-content:center">&#215;</button>'
+    + '</div>'
+    + '<div style="padding:1.1rem;display:flex;flex-direction:column;gap:.65rem">'
+    + '<div style="background:' + sColor + '15;border:1px solid ' + sColor + '40;border-radius:8px;padding:.5rem .7rem;display:flex;align-items:center;gap:.5rem">'
+    + '<span style="font-size:.75rem;font-weight:800;color:' + sColor + '">' + (SL[status]||status).toUpperCase() + '</span></div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">'
+    + '<div style="background:var(--light);border-radius:8px;padding:.55rem .7rem"><div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem" data-rw="Umukiliya" data-en="Client">Client</div><div style="font-size:.83rem;font-weight:600;color:var(--navy)">' + escapeHtml(v.clientName||'&#8212;') + '</div></div>'
+    + '<div style="background:var(--light);border-radius:8px;padding:.55rem .7rem"><div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem" data-rw="Telefoni" data-en="Phone">Phone</div><div style="font-size:.83rem;font-weight:600;color:var(--navy)">' + escapeHtml(v.clientPhone||'&#8212;') + '</div></div>'
+    + '<div style="background:var(--light);border-radius:8px;padding:.55rem .7rem;grid-column:1/-1"><div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem">&#128197; <span data-rw="Itariki n\'isaha" data-en="Date &amp; Time">Date &amp; Time</span></div><div style="font-size:.84rem;font-weight:700;color:var(--navy)">' + dtStr + '</div></div>'
+    + '</div>'
+    + (v.agentName ? '<div style="font-size:.82rem;color:var(--muted)">&#129309; <span data-rw="Agent:" data-en="Agent:">Agent:</span> <strong style="color:var(--navy)">' + escapeHtml(v.agentName) + '</strong></div>' : '')
+    + (v.notes ? '<div style="background:var(--light);border-radius:8px;padding:.55rem .7rem"><div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem" data-rw="Amanotisi" data-en="Notes">Notes</div><div style="font-size:.82rem;color:var(--dark)">' + escapeHtml(v.notes) + '</div></div>' : '')
+    + (v.report && v.report.outcome ? '<div style="background:#16A34A15;border-radius:8px;padding:.55rem .7rem"><div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem" data-rw="Umusaruro" data-en="Outcome">Outcome</div><div style="font-size:.82rem;color:var(--dark)">' + escapeHtml(v.report.outcome) + '</div></div>' : '')
+    + checkinInfo
+    + '<div style="display:flex;gap:.5rem;flex-wrap:wrap;padding-top:.3rem">' + actBtns + '</div>'
+    + '</div>'
+    + '</div>';
+
+  m.style.display = 'flex';
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   CLIENTS DIRECTORY — Phase 2.5
+   Deduplicated client book built from leads collection
+   ══════════════════════════════════════════════════════════════════════ */
+
+var _clientsRaw    = [];   /* all leads fetched */
+var _clientsMap    = {};   /* phone → {name, phone, leads:[], zone, budget} */
+var _clientsList   = [];   /* sorted array of client objects */
+var _clientsFilter = 'all';
+
+function loadClients() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var el = g('clients-list');
+  if (!el) return;
+  el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#9203;</div><div class="crm-empty-title">Loading clients...</div></div>';
+
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+  var q = isAdmin
+    ? db.collection('leads').where('isActive','==',true).orderBy('createdAt','desc').limit(500)
+    : db.collection('leads').where('agentId','==',currentUser.uid).where('isActive','==',true).orderBy('createdAt','desc').limit(500);
+
+  q.get().then(function(snap) {
+    _clientsRaw  = [];
+    _clientsMap  = {};
+    snap.forEach(function(d) { var l = d.data(); l._docId = d.id; _clientsRaw.push(l); });
+
+    /* Deduplicate by clientPhone (fallback clientId, fallback name) */
+    _clientsRaw.forEach(function(l) {
+      var key = (l.clientPhone||'').trim() || (l.clientId||'') || (l.clientName||'unknown');
+      if (!key) return;
+      if (!_clientsMap[key]) {
+        _clientsMap[key] = {
+          key:       key,
+          name:      l.clientName   || 'Unknown',
+          phone:     l.clientPhone  || '',
+          zone:      l.zone         || l.district || '',
+          budget:    l.budgetMax    || l.budget   || 0,
+          leads:     [],
+          latestLead: null
+        };
+      }
+      _clientsMap[key].leads.push(l);
+      if (!_clientsMap[key].latestLead ||
+          (l.createdAt && _clientsMap[key].latestLead.createdAt &&
+           l.createdAt.seconds > _clientsMap[key].latestLead.createdAt.seconds)) {
+        _clientsMap[key].latestLead = l;
+        if (l.clientName)   _clientsMap[key].name  = l.clientName;
+        if (l.clientPhone)  _clientsMap[key].phone = l.clientPhone;
+        if (l.zone||l.district) _clientsMap[key].zone = l.zone||l.district;
+        if (l.budgetMax||l.budget) _clientsMap[key].budget = l.budgetMax||l.budget||0;
+      }
+    });
+
+    _clientsList = Object.values(_clientsMap).sort(function(a,b) {
+      var aT = (a.latestLead && a.latestLead.createdAt) ? a.latestLead.createdAt.seconds||0 : 0;
+      var bT = (b.latestLead && b.latestLead.createdAt) ? b.latestLead.createdAt.seconds||0 : 0;
+      return bT - aT;
+    });
+
+    _updateClientsStats();
+    renderClientsList();
+
+    /* Update sidebar badge */
+    var sb = g('clients-sidebar-count');
+    if (sb) sb.textContent = _clientsList.length > 0 ? _clientsList.length : '0';
+  }).catch(function() {
+    if (el) el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#9888;</div><div class="crm-empty-title">Unable to load clients</div></div>';
+  });
+}
+
+function _updateClientsStats() {
+  var today = new Date(); today.setHours(0,0,0,0);
+  var totalC = _clientsList.length;
+  var activeC = 0, followC = 0, dealsC = 0;
+  _clientsList.forEach(function(c) {
+    var hasActiveLead = c.leads.some(function(l) {
+      return l.pipelineStage && l.pipelineStage !== 'closed_won' && l.pipelineStage !== 'closed_lost';
+    });
+    if (hasActiveLead) activeC++;
+    var hasFU = c.leads.some(function(l) {
+      if (!l.nextFollowUp) return false;
+      var fuD = l.nextFollowUp.toDate ? l.nextFollowUp.toDate() : new Date(l.nextFollowUp);
+      fuD.setHours(0,0,0,0);
+      return fuD <= today;
+    });
+    if (hasFU) followC++;
+    var hasDeal = c.leads.some(function(l) { return l.pipelineStage === 'closed_won'; });
+    if (hasDeal) dealsC++;
+  });
+  if (g('cli-stat-total'))   g('cli-stat-total').textContent   = totalC;
+  if (g('cli-stat-active'))  g('cli-stat-active').textContent  = activeC;
+  if (g('cli-stat-followup'))g('cli-stat-followup').textContent= followC;
+  if (g('cli-stat-deals'))   g('cli-stat-deals').textContent   = dealsC;
+}
+
+function setClientsFilter(f) {
+  _clientsFilter = f;
+  ['all','active','followup','closed'].forEach(function(k) {
+    var btn = g('clf-chip-' + k);
+    if (btn) btn.classList.toggle('active', k === f);
+  });
+  renderClientsList();
+}
+
+function filterClients() {
+  renderClientsList();
+}
+
+function renderClientsList() {
+  var el = g('clients-list');
+  if (!el) return;
+  var q  = ((g('clients-search')||{}).value||'').toLowerCase();
+  var today = new Date(); today.setHours(0,0,0,0);
+
+  var list = _clientsList.filter(function(c) {
+    if (q && (c.name+c.phone+c.zone).toLowerCase().indexOf(q) < 0) return false;
+    if (_clientsFilter === 'active') {
+      return c.leads.some(function(l) {
+        return l.pipelineStage && l.pipelineStage !== 'closed_won' && l.pipelineStage !== 'closed_lost';
+      });
+    }
+    if (_clientsFilter === 'followup') {
+      return c.leads.some(function(l) {
+        if (!l.nextFollowUp) return false;
+        var fuD = l.nextFollowUp.toDate ? l.nextFollowUp.toDate() : new Date(l.nextFollowUp);
+        fuD.setHours(0,0,0,0);
+        return fuD <= today;
+      });
+    }
+    if (_clientsFilter === 'closed') {
+      return c.leads.some(function(l) { return l.pipelineStage === 'closed_won'; });
+    }
+    return true;
+  });
+
+  if (!list.length) {
+    el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#128101;</div>'
+      + '<div class="crm-empty-title" data-rw="Nta bakiliya bafite iki gipimo" data-en="No clients match this filter">No clients match this filter</div></div>';
+    if (typeof switchLang !== 'undefined') switchLang(currentLang);
+    return;
+  }
+
+  var STAGE_LABELS = {
+    'new':'New','contacted':'Contacted','qualified':'Qualified',
+    'viewing_scheduled':'Viewing Scheduled','viewing_completed':'Viewing Done',
+    'offer_submitted':'Offer Out','negotiation':'Negotiating',
+    'due_diligence':'Due Diligence','financing':'Financing',
+    'contract':'Contract','closing':'Closing',
+    'closed_won':'Closed Won','closed_lost':'Closed Lost'
+  };
+  var STAGE_COLORS = {
+    'new':'#64748B','contacted':'#1249B3','qualified':'#7C3AED',
+    'viewing_scheduled':'#0891B2','viewing_completed':'#0891B2',
+    'offer_submitted':'#D97706','negotiation':'#EA580C',
+    'due_diligence':'#9333EA','financing':'#0D3B8C',
+    'contract':'#0D9488','closing':'#059669',
+    'closed_won':'#16A34A','closed_lost':'#DC2626'
+  };
+
+  el.innerHTML = list.map(function(c) {
+    var ll = c.latestLead;
+    var stage = (ll && ll.pipelineStage) || 'new';
+    var stageLabel = STAGE_LABELS[stage] || stage;
+    var stageColor = STAGE_COLORS[stage] || '#64748B';
+    var budget = c.budget ? Math.round(Number(c.budget)).toLocaleString() + ' RWF' : '—';
+    var leadCount = c.leads.length;
+    var hasFU = c.leads.some(function(l) {
+      if (!l.nextFollowUp) return false;
+      var fuD = l.nextFollowUp.toDate ? l.nextFollowUp.toDate() : new Date(l.nextFollowUp);
+      fuD.setHours(0,0,0,0);
+      return fuD <= today;
+    });
+    var ini = (c.name||'?').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2)||'CL';
+    var avatarColors = ['linear-gradient(135deg,var(--navy),var(--blue))','linear-gradient(135deg,#7C3AED,#9333EA)','linear-gradient(135deg,var(--gold),#e09b18)','linear-gradient(135deg,#0891B2,#0D9488)'];
+    var aci = Math.abs((c.name||'').charCodeAt(0)||0) % avatarColors.length;
+    var safeKey = escapeHtml(c.key);
+
+    return '<div class="deal-card" onclick="openClientDetail(\'' + safeKey + '\')" style="cursor:pointer">'
+      + '<div style="display:flex;align-items:center;gap:.75rem">'
+      + '<div style="width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:#fff;background:' + avatarColors[aci] + '">' + ini + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-weight:700;font-size:.88rem;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(c.name) + (hasFU ? ' <span style="background:#DC2626;color:#fff;font-size:.6rem;padding:.1rem .35rem;border-radius:10px;margin-left:.3rem">Follow-up</span>' : '') + '</div>'
+      + '<div style="font-size:.75rem;color:var(--muted);margin-top:.1rem">'
+      + (c.phone ? '<a href="tel:' + escapeHtml(c.phone) + '" onclick="event.stopPropagation()" style="color:var(--blue);text-decoration:none">' + escapeHtml(c.phone) + '</a>' : '&#8212;')
+      + (c.zone ? ' &nbsp;&#183;&nbsp; &#128205; ' + escapeHtml(c.zone) : '') + '</div>'
+      + '</div>'
+      + '<div style="text-align:right;flex-shrink:0">'
+      + '<span style="background:' + stageColor + ';color:#fff;font-size:.65rem;font-weight:700;padding:.2rem .5rem;border-radius:10px;display:block;margin-bottom:.3rem">' + escapeHtml(stageLabel) + '</span>'
+      + '<span style="font-size:.72rem;color:var(--muted)">' + leadCount + ' lead' + (leadCount!==1?'s':'') + '</span>'
+      + (budget !== '—' ? '<br><span style="font-size:.68rem;color:var(--muted)">' + budget + '</span>' : '')
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function openClientDetail(clientKey) {
+  var c = _clientsMap[clientKey];
+  if (!c) return;
+
+  var nm = g('cdm-client-name'); if (nm) nm.textContent = c.name || 'Client';
+  var ph = g('cdm-phone');       if (ph) ph.textContent = c.phone || '—';
+  var zn = g('cdm-zone');        if (zn) zn.textContent = c.zone  || '—';
+  var lc = g('cdm-lead-count');  if (lc) lc.textContent = c.leads.length;
+  var bg = g('cdm-budget');
+  if (bg) bg.textContent = c.budget ? Math.round(Number(c.budget)).toLocaleString() + ' RWF' : '—';
+
+  var callBtn = g('cdm-call-btn');
+  if (callBtn) callBtn.href = c.phone ? 'tel:' + c.phone : '#';
+
+  /* "Open in CRM" — go to first lead */
+  var openLeadBtn = g('cdm-open-lead-btn');
+  if (openLeadBtn && c.leads.length) {
+    var firstLead = c.leads[0];
+    var fid = firstLead._docId || firstLead.id || '';
+    openLeadBtn.onclick = function() {
+      closeModal('client-detail-modal');
+      go('crm');
+      if (fid && typeof openLeadDetail === 'function') {
+        setTimeout(function() { openLeadDetail(fid); }, 600);
+      }
+    };
+  } else if (openLeadBtn) { openLeadBtn.style.display = 'none'; }
+
+  /* "Schedule Viewing" */
+  var schedBtn = g('cdm-schedule-btn');
+  if (schedBtn && c.leads.length) {
+    var fl = c.leads[0];
+    var fLeadId = fl._docId || fl.id || '';
+    schedBtn.onclick = function() {
+      closeModal('client-detail-modal');
+      if (typeof openViewingScheduler === 'function') openViewingScheduler(fLeadId);
+    };
+  } else if (schedBtn) { schedBtn.style.display = 'none'; }
+
+  /* Leads timeline */
+  var ll = g('cdm-leads-list');
+  if (ll) {
+    var STAGE_COLORS2 = {
+      'new':'#64748B','contacted':'#1249B3','qualified':'#7C3AED',
+      'viewing_scheduled':'#0891B2','offer_submitted':'#D97706',
+      'negotiation':'#EA580C','closed_won':'#16A34A','closed_lost':'#DC2626'
+    };
+    ll.innerHTML = c.leads.map(function(l) {
+      var st = l.pipelineStage || 'new';
+      var stC = STAGE_COLORS2[st] || '#64748B';
+      var stL = (st||'').replace(/_/g,' ').replace(/\b\w/g,function(ch){return ch.toUpperCase();});
+      var dt = l.createdAt ? (l.createdAt.toDate ? l.createdAt.toDate() : new Date(l.createdAt)) : null;
+      var dStr = dt ? dt.toLocaleDateString() : '';
+      var prop = escapeHtml(l.propertyTitle || l.zone || l.district || 'Lead');
+      var lid  = l._docId || l.id || '';
+      return '<div style="display:flex;gap:.6rem;align-items:flex-start;padding:.6rem;background:var(--light);border-radius:8px;border-left:3px solid ' + stC + '">'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-weight:600;font-size:.82rem;color:var(--navy)">' + prop + '</div>'
+        + '<div style="font-size:.72rem;color:var(--muted);margin-top:.15rem">' + (l.action||l.type||'—') + (dStr ? ' &nbsp;&#183;&nbsp; ' + dStr : '') + '</div>'
+        + '</div>'
+        + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem">'
+        + '<span style="background:' + stC + ';color:#fff;font-size:.62rem;padding:.15rem .4rem;border-radius:8px;font-weight:700">' + stL + '</span>'
+        + (lid ? '<button onclick="event.stopPropagation();closeModal(\'client-detail-modal\');go(\'crm\');setTimeout(function(){openLeadDetail(\'' + lid + '\')},600)" style="background:transparent;border:1px solid var(--border);border-radius:6px;padding:.2rem .45rem;font-size:.68rem;cursor:pointer;color:var(--navy)">Open</button>' : '')
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  openModal('client-detail-modal');
+}
 
 /* ══════════════════════════════════════════════════════════════════════
    PHASE 10 — Bug Fixes + Lead-to-Deal Conversion
@@ -23822,6 +25608,15 @@ function saveAgentLead() {
       if (typeof logAudit === 'function') {
         logAudit('lead.created', 'leads', ref.id, null, { clientName: name, source: leadData.source, priority: leadData.priority });
       }
+      /* Notify the assigned agent when admin/staff creates a lead for them */
+      if (typeof notifyUser === 'function' && leadData.agentId && leadData.agentId !== uid) {
+        notifyUser(leadData.agentId,
+          curLang==='rw' ? '&#128197; Lead Nshya Yabagenewe!' : '&#128197; New Lead Assigned!',
+          curLang==='rw'
+            ? 'Lead nshya ya '+escapeHtml(leadData.clientName||'Client')+' ('+escapeHtml(leadData.source||'')+') yabagenewe. Reba CRM.'
+            : 'New '+escapeHtml(leadData.source||'')+' lead from '+escapeHtml(leadData.clientName||'Client')+' has been assigned to you.',
+          'lead_assigned', 'leads', ref.id);
+      }
       showToast(curLang==='rw' ? 'Lead yabitswe neza!' : 'Lead saved successfully!', 'success');
       closeAgentLead();
       if (typeof loadCRM === 'function') loadCRM();
@@ -24001,6 +25796,135 @@ function _updateLeadDetailButtons(lead) {
   if (lostBtn) lostBtn.style.display = isLost   ? 'none' : '';
   if (convBtn) convBtn.style.display = canConvert ? '' : 'none';
 }
+
+/* ══════════════════════════════════════════════════════
+   LEAD ACTIVITY FEED — viewings + deals linked to lead
+══════════════════════════════════════════════════════ */
+
+var _leadActivityLoaded = false;
+
+function _resetLeadActivityFeed() {
+  _leadActivityLoaded = false;
+  var feed = document.getElementById('ld-activity-feed');
+  var chev = document.getElementById('ld-activity-chevron');
+  if (feed) { feed.style.display = 'none'; feed.innerHTML = ''; }
+  if (chev) { chev.style.transform = ''; }
+}
+
+function _toggleLeadActivity() {
+  var feed    = document.getElementById('ld-activity-feed');
+  var chev    = document.getElementById('ld-activity-chevron');
+  var leadId  = (document.getElementById('ld-lead-id') || {}).value || '';
+  if (!feed) return;
+  var open = feed.style.display !== 'none';
+  if (open) {
+    feed.style.display = 'none';
+    if (chev) chev.style.transform = '';
+  } else {
+    feed.style.display = 'block';
+    if (chev) chev.style.transform = 'rotate(180deg)';
+    if (!_leadActivityLoaded && leadId) {
+      _loadLeadActivityFeed(leadId);
+    }
+  }
+}
+
+function _loadLeadActivityFeed(leadId) {
+  var feed = document.getElementById('ld-activity-feed');
+  if (!feed || typeof db === 'undefined') return;
+  feed.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.78rem;padding:.5rem">' + (curLang==='rw' ? 'Gutegura...' : 'Loading activity...') + '</div>';
+  _leadActivityLoaded = true;
+
+  var viewings = [];
+  var deals    = [];
+  var pending  = 2;
+
+  function done() {
+    pending--;
+    if (pending === 0) _renderLeadActivityFeed(viewings, deals);
+  }
+
+  db.collection('viewings').where('leadId','==',leadId).where('isActive','==',true)
+    .orderBy('scheduledAt','asc').limit(10).get()
+    .then(function(snap) {
+      snap.forEach(function(doc) { var d = doc.data(); d._docId = doc.id; viewings.push(d); });
+      done();
+    }).catch(done);
+
+  db.collection('deals').where('leadId','==',leadId).where('isActive','==',true)
+    .orderBy('createdAt','asc').limit(5).get()
+    .then(function(snap) {
+      snap.forEach(function(doc) { var d = doc.data(); d._docId = doc.id; deals.push(d); });
+      done();
+    }).catch(done);
+}
+
+function _renderLeadActivityFeed(viewings, deals) {
+  var feed = document.getElementById('ld-activity-feed');
+  if (!feed) return;
+
+  var items = [];
+
+  viewings.forEach(function(v) {
+    var dt = v.scheduledAt ? (v.scheduledAt.toDate ? v.scheduledAt.toDate() : new Date(v.scheduledAt)) : null;
+    var dtStr = dt ? dt.toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' }) : '—';
+    var statusColor = v.status === 'completed' ? '#16A34A' : v.status === 'cancelled' ? '#DC2626' : '#F59E0B';
+    items.push({
+      sort: dt ? dt.getTime() : 0,
+      html: '<div style="display:flex;gap:.6rem;align-items:flex-start;padding:.45rem 0;border-bottom:1px solid var(--light)">'
+        + '<div style="width:28px;height:28px;border-radius:50%;background:#7C3AED1a;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.85rem">&#128197;</div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:.78rem;font-weight:700;color:var(--navy)">' + (curLang==='rw' ? 'Inzibutso' : 'Viewing') + ' — ' + dtStr + '</div>'
+        + '<div style="display:flex;gap:.4rem;align-items:center;margin-top:.1rem">'
+        + '<span style="font-size:.68rem;font-weight:700;color:' + statusColor + ';background:' + statusColor + '1a;padding:.1rem .35rem;border-radius:10px">' + (v.status || 'scheduled') + '</span>'
+        + (v.agentCheckIn ? '<span style="font-size:.68rem;color:#16A34A">&#10003; GPS check-in</span>' : '')
+        + '</div>'
+        + '</div>'
+        + '</div>'
+    });
+  });
+
+  deals.forEach(function(d) {
+    var dt = d.createdAt ? (d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt)) : null;
+    var dtStr = dt ? dt.toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' }) : '—';
+    var stage = d.pipelineStage || 'new';
+    var stageC  = stage === 'closed_won' ? '#16A34A' : stage === 'closed_lost' ? '#DC2626' : '#C9A84C';
+    var stageBg = stage === 'closed_won' ? '#16A34A1a' : stage === 'closed_lost' ? '#DC26261a' : '#C9A84C1a';
+    items.push({
+      sort: dt ? dt.getTime() : 0,
+      html: '<div style="display:flex;gap:.6rem;align-items:flex-start;padding:.45rem 0;border-bottom:1px solid var(--light)">'
+        + '<div style="width:28px;height:28px;border-radius:50%;background:#C9A84C1a;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.85rem">&#128188;</div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:.78rem;font-weight:700;color:var(--navy)">' + (curLang==='rw' ? 'Deal' : 'Deal') + ' — ' + dtStr + '</div>'
+        + '<div style="display:flex;gap:.4rem;align-items:center;margin-top:.1rem">'
+        + '<span style="font-size:.68rem;font-weight:700;color:' + stageC + ';background:' + stageBg + ';padding:.1rem .35rem;border-radius:10px">' + stage.replace(/_/g,' ') + '</span>'
+        + (d.agreedPrice ? '<span style="font-size:.68rem;color:var(--muted)">RWF ' + Number(d.agreedPrice).toLocaleString() + '</span>' : '')
+        + '</div>'
+        + '</div>'
+        + '</div>'
+    });
+  });
+
+  if (items.length === 0) {
+    feed.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.78rem;padding:.7rem">'
+      + (curLang==='rw' ? 'Nta bikorwa bisangwa kuri uyu lead.' : 'No linked viewings or deals yet.') + '</div>';
+    return;
+  }
+
+  items.sort(function(a,b) { return a.sort - b.sort; });
+  feed.innerHTML = items.map(function(it) { return it.html; }).join('');
+}
+
+/* Patch: reset activity feed each time a lead detail opens */
+(function() {
+  var _origUpdateBtns = typeof _updateLeadDetailButtons !== 'undefined' ? _updateLeadDetailButtons : null;
+  if (_origUpdateBtns) {
+    _updateLeadDetailButtons = function(lead) {
+      _origUpdateBtns(lead);
+      _resetLeadActivityFeed();
+    };
+  }
+})();
 
 /* ══════════════════════════════════════════════════════
    DEAL DETAIL — CLOSE WON / CLOSE LOST / QUICK CONTACT
@@ -24265,5 +26189,446 @@ function openSearchFromHeroCard() {
     setTimeout(_loadHeroStats, 1500);
   });
 })();
+
+/* ══════════════════════════════════════════════════════════
+   AUTO LEAD CREATION — property inquiries & bookings → CRM leads
+   Patches submitBooking() and submitMessage() to also write to
+   the leads collection so agents see every inquiry immediately.
+══════════════════════════════════════════════════════════ */
+
+function _autoCreateLead(opts) {
+  if (typeof db === 'undefined') return;
+  var uid   = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : '';
+  var prop  = window._currentProp || {};
+  var lead = {
+    id:           '',
+    clientName:   opts.clientName  || 'Ntazwi',
+    clientPhone:  opts.clientPhone || '',
+    clientEmail:  opts.clientEmail || '',
+    clientId:     opts.clientId    || uid || '',
+    propertyId:   prop.id          || opts.propertyId || '',
+    propertyTitle:prop.title       || opts.propertyTitle || '',
+    agentId:      prop.agentId     || opts.agentId || '',
+    agentName:    prop.agentName   || opts.agentName || '',
+    zone:         prop.district    || opts.zone || '',
+    source:       opts.source      || 'website',
+    action:       prop.service     || opts.action || '',
+    budgetMin:    opts.budgetMin   || (prop.price ? Math.round(prop.price * 0.8) : 0),
+    budgetMax:    opts.budgetMax   || (prop.price ? Math.round(prop.price * 1.1) : 0),
+    notes:        opts.notes       || '',
+    priority:     'warm',
+    pipelineStage:opts.stage       || 'new',
+    contactLog:   opts.contactLog  || [],
+    nextFollowUp: null,
+    status:       opts.stage       || 'new',
+    isActive:     true,
+    createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:    uid || 'system',
+    updatedBy:    uid || 'system'
+  };
+  db.collection('leads').add(lead).then(function(ref) {
+    ref.update({ id: ref.id });
+    logAudit('lead.auto.created', 'leads', ref.id, null, { source: lead.source, clientName: lead.clientName });
+    if (typeof updateCrmSidebarBadge === 'function') updateCrmSidebarBadge();
+  }).catch(function(err) {
+    console.warn('[AutoLead] Failed to create lead:', err);
+  });
+}
+
+/* Patch submitBooking: also create a lead at viewing_scheduled stage */
+(function() {
+  var _origSubmitBooking = submitBooking;
+  submitBooking = function() {
+    var nameEl  = document.getElementById('book-name');
+    var phoneEl = document.getElementById('book-phone');
+    var noteEl  = document.getElementById('book-note');
+    var dateEl  = document.getElementById('book-date');
+    var clientName  = nameEl  ? nameEl.value.trim()  : '';
+    var clientPhone = phoneEl ? phoneEl.value.trim() : '';
+    var noteText    = noteEl  ? noteEl.value.trim()  : '';
+    var bookDate    = dateEl  ? dateEl.value          : '';
+    _origSubmitBooking();
+    if (clientName || clientPhone) {
+      var logEntry = bookDate
+        ? [{ type:'viewing', note: 'Viewing booked for ' + bookDate + (noteText ? '. Note: ' + noteText : ''), loggedAt: new Date().toISOString(), agentName: '' }]
+        : [];
+      _autoCreateLead({
+        clientName:  clientName,
+        clientPhone: clientPhone,
+        notes:       noteText,
+        source:      'viewing_booking',
+        stage:       'viewing_scheduled',
+        contactLog:  logEntry
+      });
+    }
+  };
+})();
+
+/* Patch submitMessage: create a lead at new (property inquiry) stage */
+(function() {
+  var _origSubmitMessage = submitMessage;
+  submitMessage = function() {
+    var nameEl  = document.getElementById('msg-name');
+    var phoneEl = document.getElementById('msg-phone');
+    var emailEl = document.getElementById('msg-email');
+    var textEl  = document.getElementById('msg-text');
+    var clientName  = nameEl  ? nameEl.value.trim()  : '';
+    var clientPhone = phoneEl ? phoneEl.value.trim() : '';
+    var clientEmail = emailEl ? emailEl.value.trim() : '';
+    var msgText     = textEl  ? textEl.value.trim()  : '';
+    _origSubmitMessage();
+    if (clientName || clientPhone) {
+      var logEntry = msgText
+        ? [{ type:'note', note: 'Inquiry: ' + msgText.substring(0, 200), loggedAt: new Date().toISOString(), agentName: '' }]
+        : [];
+      _autoCreateLead({
+        clientName:  clientName,
+        clientPhone: clientPhone,
+        clientEmail: clientEmail,
+        notes:       msgText,
+        source:      'property_inquiry',
+        stage:       'new',
+        contactLog:  logEntry
+      });
+    }
+  };
+})();
+
+/* ══════════════════════════════════════════════════════════
+   COMMUNICATION HUB — Internal Messaging System
+   Module 20: Messages stored in Firestore 'messages' collection
+   RTDB /inbox/{uid}/unread for real-time badge counts
+══════════════════════════════════════════════════════════ */
+
+var _inboxOpen = false;
+var _threadToId = '';
+var _threadToName = '';
+var _inboxConversations = [];
+var _threadMessages = [];
+var _inboxUnread = 0;
+var _allStaffUsers = [];
+var _threadUnsub = null;
+
+/* ── Helpers ── */
+function _convId(uidA, uidB) {
+  return uidA < uidB ? uidA + '_' + uidB : uidB + '_' + uidA;
+}
+
+function _inboxBadge(n) {
+  _inboxUnread = Math.max(0, n);
+  var badge = document.getElementById('inbox-badge');
+  if (!badge) return;
+  if (_inboxUnread > 0) {
+    badge.style.display = 'flex';
+    badge.textContent = _inboxUnread > 9 ? '9+' : String(_inboxUnread);
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+/* ── Show/Hide inbox button for logged-in users ── */
+(function() {
+  firebase.auth().onAuthStateChanged(function(user) {
+    var btn = document.getElementById('inbox-bell');
+    if (btn) btn.style.display = user ? 'flex' : 'none';
+    if (user) {
+      /* Listen for unread count on RTDB */
+      rtdb.ref('inbox/' + user.uid + '/unread').on('value', function(snap) {
+        _inboxBadge(snap.val() || 0);
+      });
+    } else {
+      _inboxBadge(0);
+      closeInbox();
+    }
+  });
+})();
+
+function openInbox() {
+  if (!currentUser) { showToast(curLang==='rw' ? 'Injira kugira ngo ubone ubutumwa.' : 'Log in to view messages.', 'info'); return; }
+  var panel = document.getElementById('inbox-panel');
+  var backdrop = document.getElementById('inbox-backdrop');
+  if (panel) panel.style.display = 'flex';
+  if (backdrop) backdrop.style.display = 'block';
+  _inboxOpen = true;
+  loadInboxConversations();
+  /* Reset unread on RTDB */
+  rtdb.ref('inbox/' + currentUser.uid + '/unread').set(0).catch(function(){});
+  _inboxBadge(0);
+}
+
+function closeInbox() {
+  var panel = document.getElementById('inbox-panel');
+  var backdrop = document.getElementById('inbox-backdrop');
+  if (panel) panel.style.display = 'none';
+  if (backdrop) backdrop.style.display = 'none';
+  closeThread();
+  _inboxOpen = false;
+}
+
+function loadInboxConversations() {
+  var el = document.getElementById('inbox-list');
+  if (!el || !currentUser) return;
+  el.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:.83rem">' + (curLang==='rw' ? 'Gutegura...' : 'Loading...') + '</div>';
+
+  /* Load messages where currentUser is sender or recipient */
+  db.collection('messages')
+    .where('participants', 'array-contains', currentUser.uid)
+    .where('isActive', '==', true)
+    .orderBy('createdAt', 'desc')
+    .limit(100)
+    .get()
+    .then(function(snap) {
+      var convMap = {};
+      snap.forEach(function(doc) {
+        var m = doc.data();
+        m._docId = doc.id;
+        var cid = m.conversationId || '';
+        if (!cid) return;
+        if (!convMap[cid]) {
+          var otherId = m.fromId === currentUser.uid ? m.toId : m.fromId;
+          var otherName = m.fromId === currentUser.uid ? m.toName : m.fromName;
+          convMap[cid] = { cid: cid, otherId: otherId, otherName: otherName, lastMsg: m.content, lastTs: m.createdAt, unread: 0 };
+        }
+        if (!m.read && m.toId === currentUser.uid) convMap[cid].unread++;
+      });
+      _inboxConversations = Object.values(convMap);
+      renderInboxList();
+    })
+    .catch(function() {
+      if (el) el.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:.83rem">' + (curLang==='rw' ? 'Habaye ikosa' : 'Error loading messages') + '</div>';
+    });
+}
+
+function renderInboxList() {
+  var el = document.getElementById('inbox-list');
+  if (!el) return;
+  if (_inboxConversations.length === 0) {
+    el.innerHTML = '<div style="padding:3rem 1.5rem;text-align:center">'
+      + '<div style="font-size:2rem;margin-bottom:.6rem">&#128140;</div>'
+      + '<div style="font-size:.85rem;color:var(--muted)">' + (curLang==='rw' ? 'Nta butumwa urahari. Tangira itumanahana!' : 'No messages yet. Start a conversation!') + '</div>'
+      + '<button onclick="openCompose()" class="btn btn-navy btn-sm" style="margin-top:1rem">&#10010; ' + (curLang==='rw' ? 'Ohereza Ubutumwa' : 'Send a Message') + '</button>'
+      + '</div>';
+    return;
+  }
+  el.innerHTML = _inboxConversations.map(function(c) {
+    var initials = (c.otherName || '?').split(' ').slice(0,2).map(function(w){ return w[0]||''; }).join('').toUpperCase();
+    var lastPreview = (c.lastMsg || '').substring(0, 48) + ((c.lastMsg||'').length > 48 ? '...' : '');
+    return '<div onclick="openThread(\'' + c.otherId + '\',\'' + escapeHtml(c.otherName) + '\')" style="display:flex;align-items:center;gap:.7rem;padding:.7rem 1rem;border-bottom:1px solid var(--light);cursor:pointer;transition:background .15s" onmouseenter="this.style.background=\'#f8f9ff\'" onmouseleave="this.style.background=\'\'">'
+      + '<div style="width:40px;height:40px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem;flex-shrink:0">' + escapeHtml(initials) + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-weight:700;font-size:.85rem;color:var(--navy)">' + escapeHtml(c.otherName || '—') + '</div>'
+      + '<div style="font-size:.75rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(lastPreview) + '</div>'
+      + '</div>'
+      + (c.unread > 0 ? '<span style="background:#7C3AED;color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;flex-shrink:0">' + c.unread + '</span>' : '')
+      + '</div>';
+  }).join('');
+}
+
+/* ── Thread ── */
+function openThread(toId, toName) {
+  if (!currentUser || !toId) return;
+  _threadToId = toId;
+  _threadToName = toName;
+  var nameEl = document.getElementById('thread-name');
+  if (nameEl) nameEl.textContent = toName;
+  var panel = document.getElementById('thread-panel');
+  if (panel) panel.style.display = 'flex';
+  loadThreadMessages();
+  /* Mark messages as read */
+  var cid = _convId(currentUser.uid, toId);
+  db.collection('messages')
+    .where('conversationId','==',cid)
+    .where('toId','==',currentUser.uid)
+    .where('read','==',false)
+    .where('isActive','==',true)
+    .get()
+    .then(function(snap) {
+      var batch = db.batch();
+      snap.forEach(function(doc){ batch.update(doc.ref, { read: true }); });
+      return batch.commit();
+    }).catch(function(){});
+}
+
+function closeThread() {
+  if (_threadUnsub) { try { _threadUnsub(); } catch(e){} _threadUnsub = null; }
+  var panel = document.getElementById('thread-panel');
+  if (panel) panel.style.display = 'none';
+  _threadToId = '';
+  _threadToName = '';
+  _threadMessages = [];
+}
+
+function loadThreadMessages() {
+  if (!currentUser || !_threadToId) return;
+  var msgEl = document.getElementById('thread-messages');
+  if (msgEl) msgEl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.8rem;padding:1rem">' + (curLang==='rw' ? 'Gutegura...' : 'Loading...') + '</div>';
+
+  if (_threadUnsub) { try { _threadUnsub(); } catch(e){} _threadUnsub = null; }
+
+  var cid = _convId(currentUser.uid, _threadToId);
+  var toId = _threadToId;
+  var uid  = currentUser.uid;
+
+  _threadUnsub = db.collection('messages')
+    .where('conversationId','==',cid)
+    .where('isActive','==',true)
+    .orderBy('createdAt','asc')
+    .limit(80)
+    .onSnapshot(function(snap) {
+      _threadMessages = [];
+      snap.forEach(function(doc){ var d = doc.data(); d._docId = doc.id; _threadMessages.push(d); });
+      renderThreadMessages();
+      /* Auto-mark newly arrived messages as read */
+      var batch = db.batch();
+      var hasUnread = false;
+      snap.docChanges().forEach(function(change) {
+        if (change.type === 'added') {
+          var d = change.doc.data();
+          if (d.toId === uid && !d.read) {
+            batch.update(change.doc.ref, { read: true, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: uid });
+            hasUnread = true;
+          }
+        }
+      });
+      if (hasUnread) batch.commit().catch(function(){});
+    }, function() {
+      if (msgEl) msgEl.innerHTML = '<div style="text-align:center;color:var(--error);font-size:.8rem;padding:1rem">Error loading thread</div>';
+    });
+}
+
+function renderThreadMessages() {
+  var el = document.getElementById('thread-messages');
+  if (!el) return;
+  if (_threadMessages.length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.82rem;padding:2rem">'
+      + (curLang==='rw' ? 'Nta butumwa burabaho. Tangira itumanahana!' : 'No messages yet. Say hello!') + '</div>';
+    return;
+  }
+  el.innerHTML = _threadMessages.map(function(m) {
+    var isMine = m.fromId === currentUser.uid;
+    var ts = m.createdAt ? (m.createdAt.toDate ? m.createdAt.toDate() : new Date(m.createdAt)) : new Date();
+    var timeStr = ts.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
+    return '<div style="display:flex;flex-direction:column;align-items:' + (isMine ? 'flex-end' : 'flex-start') + ';gap:.15rem">'
+      + '<div style="max-width:80%;background:' + (isMine ? 'var(--navy)' : 'var(--light)') + ';color:' + (isMine ? '#fff' : 'var(--dark)') + ';border-radius:' + (isMine ? '12px 12px 4px 12px' : '12px 12px 12px 4px') + ';padding:.5rem .75rem;font-size:.84rem;line-height:1.45;word-break:break-word">'
+      + escapeHtml(m.content || '') + '</div>'
+      + '<div style="font-size:.65rem;color:var(--muted);padding:0 .3rem">' + timeStr + '</div>'
+      + '</div>';
+  }).join('');
+  /* Scroll to bottom */
+  el.scrollTop = el.scrollHeight;
+}
+
+function sendThreadMessage() {
+  if (!currentUser || !_threadToId) return;
+  var inp = document.getElementById('thread-compose');
+  var content = inp ? inp.value.trim() : '';
+  if (!content) return;
+  var cid = _convId(currentUser.uid, _threadToId);
+  var uid = currentUser.uid;
+  var fromName = currentUser.displayName || currentUser.name || currentUser.email || 'Agent';
+  var toName = _threadToName;
+  var msg = {
+    id:             '',
+    conversationId: cid,
+    participants:   [uid, _threadToId],
+    fromId:         uid,
+    fromName:       fromName,
+    toId:           _threadToId,
+    toName:         toName,
+    content:        content,
+    read:           false,
+    status:         'sent',
+    isActive:       true,
+    createdAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:      uid,
+    updatedBy:      uid
+  };
+  if (inp) inp.value = '';
+  /* Optimistic UI */
+  var optimistic = Object.assign({}, msg, { createdAt: { toDate: function(){ return new Date(); } }, _docId: '_tmp' });
+  _threadMessages.push(optimistic);
+  renderThreadMessages();
+
+  db.collection('messages').add(msg)
+    .then(function(ref) {
+      return ref.update({ id: ref.id });
+    })
+    .then(function() {
+      /* Increment unread on recipient RTDB inbox */
+      rtdb.ref('inbox/' + _threadToId + '/unread').transaction(function(n) { return (n || 0) + 1; }).catch(function(){});
+      /* Also record conversation for recipient for listing */
+      rtdb.ref('inbox/' + _threadToId + '/conversations/' + cid).set({
+        otherUserId:   uid,
+        otherUserName: fromName,
+        lastMessage:   content.substring(0, 80),
+        lastTimestamp: Date.now()
+      }).catch(function(){});
+    })
+    .catch(function(err) {
+      showToast(curLang==='rw' ? 'Habaye ikosa mu kohereza' : 'Error sending message', 'error');
+      console.error('[Inbox] send error:', err);
+    });
+}
+
+/* ── Compose ── */
+function openCompose() {
+  var modal = document.getElementById('compose-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  _loadStaffUsersForCompose();
+}
+
+function closeCompose() {
+  var modal = document.getElementById('compose-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function _loadStaffUsersForCompose() {
+  if (!currentUser) return;
+  var sel = document.getElementById('compose-to');
+  if (!sel) return;
+  if (_allStaffUsers.length > 0) {
+    _renderComposeUsers(sel);
+    return;
+  }
+  db.collection('users')
+    .where('isActive','==',true)
+    .limit(50)
+    .get()
+    .then(function(snap) {
+      _allStaffUsers = [];
+      snap.forEach(function(doc) {
+        var u = doc.data();
+        if (doc.id === currentUser.uid) return;
+        _allStaffUsers.push({ id: doc.id, name: u.displayName || u.name || u.email || doc.id, role: u.role || '' });
+      });
+      _renderComposeUsers(sel);
+    }).catch(function(){});
+}
+
+function _renderComposeUsers(sel) {
+  sel.innerHTML = '<option value="">-- Hitamo umuntu / Select user --</option>'
+    + _allStaffUsers.map(function(u) {
+        return '<option value="' + u.id + '" data-name="' + escapeHtml(u.name) + '">' + escapeHtml(u.name) + ' (' + (u.role || 'user') + ')</option>';
+      }).join('');
+}
+
+function submitCompose() {
+  var selEl   = document.getElementById('compose-to');
+  var bodyEl  = document.getElementById('compose-content');
+  var toId    = selEl ? selEl.value : '';
+  var content = bodyEl ? bodyEl.value.trim() : '';
+  if (!toId) { showToast(curLang==='rw' ? 'Hitamo uwo wohereza!' : 'Select a recipient!', 'error'); return; }
+  if (!content) { showToast(curLang==='rw' ? 'Andika ubutumwa!' : 'Write a message!', 'error'); return; }
+  var selOpt = selEl ? selEl.options[selEl.selectedIndex] : null;
+  var toName = selOpt ? (selOpt.getAttribute('data-name') || selOpt.text || '') : '';
+  closeCompose();
+  openThread(toId, toName);
+  /* Pre-fill compose area */
+  var compEl = document.getElementById('thread-compose');
+  if (compEl) { compEl.value = content; sendThreadMessage(); }
+}
 </script>
 </body></html>
