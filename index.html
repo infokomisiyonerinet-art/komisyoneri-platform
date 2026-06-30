@@ -27535,5 +27535,89 @@ function submitCompose() {
   var compEl = document.getElementById('thread-compose');
   if (compEl) { compEl.value = content; sendThreadMessage(); }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   ROLE-BASED SIDEBAR NAVIGATION FILTER
+   Shows only the sidebar items each role legitimately needs.
+   Security is enforced at Firestore level; this keeps the UX clean.
+   ══════════════════════════════════════════════════════════════════════ */
+(function() {
+  var _ALL   = ['super_admin','admin','ceo','staff','agent','partner','owner','client','investor'];
+  var _ADMIN = ['super_admin','admin'];
+  var _STAFF = ['super_admin','admin','staff'];
+  var _AGENT = ['super_admin','admin','staff','agent'];
+  var _EXEC  = ['super_admin','admin','ceo'];
+
+  /* Map: substring of onclick value → roles that see this item */
+  var _NAV_RULES = [
+    { match: 'goMyListings',       roles: ['super_admin','admin','staff','agent','owner'] },
+    { match: "go('listings')",     roles: _ALL },
+    { match: "go('analytics')",    roles: _ALL },
+    { match: "go('clients')",      roles: _AGENT },
+    { match: "go('crm')",          roles: _AGENT },
+    { match: "go('deals')",        roles: _AGENT },
+    { match: "go('viewings')",     roles: _AGENT },
+    { match: "go('verification')", roles: _AGENT },
+    { match: "go('documents')",    roles: _ALL },
+    { match: "go('partners')",     roles: ['super_admin','admin','staff','agent','partner'] },
+    { match: "go('financing')",    roles: ['super_admin','admin','staff','agent','client','owner','investor'] },
+    { match: "go('commissions')",  roles: ['super_admin','admin','staff','agent','ceo'] },
+    { match: 'showToast',          roles: _STAFF },
+    { match: "go('accounting')",   roles: _STAFF },
+    { match: "go('customer')",     roles: _ALL },
+    { match: "go('office')",       roles: _STAFF },
+    { match: "go('hr')",           roles: _ADMIN },
+    { match: "go('exec')",         roles: ['super_admin','admin','ceo','investor'] },
+    { match: "go('bi')",           roles: ['super_admin','admin','ceo','staff'] },
+    { match: "go('branches')",     roles: _EXEC }
+    /* openProfile() and items with no onclick → always visible */
+  ];
+
+  function _filterSidebar(user) {
+    var sidebar = document.querySelector('.dash-sidebar');
+    if (!sidebar) return;
+    var role = (user && user.role ? user.role : '').toLowerCase();
+    var isSuper = (role === 'super_admin' || role === 'admin');
+
+    /* Show / hide .dn items */
+    sidebar.querySelectorAll('.dn').forEach(function(item) {
+      var onclick = (item.getAttribute('onclick') || '').trim();
+      /* Items with no onclick (Overview chip) — always show */
+      if (!onclick) { item.style.display = ''; return; }
+      /* openProfile / Settings — always show */
+      if (onclick.indexOf('openProfile') !== -1) { item.style.display = ''; return; }
+      /* Admins see everything */
+      if (isSuper) { item.style.display = ''; return; }
+      var visible = false;
+      for (var i = 0; i < _NAV_RULES.length; i++) {
+        if (onclick.indexOf(_NAV_RULES[i].match) !== -1) {
+          visible = _NAV_RULES[i].roles.indexOf(role) !== -1;
+          break;
+        }
+      }
+      item.style.display = visible ? '' : 'none';
+    });
+
+    /* Show / hide .ds-section headers: hide when all items in the group are hidden */
+    sidebar.querySelectorAll('.ds-section').forEach(function(sec) {
+      var el = sec.nextElementSibling;
+      var hasVisible = false;
+      while (el && !el.classList.contains('ds-section')) {
+        if (el.classList.contains('dn') && el.style.display !== 'none') { hasVisible = true; break; }
+        el = el.nextElementSibling;
+      }
+      sec.style.display = hasVisible ? '' : 'none';
+    });
+  }
+
+  /* Extend updateNavForUser — chain-safe */
+  var _prevNav = typeof updateNavForUser !== 'undefined' ? updateNavForUser : null;
+  if (_prevNav) {
+    updateNavForUser = function(user) {
+      _prevNav(user);
+      _filterSidebar(user);
+    };
+  }
+})();
 </script>
 </body></html>
