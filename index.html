@@ -19165,6 +19165,15 @@ function autoCalculateCommission(dealId, deal) {
       showToast(curLang === 'rw'
         ? 'Komisiyoni yabarwe: ' + total.toLocaleString() + ' RWF'
         : 'Commission calculated: ' + total.toLocaleString() + ' RWF', 'success');
+      /* Notify the agent that their commission has been recorded */
+      if (typeof notifyUser === 'function' && deal.agentId) {
+        notifyUser(deal.agentId,
+          curLang==='rw' ? '&#128176; Komisiyoni Yabitswe!' : '&#128176; Commission Recorded!',
+          (curLang==='rw'
+            ? 'Komisiyoni yawe: ' + agentShare.toLocaleString() + ' RWF (' + deal.clientName + ').'
+            : 'Commission of ' + agentShare.toLocaleString() + ' RWF recorded for ' + (deal.clientName || 'deal') + '.'),
+          'commission_calculated', 'commissions', ref.id);
+      }
       var badge = document.getElementById('comm-sidebar-count');
       if (badge) badge.textContent = parseInt(badge.textContent || 0) + 1;
     })
