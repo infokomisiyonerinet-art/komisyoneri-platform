@@ -3800,7 +3800,7 @@ html,body{overscroll-behavior-x:none}
       <div class="ds-logo"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span>KOMISIYONERI</span></div>
       <div class="ds-section" data-rw="URUBUGA" data-en="MAIN">URUBUGA</div>
       <div class="dn active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span data-rw="Overview" data-en="Overview">Overview</span></div>
-      <div class="dn"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span data-rw="Imitungo Yanjye" data-en="My Listings">Imitungo Yanjye</span><span class="ds-badge" id="dash-sidebar-listings">0</span></div>
+      <div class="dn" onclick="go('listings')"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span data-rw="Imitungo Yanjye" data-en="My Listings">Imitungo Yanjye</span><span class="ds-badge" id="dash-sidebar-listings">0</span></div>
       <div class="dn" onclick="go('listings')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span data-rw="Shakisha" data-en="Search">Shakisha</span></div>
       <div class="dn" onclick="go('analytics')"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Analytics</span></div>
       <div class="dn" onclick="go('clients')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Abakiliya" data-en="Clients">Abakiliya</span><span class="ds-badge" id="clients-sidebar-count">0</span></div>
@@ -3814,7 +3814,7 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="go('financing')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg><span data-rw="Inguzanyo" data-en="Financing">Financing</span><span class="ds-badge" id="fin-sidebar-count">0</span></div>
       <div class="ds-section" data-rw="IMARI" data-en="FINANCE">IMARI</div>
       <div class="dn" onclick="go('commissions')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span data-rw="Komisiyoni" data-en="Commissions">Komisiyoni</span><span class="ds-badge" id="comm-sidebar-count">0</span></div>
-      <div class="dn"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-rw="Kwishyura" data-en="Payments">Kwishyura</span></div>
+      <div class="dn" onclick="showToast('MTN MoMo &amp; Airtel Money integration coming soon!','info')"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-rw="Kwishyura" data-en="Payments">Kwishyura</span></div>
       <div class="dn" onclick="go('accounting')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg><span data-rw="Ibarura ry'Imari" data-en="Accounting">Accounting</span><span class="ds-badge" id="ac-sidebar-count"></span></div>
       <div class="ds-section" data-rw="WATEJA" data-en="MY PORTAL">WATEJA</div>
       <div class="dn" onclick="go('customer')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Portal Yanjye" data-en="My Portal">My Portal</span><span class="ds-badge" id="cust-sidebar-badge"></span></div>
@@ -3826,8 +3826,8 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="go('bi')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg><span data-rw="Ubushakashatsi bw'Amakuru" data-en="Business Intelligence">Business Intelligence</span><span class="ds-badge" id="bi-sidebar-badge"></span></div>
       <div class="dn" onclick="go('branches')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-rw="Amashami y'Igihugu" data-en="Branch Network">Branch Network</span><span class="ds-badge" id="branch-sidebar-badge"></span></div>
       <div class="ds-section" data-rw="KONTI" data-en="ACCOUNT">KONTI</div>
-      <div class="dn"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Profil" data-en="Profile">Profil</span></div>
-      <div class="dn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-rw="Igenamiterere" data-en="Settings">Igenamiterere</span></div>
+      <div class="dn" onclick="openProfile()"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Profil" data-en="Profile">Profil</span></div>
+      <div class="dn" onclick="openProfile()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-rw="Igenamiterere" data-en="Settings">Igenamiterere</span></div>
     </aside>
     <main class="dash-content">
       <div class="dash-welcome">
@@ -8956,14 +8956,27 @@ function closeEditProfile() {
 }
 
 function saveEditProfile() {
-  var g = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
+  var gv = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
   if (window._profileNewPhoto) currentUser.photo = window._profileNewPhoto;
-  currentUser.phone = g('edit-phone');
-  currentUser.location = g('edit-location');
+  currentUser.phone    = gv('edit-phone');
+  currentUser.location = gv('edit-location');
   var prefEl = document.getElementById('edit-preference');
   if (prefEl) currentUser.preference = prefEl.value;
   saveUser(currentUser);
-  // sync to km_users array
+  /* Persist to Firestore users collection if uid exists */
+  if (typeof db !== 'undefined' && currentUser && currentUser.uid) {
+    var fsUpdate = {
+      phone:      currentUser.phone    || '',
+      location:   currentUser.location || '',
+      preference: currentUser.preference || '',
+      updatedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy:  currentUser.uid
+    };
+    if (currentUser.photo) fsUpdate.photoURL = currentUser.photo;
+    db.collection('users').doc(currentUser.uid).set(fsUpdate, { merge: true }).catch(function(){});
+    logAudit('profile_updated', 'users', currentUser.uid, {}, fsUpdate);
+  }
+  /* Sync to km_users localStorage array */
   var users = [];
   try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
   users = users.map(function(u) {
@@ -8976,7 +8989,7 @@ function saveEditProfile() {
     return u;
   });
   try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
-  showToast(curLang==='rw'?'✅ Profile yawe yavuguruwe!':'✅ Profile updated!');
+  showToast(curLang==='rw'?'Profile yawe yavuguruwe!':'Profile updated!', 'success');
   closeEditProfile();
 }
 
