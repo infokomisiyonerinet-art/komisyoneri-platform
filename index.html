@@ -16294,8 +16294,33 @@ function loadTasks() {
     _tasks = [];
     snap.forEach(function(d) { var t = d.data(); t.id = d.id; _tasks.push(t); });
     filterTasks();
+    _checkTaskDueNotifications(_tasks);
   }).catch(function() {
     if (el) el.innerHTML = '<div class="off-empty">Unable to load tasks.</div>';
+  });
+}
+
+function _checkTaskDueNotifications(tasks) {
+  if (!currentUser || typeof notifyUser !== 'function') return;
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+  var today = new Date(); today.setHours(0,0,0,0);
+  var todayKey = today.toISOString().slice(0,10);
+  tasks.forEach(function(t) {
+    if (!t.assignedTo) return;
+    if (t.status === 'done' || t.status === 'cancelled') return;
+    if (!t.dueAt) return;
+    var due = t.dueAt.toDate ? t.dueAt.toDate() : new Date(t.dueAt);
+    due.setHours(0,0,0,0);
+    var isDueToday = due.getTime() === today.getTime();
+    var isOverdue  = due < today;
+    if (!isDueToday && !isOverdue) return;
+    var notifKey = 'km_tnotif_' + t.id + '_' + todayKey;
+    try { if (localStorage.getItem(notifKey)) return; localStorage.setItem(notifKey, '1'); } catch(e) {}
+    var target = t.assignedTo;
+    if (!isAdmin && target !== currentUser.uid) return;
+    var title = isOverdue ? 'Task Overdue' : 'Task Due Today';
+    var body  = (t.title || 'A task') + (isOverdue ? ' is overdue — please update it immediately.' : ' is due today.');
+    notifyUser(target, title, body, 'task_due', 'tasks', t.id);
   });
 }
 
@@ -16404,6 +16429,10 @@ function submitTask() {
     loadTasks();
     loadOfficeStats();
     logAudit(editId ? 'task_updated' : 'task_created', 'tasks', editId || 'new', null, data);
+    var assignee = (g('tcm-assigned') || {}).value || data.assignedTo;
+    if (!editId && assignee && assignee !== currentUser.uid && typeof notifyUser === 'function') {
+      notifyUser(assignee, 'New Task Assigned', 'You have been assigned: ' + (data.title || 'a task'), 'task_assigned', 'tasks', '');
+    }
   }).catch(function() { showToast('Error saving task', 'error'); });
 }
 
@@ -25490,11 +25519,13 @@ function openAgentLead() {
     if (agEl) agEl.value = currentUser.displayName || currentUser.name || currentUser.email || '';
   }
 
-  // Show assign-agent row only for admin/staff
+  // Show assign-agent row only for admin/staff and populate agent dropdown
   var assignRow = document.getElementById('al-assign-row');
   if (assignRow) {
     var role = typeof currentUser !== 'undefined' && currentUser ? (currentUser.role || '').toLowerCase() : '';
-    assignRow.style.display = ['admin','super_admin','staff','ceo'].indexOf(role) > -1 ? '' : 'none';
+    var isAdm = ['admin','super_admin','staff','ceo'].indexOf(role) > -1;
+    assignRow.style.display = isAdm ? '' : 'none';
+    if (isAdm) _loadAlAgentDropdown();
   }
 
   modal.style.display = 'flex';
@@ -25545,7 +25576,7 @@ function _ensureAgentLeadModal() {
     + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Urwego rw\'Akiciro" data-en="Priority">Priority</label><select id="al-priority" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"><option value="hot">🔥 Hot</option><option value="warm" selected>🌡️ Warm</option><option value="cold">🧊 Cold</option></select></div>'
     + '</div>'
     /* Agent assignment (admin/staff only) */
-    + '<div id="al-assign-row" style="display:none"><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Izina rya Agent" data-en="Agent Name">Agent Name</label><input id="al-agent-name" type="text" placeholder="Agent name..." style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"></div>'
+    + '<div id="al-assign-row" style="display:none"><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Shyira Agent" data-en="Assign to Agent">Assign to Agent</label><select id="al-agent-select" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"><option value="">-- Loading agents... --</option></select><input type="hidden" id="al-agent-name" value=""></div>'
     /* Notes */
     + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Inyandiko (Ntibisabwa)" data-en="Notes (Optional)">Notes (Optional)</label><textarea id="al-notes" rows="2" placeholder="Any extra details..." style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;resize:vertical;box-sizing:border-box;display:block"></textarea></div>'
     /* Footer */
@@ -25557,6 +25588,23 @@ function _ensureAgentLeadModal() {
     + '</div>';
   modal.addEventListener('click', function(e) { if (e.target === modal) closeAgentLead(); });
   document.body.appendChild(modal);
+}
+
+function _loadAlAgentDropdown() {
+  var sel = document.getElementById('al-agent-select');
+  if (!sel || typeof db === 'undefined') return;
+  sel.innerHTML = '<option value="">-- ' + (curLang==='rw' ? 'Ntabwo Bagenewe' : 'Unassigned') + ' --</option>';
+  db.collection('users').where('role','==','agent').where('isActive','==',true).orderBy('displayName').limit(80).get()
+    .then(function(snap) {
+      snap.forEach(function(d) {
+        var u = d.data();
+        var opt = document.createElement('option');
+        opt.value = d.id;
+        opt.dataset.name = u.displayName || u.name || u.email || d.id;
+        opt.textContent = (u.displayName || u.name || u.email || d.id);
+        sel.appendChild(opt);
+      });
+    }).catch(function() {});
 }
 
 function saveAgentLead() {
@@ -25575,13 +25623,19 @@ function saveAgentLead() {
   var role = typeof currentUser !== 'undefined' && currentUser ? (currentUser.role || '').toLowerCase() : '';
   var isAdminRole = ['admin','super_admin','staff','ceo'].indexOf(role) > -1;
 
+  /* For admin: read agent UID + name from the dropdown */
+  var selEl = document.getElementById('al-agent-select');
+  var selOpt = selEl && selEl.selectedIndex >= 0 ? selEl.options[selEl.selectedIndex] : null;
+  var pickedAgentId   = (selEl && selEl.value) ? selEl.value : '';
+  var pickedAgentName = (selOpt && selOpt.dataset && selOpt.dataset.name) ? selOpt.dataset.name : '';
+
   var leadData = {
     id:            '',
     clientName:    name,
     clientPhone:   phone,
     clientEmail:   g('al-client-email'),
-    agentId:       isAdminRole ? '' : uid,
-    agentName:     g('al-agent-name') || (typeof currentUser !== 'undefined' && currentUser ? (currentUser.displayName || currentUser.name || '') : ''),
+    agentId:       isAdminRole ? pickedAgentId : uid,
+    agentName:     isAdminRole ? pickedAgentName : (typeof currentUser !== 'undefined' && currentUser ? (currentUser.displayName || currentUser.name || '') : ''),
     action:        g('al-property-type'),
     district:      g('al-district'),
     zone:          g('al-district'),
@@ -25600,7 +25654,6 @@ function saveAgentLead() {
     createdBy:     uid || 'system',
     updatedBy:     uid || 'system'
   };
-  if (!isAdminRole) leadData.agentId = uid;
 
   if (typeof db !== 'undefined') {
     db.collection('leads').add(leadData).then(function(ref) {
