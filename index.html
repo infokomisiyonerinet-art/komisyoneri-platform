@@ -3386,14 +3386,7 @@ html,body{overscroll-behavior-x:none}
         <!-- Listings zishyirwa na JS ziva kuri localStorage -->
       </div>
       
-      <div class="pagination">
-        <button class="btn btn-navy btn-sm">1</button>
-        <button class="btn btn-outline btn-sm">2</button>
-        <button class="btn btn-outline btn-sm">3</button>
-        <span style="padding:.44rem .5rem;color:var(--muted)">...</span>
-        <button class="btn btn-outline btn-sm">8</button>
-        <button class="btn btn-outline btn-sm"><svg viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
-      </div>
+      <div class="pagination" id="listings-pagination"></div>
     </div>
   </div>
 </div>
@@ -3407,10 +3400,10 @@ html,body{overscroll-behavior-x:none}
     <div class="det-overlay"></div>
     <div class="det-top-bar">
       <button class="det-back" onclick="go('listings')"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg><span data-rw="Subira" data-en="Back">Subira</span></button>
-      <div style="display:flex;gap:.6rem">
-        <span class="badge b-navy"><svg viewBox="0 0 24 24"><path d="M3 22V8a1 1 0 011-1h7V3a1 1 0 011-1h8a1 1 0 011 1v19"/></svg>4</span>
-        <span class="badge b-gold">AI Valued</span>
-        <span class="badge b-green">3D Tour</span>
+      <div style="display:flex;gap:.6rem;align-items:center">
+        <span id="det-view-count" style="display:none;background:rgba(0,0,0,.45);color:#fff;border-radius:20px;padding:.15rem .65rem;font-size:.72rem;font-weight:600;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);letter-spacing:.01em"></span>
+        <span class="badge b-gold" id="det-top-ai-badge" style="display:none">AI Valued</span>
+        <span class="badge b-green" id="det-top-3d-badge" style="display:none">3D Tour</span>
       </div>
     </div>
     <div class="det-hero-info">
@@ -3475,9 +3468,11 @@ html,body{overscroll-behavior-x:none}
         <p style="font-size:.9rem;color:var(--muted);line-height:1.85;margin-bottom:1.2rem" data-rw="Inzu nziza cyane iri mu Kimironko, Gasabo — ahantu hateye amashyo, hagurutse, kandi hafite amahoro. Iri ni inzu ya squaremetre 320, ifite amazu 4, ubushumbusho 2, garage, n'imbuga nziza hanze." data-en="A beautiful property in Kimironko, Gasabo — a prestigious, elevated and peaceful location. This 320m² property features 4 bedrooms, 2 bathrooms, a garage, and a stunning outdoor garden.">Inzu nziza cyane iri mu Kimironko, Gasabo — ahantu hateye amashyo, hagurutse, kandi hafite amahoro. Iri ni inzu ya squaremetre 320, ifite amazu 4, ubushumbusho 2, garage, n'imbuga nziza hanze.</p>
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-bottom:1.4rem">
           <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Uburebure" data-en="Year Built">Uburebure</span><strong id="det-year-built">—</strong></div>
-          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Ubwoko" data-en="Type">Ubwoko</span><strong data-rw="Villa" data-en="Villa">Villa</strong></div>
-          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Status" data-en="Status">Status</span><strong style="color:var(--green)" data-rw="Iboneka" data-en="Available">Iboneka</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Ubwoko" data-en="Type">Ubwoko</span><strong id="det-type-val">—</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Status" data-en="Status">Status</span><strong id="det-status-val" style="color:var(--green)" data-rw="Iboneka" data-en="Available">Iboneka</strong></div>
           <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Amasezerano" data-en="Title Deed">Amasezerano</span><strong id="det-title-deed" style="color:var(--muted)">—</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Ibirebwa" data-en="Total Views">Ibirebwa</span><strong id="det-view-count-tab" style="color:var(--navy)">—</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Iminsi Yatangajwe" data-en="Days Listed">Iminsi Yatangajwe</span><strong id="det-days-listed" style="color:var(--muted)">—</strong></div>
         </div>
         <!-- 3D TOUR VIEWER (shown on this tab for preview) -->
         <h3 class="h3" style="margin-bottom:1rem" data-rw="Virtual Tour 3D" data-en="3D Virtual Tour">Virtual Tour 3D</h3>
@@ -4024,6 +4019,7 @@ html,body{overscroll-behavior-x:none}
           <button onclick="switchAdminTab('listings')" id="adm-tab-listings" class="btn btn-navy btn-sm" style="font-size:.75rem">🏠 Imitungo</button>
           <button onclick="switchAdminTab('agents')" id="adm-tab-agents" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">👔 Agents</button>
           <button onclick="switchAdminTab('deals')" id="adm-tab-deals" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">💰 Deals</button>
+          <button onclick="switchAdminTab('referrals')" id="adm-tab-referrals" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">🔗 Referrals <span id="adm-ref-badge" style="background:var(--gold);color:#fff;border-radius:8px;padding:0 5px;font-size:.65rem;margin-left:2px"></span></button>
           <button onclick="switchAdminTab('platform')" id="adm-tab-platform" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">⚙️ Platform</button>
         </div>
         <!-- Listings sub-tabs -->
@@ -4036,8 +4032,31 @@ html,body{overscroll-behavior-x:none}
         </div>
       </div>
       <div id="admin-list"></div>
-      <div id="admin-agents-panel" style="display:none;padding:.5rem 0"><div id="admin-agents-list"></div></div>
+      <div id="admin-agents-panel" style="display:none;padding:.5rem 0">
+        <!-- Pending Firestore users awaiting approval -->
+        <div id="adm-pending-users-wrap" style="margin-bottom:1rem">
+          <div id="adm-pending-users-list"></div>
+        </div>
+        <div id="admin-agents-list"></div>
+      </div>
       <div id="admin-deals-panel" style="display:none;padding:.5rem 0"><div id="admin-deals-list"></div></div>
+      <div id="admin-referrals-panel" style="display:none;padding:.5rem 0">
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.8rem">
+          <select id="adm-ref-status-filter" onchange="loadAdminReferrals()" class="off-filter" style="font-size:.78rem">
+            <option value="">All Statuses</option>
+            <option value="registered">Registered</option>
+            <option value="qualified">Qualified</option>
+            <option value="rewarded">Rewarded</option>
+          </select>
+          <div style="flex:1"></div>
+          <div style="display:grid;grid-template-columns:repeat(3,auto);gap:.5rem">
+            <div style="background:var(--light);border-radius:8px;padding:.4rem .8rem;text-align:center"><div id="adm-ref-stat-reg" style="font-size:1.1rem;font-weight:800;color:var(--navy)">0</div><div style="font-size:.62rem;color:var(--muted)">Registered</div></div>
+            <div style="background:var(--light);border-radius:8px;padding:.4rem .8rem;text-align:center"><div id="adm-ref-stat-qual" style="font-size:1.1rem;font-weight:800;color:#16A34A">0</div><div style="font-size:.62rem;color:var(--muted)">Qualified</div></div>
+            <div style="background:var(--light);border-radius:8px;padding:.4rem .8rem;text-align:center"><div id="adm-ref-stat-rwd" style="font-size:1.1rem;font-weight:800;color:var(--gold)">0</div><div style="font-size:.62rem;color:var(--muted)">Rewarded</div></div>
+          </div>
+        </div>
+        <div id="adm-ref-list"></div>
+      </div>
       <div id="admin-platform-panel" style="display:none;padding:.5rem 0"></div>
     </div>
   </div>
@@ -6571,6 +6590,9 @@ html,body{overscroll-behavior-x:none}
         <label data-rw="Igiciro (RWF)" data-en="Target Price (RWF)">Target Price (RWF)</label>
         <input type="number" id="cd-price" placeholder="e.g. 50000000" min="0" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
       </div>
+      <input type="hidden" id="cd-lead-id" value="">
+      <input type="hidden" id="cd-agent-id" value="">
+      <input type="hidden" id="cd-agent-name-h" value="">
       <button id="cd-submit-btn" class="btn btn-navy" style="width:100%;justify-content:center" onclick="createNewDeal()">
         <span id="cd-submit-lbl" data-rw="Fungura Deal" data-en="Open Deal">Open Deal</span>
       </button>
@@ -7581,8 +7603,10 @@ html,body{overscroll-behavior-x:none}
     </div>
     <div class="form-row-2">
       <div class="form-group">
-        <label data-rw="Igenamiterere ya: Uwahawe" data-en="Assigned To (User ID)">Assigned To (User ID)</label>
-        <input type="text" id="tcm-assigned" placeholder="User UID or email" class="form-control">
+        <label data-rw="Shyira Umurimo kuri" data-en="Assign To">Assign To</label>
+        <select id="tcm-assigned" class="form-control">
+          <option value="">-- Loading users... --</option>
+        </select>
       </div>
       <div class="form-group">
         <label data-rw="Itariki y'Iherezo" data-en="Due Date">Due Date</label>
@@ -7733,6 +7757,27 @@ html,body{overscroll-behavior-x:none}
     </div>
     <!-- Admin-only: recent tasks & leave -->
     <div id="sp-admin-section" style="display:none">
+      <!-- Admin: role change + status actions -->
+      <div style="background:var(--light);border-radius:10px;padding:.75rem 1rem;margin-bottom:.75rem">
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.5rem" data-en="Admin Actions">Admin Actions</div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.5rem">
+          <select id="sp-role-select" class="form-control" style="flex:1;font-size:.8rem;padding:.4rem .6rem">
+            <option value="client">Client</option>
+            <option value="owner">Property Owner</option>
+            <option value="agent">Agent</option>
+            <option value="partner">Partner</option>
+            <option value="investor">Investor</option>
+            <option value="staff">Staff</option>
+            <option value="admin">Admin</option>
+            <option value="ceo">CEO</option>
+          </select>
+          <button class="btn btn-sm btn-navy" onclick="changeUserRole(_spProfileId)" style="font-size:.78rem" data-en="Change Role">Change Role</button>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="toggleUserVerified(_spProfileId)" style="font-size:.75rem;background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0" id="sp-verify-btn" data-en="Verify">Verify</button>
+          <button class="btn btn-sm" onclick="toggleUserActive(_spProfileId)" style="font-size:.75rem;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA" id="sp-active-btn" data-en="Suspend">Suspend</button>
+        </div>
+      </div>
       <div style="font-size:.85rem;font-weight:600;color:var(--navy);margin-bottom:.5rem" data-rw="Imikorere ya Vuba" data-en="Recent Activity">Recent Activity</div>
       <div id="sp-activity" style="font-size:.8rem;color:var(--muted);padding:.5rem 0"></div>
       <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.75rem">
@@ -8291,10 +8336,19 @@ document.querySelectorAll('.thumb').forEach(th => {
   th.addEventListener('click', () => {
     th.closest('.det-thumbs')?.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
     th.classList.add('active');
-    const colors = ['g1','g2','g3','g4','g5','g7'];
-    const hero = document.querySelector('.det-hero-bg');
+    var hero = document.querySelector('.det-hero-bg');
     if (hero) {
-      hero.className = 'det-hero-bg ' + (colors[Array.from(th.parentElement.children).indexOf(th)] || 'g1');
+      var imgUrl = th.getAttribute('data-img');
+      if (imgUrl) {
+        hero.style.backgroundImage = 'url(' + imgUrl + ')';
+        hero.style.backgroundSize = 'cover';
+        hero.style.backgroundPosition = 'center';
+      } else {
+        var colors = ['g1','g2','g3','g4','g5','g7'];
+        var idx = Array.from(th.parentElement.children).indexOf(th);
+        hero.className = 'det-hero-bg ' + (colors[idx] || 'g1');
+        hero.style.backgroundImage = '';
+      }
     }
   });
 });
@@ -8786,7 +8840,23 @@ function updateNavForUser(user) {
   }
   var dashBtn = document.getElementById('nl-dashboard');
   var _r = (user.role || '').toLowerCase();
-  if(dashBtn) dashBtn.style.display = ['agent','admin','staff','ceo','super_admin','owner','partner','investor'].indexOf(_r) !== -1 ? '' : 'none';
+  var _dashRoles = ['agent','admin','staff','ceo','super_admin','owner','partner','investor','client'];
+  if (dashBtn) {
+    dashBtn.style.display = _dashRoles.indexOf(_r) !== -1 ? '' : 'none';
+    /* Clients see "My Portal" label on the nav button */
+    var dashLabel = dashBtn.querySelector('[data-en]');
+    if (dashLabel) {
+      if (_r === 'client') {
+        dashLabel.setAttribute('data-rw', 'Portal Yanjye');
+        dashLabel.setAttribute('data-en', 'My Portal');
+        dashLabel.textContent = curLang === 'rw' ? 'Portal Yanjye' : 'My Portal';
+      } else {
+        dashLabel.setAttribute('data-rw', 'Dashboard');
+        dashLabel.setAttribute('data-en', 'Dashboard');
+        dashLabel.textContent = curLang === 'rw' ? 'Dashboard' : 'Dashboard';
+      }
+    }
+  }
 }
 
 function loadAgentDashboard() {
@@ -9363,12 +9433,42 @@ async function handleLogin() {
       uid: fb.uid,
       name: fb.displayName || profile.name || email.split('@')[0],
       email: fb.email,
-      role: profile.role || 'Buyer',
+      role: profile.role || 'client',
       phone: profile.phone || '',
       avatar: fb.photoURL || profile.avatar || '',
       provider: 'email',
       emailVerified: fb.emailVerified
     };
+    /* Refresh role from Firestore so admin-assigned roles take effect immediately */
+    if (typeof db !== 'undefined') {
+      try {
+        var fsDoc = await db.collection('users').doc(fb.uid).get();
+        if (fsDoc.exists) {
+          var fsData = fsDoc.data();
+          if (fsData.role) user.role = fsData.role;
+          if (fsData.displayName) user.name = fsData.displayName;
+          if (fsData.phone) user.phone = fsData.phone;
+          if (fsData.branchId) user.branchId = fsData.branchId;
+          /* Update localStorage cache */
+          try {
+            var _us = JSON.parse(localStorage.getItem('km_users')||'[]');
+            var _idx = _us.findIndex(function(u){ return u.email===email; });
+            if (_idx >= 0) { _us[_idx] = Object.assign(_us[_idx], { role: user.role, name: user.name, phone: user.phone }); }
+            else { _us.push({ email: user.email, role: user.role, name: user.name, phone: user.phone, uid: user.uid }); }
+            localStorage.setItem('km_users', JSON.stringify(_us));
+          } catch(e){}
+        } else {
+          /* First login — create Firestore user doc */
+          db.collection('users').doc(fb.uid).set({
+            id: fb.uid, uid: fb.uid, displayName: user.name, email: user.email,
+            phone: user.phone, role: user.role, isActive: true,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdBy: fb.uid, updatedBy: fb.uid, status: 'active'
+          }, { merge: true }).catch(function(){});
+        }
+      } catch(e){ console.warn('[Login] Firestore role sync failed:', e); }
+    }
     saveUser(user);
     kmTrack('login',{method:user.provider||'email'});
     showToast((curLang==='rw'?'Murakaza neza, ':'Welcome, ')+user.name+'! 🎉');
@@ -9426,15 +9526,33 @@ async function handleRegister() {
     try { await fb.sendEmailVerification(); } catch(e){}
     var locEl  = document.getElementById('reg-location');
     var prefEl = document.getElementById('reg-preference');
+    /* Map UI role tabs to canonical RBAC roles */
     var roleEl = document.querySelector('.rt.active');
+    var roleLabel = roleEl ? roleEl.getAttribute('data-en') || roleEl.textContent : '';
+    var canonRole = 'client';
+    if (/owner/i.test(roleLabel)) canonRole = 'owner';
+    /* Agents go through approval — mark pending until reviewed */
+    if (/agent/i.test(roleLabel)) canonRole = 'agent';
     var user = {
       uid: fb.uid, name: name, phone: phone, email: email,
-      role: roleEl ? roleEl.textContent.trim() : 'Buyer',
+      role: canonRole,
       location: locEl  ? locEl.value.trim() : '',
       preference: prefEl ? prefEl.value : 'Kugura',
       provider: 'email', emailVerified: false,
       date: new Date().toISOString()
     };
+    /* Create canonical Firestore user document */
+    if (typeof db !== 'undefined') {
+      db.collection('users').doc(fb.uid).set({
+        id: fb.uid, uid: fb.uid, displayName: name, email: email,
+        phone: phone, role: canonRole,
+        location: user.location, preference: user.preference,
+        isActive: true, status: canonRole === 'agent' ? 'pending' : 'active',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: fb.uid, updatedBy: fb.uid
+      }, { merge: true }).catch(function(){});
+    }
     var users = [];
     try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
     if (!users.find(function(u){ return u.email===email; })) {
@@ -9443,6 +9561,20 @@ async function handleRegister() {
     }
     saveUser(user);
     kmTrack('sign_up',{method:'email',role:user.role});
+    /* Notify admins via RTDB admin alert (non-blocking) */
+    try {
+      if (typeof rtdb !== 'undefined') {
+        rtdb.ref('adminAlerts').push({
+          type:      'new_user',
+          userId:    fb.uid,
+          userName:  name,
+          userEmail: email,
+          userRole:  canonRole,
+          status:    canonRole === 'agent' ? 'pending' : 'active',
+          createdAt: Date.now()
+        }).catch(function(){});
+      }
+    } catch(_ae){}
     showToast(curLang==='rw'?'Konti yakozwe! Reba imeyili yawe kugira ngo uremeze.':'Account created! Check your email to verify.');
     var pa = _pendingAction; _pendingAction = null;
     if (pa === 'agent-reg') { go('home'); openAgentReg(); }
@@ -9547,12 +9679,17 @@ function go(name) {
       return;
     } else {
       var _dr = (currentUser.role || '').toLowerCase();
-      var _dAllowed = ['agent','admin','staff','ceo','super_admin','owner','partner','investor'];
-      if (_dAllowed.indexOf(_dr) === -1) {
-        showToast(curLang==='rw' ? 'Injira nk\'umukozi wa KOMISIYONERI!' : 'Authorized accounts only!', 'warn');
-        return;
+      /* Clients have their own portal — redirect transparently */
+      if (_dr === 'client') {
+        name = 'customer';
+      } else {
+        var _dAllowed = ['agent','admin','staff','ceo','super_admin','owner','partner','investor'];
+        if (_dAllowed.indexOf(_dr) === -1) {
+          showToast(curLang==='rw' ? 'Injira nk\'umukozi wa KOMISIYONERI!' : 'Authorized accounts only!', 'warn');
+          return;
+        }
+        loadAgentDashboard();
       }
-      loadAgentDashboard();
     }
   }
   // Hide all pages, deactivate all nav links
@@ -10055,7 +10192,7 @@ function renderUserPropCard(prop) {
     + '</div>'
     + '<div class="p-body" onclick="openPropDetail(\'' + pid + '\')">'
     +   '<div class="p-loc">' + loc + '</div>'
-    +   '<div class="p-rating"><div class="p-stars">' + starsHtml + '</div><span class="p-rating-count">(' + reviewCount + ')</span></div>'
+    +   '<div class="p-rating"><div class="p-stars">' + starsHtml + '</div><span class="p-rating-count">(' + reviewCount + ')</span>' + (prop.viewCount ? '<span style="margin-left:auto;font-size:.68rem;color:var(--muted)">&#128065; ' + Number(prop.viewCount).toLocaleString() + '</span>' : '') + '</div>'
     +   '<div class="p-title">' + propName + '</div>'
     +   (shortDesc ? '<div style="font-size:.76rem;color:#6b7280;line-height:1.45;margin:.2rem 0">' + shortDesc + '</div>' : '')
     +   '<div class="p-feats">' + featsHtml + '</div>'
@@ -10291,11 +10428,14 @@ function openMyProps() {
         + 'style="background:none;border:1.5px solid var(--navy);color:var(--navy);border-radius:7px;padding:.25rem .6rem;font-size:.72rem;font-weight:700;cursor:pointer;margin-top:.4rem">✏️ '
         + (curLang==='rw'?'Hindura':'Edit') + '</button>'
       : '';
+    var viewsHtml = prop.viewCount
+      ? '<span style="font-size:.72rem;color:var(--muted);margin-left:.5rem">&#128065; ' + Number(prop.viewCount).toLocaleString() + '</span>'
+      : '';
     return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.9rem;margin-bottom:.7rem">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">'
       + '<div style="flex:1">'
       + '<div style="font-weight:700;color:var(--navy)">'+prop.type+' — '+prop.district+'</div>'
-      + '<div style="font-size:.82rem;color:var(--muted);margin:.2rem 0">'+prop.service+' | '+priceDisplay+'</div>'
+      + '<div style="font-size:.82rem;color:var(--muted);margin:.2rem 0">'+prop.service+' | '+priceDisplay+viewsHtml+'</div>'
       + (prop.desc?'<div style="font-size:.78rem;color:#555;font-style:italic">'+prop.desc.substring(0,60)+'...</div>':'')
       + editBtn
       + '</div>'
@@ -10312,7 +10452,9 @@ var origGo = go;
 go = function(page) {
   origGo(page);
   if (page === 'listings') {
-    setTimeout(loadApprovedProperties, 100);
+    /* Skip reset + reload when applyAndSearch is driving the navigation */
+    if (!_myListingsMode && !window._filtersActive) { _listPage = 1; _listFiltered = null; }
+    if (!window._filtersActive) setTimeout(loadApprovedProperties, 100);
   }
 };
 
@@ -11005,7 +11147,7 @@ function handleGoogleResponse(response) {
       date: new Date().toISOString()
     };
 
-    function finishGoogleLogin(user) {
+    function finishGoogleLogin(user, fbUid) {
       var users = [];
       try { users = JSON.parse(localStorage.getItem('km_users') || '[]'); } catch(e){}
       var existing = users.find(function(u) { return u.email === user.email; });
@@ -11013,7 +11155,35 @@ function handleGoogleResponse(response) {
         users.push(user);
         try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
       } else {
-        user = existing;
+        /* Preserve existing role from localStorage if assigned */
+        if (existing.role && existing.role !== 'Buyer') user.role = existing.role;
+        user.phone = existing.phone || user.phone;
+      }
+      /* Sync role from Firestore and upsert user doc */
+      if (fbUid && typeof db !== 'undefined') {
+        db.collection('users').doc(fbUid).get().then(function(doc) {
+          if (doc.exists) {
+            var fsData = doc.data();
+            if (fsData.role) user.role = fsData.role;
+            db.collection('users').doc(fbUid).update({
+              displayName: user.name, photoURL: user.avatar || '',
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: fbUid
+            }).catch(function(){});
+          } else {
+            user.uid = fbUid;
+            db.collection('users').doc(fbUid).set({
+              id: fbUid, uid: fbUid, displayName: user.name, email: user.email,
+              phone: '', role: 'client', isActive: true, status: 'active',
+              photoURL: user.avatar || '',
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+              createdBy: fbUid, updatedBy: fbUid
+            }, { merge: true }).catch(function(){});
+            user.role = 'client';
+          }
+          saveUser(user);
+        }).catch(function(){ saveUser(user); });
+        return;
       }
       saveUser(user);
       kmTrack('login',{method:'google'});
@@ -11029,11 +11199,18 @@ function handleGoogleResponse(response) {
           user.name = result.user.displayName || user.name;
           user.email = result.user.email || user.email;
           user.avatar = result.user.photoURL || user.avatar;
-          finishGoogleLogin(user);
+          user.uid = result.user.uid;
+          finishGoogleLogin(user, result.user.uid);
+          kmTrack('login',{method:'google'});
+          showToast('Murakaza neza ' + user.name + '! (Google) 🎉');
+          setTimeout(function() { go('home'); }, 800);
         })
         .catch(function() {
           // Firebase exchange failed — still allow login via localStorage
-          finishGoogleLogin(user);
+          finishGoogleLogin(user, null);
+          kmTrack('login',{method:'google'});
+          showToast('Murakaza neza ' + user.name + '! 🎉');
+          setTimeout(function() { go('home'); }, 800);
         });
     } else {
       finishGoogleLogin(user);
@@ -11579,6 +11756,37 @@ function submitLead() {
           logAudit('lead.created', 'leads', ref.id, null, { clientName: lead.clientName, zone: lead.zone, pipelineStage: 'new' });
         }
         if (typeof updateCrmSidebarBadge === 'function') updateCrmSidebarBadge();
+        /* In-app notification to assigned agent */
+        var _agId = lead.assignedAgent || '';
+        if (_agId && typeof notifyUser === 'function') {
+          notifyUser(_agId,
+            curLang === 'rw' ? 'Lead Nshya Yaguhaye!' : 'New Lead Assigned!',
+            (lead.clientName || 'Client') + (curLang === 'rw' ? ' asaba agent i ' : ' needs an agent in ') + (lead.zone || ''),
+            'lead_assigned', 'leads', ref.id);
+        }
+        /* Firestore-based agent lookup if no localStorage agent found */
+        if (!_agId && lead.zone && typeof db !== 'undefined') {
+          db.collection('users')
+            .where('role', '==', 'agent')
+            .where('isActive', '==', true)
+            .where('status', '==', 'active')
+            .limit(5)
+            .get()
+            .then(function(agSnap) {
+              if (agSnap.empty) return;
+              var firstAgent = agSnap.docs[0];
+              var agData = firstAgent.data();
+              var agUid  = firstAgent.id;
+              /* Update lead with Firestore agent */
+              ref.update({ agentId: agUid, agentName: agData.displayName || agData.email || '', updatedAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(function(){});
+              if (typeof notifyUser === 'function') {
+                notifyUser(agUid,
+                  curLang === 'rw' ? 'Lead Nshya Yaguhaye!' : 'New Lead Assigned!',
+                  (lead.clientName || 'Client') + (curLang === 'rw' ? ' asaba agent i ' : ' needs an agent in ') + (lead.zone || ''),
+                  'lead_assigned', 'leads', ref.id);
+              }
+            }).catch(function(){});
+        }
       }).catch(function(fsErr) { console.warn('[Lead] Firestore save failed:', fsErr); });
     }
   } catch(fsE) { console.warn('[Lead] Firestore error:', fsE); }
@@ -12027,6 +12235,48 @@ function openPropDetail(propId) {
   window._currentProp = prop;
   kmTrack('view_item',{item_id:String(prop.id),item_name:prop.title||'',price:prop.price||'',district:prop.district||'',type:prop.type||''});
 
+  // Property view tracking — increment Firestore counter, session-deduped
+  (function _trackPropView(pid, isDemo) {
+    if (!window._viewedProps) window._viewedProps = {};
+    var vcEl = document.getElementById('det-view-count');
+    var aiBadge = document.getElementById('det-top-ai-badge');
+    var tdBadge = document.getElementById('det-top-3d-badge');
+    if (aiBadge) aiBadge.style.display = prop.aiValued ? '' : 'none';
+    if (tdBadge) tdBadge.style.display = prop.tour3dUrl ? '' : 'none';
+
+    if (isDemo || typeof db === 'undefined') {
+      if (vcEl) vcEl.style.display = 'none';
+      return;
+    }
+    var ref = db.collection('properties').doc(String(pid));
+    var inc = firebase.firestore.FieldValue.increment(1);
+    var alreadySeen = !!window._viewedProps[pid];
+    window._viewedProps[pid] = true;
+
+    var promise = alreadySeen
+      ? ref.get()
+      : ref.update({ viewCount: inc }).then(function() { return ref.get(); });
+
+    promise.then(function(doc) {
+      if (!doc.exists) return;
+      var vc = doc.data().viewCount || 1;
+      if (vcEl) {
+        vcEl.innerHTML = '&#128065; ' + Number(vc).toLocaleString();
+        vcEl.style.display = '';
+      }
+      var vcTab = document.getElementById('det-view-count-tab');
+      if (vcTab) vcTab.textContent = Number(vc).toLocaleString();
+      // Sync count back to localStorage cache
+      try {
+        var ls = JSON.parse(localStorage.getItem('km_properties') || '[]');
+        var idx = ls.findIndex(function(p) { return String(p.id) === String(pid); });
+        if (idx !== -1) { ls[idx].viewCount = vc; localStorage.setItem('km_properties', JSON.stringify(ls)); }
+      } catch(e) {}
+    }).catch(function() {
+      if (vcEl) vcEl.style.display = 'none';
+    });
+  }(String(prop.id), !!prop.isDemo));
+
   // Update detail page fav button state
   setTimeout(function() {
     var detFavBtn = document.getElementById('det-fav-btn');
@@ -12068,6 +12318,30 @@ function openPropDetail(propId) {
       heroBg.querySelector('svg') && (heroBg.querySelector('svg').style.display='');
     }
   }
+
+  // === THUMBNAIL GALLERY ===
+  (function() {
+    var imgs = [prop.img1, prop.img2, prop.img3].filter(Boolean);
+    var thumbEls = document.querySelectorAll('.det-thumbs .thumb');
+    var gradients = ['g1','g2','g3','g4','g5'];
+    thumbEls.forEach(function(th, i) {
+      if (imgs[i]) {
+        th.setAttribute('data-img', imgs[i]);
+        th.style.backgroundImage = 'url(' + imgs[i] + ')';
+        th.style.backgroundSize = 'cover';
+        th.style.backgroundPosition = 'center';
+        if (th.querySelector('svg')) th.querySelector('svg').style.display = 'none';
+        th.className = 'thumb' + (i === 0 ? ' active' : '');
+        th.style.display = '';
+      } else {
+        th.removeAttribute('data-img');
+        th.style.backgroundImage = '';
+        if (th.querySelector('svg')) th.querySelector('svg').style.display = '';
+        th.className = 'thumb ' + gradients[i];
+        th.style.display = imgs.length > 0 ? 'none' : '';
+      }
+    });
+  })();
 
   // === TITLE + PRICE (hero overlay) ===
   var titleEl = document.getElementById('det-prop-title');
@@ -12111,27 +12385,35 @@ function openPropDetail(propId) {
   if(descEl) {
     var descP = descEl.querySelector('p');
     if(descP) descP.textContent = prop.desc || (curLang==='rw' ? 'Ibisobanuro ntibishyizweho.' : 'No description provided.');
-    // Update info grid
-    var infoItems = descEl.querySelectorAll('.\\!bg-light, [style*="var(--light)"] strong, [style*="var(--light)"]');
-    // Update type
-    var typeStrongs = descEl.querySelectorAll('strong');
-    typeStrongs.forEach(function(s) {
-      var lbl = s.previousElementSibling || (s.parentNode && s.parentNode.querySelector('span'));
-      if(!lbl) return;
-      var lblText = lbl.textContent.toLowerCase();
-      if(lblText.includes('ubwoko') || lblText.includes('type')) s.textContent = prop.type||'—';
-      if(lblText.includes('status')) {
-        s.textContent = prop.status === 'Approved' ? (curLang==='rw'?'Iboneka':'Available') : prop.status||'—';
-        s.style.color = prop.status === 'Approved' ? 'var(--green)' : 'var(--muted)';
-      }
-    });
     var ybEl = document.getElementById('det-year-built');
     if (ybEl) ybEl.textContent = prop.yearBuilt || '—';
+    var typeValEl = document.getElementById('det-type-val');
+    if (typeValEl) typeValEl.textContent = prop.type || '—';
+    var statusValEl = document.getElementById('det-status-val');
+    if (statusValEl) {
+      statusValEl.textContent = prop.status === 'Approved' ? (curLang==='rw'?'Iboneka':'Available') : (prop.status||'—');
+      statusValEl.style.color = prop.status === 'Approved' ? 'var(--green)' : 'var(--muted)';
+    }
     var tdEl = document.getElementById('det-title-deed');
     if (tdEl) {
       tdEl.textContent = prop.titleDeed || '—';
       tdEl.style.color = prop.titleDeed ? 'var(--green)' : 'var(--muted)';
     }
+    // Days listed
+    var dlEl = document.getElementById('det-days-listed');
+    if (dlEl) {
+      if (prop.createdAt && prop.createdAt.seconds) {
+        var daysListed = Math.floor((Date.now() / 1000 - prop.createdAt.seconds) / 86400);
+        dlEl.textContent = daysListed + (curLang==='rw' ? ' umunsi' : ' days');
+        dlEl.style.color = daysListed > 60 ? 'var(--warning)' : 'var(--navy)';
+      } else {
+        dlEl.textContent = '—';
+        dlEl.style.color = 'var(--muted)';
+      }
+    }
+    // Views placeholder — will be updated once Firestore resolves
+    var vcTabEl = document.getElementById('det-view-count-tab');
+    if (vcTabEl) vcTabEl.textContent = prop.viewCount ? Number(prop.viewCount).toLocaleString() : '—';
   }
 
   // === MAP TAB — dynamic embed ===
@@ -12617,7 +12899,7 @@ function switchAdminTab(tab) {
   adminCurrentTab = tab;
 
   // Update tab buttons
-  ['listings','agents','deals','platform'].forEach(function(t) {
+  ['listings','agents','deals','referrals','platform'].forEach(function(t) {
     var btn = document.getElementById('adm-tab-'+t);
     if(!btn) return;
     if(t === tab) {
@@ -12632,17 +12914,115 @@ function switchAdminTab(tab) {
   var listingsFilters = document.getElementById('adm-listings-filters');
   var agentsPanel = document.getElementById('admin-agents-panel');
   var dealsPanel = document.getElementById('admin-deals-panel');
+  var referralsPanel = document.getElementById('admin-referrals-panel');
   var platformPanel = document.getElementById('admin-platform-panel');
 
   if(listingsPanel) listingsPanel.style.display = tab === 'listings' ? 'block' : 'none';
   if(listingsFilters) listingsFilters.style.display = tab === 'listings' ? 'flex' : 'none';
   if(agentsPanel) agentsPanel.style.display = tab === 'agents' ? 'block' : 'none';
   if(dealsPanel) dealsPanel.style.display = tab === 'deals' ? 'block' : 'none';
+  if(referralsPanel) referralsPanel.style.display = tab === 'referrals' ? 'block' : 'none';
   if(platformPanel) platformPanel.style.display = tab === 'platform' ? 'block' : 'none';
 
   if(tab === 'agents') renderAdminAgents();
   if(tab === 'deals') renderAdminDeals();
+  if(tab === 'referrals') loadAdminReferrals();
   if(tab === 'platform') renderAdminPlatform();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ADMIN REFERRAL MANAGEMENT
+// ═══════════════════════════════════════════════════════════
+
+var _adminReferrals = [];
+
+function loadAdminReferrals() {
+  var el = document.getElementById('adm-ref-list');
+  if (!el || typeof db === 'undefined') return;
+  el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⏳</div><div class="crm-empty-title">Loading...</div></div>';
+  var statusFilter = (document.getElementById('adm-ref-status-filter') || {}).value || '';
+  var q = db.collection('referrals').where('isActive','==',true).orderBy('createdAt','desc').limit(200);
+  q.get().then(function(snap) {
+    _adminReferrals = [];
+    snap.forEach(function(d) { var r = d.data(); r._docId = d.id; _adminReferrals.push(r); });
+    if (statusFilter) _adminReferrals = _adminReferrals.filter(function(r){ return r.status === statusFilter; });
+    renderAdminReferrals();
+    var reg  = _adminReferrals.filter(function(r){ return r.status === 'registered'; }).length;
+    var qual = _adminReferrals.filter(function(r){ return r.status === 'qualified'; }).length;
+    var rwd  = _adminReferrals.filter(function(r){ return r.status === 'rewarded'; }).length;
+    var statReg  = document.getElementById('adm-ref-stat-reg');
+    var statQual = document.getElementById('adm-ref-stat-qual');
+    var statRwd  = document.getElementById('adm-ref-stat-rwd');
+    if (statReg)  statReg.textContent  = reg;
+    if (statQual) statQual.textContent = qual;
+    if (statRwd)  statRwd.textContent  = rwd;
+    var badge = document.getElementById('adm-ref-badge');
+    if (badge) badge.textContent = qual > 0 ? qual : '';
+  }).catch(function() {
+    el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#9888;&#65039;</div><div class="crm-empty-title">Error loading referrals</div></div>';
+  });
+}
+
+function renderAdminReferrals() {
+  var el = document.getElementById('adm-ref-list');
+  if (!el) return;
+  if (!_adminReferrals.length) {
+    el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#128279;</div><div class="crm-empty-title">No referrals yet</div><div class="crm-empty-sub">Referrals will appear here once users register via referral links.</div></div>';
+    return;
+  }
+  var statusColor = { registered:'var(--muted)', qualified:'#16A34A', rewarded:'var(--gold)' };
+  var html = '<div style="display:flex;flex-direction:column;gap:.5rem">';
+  _adminReferrals.forEach(function(r) {
+    var ts = '';
+    try { ts = r.createdAt && r.createdAt.toDate ? r.createdAt.toDate().toLocaleDateString() : ''; } catch(e){}
+    var statusBg = { registered:'#F1F5F9', qualified:'#DCFCE7', rewarded:'#FEF9C3' };
+    var sc = statusColor[r.status] || 'var(--muted)';
+    var sb = statusBg[r.status] || '#F1F5F9';
+    html += '<div style="background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:.75rem 1rem;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">'
+      + '<div style="flex:1;min-width:140px">'
+      + '<div style="font-size:.82rem;font-weight:700;color:var(--dark)">' + escapeHtml(r.referredEmail || r.referredUserId || 'Unknown') + '</div>'
+      + '<div style="font-size:.7rem;color:var(--muted)">Referred by: <span style="color:var(--navy);font-weight:600">' + escapeHtml(r.referrerCode || r.referrerId || '—') + '</span></div>'
+      + (ts ? '<div style="font-size:.65rem;color:var(--muted);margin-top:.1rem">' + ts + '</div>' : '')
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">'
+      + (r.rewardAmount ? '<span style="font-size:.75rem;font-weight:700;color:var(--gold)">' + parseInt(r.rewardAmount).toLocaleString() + ' RWF</span>' : '')
+      + '<span style="background:' + sb + ';color:' + sc + ';border-radius:12px;padding:.2rem .7rem;font-size:.7rem;font-weight:700;text-transform:capitalize">' + escapeHtml(r.status || 'registered') + '</span>';
+    if (r.status === 'qualified') {
+      html += '<button class="btn btn-sm" onclick="openRewardReferral(\'' + (r._docId||r.id) + '\')" style="font-size:.7rem;background:var(--gold);color:#fff;border:none">&#127873; Reward</button>';
+    }
+    html += '</div></div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function openRewardReferral(refId) {
+  var amount = prompt(curLang === 'rw' ? 'Injiza umubare w\'inguzanyo (RWF):' : 'Enter reward amount (RWF):', '50000');
+  if (amount === null) return;
+  var amt = parseInt(amount) || 0;
+  if (amt <= 0) { showToast(curLang === 'rw' ? 'Umubare ntabwo ari ngombwa' : 'Invalid reward amount', 'error'); return; }
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'admin';
+  db.collection('referrals').doc(refId).update({
+    status:       'rewarded',
+    rewardAmount: amt,
+    rewardPaidAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy:    uid
+  }).then(function() {
+    logAudit('referral.rewarded', 'referrals', refId, null, { rewardAmount: amt });
+    /* Notify referrer */
+    var ref = _adminReferrals.filter(function(r){ return (r._docId||r.id) === refId; })[0];
+    if (ref && ref.referrerId && typeof notifyUser === 'function') {
+      notifyUser(ref.referrerId,
+        curLang === 'rw' ? '&#127873; Inguzanyo Yawe Yatanzwe!' : '&#127873; Referral Reward Sent!',
+        (curLang === 'rw'
+          ? 'Wahawe inguzanyo ya ' + amt.toLocaleString() + ' RWF bitewe n\'itumizwa ryawe. Murakoze!'
+          : 'You have been rewarded ' + amt.toLocaleString() + ' RWF for your successful referral. Thank you!'),
+        'referral_rewarded', 'referrals', refId);
+    }
+    showToast(curLang === 'rw' ? 'Inguzanyo yatanzwe!' : 'Reward marked successfully!', 'success');
+    loadAdminReferrals();
+  }).catch(function() { showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error updating referral', 'error'); });
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -12863,6 +13243,9 @@ function renderAdminAgents() {
   if(!list) return;
   list.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:.82rem">⏳ Gutegura...</div>';
 
+  // Load Firestore pending users first
+  _loadFsPendingUsers();
+
   // Pull live from Firebase first, then render
   try {
     firebase.database().ref('agents').once('value').then(function(s) {
@@ -12876,6 +13259,113 @@ function renderAdminAgents() {
       _renderAdminAgentsList();
     }).catch(function(){ _renderAdminAgentsList(); });
   } catch(e){ _renderAdminAgentsList(); }
+}
+
+/* Load pending Firestore users (status:'pending') — agents awaiting admin approval */
+function _loadFsPendingUsers() {
+  var wrap = document.getElementById('adm-pending-users-list');
+  if (!wrap || typeof db === 'undefined') return;
+  wrap.innerHTML = '';
+
+  db.collection('users')
+    .where('isActive', '==', true)
+    .where('status', '==', 'pending')
+    .orderBy('createdAt', 'desc')
+    .limit(50)
+    .get()
+    .then(function(snap) {
+      if (snap.empty) { wrap.innerHTML = ''; return; }
+      var html = '<div style="background:#fff3cd;border:1.5px solid #ffc107;border-radius:10px;padding:.75rem 1rem;margin-bottom:.75rem">'
+        + '<div style="font-weight:700;font-size:.82rem;color:#7c3a00;margin-bottom:.6rem">&#9203; ' + snap.size + ' user(s) bategereje kwemezwa (Firestore)</div>'
+        + '<div id="adm-fs-pending-rows">';
+      snap.forEach(function(doc) {
+        var u = doc.data();
+        var uid = doc.id;
+        var roleLabel = u.role === 'agent' ? '&#128084; Agent' : (u.role || 'client');
+        html += '<div style="border:1px solid rgba(0,0,0,.1);border-radius:8px;padding:.6rem .8rem;margin-bottom:.5rem;background:#fffef0;display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap">'
+          + '<div style="flex:1">'
+          + '<div style="font-weight:700;font-size:.85rem;color:var(--navy)">' + escapeHtml(u.displayName || u.name || '—') + '</div>'
+          + '<div style="font-size:.73rem;color:var(--muted)">&#128231; ' + escapeHtml(u.email || '—') + ' | &#128222; ' + escapeHtml(u.phone || '—') + '</div>'
+          + '<div style="font-size:.7rem;margin-top:.15rem"><span style="background:var(--gold);color:#fff;border-radius:8px;padding:1px 7px;font-size:.65rem;font-weight:700">' + roleLabel + '</span></div>'
+          + '</div>'
+          + '<div style="display:flex;gap:.35rem;flex-shrink:0">'
+          + '<button onclick="_fsPendingApprove(\'' + uid + '\')" style="background:#27A84A;color:#fff;border:none;padding:.35rem .65rem;border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:700">&#9989; Emeza</button>'
+          + '<button onclick="_fsPendingReject(\'' + uid + '\')" style="background:#e53e3e;color:#fff;border:none;padding:.35rem .65rem;border-radius:6px;cursor:pointer;font-size:.72rem">&#10060; Kataa</button>'
+          + '</div>'
+          + '</div>';
+      });
+      html += '</div></div>';
+      wrap.innerHTML = html;
+
+      /* Also update adm-tab-agents badge */
+      var badge = document.getElementById('adm-pending-badge');
+      if (!badge) {
+        var tabBtn = document.getElementById('adm-tab-agents');
+        if (tabBtn) {
+          var b = document.createElement('span');
+          b.id = 'adm-pending-badge';
+          b.style.cssText = 'background:#e53e3e;color:#fff;border-radius:8px;padding:0 5px;font-size:.65rem;margin-left:3px';
+          b.textContent = snap.size;
+          tabBtn.appendChild(b);
+        }
+      } else {
+        badge.textContent = snap.size;
+      }
+    })
+    .catch(function(err) {
+      console.warn('[Admin] Firestore pending users query failed:', err);
+      wrap.innerHTML = '';
+    });
+}
+
+function _fsPendingApprove(uid) {
+  if (!uid || typeof db === 'undefined') return;
+  var adminUid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'admin';
+  var serverTs  = firebase.firestore.FieldValue.serverTimestamp();
+  db.collection('users').doc(uid).update({
+    status:    'active',
+    isActive:  true,
+    updatedAt: serverTs,
+    updatedBy: adminUid
+  }).then(function() {
+    logAudit('user.approved', 'users', uid, { status: 'pending' }, { status: 'active' });
+    if (typeof notifyUser === 'function') {
+      notifyUser(uid,
+        curLang === 'rw' ? 'Konti Yawe Yemejwe!' : 'Account Approved!',
+        curLang === 'rw' ? 'Urushaka rwawe rw\'agent rwemejwe. Ubu ushobora gukolana n\'KOMISIYONERI.' : 'Your agent application has been approved. You can now work with KOMISIYONERI.',
+        'account_approved', 'users', uid);
+    }
+    showToast(curLang === 'rw' ? 'Konti yemejwe!' : 'Account approved!', 'success');
+    _loadFsPendingUsers();
+  }).catch(function(e) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error approving user', 'error');
+    console.warn('[Admin] _fsPendingApprove error:', e);
+  });
+}
+
+function _fsPendingReject(uid) {
+  if (!uid || typeof db === 'undefined') return;
+  var adminUid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'admin';
+  var serverTs  = firebase.firestore.FieldValue.serverTimestamp();
+  db.collection('users').doc(uid).update({
+    status:    'rejected',
+    isActive:  false,
+    updatedAt: serverTs,
+    updatedBy: adminUid
+  }).then(function() {
+    logAudit('user.rejected', 'users', uid, { status: 'pending' }, { status: 'rejected' });
+    if (typeof notifyUser === 'function') {
+      notifyUser(uid,
+        curLang === 'rw' ? 'Urushaka Rwawe Rwanzwe' : 'Application Not Approved',
+        curLang === 'rw' ? 'Turababajwe kubibwira, urushaka rwawe ntirwemejwe. Wadutumanahanya kugira ngo ubashe amakuru yiyongera.' : 'We regret to inform you that your application was not approved at this time. Please contact us for more information.',
+        'account_rejected', 'users', uid);
+    }
+    showToast(curLang === 'rw' ? 'Urushaka rwanzwe' : 'Application rejected', 'info');
+    _loadFsPendingUsers();
+  }).catch(function(e) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error rejecting user', 'error');
+    console.warn('[Admin] _fsPendingReject error:', e);
+  });
 }
 
 function _renderAdminAgentsList() {
@@ -13652,12 +14142,18 @@ function _fsNotifTimeAgo(ts) {
 }
 
 function _fsNotifIcon(type) {
-  if (type === 'lead_assigned' || type === 'lead')        return '&#128197;';
-  if (type === 'deal_update'   || type === 'deal')        return '&#128188;';
-  if (type === 'viewing_confirmed' || type === 'viewing') return '&#127968;';
-  if (type === 'commission_approved' || type === 'commission') return '&#128176;';
-  if (type === 'document_shared'  || type === 'document') return '&#128196;';
-  if (type === 'message')                                  return '&#9993;';
+  if (type === 'lead_assigned' || type === 'lead' || type === 'lead_followup') return '&#128197;';
+  if (type === 'deal_update'   || type === 'deal' || type === 'deal_stage' || type === 'deal_closed') return '&#128188;';
+  if (type === 'viewing_confirmed' || type === 'viewing')  return '&#127968;';
+  if (type === 'commission_approved' || type === 'commission' || type === 'commission_calculated') return '&#128176;';
+  if (type === 'document_shared'  || type === 'document')  return '&#128196;';
+  if (type === 'task_assigned' || type === 'task_due')     return '&#9989;';
+  if (type === 'service_assigned' || type === 'service_completed') return '&#128203;';
+  if (type === 'referral_qualified' || type === 'referral_rewarded') return '&#127873;';
+  if (type === 'account_approved')                                   return '&#9989;';
+  if (type === 'account_rejected')                                   return '&#10060;';
+  if (type === 'role_changed')                                       return '&#128084;';
+  if (type === 'message')                                            return '&#9993;';
   return '&#128276;';
 }
 
@@ -13695,6 +14191,20 @@ function _handleNotifClick(collection, relatedId) {
       var tab = document.getElementById('dash-tab-calendar');
       if (tab) tab.click();
     }, 400);
+  } else if (collection === 'tasks') {
+    go('office');
+    setTimeout(function() {
+      var tasksTab = document.getElementById('otab-btn-tasks');
+      if (tasksTab) tasksTab.click();
+      if (relatedId) setTimeout(function() { if (typeof openTaskDetail === 'function') openTaskDetail(relatedId); }, 400);
+    }, 500);
+  } else if (collection === 'services') {
+    go('verifications');
+    setTimeout(function() { if (relatedId && typeof openVerificationDetail === 'function') openVerificationDetail(relatedId); }, 600);
+  } else if (collection === 'referrals') {
+    openReferralPanel();
+  } else if (collection === 'users') {
+    go('dashboard');
   } else if (collection === 'messages') {
     if (typeof openInbox === 'function') openInbox();
   } else {
@@ -15848,6 +16358,14 @@ function openStaffProfile(uid) {
   if (adminSec) {
     adminSec.style.display = isAdmin ? '' : 'none';
     if (isAdmin) {
+      /* Pre-select current role */
+      var spRoleSel = g('sp-role-select');
+      if (spRoleSel) spRoleSel.value = u.role || 'client';
+      /* Set verify/suspend button labels */
+      var verBtn = g('sp-verify-btn');
+      if (verBtn) verBtn.textContent = u.isVerified ? 'Unverify' : 'Verify';
+      var actBtnEl = g('sp-active-btn');
+      if (actBtnEl) actBtnEl.textContent = u.isActive === false ? 'Activate' : 'Suspend';
       var actEl = g('sp-activity');
       if (actEl) actEl.textContent = 'Loading activity...';
       db.collection('tasks').where('assignedTo','==',uid).where('isActive','==',true).orderBy('createdAt','desc').limit(5).get().then(function(snap) {
@@ -15867,6 +16385,80 @@ function openStaffProfile(uid) {
   openModal('staff-profile-modal');
 }
 function closeStaffProfile() { closeModal('staff-profile-modal'); }
+
+function changeUserRole(uid) {
+  if (!uid || typeof db === 'undefined') return;
+  var sel = document.getElementById('sp-role-select');
+  var newRole = sel ? sel.value : '';
+  if (!newRole) return;
+  var adminUid = currentUser ? currentUser.uid : 'admin';
+  db.collection('users').doc(uid).update({
+    role:      newRole,
+    status:    newRole === 'agent' ? 'active' : undefined,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: adminUid
+  }).then(function() {
+    logAudit('user.role.changed', 'users', uid, null, { newRole: newRole });
+    var u = _hrStaff.find(function(x){ return x.id === uid; });
+    if (u) { u.role = newRole; }
+    var chip = document.getElementById('sp-role-chip');
+    if (chip) chip.textContent = HR_ROLE_LABELS[newRole] || newRole;
+    if (typeof notifyUser === 'function') {
+      notifyUser(uid,
+        curLang === 'rw' ? '&#128203; Uruhare Rwahinduwe' : '&#128203; Role Updated',
+        (curLang === 'rw'
+          ? 'Uruhare rwawe muri KOMISIYONERI rwahindujwe: ' + (HR_ROLE_LABELS[newRole] || newRole) + '.'
+          : 'Your KOMISIYONERI account role has been updated to: ' + (HR_ROLE_LABELS[newRole] || newRole) + '.'),
+        'role_changed', 'users', uid);
+    }
+    showToast(curLang === 'rw' ? 'Uruhare rwahinduwe!' : 'Role updated successfully!', 'success');
+  }).catch(function() { showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error updating role', 'error'); });
+}
+
+function toggleUserVerified(uid) {
+  if (!uid || typeof db === 'undefined') return;
+  var u = _hrStaff.find(function(x){ return x.id === uid; });
+  if (!u) return;
+  var newVal = !u.isVerified;
+  var adminUid = currentUser ? currentUser.uid : 'admin';
+  db.collection('users').doc(uid).update({
+    isVerified: newVal,
+    updatedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy:  adminUid
+  }).then(function() {
+    u.isVerified = newVal;
+    logAudit('user.verified.changed', 'users', uid, null, { isVerified: newVal });
+    var verBadge = document.getElementById('sp-verified-badge');
+    if (verBadge) verBadge.innerHTML = newVal ? '<span class="hr-verified-chip">Verified</span>' : '';
+    var verBtn = document.getElementById('sp-verify-btn');
+    if (verBtn) verBtn.textContent = newVal ? 'Unverify' : 'Verify';
+    showToast(newVal ? (curLang === 'rw' ? 'Yemejwe!' : 'User verified!') : (curLang === 'rw' ? 'Yisiwe' : 'Verification removed'), 'success');
+  }).catch(function() { showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error', 'error'); });
+}
+
+function toggleUserActive(uid) {
+  if (!uid || typeof db === 'undefined') return;
+  var u = _hrStaff.find(function(x){ return x.id === uid; });
+  if (!u) return;
+  var newVal = u.isActive === false ? true : false;
+  var adminUid = currentUser ? currentUser.uid : 'admin';
+  db.collection('users').doc(uid).update({
+    isActive:  newVal,
+    status:    newVal ? 'active' : 'suspended',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: adminUid
+  }).then(function() {
+    u.isActive = newVal;
+    logAudit(newVal ? 'user.activated' : 'user.suspended', 'users', uid, null, { isActive: newVal });
+    var statusEl = document.getElementById('sp-status');
+    if (statusEl) statusEl.innerHTML = newVal
+      ? '<span style="color:var(--success)">Active</span>'
+      : '<span style="color:var(--error)">Suspended</span>';
+    var actBtn = document.getElementById('sp-active-btn');
+    if (actBtn) actBtn.textContent = newVal ? 'Suspend' : 'Activate';
+    showToast(newVal ? (curLang === 'rw' ? 'Konti yafunguwe!' : 'Account activated!') : (curLang === 'rw' ? 'Konti ifunze!' : 'Account suspended!'), newVal ? 'success' : 'warn');
+  }).catch(function() { showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error', 'error'); });
+}
 
 /* ── PAYROLL ── */
 function loadPayroll() {
@@ -16294,8 +16886,33 @@ function loadTasks() {
     _tasks = [];
     snap.forEach(function(d) { var t = d.data(); t.id = d.id; _tasks.push(t); });
     filterTasks();
+    _checkTaskDueNotifications(_tasks);
   }).catch(function() {
     if (el) el.innerHTML = '<div class="off-empty">Unable to load tasks.</div>';
+  });
+}
+
+function _checkTaskDueNotifications(tasks) {
+  if (!currentUser || typeof notifyUser !== 'function') return;
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+  var today = new Date(); today.setHours(0,0,0,0);
+  var todayKey = today.toISOString().slice(0,10);
+  tasks.forEach(function(t) {
+    if (!t.assignedTo) return;
+    if (t.status === 'done' || t.status === 'cancelled') return;
+    if (!t.dueAt) return;
+    var due = t.dueAt.toDate ? t.dueAt.toDate() : new Date(t.dueAt);
+    due.setHours(0,0,0,0);
+    var isDueToday = due.getTime() === today.getTime();
+    var isOverdue  = due < today;
+    if (!isDueToday && !isOverdue) return;
+    var notifKey = 'km_tnotif_' + t.id + '_' + todayKey;
+    try { if (localStorage.getItem(notifKey)) return; localStorage.setItem(notifKey, '1'); } catch(e) {}
+    var target = t.assignedTo;
+    if (!isAdmin && target !== currentUser.uid) return;
+    var title = isOverdue ? 'Task Overdue' : 'Task Due Today';
+    var body  = (t.title || 'A task') + (isOverdue ? ' is overdue — please update it immediately.' : ' is due today.');
+    notifyUser(target, title, body, 'task_due', 'tasks', t.id);
   });
 }
 
@@ -16332,12 +16949,37 @@ function renderTasks(list) {
         '<span class="off-status-chip" style="background:' + st.color + '">' + st.label + '</span>' +
       '</div>' +
       '<div class="off-task-meta">' +
-        '<span>' + (t.department || 'General') + '</span>' +
+        '<span>' + (t.department || 'General') + (t.assignedToName ? ' &bull; ' + escapeHtml(t.assignedToName) : '') + '</span>' +
         '<span>' + (over ? '<span style="color:var(--error)">Overdue</span>' : 'Due: ' + due) + '</span>' +
       '</div>' +
       (t.description ? '<div class="off-task-desc">' + (t.description.length > 100 ? t.description.substring(0,100) + '&hellip;' : t.description) + '</div>' : '') +
     '</div>';
   }).join('');
+}
+
+function _loadTaskAssigneeDropdown(selectedUid) {
+  var sel = g('tcm-assigned');
+  if (!sel || typeof db === 'undefined') return;
+  if (sel.options.length > 2) {
+    /* Already loaded — just set value */
+    if (selectedUid !== undefined) sel.value = selectedUid || '';
+    return;
+  }
+  sel.innerHTML = '<option value="">-- ' + (curLang === 'rw' ? 'Ntabwo Bagenewe' : 'Unassigned') + ' --</option>';
+  db.collection('users').where('isActive', '==', true).orderBy('displayName').limit(100).get()
+    .then(function(snap) {
+      snap.forEach(function(d) {
+        var u = d.data();
+        var opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = (u.displayName || u.name || u.email || d.id)
+          + (u.role ? ' (' + u.role + ')' : '');
+        sel.appendChild(opt);
+      });
+      if (selectedUid) sel.value = selectedUid;
+    }).catch(function() {
+      sel.innerHTML = '<option value="">-- ' + (curLang === 'rw' ? 'Ntabwo Bigenze' : 'Could not load') + ' --</option>';
+    });
 }
 
 function openTaskCreate(editId) {
@@ -16348,10 +16990,10 @@ function openTaskCreate(editId) {
   g('tcm-priority').value  = 'medium';
   g('tcm-department').value= '';
   g('tcm-due').value       = '';
-  g('tcm-assigned').value  = '';
   g('tcm-edit-id').value   = '';
   var hd = g('task-modal-heading');
   if (hd) hd.textContent = 'New Task';
+  var assignedUid = '';
   if (editId) {
     var t = _tasks.find(function(x) { return x.id === editId; });
     if (t) {
@@ -16360,11 +17002,12 @@ function openTaskCreate(editId) {
       g('tcm-priority').value   = t.priority || 'medium';
       g('tcm-department').value = t.department || '';
       g('tcm-due').value        = t.dueAt ? (t.dueAt.toDate ? t.dueAt.toDate().toISOString().slice(0,10) : t.dueAt) : '';
-      g('tcm-assigned').value   = t.assignedTo || '';
       g('tcm-edit-id').value    = editId;
       if (hd) hd.textContent = 'Edit Task';
+      assignedUid = t.assignedTo || '';
     }
   }
+  _loadTaskAssigneeDropdown(assignedUid);
   openModal('task-create-modal');
 }
 function closeTaskCreate() { closeModal('task-create-modal'); }
@@ -16376,16 +17019,21 @@ function submitTask() {
   var editId  = g('tcm-edit-id').value;
   var dueVal  = g('tcm-due').value;
   var dueDate = dueVal ? new Date(dueVal) : null;
+  var assignSel = g('tcm-assigned');
+  var assignUid = assignSel ? assignSel.value.trim() : '';
+  var assignSelOpt = assignSel && assignSel.selectedIndex >= 0 ? assignSel.options[assignSel.selectedIndex] : null;
+  var assignName = (assignSelOpt && assignSelOpt.value) ? (assignSelOpt.textContent || '').replace(/\s*\(.*\)\s*$/, '').trim() : '';
   var data = {
-    title:       title,
-    description: (g('tcm-desc').value || '').trim(),
-    priority:    g('tcm-priority').value || 'medium',
-    department:  g('tcm-department').value || '',
-    assignedTo:  (g('tcm-assigned').value || '').trim(),
-    assignedBy:  currentUser.uid,
-    dueAt:       dueDate ? firebase.firestore.Timestamp.fromDate(dueDate) : null,
-    updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
-    updatedBy:   currentUser.uid
+    title:          title,
+    description:    (g('tcm-desc').value || '').trim(),
+    priority:       g('tcm-priority').value || 'medium',
+    department:     g('tcm-department').value || '',
+    assignedTo:     assignUid,
+    assignedToName: assignName,
+    assignedBy:     currentUser.uid,
+    dueAt:          dueDate ? firebase.firestore.Timestamp.fromDate(dueDate) : null,
+    updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy:      currentUser.uid
   };
   var p;
   if (editId) {
@@ -16404,6 +17052,10 @@ function submitTask() {
     loadTasks();
     loadOfficeStats();
     logAudit(editId ? 'task_updated' : 'task_created', 'tasks', editId || 'new', null, data);
+    var assignee = (g('tcm-assigned') || {}).value || data.assignedTo;
+    if (!editId && assignee && assignee !== currentUser.uid && typeof notifyUser === 'function') {
+      notifyUser(assignee, 'New Task Assigned', 'You have been assigned: ' + (data.title || 'a task'), 'task_assigned', 'tasks', '');
+    }
   }).catch(function() { showToast('Error saving task', 'error'); });
 }
 
@@ -16422,7 +17074,7 @@ function openTaskDetail(id) {
   g('td-dept').textContent       = t.department || 'General';
   g('td-due').textContent        = dueDate ? dueDate.toLocaleDateString() : 'No due date';
   g('td-created').textContent    = crtDate ? crtDate.toLocaleDateString() : '—';
-  g('td-assigned').textContent   = t.assignedTo || 'Unassigned';
+  g('td-assigned').textContent   = t.assignedToName || t.assignedTo || 'Unassigned';
   var isAdmin = ['admin','super_admin','staff','ceo'].indexOf((currentUser||{}).role) > -1;
   var isOwner = currentUser && (currentUser.uid === t.createdBy || currentUser.uid === t.assignedTo);
   var actEl   = g('td-actions');
@@ -18945,6 +19597,19 @@ function assignServicePartner() {
   db.collection('services').doc(id).update(update).then(function() {
     logAudit('service.assigned', 'services', id, { assignedTo: '', status: 'pending' }, { assignedTo: partner, status: 'assigned' });
     showToast(curLang === 'rw' ? 'Serivisi yahawe ' + partner : 'Assigned to ' + partner, 'success');
+    /* Notify the requester that their service request has been assigned */
+    var svc = null;
+    for (var si = 0; si < _verifications.length; si++) {
+      if ((_verifications[si]._docId || _verifications[si].id) === id) { svc = _verifications[si]; break; }
+    }
+    if (svc && svc.requestedBy && typeof notifyUser === 'function') {
+      notifyUser(svc.requestedBy,
+        curLang === 'rw' ? '&#128203; Ikibazo Cyahindaguwe' : '&#128203; Service Request Assigned',
+        (curLang === 'rw'
+          ? 'Ikibazo cya ' + escapeHtml(svc.serviceType || 'serivisi') + ' cyahawe inzobere. Bazakugera vuba.'
+          : 'Your ' + escapeHtml(svc.serviceType || 'service') + ' request has been assigned to a specialist. They will contact you shortly.'),
+        'service_assigned', 'services', id);
+    }
     for (var i = 0; i < _verifications.length; i++) {
       if ((_verifications[i]._docId || _verifications[i].id) === id) {
         _verifications[i].assignedTo  = partner;
@@ -18977,6 +19642,15 @@ function updateServiceStatus(newStatus) {
     logAudit('service.status.changed', 'services', id, { status: oldStatus }, { status: newStatus });
     var label = newStatus.replace(/_/g,' ');
     showToast((curLang === 'rw' ? 'Status yahinduwe: ' : 'Status updated: ') + label, 'success');
+    /* Notify requester when service is completed */
+    if ((newStatus === 'completed' || newStatus === 'report_ready') && _vdCurrentService && _vdCurrentService.requestedBy && typeof notifyUser === 'function') {
+      notifyUser(_vdCurrentService.requestedBy,
+        curLang === 'rw' ? '&#9989; Serivisi Yarangiye!' : '&#9989; Service Completed!',
+        (curLang === 'rw'
+          ? 'Serivisi ya ' + escapeHtml(_vdCurrentService.serviceType || 'serivisi') + ' yarangiye. Reba raporo muri konti yawe.'
+          : 'Your ' + escapeHtml(_vdCurrentService.serviceType || 'service') + ' request has been completed. Check your account for the report.'),
+        'service_completed', 'services', id);
+    }
     for (var i = 0; i < _verifications.length; i++) {
       if ((_verifications[i]._docId || _verifications[i].id) === id) {
         _verifications[i].status = newStatus; break;
@@ -19126,8 +19800,47 @@ function autoCalculateCommission(dealId, deal) {
       showToast(curLang === 'rw'
         ? 'Komisiyoni yabarwe: ' + total.toLocaleString() + ' RWF'
         : 'Commission calculated: ' + total.toLocaleString() + ' RWF', 'success');
+      /* Notify the agent that their commission has been recorded */
+      if (typeof notifyUser === 'function' && deal.agentId) {
+        notifyUser(deal.agentId,
+          curLang==='rw' ? '&#128176; Komisiyoni Yabitswe!' : '&#128176; Commission Recorded!',
+          (curLang==='rw'
+            ? 'Komisiyoni yawe: ' + agentShare.toLocaleString() + ' RWF (' + deal.clientName + ').'
+            : 'Commission of ' + agentShare.toLocaleString() + ' RWF recorded for ' + (deal.clientName || 'deal') + '.'),
+          'commission_calculated', 'commissions', ref.id);
+      }
       var badge = document.getElementById('comm-sidebar-count');
       if (badge) badge.textContent = parseInt(badge.textContent || 0) + 1;
+      /* Auto-qualify referral if client was referred */
+      if (deal.clientId && typeof db !== 'undefined') {
+        db.collection('referrals')
+          .where('referredUserId','==',deal.clientId)
+          .where('isActive','==',true)
+          .where('status','==','registered')
+          .limit(1).get()
+          .then(function(rSnap) {
+            if (rSnap.empty) return;
+            var rDoc = rSnap.docs[0];
+            var rData = rDoc.data();
+            return rDoc.ref.update({
+              status:      'qualified',
+              qualifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
+              dealId:      dealId,
+              updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
+              updatedBy:   uid
+            }).then(function() {
+              logAudit('referral.qualified', 'referrals', rDoc.id, { status:'registered' }, { status:'qualified', dealId: dealId });
+              if (typeof notifyUser === 'function' && rData.referrerId) {
+                notifyUser(rData.referrerId,
+                  curLang === 'rw' ? '&#127881; Itumizwa Ryawe Ryemejwe!' : '&#127881; Your Referral Qualified!',
+                  (curLang === 'rw'
+                    ? 'Umuntu watumije yashyize umugati warangiye. Uzahabwa inguzanyo vuba!'
+                    : 'Someone you referred just completed a deal! You will receive your referral reward soon.'),
+                  'referral_qualified', 'referrals', rDoc.id);
+              }
+            });
+          }).catch(function(e){ console.warn('[Referral] qualification check error:', e); });
+      }
     })
     .catch(function(err) { console.error('[Commission] auto-calc error:', err); });
 }
@@ -19974,11 +20687,16 @@ function submitCounterOffer() {
 // ── Create New Deal (manual) ──────────────────────────
 function openCreateDeal() {
   var m = document.getElementById('create-deal-modal');
-  if (m) m.style.display = 'flex';
-  if (typeof currentUser !== 'undefined' && currentUser) {
-    var n = document.getElementById('cd-client-name');
-    if (n && !n.value) n.value = '';
-  }
+  if (!m) return;
+  /* Reset all fields on fresh open */
+  ['cd-prop-title','cd-client-name','cd-client-phone','cd-price',
+   'cd-lead-id','cd-agent-id','cd-agent-name-h'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  var typeEl = document.getElementById('cd-deal-type');
+  if (typeEl) typeEl.value = 'sale';
+  m.style.display = 'flex';
 }
 
 function createNewDeal() {
@@ -19987,6 +20705,9 @@ function createNewDeal() {
   var phoneEl  = document.getElementById('cd-client-phone');
   var typeEl   = document.getElementById('cd-deal-type');
   var priceEl  = document.getElementById('cd-price');
+  var leadIdEl = document.getElementById('cd-lead-id');
+  var agentIdEl= document.getElementById('cd-agent-id');
+  var agentNhEl= document.getElementById('cd-agent-name-h');
   var sbBtn    = document.getElementById('cd-submit-btn');
   var sbLbl    = document.getElementById('cd-submit-lbl');
 
@@ -19995,6 +20716,9 @@ function createNewDeal() {
   var clientPhone = phoneEl  ? phoneEl.value.trim()   : '';
   var dealType    = typeEl   ? typeEl.value           : 'sale';
   var price       = priceEl  ? parseInt(priceEl.value) || 0 : 0;
+  var leadId      = leadIdEl ? leadIdEl.value.trim()  : '';
+  var pickedAgent = agentIdEl ? agentIdEl.value.trim() : '';
+  var pickedAgentNm = agentNhEl ? agentNhEl.value.trim() : '';
 
   if (!propTitle)   { showToast(curLang === 'rw' ? 'Shyira izina ry\'imitungo!' : 'Enter property name!', 'error'); return; }
   if (!clientName)  { showToast(curLang === 'rw' ? 'Shyira amazina y\'umukiliya!' : 'Enter client name!', 'error'); return; }
@@ -20005,28 +20729,29 @@ function createNewDeal() {
   if (typeof db === 'undefined') { showToast('Firebase ntabwo ihuye', 'error'); return; }
 
   var uid       = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : '';
-  var agentName = typeof currentUser !== 'undefined' && currentUser
-    ? (currentUser.displayName || currentUser.name || '') : '';
-
+  var agentId   = pickedAgent || uid;
+  var agentName = pickedAgentNm || (typeof currentUser !== 'undefined' && currentUser
+    ? (currentUser.displayName || currentUser.name || '') : '');
   var defaultRate = dealType === 'rental' ? 0.0833 : 0.04;
+  var notesVal  = leadId ? ((curLang === 'rw' ? 'Ivuye kuri Lead: ' : 'Converted from Lead: ') + clientName + ' — ' + leadId) : '';
 
   db.collection('deals').add({
     id:             '',
-    leadId:         '',
+    leadId:         leadId,
     propertyId:     '',
     propertyTitle:  propTitle,
     clientId:       '',
     clientName:     clientName,
     clientPhone:    clientPhone,
     sellerId:       '',
-    agentId:        uid,
+    agentId:        agentId,
     agentName:      agentName,
     dealType:       dealType,
     agreedPrice:    price,
     commissionRate: defaultRate,
     pipelineStage:  'new',
     offerId:        '',
-    notes:          '',
+    notes:          notesVal,
     milestones:     {},
     closedAt:       null,
     isActive:       true,
@@ -20038,12 +20763,22 @@ function createNewDeal() {
   }).then(function(ref) {
     ref.update({ id: ref.id });
     logAudit('deal.created', 'deals', ref.id, null,
-      { propertyTitle: propTitle, clientName: clientName, dealType: dealType });
+      { propertyTitle: propTitle, clientName: clientName, dealType: dealType, leadId: leadId });
+    /* Link lead to deal if converted */
+    if (leadId && typeof db !== 'undefined') {
+      db.collection('leads').doc(leadId).update({ dealId: ref.id, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(function(){});
+    }
+    /* Notify the agent if someone else created this deal for them */
+    if (agentId && agentId !== uid && typeof notifyUser === 'function') {
+      notifyUser(agentId, curLang==='rw' ? 'Deal Nshya!' : 'New Deal Assigned!',
+        (curLang==='rw' ? 'Deal nshya: ' : 'New deal opened: ') + propTitle + ' — ' + clientName,
+        'deal_assigned', 'deals', ref.id);
+    }
     showToast(curLang === 'rw' ? 'Deal ifunguwe!' : 'Deal opened!', 'success');
     document.getElementById('create-deal-modal').style.display = 'none';
     if (sbBtn) { sbBtn.disabled = false; if(sbLbl) sbLbl.textContent = curLang === 'rw' ? 'Fungura Deal' : 'Open Deal'; }
-    // Clear form
-    [propEl, clientEl, phoneEl, priceEl].forEach(function(el) { if(el) el.value = ''; });
+    /* Clear form + hidden fields */
+    [propEl, clientEl, phoneEl, priceEl, leadIdEl, agentIdEl, agentNhEl].forEach(function(el) { if(el) el.value = ''; });
     loadDeals();
   }).catch(function(err) {
     showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error creating deal', 'error');
@@ -20397,9 +21132,36 @@ function loadCRM() {
     renderCrmLeads();
     updateCrmStats();
     updateCrmSidebarBadge();
+    _checkLeadFollowupNotifications(_crmLeads);
   }).catch(function(err) {
     console.warn('[CRM] Firestore query failed, using fallback:', err);
     _loadCrmFallback();
+  });
+}
+
+function _checkLeadFollowupNotifications(leads) {
+  if (!currentUser || typeof notifyUser !== 'function') return;
+  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
+  var today = new Date(); today.setHours(0,0,0,0);
+  var todayKey = today.toISOString().slice(0,10);
+  leads.forEach(function(l) {
+    if (!l.nextFollowUp) return;
+    if (l.pipelineStage === 'closed_won' || l.pipelineStage === 'closed_lost') return;
+    var target = l.agentId || '';
+    if (!target) return;
+    if (!isAdmin && target !== currentUser.uid) return;
+    var fuDate = l.nextFollowUp.toDate ? l.nextFollowUp.toDate() : new Date(l.nextFollowUp);
+    fuDate.setHours(0,0,0,0);
+    var isDueToday = fuDate.getTime() === today.getTime();
+    var isOverdue  = fuDate < today;
+    if (!isDueToday && !isOverdue) return;
+    var notifKey = 'km_funotif_' + (l._docId || l.id) + '_' + todayKey;
+    try { if (localStorage.getItem(notifKey)) return; localStorage.setItem(notifKey, '1'); } catch(e) {}
+    var clientN = l.clientName || 'Client';
+    var title   = isOverdue ? 'Follow-up Overdue' : 'Follow-up Due Today';
+    var body    = (curLang === 'rw' ? 'Subira kuri ' : 'Follow up with ') + clientN
+      + (isOverdue ? (curLang === 'rw' ? ' — Yarengeje!' : ' — Overdue!') : (curLang === 'rw' ? ' uyu munsi.' : ' today.'));
+    notifyUser(target, title, body, 'lead_followup', 'leads', l._docId || l.id || '');
   });
 }
 
@@ -22501,7 +23263,7 @@ function loadAgentDashboard() {
   });
 
   /* Load activity feed */
-  loadDashboardActivity();
+  loadDashboardActivity(cu, _isAgentRole);
 
   /* Load follow-up reminders */
   loadDashFollowups(cu, _isAgentRole);
@@ -22566,38 +23328,91 @@ function loadDashFollowups(cu, isAgentRole) {
   });
 }
 
-function loadDashboardActivity() {
+function loadDashboardActivity(cu, isAgentRole) {
+  cu = cu || currentUser;
+  var _isAgent = typeof isAgentRole !== 'undefined' ? !!isAgentRole
+    : (cu && (cu.role || '').toLowerCase() === 'agent');
   var container = document.getElementById('dash-activity-list');
-  if (!container) return;
+  if (!container || !cu || typeof db === 'undefined') return;
   container.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--muted);font-size:.8rem">Loading...</div>';
 
   var ACT_ICONS = {
-    'deal_created'     : { bg:'ai-green', svg:'<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' },
-    'deal_updated'     : { bg:'ai-blue',  svg:'<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' },
-    'lead_created'     : { bg:'ai-blue',  svg:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>' },
-    'property_created' : { bg:'ai-gold',  svg:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
-    'property_updated' : { bg:'ai-gold',  svg:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
-    'commission_paid'  : { bg:'ai-green', svg:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>' },
-    'user_created'     : { bg:'ai-blue',  svg:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>' },
-    'default'          : { bg:'ai-blue',  svg:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>' }
+    'deal_created'      : { bg:'ai-green', svg:'<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' },
+    'deal_updated'      : { bg:'ai-blue',  svg:'<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' },
+    'lead_created'      : { bg:'ai-blue',  svg:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>' },
+    'lead_updated'      : { bg:'ai-blue',  svg:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>' },
+    'viewing_scheduled' : { bg:'ai-gold',  svg:'<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
+    'viewing_completed' : { bg:'ai-green', svg:'<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
+    'property_created'  : { bg:'ai-gold',  svg:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
+    'property_updated'  : { bg:'ai-gold',  svg:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
+    'commission_paid'   : { bg:'ai-green', svg:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>' },
+    'user_created'      : { bg:'ai-blue',  svg:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>' },
+    'user_approved'     : { bg:'ai-green', svg:'<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' },
+    'default'           : { bg:'ai-blue',  svg:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>' }
   };
 
   function timeAgo(dt) {
     var diff = Math.floor((Date.now() - dt.getTime()) / 1000);
-    if (diff < 60) return diff + 's';
-    if (diff < 3600) return Math.floor(diff/60) + 'm';
-    if (diff < 86400) return Math.floor(diff/3600) + 'h';
-    return Math.floor(diff/86400) + 'd';
+    if (diff < 60) return diff + 's ago';
+    if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+    return Math.floor(diff/86400) + 'd ago';
   }
 
+  function _noActivity() {
+    container.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:.82rem">'
+      + (curLang==='rw'?'Nta bikorwa biraboneka':'No recent activity yet') + '</div>';
+  }
+
+  if (_isAgent) {
+    /* Agent path: pull own leads + viewings, merge by recency */
+    var leadsP = db.collection('leads')
+      .where('agentId','==',cu.uid).where('isActive','==',true)
+      .orderBy('createdAt','desc').limit(6).get();
+    var viewsP = db.collection('viewings')
+      .where('agentId','==',cu.uid).where('isActive','==',true)
+      .limit(10).get();
+
+    Promise.all([leadsP, viewsP]).then(function(results) {
+      var items = [];
+      results[0].forEach(function(d) {
+        var x = d.data();
+        var dt = x.createdAt ? (x.createdAt.toDate ? x.createdAt.toDate() : new Date(x.createdAt)) : new Date();
+        var stage = (x.pipelineStage || 'new').replace(/_/g,' ');
+        items.push({ dt:dt, ico: ACT_ICONS['lead_created'],
+          label: curLang==='rw'?'Lead Nshya':'New Lead',
+          detail: escapeHtml(x.clientName||x.clientEmail||'Client') + ' &bull; ' + escapeHtml(stage) });
+      });
+      results[1].forEach(function(d) {
+        var x = d.data();
+        var dt = x.scheduledAt ? (x.scheduledAt.toDate ? x.scheduledAt.toDate() : new Date(x.scheduledAt))
+              : (x.createdAt  ? (x.createdAt.toDate  ? x.createdAt.toDate()  : new Date(x.createdAt))  : new Date());
+        var icoKey = x.status === 'completed' ? 'viewing_completed' : 'viewing_scheduled';
+        items.push({ dt:dt, ico: ACT_ICONS[icoKey],
+          label: curLang==='rw'?'Gusura':'Viewing',
+          detail: escapeHtml(x.propertyTitle||x.clientName||'Property') + ' &bull; ' + escapeHtml(x.status||'scheduled') });
+      });
+      items.sort(function(a,b){ return b.dt.getTime() - a.dt.getTime(); });
+      items = items.slice(0,8);
+      if (!items.length) { _noActivity(); return; }
+      var html = '';
+      items.forEach(function(item) {
+        html += '<div class="act"><div class="act-ic '+item.ico.bg+'"><svg viewBox="0 0 24 24">'+item.ico.svg+'</svg></div>'
+          + '<div class="act-t"><strong>' + item.label + '</strong>'
+          + '<span>' + item.detail + ' &bull; ' + timeAgo(item.dt) + '</span></div></div>';
+      });
+      container.innerHTML = html;
+    }).catch(function() {
+      container.innerHTML = '<div style="padding:1rem;color:var(--muted);font-size:.8rem;text-align:center">—</div>';
+    });
+    return;
+  }
+
+  /* Admin / staff path: auditlogs with lead fallback */
   db.collection('auditlogs').orderBy('createdAt','desc').limit(8).get().then(function(snap) {
     if (snap.empty) {
-      /* Fall back: show recent leads from Firestore */
       db.collection('leads').where('isActive','==',true).orderBy('createdAt','desc').limit(6).get().then(function(lSnap) {
-        if (lSnap.empty) {
-          container.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:.82rem">' + (curLang==='rw'?'Nta bikorwa biraboneka':'No recent activity yet') + '</div>';
-          return;
-        }
+        if (lSnap.empty) { _noActivity(); return; }
         var html = '';
         lSnap.forEach(function(d) {
           var x = d.data();
@@ -22605,13 +23420,12 @@ function loadDashboardActivity() {
           var ico = ACT_ICONS['lead_created'];
           html += '<div class="act"><div class="act-ic '+ico.bg+'"><svg viewBox="0 0 24 24">'+ico.svg+'</svg></div>'
             + '<div class="act-t"><strong>' + (curLang==='rw'?'Lead Nshya':'New Lead') + '</strong>'
-            + '<span>' + escapeHtml(x.clientName||x.clientEmail||'Client') + ' · ' + timeAgo(dt) + '</span></div></div>';
+            + '<span>' + escapeHtml(x.clientName||x.clientEmail||'Client') + ' &bull; ' + timeAgo(dt) + '</span></div></div>';
         });
         container.innerHTML = html;
       }).catch(function(){ container.innerHTML = '<div style="padding:1rem;color:var(--muted);font-size:.8rem;text-align:center">—</div>'; });
       return;
     }
-
     var html = '';
     snap.forEach(function(d) {
       var x = d.data();
@@ -22622,7 +23436,7 @@ function loadDashboardActivity() {
       var detail = escapeHtml(x.collection || '') + (x.docId ? ' #'+escapeHtml(String(x.docId).slice(-6)) : '');
       html += '<div class="act"><div class="act-ic '+ico.bg+'"><svg viewBox="0 0 24 24">'+ico.svg+'</svg></div>'
         + '<div class="act-t"><strong>' + label + '</strong>'
-        + '<span>' + detail + ' · ' + timeAgo(dt) + '</span></div></div>';
+        + '<span>' + detail + ' &bull; ' + timeAgo(dt) + '</span></div></div>';
     });
     container.innerHTML = html;
   }).catch(function() {
@@ -22755,14 +23569,24 @@ function _mergePropsToCache(fsProps) {
   return merged;
 }
 
+var _listPage     = 1;
+var _listPageSize = 12;
+var _listFiltered = null; /* null = use all approved props */
+
 /* Render approved props from localStorage cache into all #p-grid-main elements */
-function _renderApprovedGrids() {
+function _renderApprovedGrids(filtered) {
+  if (typeof filtered !== 'undefined') _listFiltered = filtered;
   var grids = document.querySelectorAll('#p-grid-main');
-  var approved = getApprovedProps();
+  var all = _listFiltered !== null ? _listFiltered : getApprovedProps();
+  var totalPages = Math.max(1, Math.ceil(all.length / _listPageSize));
+  if (_listPage > totalPages) _listPage = totalPages;
+  var start   = (_listPage - 1) * _listPageSize;
+  var pageItems = all.slice(start, start + _listPageSize);
+
   grids.forEach(function(grid) {
-    grid.querySelectorAll('.user-prop-card, .sk-init').forEach(function(el) { el.remove(); });
+    grid.querySelectorAll('.user-prop-card, .sk-init, .similar-results-note').forEach(function(el) { el.remove(); });
     var emp = grid.querySelector('.empty-listings'); if (emp) emp.remove();
-    if (approved.length === 0) {
+    if (all.length === 0) {
       var d = document.createElement('div');
       d.className = 'empty-listings empty-state';
       d.innerHTML = '<div class="es-icon">&#127968;</div>'
@@ -22774,7 +23598,7 @@ function _renderApprovedGrids() {
         + (typeof t === 'function' ? t('demoBtn') : 'Demo') + '</button>';
       grid.appendChild(d);
     } else {
-      approved.forEach(function(prop) {
+      pageItems.forEach(function(prop) {
         var w = document.createElement('div');
         w.className = 'user-prop-card';
         w.setAttribute('data-pid', String(prop.id));
@@ -22784,7 +23608,112 @@ function _renderApprovedGrids() {
     }
   });
   var countEl = document.getElementById('listings-count');
-  if (countEl) countEl.textContent = approved.length;
+  if (countEl) countEl.textContent = all.length;
+  _renderListingsPagination(all.length, totalPages);
+}
+
+function _renderListingsPagination(total, totalPages) {
+  var pag = document.getElementById('listings-pagination');
+  if (!pag) return;
+  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+
+  var cur = _listPage;
+  var html = '';
+
+  /* Prev button */
+  if (cur > 1) {
+    html += '<button class="btn btn-outline btn-sm" onclick="goToListPage(' + (cur-1) + ')">'
+      + '<svg viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>';
+  }
+
+  /* Page numbers — show max 5 pages with ellipsis */
+  var pages = [];
+  if (totalPages <= 7) {
+    for (var i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (cur > 3) pages.push('...');
+    var lo = Math.max(2, cur - 1), hi = Math.min(totalPages - 1, cur + 1);
+    for (var p = lo; p <= hi; p++) pages.push(p);
+    if (cur < totalPages - 2) pages.push('...');
+    pages.push(totalPages);
+  }
+
+  pages.forEach(function(pg) {
+    if (pg === '...') {
+      html += '<span style="padding:.44rem .4rem;color:var(--muted)">…</span>';
+    } else {
+      var cls = pg === cur ? 'btn btn-navy btn-sm' : 'btn btn-outline btn-sm';
+      html += '<button class="' + cls + '" onclick="goToListPage(' + pg + ')">' + pg + '</button>';
+    }
+  });
+
+  /* Next button */
+  if (cur < totalPages) {
+    html += '<button class="btn btn-outline btn-sm" onclick="goToListPage(' + (cur+1) + ')">'
+      + '<svg viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>';
+  }
+
+  /* Page info */
+  var label = curLang === 'rw'
+    ? ('Urupapuro ' + cur + ' / ' + totalPages)
+    : ('Page ' + cur + ' of ' + totalPages);
+  html = '<span style="font-size:.72rem;color:var(--muted);margin-right:.5rem">' + label + '</span>' + html;
+
+  pag.innerHTML = html;
+}
+
+function goToListPage(n) {
+  _listPage = n;
+  _renderApprovedGrids();
+  var listHdr = document.querySelector('#page-listings .list-body');
+  if (listHdr) listHdr.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* Override applyAndSearch — integrates hero/modal search with pagination system */
+function applyAndSearch() {
+  var approved = getApprovedProps();
+  var filtered  = applySearchFilters(approved);
+  window._filtersActive = true;
+  closeSearch();
+  go('listings');
+  kmTrack('search', { query: window._qs_query || '', results: filtered.length });
+  setTimeout(function() {
+    if (filtered.length > 0) {
+      _listPage = 1;
+      _renderApprovedGrids(filtered);
+    } else {
+      /* Zero results: clear pagination and show closest matches */
+      _listPage = 1;
+      _listFiltered = [];
+      var qText = window._qs_query || (function() {
+        var el = document.getElementById('sm-quick-search'); return el ? el.value.trim() : '';
+      })();
+      var similar = approved.map(function(p) { return { p: p, s: kmScore(qText || '', p) }; })
+        .sort(function(a, b) { return b.s - a.s; }).slice(0, 6);
+      var grids = document.querySelectorAll('#p-grid-main');
+      grids.forEach(function(grid) {
+        grid.querySelectorAll('.user-prop-card, .sk-init, .empty-listings, .similar-results-note').forEach(function(el) { el.remove(); });
+        var note = document.createElement('div');
+        note.className = 'similar-results-note';
+        note.style.cssText = 'grid-column:1/-1';
+        note.innerHTML = '<span>&#128269; ' + (curLang === 'rw' ? 'Nta mitungo ihuye — hano ni imitungo ifanana:' : 'No exact match — showing closest results:') + '</span>'
+          + '&nbsp;<button onclick="resetSearch()" class="btn btn-navy btn-sm" style="margin:0">' + (curLang === 'rw' ? 'Siba' : 'Clear') + ' &#8594;</button>';
+        grid.appendChild(note);
+        similar.forEach(function(x) {
+          var w = document.createElement('div');
+          w.className = 'user-prop-card';
+          w.setAttribute('data-pid', String(x.p.id));
+          w.innerHTML = renderUserPropCard(x.p);
+          grid.appendChild(w);
+        });
+      });
+      var countEl = document.getElementById('listings-count');
+      if (countEl) countEl.textContent = 0;
+      var pag = document.getElementById('listings-pagination');
+      if (pag) pag.innerHTML = '';
+    }
+  }, 150);
 }
 
 /* Override — last function declaration wins, replaces original at line ~9719 */
@@ -23019,25 +23948,21 @@ function setListingView(view) {
   }
 }
 
-/* Sort currently rendered property cards */
+/* Sort underlying data and re-render from page 1 */
 function sortListings(value) {
-  var grids = document.querySelectorAll('#p-grid-main');
-  grids.forEach(function(grid) {
-    var cards = Array.prototype.slice.call(grid.querySelectorAll('.user-prop-card'));
-    if (cards.length < 2) return;
-    var approved = getApprovedProps();
-    var propMap = {};
-    approved.forEach(function(p) { propMap[String(p.id)] = p; });
-    cards.sort(function(a, b) {
-      var pa = propMap[a.getAttribute('data-pid')] || {};
-      var pb = propMap[b.getAttribute('data-pid')] || {};
-      if (value === 'price-asc')  return (parseInt(pa.price)||0) - (parseInt(pb.price)||0);
-      if (value === 'price-desc') return (parseInt(pb.price)||0) - (parseInt(pa.price)||0);
-      if (value === 'featured')   return (pb.featured ? 1 : 0) - (pa.featured ? 1 : 0);
-      return 0; /* newest: Firestore already ordered */
-    });
-    cards.forEach(function(c) { grid.appendChild(c); });
+  var data = _listFiltered !== null ? _listFiltered : getApprovedProps();
+  data.sort(function(a, b) {
+    if (value === 'price-asc')  return (parseInt(a.price)||0) - (parseInt(b.price)||0);
+    if (value === 'price-desc') return (parseInt(b.price)||0) - (parseInt(a.price)||0);
+    if (value === 'newest') {
+      var ta = a.createdAt ? (a.createdAt.seconds||0) : 0;
+      var tb = b.createdAt ? (b.createdAt.seconds||0) : 0;
+      return tb - ta;
+    }
+    return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
   });
+  _listPage = 1;
+  _renderApprovedGrids(data);
 }
 
 /* Apply sidebar filters to the listings grid */
@@ -23106,37 +24031,25 @@ function applySidebarFilters() {
     return true;
   });
 
-  /* Render */
-  var grids = document.querySelectorAll('#p-grid-main');
-  grids.forEach(function(grid) {
-    grid.querySelectorAll('.user-prop-card, .empty-listings, .similar-results-note').forEach(function(el) { el.remove(); });
-    if (filtered.length === 0) {
-      var d = document.createElement('div');
-      d.className = 'empty-listings empty-state';
-      d.style.cssText = 'grid-column:1/-1';
-      d.innerHTML = '<div class="es-icon">&#128270;</div>'
-        + '<div class="es-title">' + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Nta mitungo ihuye' : 'No matching properties') + '</div>'
-        + '<div class="es-sub">' + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Gerageza guhindura filters' : 'Try adjusting your filters') + '</div>'
-        + '<button onclick="resetSidebarFilters()" class="btn btn-outline btn-sm" style="margin-top:.6rem">'
-        + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Siba Filters' : 'Reset Filters') + '</button>';
-      grid.appendChild(d);
-    } else {
-      filtered.forEach(function(prop) {
-        var w = document.createElement('div');
-        w.className = 'user-prop-card';
-        w.setAttribute('data-pid', String(prop.id));
-        w.innerHTML = renderUserPropCard(prop);
-        grid.appendChild(w);
-      });
-    }
-  });
-
-  var countEl = document.getElementById('listings-count');
-  if (countEl) countEl.textContent = filtered.length;
-
-  /* Re-apply current sort */
+  /* Re-apply current sort before rendering */
   var sortEl = document.getElementById('filt-sort');
-  if (sortEl && sortEl.value && sortEl.value !== 'featured') sortListings(sortEl.value);
+  if (sortEl && sortEl.value && sortEl.value !== 'featured') {
+    var sv = sortEl.value;
+    filtered.sort(function(a, b) {
+      if (sv === 'price-asc')  return (parseInt(a.price)||0) - (parseInt(b.price)||0);
+      if (sv === 'price-desc') return (parseInt(b.price)||0) - (parseInt(a.price)||0);
+      if (sv === 'newest') {
+        var ta = a.createdAt ? (a.createdAt.seconds||0) : 0;
+        var tb = b.createdAt ? (b.createdAt.seconds||0) : 0;
+        return tb - ta;
+      }
+      return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
+    });
+  }
+
+  /* Reset to page 1 and render with pagination */
+  _listPage = 1;
+  _renderApprovedGrids(filtered);
 
   if (fBtn) {
     fBtn.disabled = false;
@@ -23158,6 +24071,8 @@ function resetSidebarFilters() {
     }
   }
   var sortEl = document.getElementById('filt-sort'); if (sortEl) sortEl.value = 'featured';
+  _listPage = 1;
+  _listFiltered = null;
   loadApprovedProperties();
 }
 
@@ -23521,7 +24436,7 @@ function adminRender(filter) {
         + (prop.contact?'<div style="font-size:.78rem;color:var(--muted)">📞 '+escapeHtml(prop.contact)+'</div>':'')
         + '<div style="font-size:.85rem;margin:.4rem 0;font-weight:600">💰 '+priceDisplay+' ('+escapeHtml(prop.service||prop.category||'')+')</div>'
         + (prop.description||prop.desc?'<div style="font-size:.78rem;color:#555;font-style:italic">'+escapeHtml((prop.description||prop.desc||'').substring(0,100))+'...</div>':'')
-        + '<div style="font-size:.72rem;color:var(--muted)">📅 '+(prop.date||'')+' '+(fsId?'<span style="background:#e0f2fe;color:#0369a1;padding:1px 5px;border-radius:4px;font-size:.65rem">FS ✓</span>':'<span style="background:#fef9c3;color:#78350f;padding:1px 5px;border-radius:4px;font-size:.65rem">LOCAL</span>')+'</div>'
+        + '<div style="font-size:.72rem;color:var(--muted)">📅 '+(prop.date||'')+' '+(fsId?'<span style="background:#e0f2fe;color:#0369a1;padding:1px 5px;border-radius:4px;font-size:.65rem">FS ✓</span>':'<span style="background:#fef9c3;color:#78350f;padding:1px 5px;border-radius:4px;font-size:.65rem">LOCAL</span>')+(prop.viewCount?' <span style="background:#f0fdf4;color:#166534;padding:1px 5px;border-radius:4px;font-size:.65rem">&#128065; '+Number(prop.viewCount).toLocaleString()+'</span>':'')+'</div>'
         + '</div>'
         + '<div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">'
         + '<div style="font-size:.7rem;font-weight:700;color:'+statusColor+';text-align:center">'+escapeHtml(st)+'</div>'
@@ -23648,6 +24563,8 @@ function _fsAdminDelete(idx) {
     }
     var m = document.getElementById('admin-modal'); if (m) m.style.display = 'flex';
     adminRender('pending');
+    /* Load Firestore pending users badge on admin open */
+    setTimeout(function() { if (typeof _loadFsPendingUsers === 'function') _loadFsPendingUsers(); }, 400);
   };
 })();
 
@@ -25490,11 +26407,13 @@ function openAgentLead() {
     if (agEl) agEl.value = currentUser.displayName || currentUser.name || currentUser.email || '';
   }
 
-  // Show assign-agent row only for admin/staff
+  // Show assign-agent row only for admin/staff and populate agent dropdown
   var assignRow = document.getElementById('al-assign-row');
   if (assignRow) {
     var role = typeof currentUser !== 'undefined' && currentUser ? (currentUser.role || '').toLowerCase() : '';
-    assignRow.style.display = ['admin','super_admin','staff','ceo'].indexOf(role) > -1 ? '' : 'none';
+    var isAdm = ['admin','super_admin','staff','ceo'].indexOf(role) > -1;
+    assignRow.style.display = isAdm ? '' : 'none';
+    if (isAdm) _loadAlAgentDropdown();
   }
 
   modal.style.display = 'flex';
@@ -25545,7 +26464,7 @@ function _ensureAgentLeadModal() {
     + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Urwego rw\'Akiciro" data-en="Priority">Priority</label><select id="al-priority" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"><option value="hot">🔥 Hot</option><option value="warm" selected>🌡️ Warm</option><option value="cold">🧊 Cold</option></select></div>'
     + '</div>'
     /* Agent assignment (admin/staff only) */
-    + '<div id="al-assign-row" style="display:none"><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Izina rya Agent" data-en="Agent Name">Agent Name</label><input id="al-agent-name" type="text" placeholder="Agent name..." style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"></div>'
+    + '<div id="al-assign-row" style="display:none"><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Shyira Agent" data-en="Assign to Agent">Assign to Agent</label><select id="al-agent-select" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;box-sizing:border-box"><option value="">-- Loading agents... --</option></select><input type="hidden" id="al-agent-name" value=""></div>'
     /* Notes */
     + '<div><label style="font-size:.75rem;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem" data-rw="Inyandiko (Ntibisabwa)" data-en="Notes (Optional)">Notes (Optional)</label><textarea id="al-notes" rows="2" placeholder="Any extra details..." style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;resize:vertical;box-sizing:border-box;display:block"></textarea></div>'
     /* Footer */
@@ -25557,6 +26476,23 @@ function _ensureAgentLeadModal() {
     + '</div>';
   modal.addEventListener('click', function(e) { if (e.target === modal) closeAgentLead(); });
   document.body.appendChild(modal);
+}
+
+function _loadAlAgentDropdown() {
+  var sel = document.getElementById('al-agent-select');
+  if (!sel || typeof db === 'undefined') return;
+  sel.innerHTML = '<option value="">-- ' + (curLang==='rw' ? 'Ntabwo Bagenewe' : 'Unassigned') + ' --</option>';
+  db.collection('users').where('role','==','agent').where('isActive','==',true).orderBy('displayName').limit(80).get()
+    .then(function(snap) {
+      snap.forEach(function(d) {
+        var u = d.data();
+        var opt = document.createElement('option');
+        opt.value = d.id;
+        opt.dataset.name = u.displayName || u.name || u.email || d.id;
+        opt.textContent = (u.displayName || u.name || u.email || d.id);
+        sel.appendChild(opt);
+      });
+    }).catch(function() {});
 }
 
 function saveAgentLead() {
@@ -25575,13 +26511,19 @@ function saveAgentLead() {
   var role = typeof currentUser !== 'undefined' && currentUser ? (currentUser.role || '').toLowerCase() : '';
   var isAdminRole = ['admin','super_admin','staff','ceo'].indexOf(role) > -1;
 
+  /* For admin: read agent UID + name from the dropdown */
+  var selEl = document.getElementById('al-agent-select');
+  var selOpt = selEl && selEl.selectedIndex >= 0 ? selEl.options[selEl.selectedIndex] : null;
+  var pickedAgentId   = (selEl && selEl.value) ? selEl.value : '';
+  var pickedAgentName = (selOpt && selOpt.dataset && selOpt.dataset.name) ? selOpt.dataset.name : '';
+
   var leadData = {
     id:            '',
     clientName:    name,
     clientPhone:   phone,
     clientEmail:   g('al-client-email'),
-    agentId:       isAdminRole ? '' : uid,
-    agentName:     g('al-agent-name') || (typeof currentUser !== 'undefined' && currentUser ? (currentUser.displayName || currentUser.name || '') : ''),
+    agentId:       isAdminRole ? pickedAgentId : uid,
+    agentName:     isAdminRole ? pickedAgentName : (typeof currentUser !== 'undefined' && currentUser ? (currentUser.displayName || currentUser.name || '') : ''),
     action:        g('al-property-type'),
     district:      g('al-district'),
     zone:          g('al-district'),
@@ -25600,7 +26542,6 @@ function saveAgentLead() {
     createdBy:     uid || 'system',
     updatedBy:     uid || 'system'
   };
-  if (!isAdminRole) leadData.agentId = uid;
 
   if (typeof db !== 'undefined') {
     db.collection('leads').add(leadData).then(function(ref) {
@@ -25728,29 +26669,26 @@ function _convertLeadToDealData(lead) {
   if (typeof openCreateDeal !== 'function') { showToast('Deal module not ready', 'error'); return; }
   openCreateDeal();
 
-  // Pre-fill the deal creation form from lead data
+  // Pre-fill the deal creation form from lead data (using cd-* IDs)
   setTimeout(function() {
     var fields = {
-      'deal-client-name':  lead.clientName || lead.name || '',
-      'deal-client-phone': lead.clientPhone || lead.phone || '',
-      'deal-agent-name':   lead.agentName || '',
-      'deal-agent-id':     lead.agentId || '',
-      'deal-lead-id':      lead._docId || lead.id || '',
-      'deal-district':     lead.district || lead.zone || '',
-      'deal-type':         lead.action === 'Gukodesha' ? 'rental' : 'sale',
-      'deal-agreed-price': lead.budgetMax || lead.budgetMin || ''
+      'cd-client-name':  lead.clientName || lead.name || '',
+      'cd-client-phone': lead.clientPhone || lead.phone || '',
+      'cd-deal-type':    lead.action === 'Gukodesha' ? 'rental' : 'sale',
+      'cd-price':        lead.budgetMax || lead.budgetMin || '',
+      'cd-lead-id':      lead._docId || lead.id || '',
+      'cd-agent-id':     lead.agentId || '',
+      'cd-agent-name-h': lead.agentName || ''
     };
     Object.keys(fields).forEach(function(id) {
       var el = document.getElementById(id);
-      if (el && fields[id]) el.value = fields[id];
+      if (el && fields[id] !== undefined) el.value = fields[id];
     });
-
-    // Mark lead source in notes
-    var notesEl = document.getElementById('deal-notes');
-    if (notesEl && !notesEl.value) {
-      notesEl.value = (curLang === 'rw' ? 'Ivuye kuri Lead: ' : 'Converted from Lead: ') + (lead.clientName || '') + ' — ' + (lead._docId || lead.id || '');
+    /* Auto-fill property title from lead district + action */
+    var ptEl = document.getElementById('cd-prop-title');
+    if (ptEl && !ptEl.value && (lead.district || lead.zone)) {
+      ptEl.value = (lead.action || 'Property') + ' — ' + (lead.district || lead.zone);
     }
-
     showToast(curLang==='rw' ? 'Deal yuzuzwa kuva kuri lead!' : 'Deal pre-filled from lead!', 'success');
   }, 350);
 }
@@ -26630,5 +27568,89 @@ function submitCompose() {
   var compEl = document.getElementById('thread-compose');
   if (compEl) { compEl.value = content; sendThreadMessage(); }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   ROLE-BASED SIDEBAR NAVIGATION FILTER
+   Shows only the sidebar items each role legitimately needs.
+   Security is enforced at Firestore level; this keeps the UX clean.
+   ══════════════════════════════════════════════════════════════════════ */
+(function() {
+  var _ALL   = ['super_admin','admin','ceo','staff','agent','partner','owner','client','investor'];
+  var _ADMIN = ['super_admin','admin'];
+  var _STAFF = ['super_admin','admin','staff'];
+  var _AGENT = ['super_admin','admin','staff','agent'];
+  var _EXEC  = ['super_admin','admin','ceo'];
+
+  /* Map: substring of onclick value → roles that see this item */
+  var _NAV_RULES = [
+    { match: 'goMyListings',       roles: ['super_admin','admin','staff','agent','owner'] },
+    { match: "go('listings')",     roles: _ALL },
+    { match: "go('analytics')",    roles: _ALL },
+    { match: "go('clients')",      roles: _AGENT },
+    { match: "go('crm')",          roles: _AGENT },
+    { match: "go('deals')",        roles: _AGENT },
+    { match: "go('viewings')",     roles: _AGENT },
+    { match: "go('verification')", roles: _AGENT },
+    { match: "go('documents')",    roles: _ALL },
+    { match: "go('partners')",     roles: ['super_admin','admin','staff','agent','partner'] },
+    { match: "go('financing')",    roles: ['super_admin','admin','staff','agent','client','owner','investor'] },
+    { match: "go('commissions')",  roles: ['super_admin','admin','staff','agent','ceo'] },
+    { match: 'showToast',          roles: _STAFF },
+    { match: "go('accounting')",   roles: _STAFF },
+    { match: "go('customer')",     roles: _ALL },
+    { match: "go('office')",       roles: _STAFF },
+    { match: "go('hr')",           roles: _ADMIN },
+    { match: "go('exec')",         roles: ['super_admin','admin','ceo','investor'] },
+    { match: "go('bi')",           roles: ['super_admin','admin','ceo','staff'] },
+    { match: "go('branches')",     roles: _EXEC }
+    /* openProfile() and items with no onclick → always visible */
+  ];
+
+  function _filterSidebar(user) {
+    var sidebar = document.querySelector('.dash-sidebar');
+    if (!sidebar) return;
+    var role = (user && user.role ? user.role : '').toLowerCase();
+    var isSuper = (role === 'super_admin' || role === 'admin');
+
+    /* Show / hide .dn items */
+    sidebar.querySelectorAll('.dn').forEach(function(item) {
+      var onclick = (item.getAttribute('onclick') || '').trim();
+      /* Items with no onclick (Overview chip) — always show */
+      if (!onclick) { item.style.display = ''; return; }
+      /* openProfile / Settings — always show */
+      if (onclick.indexOf('openProfile') !== -1) { item.style.display = ''; return; }
+      /* Admins see everything */
+      if (isSuper) { item.style.display = ''; return; }
+      var visible = false;
+      for (var i = 0; i < _NAV_RULES.length; i++) {
+        if (onclick.indexOf(_NAV_RULES[i].match) !== -1) {
+          visible = _NAV_RULES[i].roles.indexOf(role) !== -1;
+          break;
+        }
+      }
+      item.style.display = visible ? '' : 'none';
+    });
+
+    /* Show / hide .ds-section headers: hide when all items in the group are hidden */
+    sidebar.querySelectorAll('.ds-section').forEach(function(sec) {
+      var el = sec.nextElementSibling;
+      var hasVisible = false;
+      while (el && !el.classList.contains('ds-section')) {
+        if (el.classList.contains('dn') && el.style.display !== 'none') { hasVisible = true; break; }
+        el = el.nextElementSibling;
+      }
+      sec.style.display = hasVisible ? '' : 'none';
+    });
+  }
+
+  /* Extend updateNavForUser — chain-safe */
+  var _prevNav = typeof updateNavForUser !== 'undefined' ? updateNavForUser : null;
+  if (_prevNav) {
+    updateNavForUser = function(user) {
+      _prevNav(user);
+      _filterSidebar(user);
+    };
+  }
+})();
 </script>
 </body></html>
