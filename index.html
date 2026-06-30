@@ -4298,13 +4298,21 @@ html,body{overscroll-behavior-x:none}
         <div class="crm-stat-l" data-rw="Igipimo Cyo Gutsinda" data-en="Win Rate">Win Rate</div>
       </div>
     </div>
+    <!-- Pipeline Funnel -->
+    <div id="crm-funnel-wrap" style="margin-bottom:.8rem">
+      <button onclick="_toggleCrmFunnel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:#F4F6FB;border:1px solid var(--border);border-radius:8px;padding:.42rem .7rem;cursor:pointer;font-size:.78rem;font-weight:700;color:var(--navy)">
+        <span>&#128202; <span data-rw="Funnel y'Ingamba" data-en="Pipeline Funnel">Pipeline Funnel</span></span>
+        <svg id="crm-funnel-chev" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" style="transition:transform .22s ease;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div id="crm-funnel-body" style="display:none;padding:.5rem 0 .2rem;overflow:hidden"></div>
+    </div>
     <!-- Priority Filter Chips -->
     <div class="crm-priority-filters">
       <span class="crm-pf-label" data-rw="Importance:" data-en="Priority:">Priority:</span>
       <button id="crm-pchip-all" class="crm-pchip crm-pchip-all active" onclick="filterCrmPriority('all')" data-rw="Zose" data-en="All">All</button>
-      <button id="crm-pchip-hot" class="crm-pchip crm-pchip-hot" onclick="filterCrmPriority('hot')">🔥 Hot</button>
-      <button id="crm-pchip-warm" class="crm-pchip crm-pchip-warm" onclick="filterCrmPriority('warm')">🌡️ Warm</button>
-      <button id="crm-pchip-cold" class="crm-pchip crm-pchip-cold" onclick="filterCrmPriority('cold')">🧊 Cold</button>
+      <button id="crm-pchip-hot" class="crm-pchip crm-pchip-hot" onclick="filterCrmPriority('hot')">&#128293; Hot</button>
+      <button id="crm-pchip-warm" class="crm-pchip crm-pchip-warm" onclick="filterCrmPriority('warm')">&#127777;&#65039; Warm</button>
+      <button id="crm-pchip-cold" class="crm-pchip crm-pchip-cold" onclick="filterCrmPriority('cold')">&#129482; Cold</button>
     </div>
     <!-- Stage + Search Filters -->
     <div class="crm-filters">
@@ -20923,6 +20931,76 @@ function updateCrmStats() {
   if (e('crm-stat-pipeline')) e('crm-stat-pipeline').textContent = fmtRWF(pipelineVal);
   if (e('crm-stat-winrate'))  e('crm-stat-winrate').textContent  = winRate + '%';
   if (e('dash-kpi-leads'))    e('dash-kpi-leads').textContent    = total;
+  renderCrmFunnel();
+}
+
+// ── CRM Pipeline Funnel ──────────────────────────────────────
+var _crmFunnelOpen = false;
+
+function _toggleCrmFunnel() {
+  var body = document.getElementById('crm-funnel-body');
+  var chev = document.getElementById('crm-funnel-chev');
+  if (!body) return;
+  _crmFunnelOpen = !_crmFunnelOpen;
+  body.style.display = _crmFunnelOpen ? 'block' : 'none';
+  if (chev) chev.style.transform = _crmFunnelOpen ? 'rotate(180deg)' : '';
+  if (_crmFunnelOpen) renderCrmFunnel();
+}
+
+function renderCrmFunnel() {
+  var body = document.getElementById('crm-funnel-body');
+  if (!body || !_crmFunnelOpen) return;
+  if (!_crmLeads || _crmLeads.length === 0) {
+    body.innerHTML = '<div style="padding:.4rem .5rem;font-size:.76rem;color:var(--muted);text-align:center">'
+      + (curLang === 'rw' ? 'Nta leads urahari.' : 'No leads to display.') + '</div>';
+    return;
+  }
+
+  var FUNNEL_STAGES = CRM_STAGES.filter(function(s) {
+    return s.key !== 'closed_won' && s.key !== 'closed_lost';
+  });
+  var wonLost = CRM_STAGES.filter(function(s) {
+    return s.key === 'closed_won' || s.key === 'closed_lost';
+  });
+  var allStages = FUNNEL_STAGES.concat(wonLost);
+  var total = _crmLeads.length;
+
+  var counts = {};
+  allStages.forEach(function(s) { counts[s.key] = 0; });
+  _crmLeads.forEach(function(l) {
+    var k = l.pipelineStage || 'new';
+    if (counts[k] !== undefined) counts[k]++;
+  });
+
+  var maxCount = Math.max.apply(null, allStages.map(function(s) { return counts[s.key]; }).concat([1]));
+
+  body.innerHTML = allStages.map(function(s) {
+    var cnt  = counts[s.key] || 0;
+    var pct  = total > 0 ? Math.round(cnt / total * 100) : 0;
+    var bPct = Math.round(cnt / maxCount * 100);
+    var lbl  = curLang === 'rw' ? s.labelRW : s.labelEN;
+    var isTerminal = s.key === 'closed_won' || s.key === 'closed_lost';
+    var barColor   = s.key === 'closed_won'  ? '#16A34A'
+                   : s.key === 'closed_lost' ? '#DC2626'
+                   : s.color;
+    return '<div style="display:grid;grid-template-columns:100px 1fr 36px 32px;align-items:center;gap:.35rem;'
+      + 'padding:.22rem .5rem;cursor:pointer;border-radius:5px;transition:background .15s"'
+      + ' onmouseover="this.style.background=\'#F4F6FB\'" onmouseout="this.style.background=\'\'"'
+      + ' onclick="filterCrmByStage(\'' + s.key + '\')">'
+      + '<span style="font-size:.71rem;color:' + (isTerminal ? barColor : 'var(--dark)') + ';font-weight:' + (isTerminal ? '700' : '500') + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + lbl + '">'
+      + lbl + '</span>'
+      + '<div style="background:#E8EDF5;border-radius:3px;height:8px;overflow:hidden">'
+      + '<div style="height:100%;border-radius:3px;background:' + barColor + ';width:' + bPct + '%;transition:width .4s ease"></div>'
+      + '</div>'
+      + '<span style="font-size:.72rem;font-weight:700;color:var(--navy);text-align:right">' + cnt + '</span>'
+      + '<span style="font-size:.65rem;color:var(--muted);text-align:right">' + pct + '%</span>'
+      + '</div>';
+  }).join('');
+}
+
+function filterCrmByStage(stageKey) {
+  var sel = document.getElementById('crm-filter-stage');
+  if (sel) { sel.value = stageKey; filterCrmLeads(); }
 }
 
 /* ══════════════════════════════════════════════════════
