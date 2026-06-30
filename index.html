@@ -3407,10 +3407,10 @@ html,body{overscroll-behavior-x:none}
     <div class="det-overlay"></div>
     <div class="det-top-bar">
       <button class="det-back" onclick="go('listings')"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg><span data-rw="Subira" data-en="Back">Subira</span></button>
-      <div style="display:flex;gap:.6rem">
-        <span class="badge b-navy"><svg viewBox="0 0 24 24"><path d="M3 22V8a1 1 0 011-1h7V3a1 1 0 011-1h8a1 1 0 011 1v19"/></svg>4</span>
-        <span class="badge b-gold">AI Valued</span>
-        <span class="badge b-green">3D Tour</span>
+      <div style="display:flex;gap:.6rem;align-items:center">
+        <span id="det-view-count" style="display:none;background:rgba(0,0,0,.45);color:#fff;border-radius:20px;padding:.15rem .65rem;font-size:.72rem;font-weight:600;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);letter-spacing:.01em"></span>
+        <span class="badge b-gold" id="det-top-ai-badge" style="display:none">AI Valued</span>
+        <span class="badge b-green" id="det-top-3d-badge" style="display:none">3D Tour</span>
       </div>
     </div>
     <div class="det-hero-info">
@@ -3475,9 +3475,11 @@ html,body{overscroll-behavior-x:none}
         <p style="font-size:.9rem;color:var(--muted);line-height:1.85;margin-bottom:1.2rem" data-rw="Inzu nziza cyane iri mu Kimironko, Gasabo — ahantu hateye amashyo, hagurutse, kandi hafite amahoro. Iri ni inzu ya squaremetre 320, ifite amazu 4, ubushumbusho 2, garage, n'imbuga nziza hanze." data-en="A beautiful property in Kimironko, Gasabo — a prestigious, elevated and peaceful location. This 320m² property features 4 bedrooms, 2 bathrooms, a garage, and a stunning outdoor garden.">Inzu nziza cyane iri mu Kimironko, Gasabo — ahantu hateye amashyo, hagurutse, kandi hafite amahoro. Iri ni inzu ya squaremetre 320, ifite amazu 4, ubushumbusho 2, garage, n'imbuga nziza hanze.</p>
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-bottom:1.4rem">
           <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Uburebure" data-en="Year Built">Uburebure</span><strong id="det-year-built">—</strong></div>
-          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Ubwoko" data-en="Type">Ubwoko</span><strong data-rw="Villa" data-en="Villa">Villa</strong></div>
-          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Status" data-en="Status">Status</span><strong style="color:var(--green)" data-rw="Iboneka" data-en="Available">Iboneka</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Ubwoko" data-en="Type">Ubwoko</span><strong id="det-type-val">—</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Status" data-en="Status">Status</span><strong id="det-status-val" style="color:var(--green)" data-rw="Iboneka" data-en="Available">Iboneka</strong></div>
           <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Amasezerano" data-en="Title Deed">Amasezerano</span><strong id="det-title-deed" style="color:var(--muted)">—</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Ibirebwa" data-en="Total Views">Ibirebwa</span><strong id="det-view-count-tab" style="color:var(--navy)">—</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Iminsi Yatangajwe" data-en="Days Listed">Iminsi Yatangajwe</span><strong id="det-days-listed" style="color:var(--muted)">—</strong></div>
         </div>
         <!-- 3D TOUR VIEWER (shown on this tab for preview) -->
         <h3 class="h3" style="margin-bottom:1rem" data-rw="Virtual Tour 3D" data-en="3D Virtual Tour">Virtual Tour 3D</h3>
@@ -10168,7 +10170,7 @@ function renderUserPropCard(prop) {
     + '</div>'
     + '<div class="p-body" onclick="openPropDetail(\'' + pid + '\')">'
     +   '<div class="p-loc">' + loc + '</div>'
-    +   '<div class="p-rating"><div class="p-stars">' + starsHtml + '</div><span class="p-rating-count">(' + reviewCount + ')</span></div>'
+    +   '<div class="p-rating"><div class="p-stars">' + starsHtml + '</div><span class="p-rating-count">(' + reviewCount + ')</span>' + (prop.viewCount ? '<span style="margin-left:auto;font-size:.68rem;color:var(--muted)">&#128065; ' + Number(prop.viewCount).toLocaleString() + '</span>' : '') + '</div>'
     +   '<div class="p-title">' + propName + '</div>'
     +   (shortDesc ? '<div style="font-size:.76rem;color:#6b7280;line-height:1.45;margin:.2rem 0">' + shortDesc + '</div>' : '')
     +   '<div class="p-feats">' + featsHtml + '</div>'
@@ -10404,11 +10406,14 @@ function openMyProps() {
         + 'style="background:none;border:1.5px solid var(--navy);color:var(--navy);border-radius:7px;padding:.25rem .6rem;font-size:.72rem;font-weight:700;cursor:pointer;margin-top:.4rem">✏️ '
         + (curLang==='rw'?'Hindura':'Edit') + '</button>'
       : '';
+    var viewsHtml = prop.viewCount
+      ? '<span style="font-size:.72rem;color:var(--muted);margin-left:.5rem">&#128065; ' + Number(prop.viewCount).toLocaleString() + '</span>'
+      : '';
     return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.9rem;margin-bottom:.7rem">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">'
       + '<div style="flex:1">'
       + '<div style="font-weight:700;color:var(--navy)">'+prop.type+' — '+prop.district+'</div>'
-      + '<div style="font-size:.82rem;color:var(--muted);margin:.2rem 0">'+prop.service+' | '+priceDisplay+'</div>'
+      + '<div style="font-size:.82rem;color:var(--muted);margin:.2rem 0">'+prop.service+' | '+priceDisplay+viewsHtml+'</div>'
       + (prop.desc?'<div style="font-size:.78rem;color:#555;font-style:italic">'+prop.desc.substring(0,60)+'...</div>':'')
       + editBtn
       + '</div>'
@@ -12175,6 +12180,48 @@ function openPropDetail(propId) {
   window._currentProp = prop;
   kmTrack('view_item',{item_id:String(prop.id),item_name:prop.title||'',price:prop.price||'',district:prop.district||'',type:prop.type||''});
 
+  // Property view tracking — increment Firestore counter, session-deduped
+  (function _trackPropView(pid, isDemo) {
+    if (!window._viewedProps) window._viewedProps = {};
+    var vcEl = document.getElementById('det-view-count');
+    var aiBadge = document.getElementById('det-top-ai-badge');
+    var tdBadge = document.getElementById('det-top-3d-badge');
+    if (aiBadge) aiBadge.style.display = prop.aiValued ? '' : 'none';
+    if (tdBadge) tdBadge.style.display = prop.tour3dUrl ? '' : 'none';
+
+    if (isDemo || typeof db === 'undefined') {
+      if (vcEl) vcEl.style.display = 'none';
+      return;
+    }
+    var ref = db.collection('properties').doc(String(pid));
+    var inc = firebase.firestore.FieldValue.increment(1);
+    var alreadySeen = !!window._viewedProps[pid];
+    window._viewedProps[pid] = true;
+
+    var promise = alreadySeen
+      ? ref.get()
+      : ref.update({ viewCount: inc }).then(function() { return ref.get(); });
+
+    promise.then(function(doc) {
+      if (!doc.exists) return;
+      var vc = doc.data().viewCount || 1;
+      if (vcEl) {
+        vcEl.innerHTML = '&#128065; ' + Number(vc).toLocaleString();
+        vcEl.style.display = '';
+      }
+      var vcTab = document.getElementById('det-view-count-tab');
+      if (vcTab) vcTab.textContent = Number(vc).toLocaleString();
+      // Sync count back to localStorage cache
+      try {
+        var ls = JSON.parse(localStorage.getItem('km_properties') || '[]');
+        var idx = ls.findIndex(function(p) { return String(p.id) === String(pid); });
+        if (idx !== -1) { ls[idx].viewCount = vc; localStorage.setItem('km_properties', JSON.stringify(ls)); }
+      } catch(e) {}
+    }).catch(function() {
+      if (vcEl) vcEl.style.display = 'none';
+    });
+  }(String(prop.id), !!prop.isDemo));
+
   // Update detail page fav button state
   setTimeout(function() {
     var detFavBtn = document.getElementById('det-fav-btn');
@@ -12259,27 +12306,35 @@ function openPropDetail(propId) {
   if(descEl) {
     var descP = descEl.querySelector('p');
     if(descP) descP.textContent = prop.desc || (curLang==='rw' ? 'Ibisobanuro ntibishyizweho.' : 'No description provided.');
-    // Update info grid
-    var infoItems = descEl.querySelectorAll('.\\!bg-light, [style*="var(--light)"] strong, [style*="var(--light)"]');
-    // Update type
-    var typeStrongs = descEl.querySelectorAll('strong');
-    typeStrongs.forEach(function(s) {
-      var lbl = s.previousElementSibling || (s.parentNode && s.parentNode.querySelector('span'));
-      if(!lbl) return;
-      var lblText = lbl.textContent.toLowerCase();
-      if(lblText.includes('ubwoko') || lblText.includes('type')) s.textContent = prop.type||'—';
-      if(lblText.includes('status')) {
-        s.textContent = prop.status === 'Approved' ? (curLang==='rw'?'Iboneka':'Available') : prop.status||'—';
-        s.style.color = prop.status === 'Approved' ? 'var(--green)' : 'var(--muted)';
-      }
-    });
     var ybEl = document.getElementById('det-year-built');
     if (ybEl) ybEl.textContent = prop.yearBuilt || '—';
+    var typeValEl = document.getElementById('det-type-val');
+    if (typeValEl) typeValEl.textContent = prop.type || '—';
+    var statusValEl = document.getElementById('det-status-val');
+    if (statusValEl) {
+      statusValEl.textContent = prop.status === 'Approved' ? (curLang==='rw'?'Iboneka':'Available') : (prop.status||'—');
+      statusValEl.style.color = prop.status === 'Approved' ? 'var(--green)' : 'var(--muted)';
+    }
     var tdEl = document.getElementById('det-title-deed');
     if (tdEl) {
       tdEl.textContent = prop.titleDeed || '—';
       tdEl.style.color = prop.titleDeed ? 'var(--green)' : 'var(--muted)';
     }
+    // Days listed
+    var dlEl = document.getElementById('det-days-listed');
+    if (dlEl) {
+      if (prop.createdAt && prop.createdAt.seconds) {
+        var daysListed = Math.floor((Date.now() / 1000 - prop.createdAt.seconds) / 86400);
+        dlEl.textContent = daysListed + (curLang==='rw' ? ' umunsi' : ' days');
+        dlEl.style.color = daysListed > 60 ? 'var(--warning)' : 'var(--navy)';
+      } else {
+        dlEl.textContent = '—';
+        dlEl.style.color = 'var(--muted)';
+      }
+    }
+    // Views placeholder — will be updated once Firestore resolves
+    var vcTabEl = document.getElementById('det-view-count-tab');
+    if (vcTabEl) vcTabEl.textContent = prop.viewCount ? Number(prop.viewCount).toLocaleString() : '—';
   }
 
   // === MAP TAB — dynamic embed ===
@@ -24034,7 +24089,7 @@ function adminRender(filter) {
         + (prop.contact?'<div style="font-size:.78rem;color:var(--muted)">📞 '+escapeHtml(prop.contact)+'</div>':'')
         + '<div style="font-size:.85rem;margin:.4rem 0;font-weight:600">💰 '+priceDisplay+' ('+escapeHtml(prop.service||prop.category||'')+')</div>'
         + (prop.description||prop.desc?'<div style="font-size:.78rem;color:#555;font-style:italic">'+escapeHtml((prop.description||prop.desc||'').substring(0,100))+'...</div>':'')
-        + '<div style="font-size:.72rem;color:var(--muted)">📅 '+(prop.date||'')+' '+(fsId?'<span style="background:#e0f2fe;color:#0369a1;padding:1px 5px;border-radius:4px;font-size:.65rem">FS ✓</span>':'<span style="background:#fef9c3;color:#78350f;padding:1px 5px;border-radius:4px;font-size:.65rem">LOCAL</span>')+'</div>'
+        + '<div style="font-size:.72rem;color:var(--muted)">📅 '+(prop.date||'')+' '+(fsId?'<span style="background:#e0f2fe;color:#0369a1;padding:1px 5px;border-radius:4px;font-size:.65rem">FS ✓</span>':'<span style="background:#fef9c3;color:#78350f;padding:1px 5px;border-radius:4px;font-size:.65rem">LOCAL</span>')+(prop.viewCount?' <span style="background:#f0fdf4;color:#166534;padding:1px 5px;border-radius:4px;font-size:.65rem">&#128065; '+Number(prop.viewCount).toLocaleString()+'</span>':'')+'</div>'
         + '</div>'
         + '<div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">'
         + '<div style="font-size:.7rem;font-weight:700;color:'+statusColor+';text-align:center">'+escapeHtml(st)+'</div>'

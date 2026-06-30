@@ -200,6 +200,23 @@
       ]
     },
     {
+      "collectionGroup": "properties",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive",    "order": "ASCENDING"  },
+        { "fieldPath": "viewCount",   "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "properties",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "agentId",     "order": "ASCENDING"  },
+        { "fieldPath": "isActive",    "order": "ASCENDING"  },
+        { "fieldPath": "viewCount",   "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "services",
       "queryScope": "COLLECTION",
       "fields": [
