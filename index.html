@@ -13643,6 +13643,32 @@ function _handleNotifClick(collection, relatedId) {
   };
 })();
 
+/* ─────────────────────────────────────────────────────────
+   Cross-user notification helper — writes to any target's feed
+   Called by workflow events: viewing scheduled, commission
+   approved/paid, lead assigned to agent.
+───────────────────────────────────────────────────────── */
+function notifyUser(targetUserId, title, body, type, relatedCollection, relatedId) {
+  if (!targetUserId || typeof db === 'undefined') return;
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+  db.collection('notifications').add({
+    id:                '',
+    userId:            targetUserId,
+    title:             title || '',
+    body:              body  || '',
+    type:              type  || 'system',
+    relatedId:         relatedId         || '',
+    relatedCollection: relatedCollection || '',
+    read:              false,
+    status:            'unread',
+    isActive:          true,
+    createdAt:         firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:         firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:         uid,
+    updatedBy:         uid
+  }).then(function(ref) { ref.update({ id: ref.id }).catch(function(){}); }).catch(function(){});
+}
+
 /* Extend updateNavForUser to start/stop Firestore notification listener on login/logout */
 (function() {
   var _origNav = typeof updateNavForUser !== 'undefined' ? updateNavForUser : null;
@@ -19186,6 +19212,21 @@ function submitCommissionDecision(approved) {
     renderCommissionList();
     updateCommissionStats();
     closeCommissionDetail();
+    /* Notify the agent of approval/rejection */
+    var _notifComm = null;
+    for (var ci = 0; ci < _commissions.length; ci++) {
+      if ((_commissions[ci]._docId||_commissions[ci].id)===id) { _notifComm=_commissions[ci]; break; }
+    }
+    if (typeof notifyUser === 'function' && _notifComm && _notifComm.agentId) {
+      var _commAmt = (_notifComm.totalCommission||0).toLocaleString();
+      notifyUser(_notifComm.agentId,
+        approved ? (curLang==='rw'?'Komisiyoni Yemejwe!':'Commission Approved!')
+                 : (curLang==='rw'?'Komisiyoni Yanzwe':'Commission Rejected'),
+        approved
+          ? (curLang==='rw'?'Komisiyoni ya '+_commAmt+' RWF yemejwe.':'Commission of '+_commAmt+' RWF has been approved.')
+          : (curLang==='rw'?'Icyifuzo cya komisiyoni cyanzwe.':'Your commission request was not approved.'),
+        approved ? 'commission_approved' : 'system', 'commissions', id);
+    }
   }).catch(function(err) {
     showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error updating commission', 'error');
     console.error('[Commission] approval error:', err);
@@ -19213,6 +19254,18 @@ function markCommissionPaid(id) {
     renderCommissionList();
     updateCommissionStats();
     closeCommissionDetail();
+    /* Notify the agent that payment has been made */
+    var _paidComm = null;
+    for (var pi = 0; pi < _commissions.length; pi++) {
+      if ((_commissions[pi]._docId||_commissions[pi].id)===id) { _paidComm=_commissions[pi]; break; }
+    }
+    if (typeof notifyUser === 'function' && _paidComm && _paidComm.agentId) {
+      var _paidAmt = (_paidComm.totalCommission||0).toLocaleString();
+      notifyUser(_paidComm.agentId,
+        curLang==='rw'?'&#128176; Komisiyoni Yishyuwe!':'&#128176; Commission Paid!',
+        curLang==='rw'?'Komisiyoni ya '+_paidAmt+' RWF yishyuwe. Urashimire!':'Commission of '+_paidAmt+' RWF has been paid. Thank you!',
+        'commission_paid', 'commissions', id);
+    }
   }).catch(function(err) {
     showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error marking paid', 'error');
     console.error('[Commission] paid error:', err);
@@ -22226,6 +22279,9 @@ function loadAgentDashboard() {
     ? db.collection('viewings').where('agentId','==',cu.uid).where('isActive','==',true)
     : db.collection('viewings').where('isActive','==',true);
   visitQuery.where('scheduledAt','>=',firebase.firestore.Timestamp.fromDate(now)).orderBy('scheduledAt','asc').limit(8).get().then(function(snap) {
+    /* Populate sidebar badge with upcoming viewings count */
+    var vBadge = document.getElementById('viewings-sidebar-count');
+    if (vBadge) vBadge.textContent = snap.size > 0 ? snap.size : '';
     var bookings = [];
     snap.forEach(function(d) {
       var x = d.data();
@@ -23468,6 +23524,16 @@ function saveScheduledViewing() {
     logAudit('viewing.scheduled', 'viewings', ref.id, null,
       { leadId: _vsLeadId, scheduledAt: scheduledAt.toISOString(), clientName: viewingDoc.clientName });
     showToast(curLang === 'rw' ? '&#128197; Gutekereza kwabitswe!' : '&#128197; Viewing scheduled!', 'success');
+    /* Notify the client that a viewing has been booked for them */
+    if (typeof notifyUser === 'function' && viewingDoc.clientId && viewingDoc.clientId !== uid) {
+      var _vsDateStr = scheduledAt.toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+      notifyUser(viewingDoc.clientId,
+        curLang==='rw' ? '&#128197; Inzibutso Yateganijwe' : '&#128197; Viewing Confirmed',
+        curLang==='rw'
+          ? 'Inzibutso y\'imitungo yateganijwe kuri '+_vsDateStr+'. Agent: '+viewingDoc.agentName+'.'
+          : 'Property viewing confirmed for '+_vsDateStr+'. Agent: '+viewingDoc.agentName+'.',
+        'viewing_confirmed', 'viewings', ref.id);
+    }
     closeViewingScheduler();
     if (saveBtn) { saveBtn.disabled = false; if (saveLbl) saveLbl.textContent = 'Schedule Viewing'; }
     loadMyViewings();
@@ -25166,6 +25232,15 @@ function saveAgentLead() {
       ref.update({ id: ref.id });
       if (typeof logAudit === 'function') {
         logAudit('lead.created', 'leads', ref.id, null, { clientName: name, source: leadData.source, priority: leadData.priority });
+      }
+      /* Notify the assigned agent when admin/staff creates a lead for them */
+      if (typeof notifyUser === 'function' && leadData.agentId && leadData.agentId !== uid) {
+        notifyUser(leadData.agentId,
+          curLang==='rw' ? '&#128197; Lead Nshya Yabagenewe!' : '&#128197; New Lead Assigned!',
+          curLang==='rw'
+            ? 'Lead nshya ya '+escapeHtml(leadData.clientName||'Client')+' ('+escapeHtml(leadData.source||'')+') yabagenewe. Reba CRM.'
+            : 'New '+escapeHtml(leadData.source||'')+' lead from '+escapeHtml(leadData.clientName||'Client')+' has been assigned to you.',
+          'lead_assigned', 'leads', ref.id);
       }
       showToast(curLang==='rw' ? 'Lead yabitswe neza!' : 'Lead saved successfully!', 'success');
       closeAgentLead();
