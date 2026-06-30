@@ -10970,17 +10970,18 @@ function renderReviewsTab(prop) {
   // Then fetch fresh data from Firestore and re-render
   if (typeof db !== 'undefined' && prop.id) {
     db.collection('reviews')
-      .where('isActive','==',true)
       .where('propertyId','==',String(prop.id))
-      .orderBy('createdAt','desc')
+      .where('isActive','==',true)
       .limit(20)
       .get().then(function(snap) {
         if (snap.empty) return;
         var fsRevs = [];
         snap.forEach(function(d) {
           var x = d.data();
-          fsRevs.push({ name: x.reviewerName||'', reviewerName: x.reviewerName||'', rating: x.rating||0, text: x.comment||x.text||'', comment: x.comment||x.text||'', date: x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toLocaleDateString() : '', propId: x.propertyId||prop.id });
+          fsRevs.push({ name: x.reviewerName||'', reviewerName: x.reviewerName||'', rating: x.rating||0, text: x.comment||x.text||'', comment: x.comment||x.text||'', date: x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toLocaleDateString() : '', propId: x.propertyId||prop.id, _ts: x.createdAt && x.createdAt.seconds ? x.createdAt.seconds : 0 });
         });
+        // Sort descending by timestamp client-side (avoids needing a composite Firestore index)
+        fsRevs.sort(function(a,b){ return b._ts - a._ts; });
         // Merge: Firestore results are authoritative; also keep any local-only reviews not yet in FS
         var fsIds = fsRevs.map(function(r){ return r.name + r.rating + (r.text||'').slice(0,20); });
         var localOnly = propRevs.filter(function(r){
@@ -11075,6 +11076,14 @@ function submitReview() {
       props[pidx].reviews = propRevs.length;
       try { localStorage.setItem('km_properties',JSON.stringify(props)); } catch(e){}
       if(window._currentProp){ window._currentProp.rating = newAvg; window._currentProp.reviews = propRevs.length; }
+    }
+    // Also update the property document in Firestore
+    if (typeof db !== 'undefined') {
+      db.collection('properties').doc(String(cur.id)).update({
+        rating:    newAvg,
+        reviews:   propRevs.length,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(function(){});
     }
     renderReviewsTab(cur);
     // Update the ★ badge in the hero
