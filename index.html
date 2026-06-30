@@ -16372,7 +16372,7 @@ function renderTasks(list) {
         '<span class="off-status-chip" style="background:' + st.color + '">' + st.label + '</span>' +
       '</div>' +
       '<div class="off-task-meta">' +
-        '<span>' + (t.department || 'General') + '</span>' +
+        '<span>' + (t.department || 'General') + (t.assignedToName ? ' &bull; ' + escapeHtml(t.assignedToName) : '') + '</span>' +
         '<span>' + (over ? '<span style="color:var(--error)">Overdue</span>' : 'Due: ' + due) + '</span>' +
       '</div>' +
       (t.description ? '<div class="off-task-desc">' + (t.description.length > 100 ? t.description.substring(0,100) + '&hellip;' : t.description) + '</div>' : '') +
@@ -16442,16 +16442,21 @@ function submitTask() {
   var editId  = g('tcm-edit-id').value;
   var dueVal  = g('tcm-due').value;
   var dueDate = dueVal ? new Date(dueVal) : null;
+  var assignSel = g('tcm-assigned');
+  var assignUid = assignSel ? assignSel.value.trim() : '';
+  var assignSelOpt = assignSel && assignSel.selectedIndex >= 0 ? assignSel.options[assignSel.selectedIndex] : null;
+  var assignName = (assignSelOpt && assignSelOpt.value) ? (assignSelOpt.textContent || '').replace(/\s*\(.*\)\s*$/, '').trim() : '';
   var data = {
-    title:       title,
-    description: (g('tcm-desc').value || '').trim(),
-    priority:    g('tcm-priority').value || 'medium',
-    department:  g('tcm-department').value || '',
-    assignedTo:  (g('tcm-assigned').value || '').trim(),
-    assignedBy:  currentUser.uid,
-    dueAt:       dueDate ? firebase.firestore.Timestamp.fromDate(dueDate) : null,
-    updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
-    updatedBy:   currentUser.uid
+    title:          title,
+    description:    (g('tcm-desc').value || '').trim(),
+    priority:       g('tcm-priority').value || 'medium',
+    department:     g('tcm-department').value || '',
+    assignedTo:     assignUid,
+    assignedToName: assignName,
+    assignedBy:     currentUser.uid,
+    dueAt:          dueDate ? firebase.firestore.Timestamp.fromDate(dueDate) : null,
+    updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy:      currentUser.uid
   };
   var p;
   if (editId) {
@@ -16492,7 +16497,7 @@ function openTaskDetail(id) {
   g('td-dept').textContent       = t.department || 'General';
   g('td-due').textContent        = dueDate ? dueDate.toLocaleDateString() : 'No due date';
   g('td-created').textContent    = crtDate ? crtDate.toLocaleDateString() : '—';
-  g('td-assigned').textContent   = t.assignedTo || 'Unassigned';
+  g('td-assigned').textContent   = t.assignedToName || t.assignedTo || 'Unassigned';
   var isAdmin = ['admin','super_admin','staff','ceo'].indexOf((currentUser||{}).role) > -1;
   var isOwner = currentUser && (currentUser.uid === t.createdBy || currentUser.uid === t.assignedTo);
   var actEl   = g('td-actions');
