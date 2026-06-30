@@ -21359,7 +21359,9 @@ function renderCrmLeads() {
     var matchSearch = !_crmSearch ||
       name.indexOf(_crmSearch.toLowerCase()) > -1 ||
       phone.indexOf(_crmSearch.toLowerCase()) > -1;
-    return matchStage && matchSearch;
+    var matchPriority = !_crmPriority || _crmPriority === 'all' ||
+      (typeof getLeadPriority === 'function' && getLeadPriority(l) === _crmPriority);
+    return matchStage && matchSearch && matchPriority;
   });
 
   if (filtered.length === 0) {
@@ -21406,10 +21408,20 @@ function renderCrmLeads() {
       fuLabel = '<span title="Next follow-up">🔔 ' + fuD.toLocaleDateString() + '</span>';
     }
 
+    var priority  = typeof getLeadPriority === 'function' ? getLeadPriority(lead) : '';
+    var prioColors = { hot: '#DC2626', warm: '#D97706', cold: '#64748B' };
+    var prioLabels = { hot: '🔥 Hot', warm: '🌡️ Warm', cold: '🧊 Cold' };
+    var prioBadge  = priority ? '<span style="font-size:.6rem;font-weight:700;color:' + prioColors[priority] + ';background:' + prioColors[priority] + '18;border-radius:20px;padding:.1rem .45rem;border:1px solid ' + prioColors[priority] + '40">' + prioLabels[priority] + '</span>' : '';
+
+    var daysInStage = typeof getDaysInStage === 'function' ? getDaysInStage(lead) : 0;
+    var daysLabel   = daysInStage > 0
+      ? '<span style="font-size:.64rem;color:' + (daysInStage > 14 ? '#DC2626' : daysInStage > 7 ? '#D97706' : 'var(--muted)') + '" title="Days in current stage">⏱ ' + daysInStage + 'd</span>'
+      : '';
+
     return '<div class="' + cardClass + '" style="border-left-color:' + stage.color + '" onclick="openLeadDetail(\'' + leadId + '\')">'
       + '<div class="crm-card-header">'
       +   '<div class="crm-card-name">' + name + '</div>'
-      +   '<span class="crm-stage-badge" style="background:' + stage.color + '">' + labelStage + '</span>'
+      +   '<div style="display:flex;align-items:center;gap:.35rem">' + prioBadge + '<span class="crm-stage-badge" style="background:' + stage.color + '">' + labelStage + '</span></div>'
       + '</div>'
       + '<div class="crm-card-meta">'
       +   (phone ? '<span>📞 ' + phone + '</span>' : '')
@@ -21418,6 +21430,7 @@ function renderCrmLeads() {
       +   (budget ? '<span>💰 ' + budget + '</span>' : '')
       +   (agName ? '<span>👔 ' + agName + '</span>' : '')
       +   fuLabel
+      +   daysLabel
       + '</div>'
       + '</div>';
   }).join('');
@@ -21644,10 +21657,11 @@ function updateLeadStage(leadId, newStageKey) {
 
   if (typeof db !== 'undefined') {
     db.collection('leads').doc(leadId).update({
-      pipelineStage: newStageKey,
-      status:        newStageKey,
-      updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
-      updatedBy:     typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system'
+      pipelineStage:  newStageKey,
+      status:         newStageKey,
+      stageChangedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy:      typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system'
     }).then(function() {
       showToast((curLang === 'rw' ? 'Ingamba yahinduwe: ' : 'Stage updated: ') + label, 'success');
       logAudit('lead.stage.changed', 'leads', leadId,
