@@ -12479,6 +12479,51 @@ function openPropDetail(propId) {
     }
   });
 
+  // === AGENT CARD HYDRATION ===
+  (function() {
+    var card = document.querySelector('.ag-card');
+    if (!card) return;
+    var avEl     = card.querySelector('.ag-av');
+    var nameEl   = card.querySelector('.ag-name');
+    var subEl    = card.querySelector('.ag-sub');
+    var statsEls = card.querySelectorAll('.ag-stat-v');
+
+    var agName = prop.agentName || '';
+    if (agName) {
+      if (nameEl) nameEl.textContent = agName;
+      if (avEl) {
+        var parts    = agName.trim().split(/\s+/);
+        var initials = parts.length >= 2
+          ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+          : agName.substring(0, 2).toUpperCase();
+        avEl.style.backgroundImage = '';
+        avEl.textContent = initials;
+      }
+    }
+
+    var agId = prop.agentId || '';
+    if (!agId || agId.indexOf('AG-DEMO') === 0 || typeof db === 'undefined') return;
+
+    db.collection('users').doc(agId).get().then(function(doc) {
+      if (!doc.exists) return;
+      var a = doc.data();
+      if (avEl && (a.photoURL || a.photo)) {
+        avEl.style.backgroundImage    = 'url(' + (a.photoURL || a.photo) + ')';
+        avEl.style.backgroundSize     = 'cover';
+        avEl.style.backgroundPosition = 'center';
+        avEl.textContent = '';
+      }
+      if (nameEl && a.displayName) nameEl.textContent = a.displayName;
+      if (subEl) {
+        var zoneStr = a.zone ? ' · ' + a.zone : '';
+        subEl.textContent = (curLang === 'rw' ? 'Umucuruzi w\'Imitungo' : 'Property Agent') + zoneStr;
+      }
+      if (statsEls[0]) statsEls[0].textContent = a.salesCount || a.deals || '—';
+      if (statsEls[1]) statsEls[1].textContent = a.rating ? Number(a.rating).toFixed(1) : '—';
+      if (statsEls[2]) statsEls[2].textContent = a.experience ? a.experience + 'yr' : '—';
+    }).catch(function() {});
+  })();
+
   // === REVIEWS TAB — real data ===
   renderReviewsTab(prop);
 
@@ -27169,6 +27214,19 @@ function _autoCreateLead(opts) {
     ref.update({ id: ref.id });
     logAudit('lead.auto.created', 'leads', ref.id, null, { source: lead.source, clientName: lead.clientName });
     if (typeof updateCrmSidebarBadge === 'function') updateCrmSidebarBadge();
+    if (lead.agentId && typeof notifyUser === 'function') {
+      var isViewing = lead.source === 'viewing_booking';
+      var clientLabel = (lead.clientName && lead.clientName !== 'Ntazwi') ? lead.clientName : (curLang === 'rw' ? 'Umukiliya' : 'A client');
+      var propLabel   = lead.propertyTitle || (curLang === 'rw' ? 'imitungo yawe' : 'your listing');
+      notifyUser(
+        lead.agentId,
+        curLang === 'rw' ? (isViewing ? 'Inzibutso Nshya!' : 'Ikibazo Gishya!') : (isViewing ? 'New Viewing Request!' : 'New Property Inquiry!'),
+        clientLabel + (curLang === 'rw' ? ' yasabye ' : ' enquired about ') + propLabel,
+        'new_lead',
+        'leads',
+        ref.id
+      );
+    }
   }).catch(function(err) {
     console.warn('[AutoLead] Failed to create lead:', err);
   });
