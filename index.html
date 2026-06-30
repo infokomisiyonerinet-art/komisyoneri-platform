@@ -7756,6 +7756,27 @@ html,body{overscroll-behavior-x:none}
     </div>
     <!-- Admin-only: recent tasks & leave -->
     <div id="sp-admin-section" style="display:none">
+      <!-- Admin: role change + status actions -->
+      <div style="background:var(--light);border-radius:10px;padding:.75rem 1rem;margin-bottom:.75rem">
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.5rem" data-en="Admin Actions">Admin Actions</div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.5rem">
+          <select id="sp-role-select" class="form-control" style="flex:1;font-size:.8rem;padding:.4rem .6rem">
+            <option value="client">Client</option>
+            <option value="owner">Property Owner</option>
+            <option value="agent">Agent</option>
+            <option value="partner">Partner</option>
+            <option value="investor">Investor</option>
+            <option value="staff">Staff</option>
+            <option value="admin">Admin</option>
+            <option value="ceo">CEO</option>
+          </select>
+          <button class="btn btn-sm btn-navy" onclick="changeUserRole(_spProfileId)" style="font-size:.78rem" data-en="Change Role">Change Role</button>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="toggleUserVerified(_spProfileId)" style="font-size:.75rem;background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0" id="sp-verify-btn" data-en="Verify">Verify</button>
+          <button class="btn btn-sm" onclick="toggleUserActive(_spProfileId)" style="font-size:.75rem;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA" id="sp-active-btn" data-en="Suspend">Suspend</button>
+        </div>
+      </div>
       <div style="font-size:.85rem;font-weight:600;color:var(--navy);margin-bottom:.5rem" data-rw="Imikorere ya Vuba" data-en="Recent Activity">Recent Activity</div>
       <div id="sp-activity" style="font-size:.8rem;color:var(--muted);padding:.5rem 0"></div>
       <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.75rem">
@@ -16088,6 +16109,14 @@ function openStaffProfile(uid) {
   if (adminSec) {
     adminSec.style.display = isAdmin ? '' : 'none';
     if (isAdmin) {
+      /* Pre-select current role */
+      var spRoleSel = g('sp-role-select');
+      if (spRoleSel) spRoleSel.value = u.role || 'client';
+      /* Set verify/suspend button labels */
+      var verBtn = g('sp-verify-btn');
+      if (verBtn) verBtn.textContent = u.isVerified ? 'Unverify' : 'Verify';
+      var actBtnEl = g('sp-active-btn');
+      if (actBtnEl) actBtnEl.textContent = u.isActive === false ? 'Activate' : 'Suspend';
       var actEl = g('sp-activity');
       if (actEl) actEl.textContent = 'Loading activity...';
       db.collection('tasks').where('assignedTo','==',uid).where('isActive','==',true).orderBy('createdAt','desc').limit(5).get().then(function(snap) {
@@ -16107,6 +16136,80 @@ function openStaffProfile(uid) {
   openModal('staff-profile-modal');
 }
 function closeStaffProfile() { closeModal('staff-profile-modal'); }
+
+function changeUserRole(uid) {
+  if (!uid || typeof db === 'undefined') return;
+  var sel = document.getElementById('sp-role-select');
+  var newRole = sel ? sel.value : '';
+  if (!newRole) return;
+  var adminUid = currentUser ? currentUser.uid : 'admin';
+  db.collection('users').doc(uid).update({
+    role:      newRole,
+    status:    newRole === 'agent' ? 'active' : undefined,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: adminUid
+  }).then(function() {
+    logAudit('user.role.changed', 'users', uid, null, { newRole: newRole });
+    var u = _hrStaff.find(function(x){ return x.id === uid; });
+    if (u) { u.role = newRole; }
+    var chip = document.getElementById('sp-role-chip');
+    if (chip) chip.textContent = HR_ROLE_LABELS[newRole] || newRole;
+    if (typeof notifyUser === 'function') {
+      notifyUser(uid,
+        curLang === 'rw' ? '&#128203; Uruhare Rwahinduwe' : '&#128203; Role Updated',
+        (curLang === 'rw'
+          ? 'Uruhare rwawe muri KOMISIYONERI rwahindujwe: ' + (HR_ROLE_LABELS[newRole] || newRole) + '.'
+          : 'Your KOMISIYONERI account role has been updated to: ' + (HR_ROLE_LABELS[newRole] || newRole) + '.'),
+        'role_changed', 'users', uid);
+    }
+    showToast(curLang === 'rw' ? 'Uruhare rwahinduwe!' : 'Role updated successfully!', 'success');
+  }).catch(function() { showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error updating role', 'error'); });
+}
+
+function toggleUserVerified(uid) {
+  if (!uid || typeof db === 'undefined') return;
+  var u = _hrStaff.find(function(x){ return x.id === uid; });
+  if (!u) return;
+  var newVal = !u.isVerified;
+  var adminUid = currentUser ? currentUser.uid : 'admin';
+  db.collection('users').doc(uid).update({
+    isVerified: newVal,
+    updatedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy:  adminUid
+  }).then(function() {
+    u.isVerified = newVal;
+    logAudit('user.verified.changed', 'users', uid, null, { isVerified: newVal });
+    var verBadge = document.getElementById('sp-verified-badge');
+    if (verBadge) verBadge.innerHTML = newVal ? '<span class="hr-verified-chip">Verified</span>' : '';
+    var verBtn = document.getElementById('sp-verify-btn');
+    if (verBtn) verBtn.textContent = newVal ? 'Unverify' : 'Verify';
+    showToast(newVal ? (curLang === 'rw' ? 'Yemejwe!' : 'User verified!') : (curLang === 'rw' ? 'Yisiwe' : 'Verification removed'), 'success');
+  }).catch(function() { showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error', 'error'); });
+}
+
+function toggleUserActive(uid) {
+  if (!uid || typeof db === 'undefined') return;
+  var u = _hrStaff.find(function(x){ return x.id === uid; });
+  if (!u) return;
+  var newVal = u.isActive === false ? true : false;
+  var adminUid = currentUser ? currentUser.uid : 'admin';
+  db.collection('users').doc(uid).update({
+    isActive:  newVal,
+    status:    newVal ? 'active' : 'suspended',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: adminUid
+  }).then(function() {
+    u.isActive = newVal;
+    logAudit(newVal ? 'user.activated' : 'user.suspended', 'users', uid, null, { isActive: newVal });
+    var statusEl = document.getElementById('sp-status');
+    if (statusEl) statusEl.innerHTML = newVal
+      ? '<span style="color:var(--success)">Active</span>'
+      : '<span style="color:var(--error)">Suspended</span>';
+    var actBtn = document.getElementById('sp-active-btn');
+    if (actBtn) actBtn.textContent = newVal ? 'Suspend' : 'Activate';
+    showToast(newVal ? (curLang === 'rw' ? 'Konti yafunguwe!' : 'Account activated!') : (curLang === 'rw' ? 'Konti ifunze!' : 'Account suspended!'), newVal ? 'success' : 'warn');
+  }).catch(function() { showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error', 'error'); });
+}
 
 /* ── PAYROLL ── */
 function loadPayroll() {
