@@ -1,7 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="100" fill="#0D3B8C"/>
-  <path d="M100 370 L256 138 L412 370" stroke="white" stroke-width="36" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M178 370 L178 272 L334 272 L334 370" stroke="white" stroke-width="36" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
-  <rect x="218" y="272" width="76" height="98" rx="10" fill="#F5A623"/>
-  <circle cx="256" cy="430" r="18" fill="#F5A623"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0D3B8C"/>
+      <stop offset="100%" style="stop-color:#1249B3"/>
+    </linearGradient>
+    <linearGradient id="gold2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#E8C46A"/>
+      <stop offset="100%" style="stop-color:#C9A84C"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="108" fill="url(#bg2)"/>
+  <path d="M256 86 L422 224 L422 432 L304 432 L304 326 L208 326 L208 432 L90 432 L90 224 Z"
+        fill="none" stroke="url(#gold2)" stroke-width="20" stroke-linejoin="round" stroke-linecap="round"/>
+  <rect x="208" y="326" width="96" height="106" rx="14" fill="url(#gold2)" opacity="0.92"/>
+  <rect x="218" y="160" width="29" height="108" rx="8" fill="url(#gold2)"/>
+  <path d="M247 160 L308 207" stroke="url(#gold2)" stroke-width="26" stroke-linecap="round"/>
+  <path d="M247 214 L308 268" stroke="url(#gold2)" stroke-width="26" stroke-linecap="round"/>
 </svg>
