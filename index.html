@@ -4338,8 +4338,12 @@ html,body{overscroll-behavior-x:none}
   </div>
   <div class="crm-wrap">
     <div class="crm-header">
-      <div>
-        <p style="color:var(--muted);font-size:.82rem" data-rw="Kanda ku deal kugirango ubone ibirenzeho" data-en="Click any deal to view details and take action">Click any deal to view details</p>
+      <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+        <p style="color:var(--muted);font-size:.82rem;margin:0" data-rw="Kanda ku deal kugirango ubone ibirenzeho" data-en="Click any deal to view details and take action">Click any deal to view details</p>
+        <div class="crm-view-toggle">
+          <button id="deal-vbtn-list"   class="crm-vbtn active" onclick="toggleDealView('list')"   title="List View"   data-rw="Urutonde" data-en="List">&#9776; List</button>
+          <button id="deal-vbtn-kanban" class="crm-vbtn"        onclick="toggleDealView('kanban')" title="Kanban Board" data-rw="Kanban"   data-en="Kanban">&#9632; Kanban</button>
+        </div>
       </div>
       <button class="btn btn-navy btn-sm" onclick="openCreateDeal()">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -4384,10 +4388,12 @@ html,body{overscroll-behavior-x:none}
     <!-- Deal List -->
     <div class="crm-list" id="deal-list">
       <div class="crm-empty">
-        <div class="crm-empty-icon">💼</div>
+        <div class="crm-empty-icon">&#128188;</div>
         <div class="crm-empty-title" data-rw="Gutegura deals..." data-en="Loading deals...">Loading deals...</div>
       </div>
     </div>
+    <!-- Deal Kanban Board (hidden by default) -->
+    <div id="deal-kanban" class="crm-kanban" style="display:none"></div>
   </div>
 </div>
 
@@ -19149,7 +19155,7 @@ function filterDeals() {
   var si = document.getElementById('deal-search');
   _dealFilter = sf ? sf.value : '';
   _dealSearch = si ? si.value : '';
-  renderDealList();
+  if (typeof _dealView !== 'undefined' && _dealView === 'kanban') renderDealKanban(); else renderDealList();
 }
 
 // ── Deal Detail Modal ─────────────────────────────────
@@ -20468,6 +20474,82 @@ function toggleCrmView(view) {
     if (btnKanban) btnKanban.classList.remove('active');
     renderCrmLeads();
   }
+}
+
+// ── Deal Kanban View ────────────────────────────────────
+var _dealView = 'list';
+
+function toggleDealView(view) {
+  _dealView = view;
+  var listEl    = document.getElementById('deal-list');
+  var kanbanEl  = document.getElementById('deal-kanban');
+  var btnList   = document.getElementById('deal-vbtn-list');
+  var btnKanban = document.getElementById('deal-vbtn-kanban');
+  if (!listEl || !kanbanEl) return;
+  if (view === 'kanban') {
+    listEl.style.display   = 'none';
+    kanbanEl.style.display = 'flex';
+    if (btnList)   btnList.classList.remove('active');
+    if (btnKanban) btnKanban.classList.add('active');
+    renderDealKanban();
+  } else {
+    listEl.style.display   = '';
+    kanbanEl.style.display = 'none';
+    if (btnList)   btnList.classList.add('active');
+    if (btnKanban) btnKanban.classList.remove('active');
+    renderDealList();
+  }
+}
+
+function renderDealKanban() {
+  var board = document.getElementById('deal-kanban');
+  if (!board) return;
+
+  /* Active deal stages only (exclude new lead stages) */
+  var DEAL_STAGES = CRM_STAGES.filter(function(s) {
+    return ['offer_submitted','negotiation','due_diligence','financing','contract','closing','closed_won','closed_lost'].indexOf(s.key) > -1;
+  });
+
+  var filtered = _deals.filter(function(d) {
+    var title  = (d.propertyTitle || '').toLowerCase();
+    var client = (d.clientName || '').toLowerCase();
+    return !_dealSearch
+      || title.indexOf(_dealSearch.toLowerCase())  > -1
+      || client.indexOf(_dealSearch.toLowerCase()) > -1;
+  });
+
+  board.innerHTML = DEAL_STAGES.map(function(stage) {
+    var cards = filtered.filter(function(d) { return (d.pipelineStage || 'new') === stage.key; });
+    var total = cards.reduce(function(s, d) { return s + (parseInt(d.agreedPrice) || 0); }, 0);
+    var totalStr = total >= 1000000 ? (total/1000000).toFixed(1) + 'M' : total > 0 ? total.toLocaleString() : '';
+    return '<div class="crm-col" style="min-width:220px">'
+      + '<div class="crm-col-hdr" style="border-top:3px solid ' + stage.color + '">'
+      +   '<span class="crm-col-name">' + (curLang==='rw' ? stage.labelRW : stage.labelEN) + '</span>'
+      +   '<span class="crm-col-count">' + cards.length + (totalStr ? ' &bull; ' + totalStr + ' RWF' : '') + '</span>'
+      + '</div>'
+      + (cards.length === 0
+          ? '<div style="padding:.8rem;text-align:center;color:var(--muted);font-size:.75rem">—</div>'
+          : cards.map(function(deal) {
+              var dealId = deal._docId || deal.id || '';
+              var days   = typeof getDaysInStage === 'function' ? getDaysInStage(deal) : 0;
+              var price  = deal.agreedPrice ? parseInt(deal.agreedPrice).toLocaleString() + ' RWF' : '—';
+              var ms     = deal.milestones || {};
+              var msDone = DEAL_MILESTONES.filter(function(m) { return ms[m.key] === true; }).length;
+              var msPct  = Math.round((msDone / DEAL_MILESTONES.length) * 100);
+              return '<div class="crm-card" onclick="openDealDetail(\'' + dealId + '\')" style="border-left:3px solid ' + stage.color + ';cursor:pointer">'
+                + '<div class="crm-card-header" style="cursor:pointer">'
+                +   '<div style="font-size:.82rem;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(deal.propertyTitle || 'Deal') + '</div>'
+                +   '<span class="crm-days-chip' + (days > 14 ? ' overdue' : '') + '">' + days + 'd</span>'
+                + '</div>'
+                + '<div style="font-size:.75rem;color:var(--muted);margin:.15rem 0">' + escapeHtml(deal.clientName || '—') + '</div>'
+                + '<div style="font-size:.78rem;font-weight:700;color:var(--navy);margin:.1rem 0">' + price + '</div>'
+                + '<div style="background:var(--light);border-radius:4px;overflow:hidden;height:4px;margin-top:.3rem">'
+                +   '<div style="background:' + stage.color + ';width:' + msPct + '%;height:100%;transition:width .3s ease"></div>'
+                + '</div>'
+                + '</div>';
+            }).join(''))
+      + '</div>';
+  }).join('');
 }
 
 // ── Priority Filter ─────────────────────────────────────
