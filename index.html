@@ -2174,6 +2174,101 @@ html,body{overscroll-behavior-x:none}
   .site-card-img{height:130px}
   .site-plan-img{max-height:55vw}
 }
+
+/* ══════════════════════════════════════
+   CRM — LEADS, DEALS, COMMISSIONS, VIEWINGS
+══════════════════════════════════════ */
+.crm-wrap{max-width:1100px;margin:0 auto;padding:1.2rem 1.1rem 2.5rem}
+.crm-header{display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem}
+.crm-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:.6rem;margin-bottom:1rem}
+.crm-stat{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:.8rem .7rem;text-align:center}
+.crm-stat-v{font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:700;color:var(--navy);line-height:1}
+.crm-stat-l{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:.2rem;font-weight:600}
+.crm-filters{display:flex;gap:.55rem;flex-wrap:wrap;margin-bottom:.75rem}
+.crm-filters select,.crm-filters input{padding:.46rem .75rem;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;font-family:inherit;background:#fff;min-width:155px;flex:1}
+.crm-priority-filters{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.65rem}
+.crm-pf-label{font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
+.crm-pchip{border:1.5px solid var(--border);border-radius:20px;padding:.28rem .72rem;font-size:.7rem;font-weight:600;cursor:pointer;background:#fff;color:var(--muted);font-family:inherit;transition:var(--tr);white-space:nowrap}
+.crm-pchip.active,.crm-pchip:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+.crm-pchip-all.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.crm-pchip-hot{color:#DC2626;border-color:#DC262640}
+.crm-pchip-hot.active{background:#DC2626;color:#fff;border-color:#DC2626}
+.crm-pchip-warm{color:#D97706;border-color:#D9770640}
+.crm-pchip-warm.active{background:#D97706;color:#fff;border-color:#D97706}
+.crm-pchip-cold{color:var(--muted);border-color:var(--border)}
+.crm-pchip-cold.active{background:var(--muted);color:#fff;border-color:var(--muted)}
+.crm-view-toggle{display:inline-flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden}
+.crm-vbtn{background:#fff;border:none;padding:.38rem .75rem;font-size:.74rem;font-weight:600;cursor:pointer;color:var(--muted);font-family:inherit;transition:var(--tr)}
+.crm-vbtn.active{background:var(--navy);color:#fff}
+.crm-list{display:flex;flex-direction:column;gap:.55rem}
+.crm-empty{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.crm-empty-icon{font-size:2.2rem;margin-bottom:.6rem}
+.crm-empty-title{font-size:.92rem;font-weight:700;color:var(--navy);margin-bottom:.25rem}
+.crm-kanban{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.7rem;overflow-x:auto;padding-bottom:.5rem}
+.crm-col{background:var(--light);border-radius:12px;min-width:210px}
+.crm-col-hdr{padding:.65rem .8rem;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;border-radius:12px 12px 0 0;color:#fff;display:flex;justify-content:space-between;align-items:center}
+.crm-col-list{padding:.5rem;display:flex;flex-direction:column;gap:.45rem;min-height:120px}
+/* Lead/Deal cards */
+.crm-card,.deal-card{background:#fff;border-radius:12px;border:1.5px solid var(--border);border-left:4px solid var(--navy);padding:.85rem;transition:box-shadow .2s,transform .2s;cursor:default}
+.crm-card:hover,.deal-card:hover{box-shadow:0 4px 18px rgba(13,59,140,.1);transform:translateY(-1px)}
+.crm-card.crm-overdue{border-left-color:#DC2626;background:#FFF5F5}
+.crm-card.crm-due-today{border-left-color:#D97706;background:#FFFBEB}
+.crm-card-header,.deal-card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.45rem}
+.crm-card-name,.deal-card-title{font-weight:700;color:var(--navy);font-size:.88rem;display:flex;align-items:center;gap:.35rem;flex-wrap:wrap}
+.crm-card-meta,.deal-card-meta{display:flex;flex-wrap:wrap;gap:.3rem .65rem;font-size:.74rem;color:var(--muted);margin-bottom:.55rem}
+.crm-card-actions{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center}
+.crm-act-btn{display:inline-flex;align-items:center;gap:.25rem;padding:.32rem .65rem;border-radius:7px;font-size:.72rem;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--dark);font-family:inherit;transition:var(--tr);text-decoration:none;white-space:nowrap}
+.crm-act-btn:hover{background:var(--light);border-color:var(--navy);color:var(--navy)}
+.crm-act-btn-call{background:#EEF7FF;border-color:#BFDBFE;color:#1D4ED8}
+.crm-act-btn-call:hover{background:#DBEAFE;border-color:#1D4ED8}
+.crm-act-btn-wa{background:#F0FFF4;border-color:#BBF7D0;color:#15803D}
+.crm-act-btn-wa:hover{background:#DCFCE7;border-color:#15803D}
+/* Stage badge */
+.crm-stage-badge,.deal-badge{display:inline-flex;align-items:center;padding:.22rem .6rem;border-radius:20px;font-size:.64rem;font-weight:700;color:#fff;white-space:nowrap;flex-shrink:0}
+.comm-status-badge{display:inline-flex;align-items:center;padding:.22rem .65rem;border-radius:20px;font-size:.66rem;font-weight:700;white-space:nowrap}
+/* Priority badges */
+.crm-priority{display:inline-flex;align-items:center;padding:.18rem .52rem;border-radius:20px;font-size:.65rem;font-weight:700;white-space:nowrap;flex-shrink:0}
+.crm-priority-hot{color:#DC2626;background:#FEE2E2;border:1px solid #FECACA}
+.crm-priority-warm{color:#D97706;background:#FEF3C7;border:1px solid #FDE68A}
+.crm-priority-cold{color:var(--muted);background:var(--light);border:1px solid var(--border)}
+/* Days-in-stage chip */
+.crm-days-chip{display:inline-flex;align-items:center;padding:.15rem .45rem;border-radius:20px;font-size:.62rem;font-weight:700;background:var(--light);color:var(--muted);border:1px solid var(--border);margin-left:.25rem;flex-shrink:0}
+.crm-days-chip.overdue{background:#FEE2E2;color:#DC2626;border-color:#FECACA}
+/* Deal price */
+.deal-price{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:700;color:var(--navy);margin-bottom:.4rem}
+/* Milestone items */
+.milestone-item{display:flex;align-items:center;gap:.55rem;padding:.45rem 0;border-bottom:1px solid var(--border);font-size:.82rem;color:var(--muted)}
+.milestone-item:last-child{border-bottom:none}
+.milestone-item.done{color:var(--navy)}
+.mi-icon{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0;color:var(--muted)}
+.milestone-item.done .mi-icon{background:#16A34A;border-color:#16A34A;color:#fff}
+/* Lead stage tracker */
+.lead-stage-track{display:flex;gap:.25rem;overflow-x:auto;padding-bottom:.4rem;margin-bottom:.8rem;scrollbar-width:none}
+.lead-stage-track::-webkit-scrollbar{display:none}
+.lst-pill{padding:.3rem .65rem;border-radius:20px;font-size:.63rem;font-weight:700;border:1.5px solid var(--border);background:var(--light);color:var(--muted);cursor:pointer;white-space:nowrap;transition:var(--tr);flex-shrink:0}
+.lst-pill.active{color:#fff}
+.lst-pill:hover{opacity:.85}
+/* Contact log */
+.contact-log{max-height:160px;overflow-y:auto;margin-bottom:.75rem;display:flex;flex-direction:column;gap:.4rem;scrollbar-width:thin}
+.cl-item{background:var(--light);border-radius:8px;padding:.5rem .65rem;font-size:.78rem}
+.cl-item-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:.2rem}
+.cl-type{font-weight:700;color:var(--navy);font-size:.7rem;text-transform:uppercase}
+.cl-date{font-size:.62rem;color:var(--muted)}
+.cl-note{color:var(--dark);line-height:1.5}
+/* Mobile CRM */
+@media(max-width:660px){
+  .crm-stats{grid-template-columns:repeat(3,1fr)}
+  .crm-filters{flex-direction:column}
+  .crm-filters select,.crm-filters input{min-width:0;width:100%}
+  .crm-kanban{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+}
+@media(max-width:414px){
+  .crm-stats{grid-template-columns:repeat(2,1fr)}
+  .crm-stat-v{font-size:1.3rem}
+  .crm-card,.deal-card{padding:.7rem}
+  .crm-card-actions{gap:.3rem}
+  .crm-act-btn{padding:.28rem .5rem;font-size:.68rem}
+}
 </style>
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -3807,6 +3902,48 @@ html,body{overscroll-behavior-x:none}
           <div><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:.3rem"><span data-rw="Ubutaka" data-en="Land">Ubutaka</span><span style="font-weight:700;font-family:'JetBrains Mono',monospace">15%</span></div><div style="height:7px;background:var(--light);border-radius:4px"><div style="width:15%;height:100%;background:var(--green);border-radius:4px"></div></div></div>
           <div><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:.3rem"><span data-rw="Inyubako" data-en="Commercial">Inyubako</span><span style="font-weight:700;font-family:'JetBrains Mono',monospace">8%</span></div><div style="height:7px;background:var(--light);border-radius:4px"><div style="width:8%;height:100%;background:var(--gold);border-radius:4px"></div></div></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LIVE AGENT LEADERBOARD ───────────────────────────────── -->
+  <div style="max-width:1100px;margin:0 auto;padding:0 1.1rem 2.5rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div>
+        <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-bottom:.25rem" data-rw="IMIKORERE Y'ABAKOMISIYONERI" data-en="AGENT PERFORMANCE">AGENT PERFORMANCE</div>
+        <div style="font-size:1.15rem;font-weight:800;color:var(--navy)" data-rw="Abatindi Babanza — Komisiyoni" data-en="Top Performers — Commission Leaderboard">Top Performers — Commission Leaderboard</div>
+      </div>
+      <button onclick="loadAgentLeaderboard()" style="background:var(--light);border:1.5px solid var(--border);border-radius:8px;padding:.4rem .8rem;cursor:pointer;font-size:.78rem;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:.35rem" title="Refresh">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+        <span data-rw="Vugurura" data-en="Refresh">Refresh</span>
+      </button>
+    </div>
+    <div id="agent-leaderboard" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.75rem">
+      <div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted);font-size:.85rem">
+        <span data-rw="Gutegura imikorere..." data-en="Loading performance data...">Loading performance data...</span>
+      </div>
+    </div>
+    <!-- Live CRM Metrics Strip -->
+    <div style="margin-top:1.4rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.65rem" id="analytics-live-kpis">
+      <div class="an-kpi" style="padding:.9rem 1rem;border-radius:12px;background:#fff;border:1.5px solid var(--border)">
+        <span class="an-kpi-v" id="alv-leads" style="font-size:1.6rem">—</span>
+        <span class="an-kpi-l" style="font-size:.68rem" data-rw="Leads Zose" data-en="Total Leads">Total Leads</span>
+      </div>
+      <div class="an-kpi" style="padding:.9rem 1rem;border-radius:12px;background:#fff;border:1.5px solid var(--border)">
+        <span class="an-kpi-v" id="alv-deals" style="font-size:1.6rem">—</span>
+        <span class="an-kpi-l" style="font-size:.68rem" data-rw="Deals Zifunguye" data-en="Open Deals">Open Deals</span>
+      </div>
+      <div class="an-kpi" style="padding:.9rem 1rem;border-radius:12px;background:#fff;border:1.5px solid var(--border)">
+        <span class="an-kpi-v" id="alv-won" style="font-size:1.6rem;color:#16A34A">—</span>
+        <span class="an-kpi-l" style="font-size:.68rem" data-rw="Zarangiye" data-en="Closed Won">Closed Won</span>
+      </div>
+      <div class="an-kpi" style="padding:.9rem 1rem;border-radius:12px;background:#fff;border:1.5px solid var(--border)">
+        <span class="an-kpi-v" id="alv-comm" style="font-size:1.6rem;color:var(--gold)">—</span>
+        <span class="an-kpi-l" style="font-size:.68rem" data-rw="Komisiyoni Yose (M)" data-en="Total Commission (M)">Commission (M)</span>
+      </div>
+      <div class="an-kpi" style="padding:.9rem 1rem;border-radius:12px;background:#fff;border:1.5px solid var(--border)">
+        <span class="an-kpi-v" id="alv-viewings" style="font-size:1.6rem;color:var(--blue)">—</span>
+        <span class="an-kpi-l" style="font-size:.68rem" data-rw="Inzibutso" data-en="Viewings">Viewings</span>
       </div>
     </div>
   </div>
@@ -9760,6 +9897,11 @@ function go(name) {
   // Animate KPIs when entering analytics or dashboard
   if (name === 'analytics' || name === 'dashboard') {
     setTimeout(animateKPIs, 80);
+  }
+
+  // Load live agent leaderboard when entering analytics
+  if (name === 'analytics') {
+    setTimeout(loadAgentLeaderboard, 200);
   }
 
   // SPA back-button support — push a history entry for each page visit
@@ -19959,6 +20101,110 @@ var COMM_AGENT_SPLIT   = 0.60;
 var COMM_COMPANY_SPLIT = 0.40;
 
 // ── Commission state ──────────────────────────────────
+// ── AGENT LEADERBOARD ─────────────────────────────────
+function loadAgentLeaderboard() {
+  var board = document.getElementById('agent-leaderboard');
+  if (!board) return;
+  if (typeof db === 'undefined') return;
+
+  board.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--muted);font-size:.82rem">'
+    + (curLang === 'rw' ? 'Gutegura...' : 'Loading...') + '</div>';
+
+  // Fetch commissions + deals + leads in parallel for live KPIs
+  var pComm   = db.collection('commissions').where('isActive','==',true).limit(500).get();
+  var pDeals  = db.collection('deals').where('isActive','==',true).limit(500).get();
+  var pLeads  = db.collection('leads').where('isActive','==',true).limit(500).get();
+  var pViews  = db.collection('viewings').where('isActive','==',true).limit(500).get();
+
+  Promise.all([pComm, pDeals, pLeads, pViews]).then(function(results) {
+    var comms  = [];
+    var deals  = [];
+    var leads  = [];
+    var views  = [];
+    results[0].forEach(function(d){ comms.push(d.data()); });
+    results[1].forEach(function(d){ deals.push(d.data()); });
+    results[2].forEach(function(d){ leads.push(d.data()); });
+    results[3].forEach(function(d){ views.push(d.data()); });
+
+    // Live KPI strip
+    var wonDeals  = deals.filter(function(d){ return d.pipelineStage === 'closed_won'; }).length;
+    var openDeals = deals.filter(function(d){ return d.pipelineStage && d.pipelineStage !== 'closed_won' && d.pipelineStage !== 'closed_lost'; }).length;
+    var totalComm = comms.reduce(function(s,c){ return s + (parseFloat(c.totalCommission)||0); }, 0);
+    var e2 = document.getElementById.bind(document);
+    if (e2('alv-leads'))    e2('alv-leads').textContent    = leads.length;
+    if (e2('alv-deals'))    e2('alv-deals').textContent    = openDeals;
+    if (e2('alv-won'))      e2('alv-won').textContent      = wonDeals;
+    if (e2('alv-comm'))     e2('alv-comm').textContent     = totalComm >= 1000000 ? (totalComm/1000000).toFixed(1) + 'M' : Math.round(totalComm/1000) + 'K';
+    if (e2('alv-viewings')) e2('alv-viewings').textContent = views.length;
+
+    // Aggregate per agent from commissions
+    var agentMap = {};
+    comms.forEach(function(c) {
+      var aid  = c.agentId || '_unknown';
+      var name = c.agentName || (curLang === 'rw' ? 'Ata Izina' : 'Unknown Agent');
+      if (!agentMap[aid]) agentMap[aid] = { name: name, comm: 0, deals: 0, paid: 0 };
+      agentMap[aid].comm  += parseFloat(c.totalCommission) || 0;
+      agentMap[aid].deals += 1;
+      if (c.status === 'paid') agentMap[aid].paid += parseFloat(c.agentShare) || 0;
+    });
+    // Enrich with closed_won deals to add deals not yet in commissions
+    deals.forEach(function(d) {
+      if (d.pipelineStage !== 'closed_won') return;
+      var aid  = d.agentId || '_unknown';
+      var name = d.agentName || (curLang === 'rw' ? 'Ata Izina' : 'Unknown Agent');
+      if (!agentMap[aid]) agentMap[aid] = { name: name, comm: 0, deals: 0, paid: 0 };
+    });
+
+    var sorted = Object.values(agentMap).sort(function(a,b){ return b.comm - a.comm; });
+
+    if (!sorted.length) {
+      board.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted);font-size:.85rem">'
+        + (curLang === 'rw' ? 'Nta makuru arahari kuri ubu' : 'No commission data yet — close a deal to see rankings here') + '</div>';
+      return;
+    }
+
+    var MEDALS  = ['🥇','🥈','🥉'];
+    var maxComm = sorted[0].comm || 1;
+
+    board.innerHTML = sorted.slice(0, 10).map(function(ag, idx) {
+      var medal     = MEDALS[idx] || ('#' + (idx + 1));
+      var pct       = Math.round(ag.comm / maxComm * 100);
+      var commDisp  = ag.comm >= 1000000
+        ? (ag.comm/1000000).toFixed(1) + 'M'
+        : ag.comm >= 1000 ? Math.round(ag.comm/1000) + 'K' : Math.round(ag.comm);
+      var paidDisp  = ag.paid >= 1000000
+        ? (ag.paid/1000000).toFixed(1) + 'M'
+        : ag.paid >= 1000 ? Math.round(ag.paid/1000) + 'K' : Math.round(ag.paid);
+      var isTop     = idx === 0;
+      return '<div style="background:#fff;border:' + (isTop ? '2px solid var(--gold)' : '1.5px solid var(--border)') + ';border-radius:14px;padding:1rem 1.1rem;position:relative;overflow:hidden">'
+        + (isTop ? '<div style="position:absolute;top:0;right:0;background:var(--gold);color:#fff;font-size:.6rem;font-weight:800;letter-spacing:.08em;padding:.25rem .55rem;border-radius:0 14px 0 8px;text-transform:uppercase">TOP</div>' : '')
+        + '<div style="display:flex;align-items:center;gap:.65rem;margin-bottom:.75rem">'
+        +   '<div style="font-size:1.55rem;line-height:1">' + medal + '</div>'
+        +   '<div style="flex:1;min-width:0">'
+        +     '<div style="font-weight:800;color:var(--navy);font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (ag.name.length > 22 ? ag.name.slice(0,20) + '…' : ag.name) + '</div>'
+        +     '<div style="font-size:.65rem;color:var(--muted);margin-top:.1rem">' + ag.deals + ' ' + (curLang === 'rw' ? 'inzira' : 'commission' + (ag.deals !== 1 ? 's' : '')) + '</div>'
+        +   '</div>'
+        +   '<div style="text-align:right;flex-shrink:0">'
+        +     '<div style="font-family:\'JetBrains Mono\',monospace;font-size:.95rem;font-weight:700;color:' + (isTop ? 'var(--gold)' : 'var(--navy)') + '">' + commDisp + '</div>'
+        +     '<div style="font-size:.6rem;color:var(--muted)">RWF total</div>'
+        +   '</div>'
+        + '</div>'
+        + '<div style="height:5px;background:var(--light);border-radius:3px;overflow:hidden">'
+        +   '<div style="width:' + pct + '%;height:100%;background:' + (isTop ? 'var(--gold)' : 'var(--navy)') + ';border-radius:3px;transition:width .6s ease"></div>'
+        + '</div>'
+        + '<div style="display:flex;justify-content:space-between;margin-top:.45rem;font-size:.65rem;color:var(--muted)">'
+        +   '<span>' + (curLang === 'rw' ? 'Yarishyuwe' : 'Paid out') + ': <strong style="color:#16A34A">' + paidDisp + ' RWF</strong></span>'
+        +   '<span>' + pct + '% ' + (curLang === 'rw' ? 'by\'ejo hejuru' : 'of top') + '</span>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }).catch(function(err) {
+    console.warn('[Leaderboard] load error:', err);
+    if (board) board.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--muted);font-size:.82rem">'
+      + (curLang === 'rw' ? 'Habayeho ikosa. Gerageza nanone.' : 'Could not load data. Try refreshing.') + '</div>';
+  });
+}
+
 var _commissions  = [];
 var _commFilter   = '';
 var _commSearch   = '';
@@ -20093,8 +20339,7 @@ function loadCommissions() {
               .orderBy('createdAt','desc').limit(200);
   } else if (typeof currentUser !== 'undefined' && currentUser) {
     query = db.collection('commissions').where('isActive','==',true)
-              .where('agentId','==',currentUser.uid)
-              .orderBy('createdAt','desc').limit(200);
+              .where('agentId','==',currentUser.uid).limit(200);
   } else { return; }
 
   query.get().then(function(snap) {
@@ -20103,6 +20348,11 @@ function loadCommissions() {
       var d = doc.data();
       d._docId = doc.id;
       _commissions.push(d);
+    });
+    _commissions.sort(function(a, b) {
+      var ta = a.createdAt && a.createdAt.seconds ? a.createdAt.seconds : 0;
+      var tb = b.createdAt && b.createdAt.seconds ? b.createdAt.seconds : 0;
+      return tb - ta;
     });
     renderCommissionList();
     updateCommissionStats();
@@ -20588,7 +20838,7 @@ function loadDeals() {
     query = db.collection('deals').where('isActive','==',true).orderBy('createdAt','desc').limit(200);
   } else if (typeof currentUser !== 'undefined' && currentUser) {
     query = db.collection('deals').where('isActive','==',true)
-      .where('agentId','==',currentUser.uid).orderBy('createdAt','desc').limit(200);
+      .where('agentId','==',currentUser.uid).limit(200);
   } else {
     _loadDealsFallback(); return;
   }
@@ -20597,6 +20847,11 @@ function loadDeals() {
     _deals = [];
     snap.forEach(function(doc) {
       var d = doc.data(); d._docId = doc.id; _deals.push(d);
+    });
+    _deals.sort(function(a, b) {
+      var ta = a.createdAt && a.createdAt.seconds ? a.createdAt.seconds : 0;
+      var tb = b.createdAt && b.createdAt.seconds ? b.createdAt.seconds : 0;
+      return tb - ta;
     });
     renderDealList();
     updateDealStats();
