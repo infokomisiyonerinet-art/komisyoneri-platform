@@ -21621,14 +21621,11 @@ function loadCRM() {
   var query;
   if (isAdminOrStaff) {
     query = db.collection('leads')
-      .where('isActive', '==', true)
       .orderBy('createdAt', 'desc')
       .limit(200);
   } else if (typeof currentUser !== 'undefined' && currentUser) {
     query = db.collection('leads')
-      .where('isActive', '==', true)
       .where('agentId', '==', currentUser.uid)
-      .orderBy('createdAt', 'desc')
       .limit(200);
   } else {
     _loadCrmFallback();
@@ -21639,9 +21636,11 @@ function loadCRM() {
     _crmLeads = [];
     snap.forEach(function(doc) {
       var d = doc.data();
+      if (d.isActive === false) return;
       d._docId = doc.id;
       _crmLeads.push(d);
     });
+    _crmLeads.sort(function(a,b){ var ta=a.createdAt&&a.createdAt.seconds?a.createdAt.seconds:0; var tb=b.createdAt&&b.createdAt.seconds?b.createdAt.seconds:0; return tb-ta; });
     renderCrmLeads();
     updateCrmStats();
     updateCrmSidebarBadge();
