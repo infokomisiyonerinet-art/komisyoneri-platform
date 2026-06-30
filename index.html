@@ -6125,6 +6125,25 @@ html,body{overscroll-behavior-x:none}
         <div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem" data-rw="Inkomoko" data-en="Source">Source</div>
         <div id="ld-source" style="font-size:.84rem;font-weight:600;color:var(--navy)">—</div>
       </div>
+      <!-- Agent assignment (full-width row) -->
+      <div style="background:var(--light);border-radius:8px;padding:.6rem .7rem;grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:.5rem">
+        <div>
+          <div style="font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:.2rem" data-rw="Agent" data-en="Agent">Agent</div>
+          <div id="ld-agent-name" style="font-size:.84rem;font-weight:600;color:var(--navy)">—</div>
+        </div>
+        <button id="ld-reassign-btn" onclick="_openLeadReassignPanel()" style="display:none;background:var(--navy);color:#fff;border:none;border-radius:6px;padding:.3rem .65rem;font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0" data-rw="Hindura Agent" data-en="Reassign">Reassign</button>
+      </div>
+    </div>
+    <!-- Reassign Agent inline panel (admin/staff only) -->
+    <div id="ld-reassign-panel" style="display:none;border:1.5px solid var(--navy);border-radius:10px;padding:.7rem;margin-bottom:.85rem;background:#EEF2FF">
+      <div style="font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:.45rem" data-rw="Shyiraho Agent Mushya" data-en="Assign New Agent">Assign New Agent</div>
+      <select id="ld-reassign-select" style="width:100%;padding:.48rem .7rem;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:.82rem;margin-bottom:.45rem;box-sizing:border-box">
+        <option value="">-- <span data-rw="Hitamo Agent" data-en="Select Agent">Select Agent</span> --</option>
+      </select>
+      <div style="display:flex;gap:.4rem">
+        <button class="btn btn-navy" style="flex:1;justify-content:center;font-size:.78rem;padding:.42rem" onclick="_saveLeadReassign()" data-rw="Emeza" data-en="Confirm">Confirm</button>
+        <button class="btn btn-outline" style="flex-shrink:0;font-size:.78rem;padding:.42rem .7rem" onclick="document.getElementById('ld-reassign-panel').style.display='none'" data-rw="Siba" data-en="Cancel">Cancel</button>
+      </div>
     </div>
 
     <!-- Contact Log -->
@@ -20166,6 +20185,12 @@ function _openLeadDetailWithData(lead) {
   if(e('ld-zone'))   e('ld-zone').textContent   = zone;
   if(e('ld-budget')) e('ld-budget').textContent = budMin + ' – ' + budMax;
   if(e('ld-source')) e('ld-source').textContent = src;
+  if(e('ld-agent-name')) e('ld-agent-name').textContent = lead.agentName || (curLang === 'rw' ? 'Ntashyizwaho' : 'Unassigned');
+  // Show reassign button for admin/staff
+  var _isAdminRole = typeof currentUser !== 'undefined' && currentUser &&
+    (['admin','super_admin','staff'].indexOf((currentUser.role || '').toLowerCase()) > -1);
+  if(e('ld-reassign-btn')) e('ld-reassign-btn').style.display = _isAdminRole ? '' : 'none';
+  if(e('ld-reassign-panel')) e('ld-reassign-panel').style.display = 'none';
 
   // Contact log
   var logEl = e('ld-contact-log');
@@ -21001,6 +21026,94 @@ function renderCrmFunnel() {
 function filterCrmByStage(stageKey) {
   var sel = document.getElementById('crm-filter-stage');
   if (sel) { sel.value = stageKey; filterCrmLeads(); }
+}
+
+// ── Lead Agent Reassignment ──────────────────────────────────────────
+var _ldAgentList = [];
+
+function _openLeadReassignPanel() {
+  var panel = document.getElementById('ld-reassign-panel');
+  var sel   = document.getElementById('ld-reassign-select');
+  if (!panel || !sel) return;
+  panel.style.display = 'block';
+  sel.innerHTML = '<option value="">-- ' + (curLang === 'rw' ? 'Hitamo Agent' : 'Select Agent') + ' --</option>';
+  if (_ldAgentList.length > 0) {
+    _ldAgentList.forEach(function(a) {
+      var opt = document.createElement('option');
+      opt.value = a.uid; opt.textContent = (a.displayName || a.name || a.email || 'Agent') + ' (' + (a.role || 'agent') + ')';
+      sel.appendChild(opt);
+    });
+    return;
+  }
+  if (typeof db === 'undefined') return;
+  db.collection('users').where('role','==','agent').where('isActive','==',true)
+    .orderBy('createdAt','desc').limit(50).get()
+    .then(function(snap) {
+      _ldAgentList = [];
+      snap.forEach(function(doc) { var d = doc.data(); d._uid = doc.id; _ldAgentList.push(d); });
+      if (_ldAgentList.length === 0) {
+        // Also try admin + staff
+        sel.innerHTML = '<option value="">' + (curLang === 'rw' ? 'Nta agents babonetse' : 'No agents found') + '</option>';
+        return;
+      }
+      sel.innerHTML = '<option value="">-- ' + (curLang === 'rw' ? 'Hitamo Agent' : 'Select Agent') + ' --</option>';
+      _ldAgentList.forEach(function(a) {
+        var opt = document.createElement('option');
+        opt.value = a._uid || a.uid || ''; opt.textContent = (a.displayName || a.name || a.email || 'Agent');
+        sel.appendChild(opt);
+      });
+    }).catch(function() {
+      sel.innerHTML = '<option value="">' + (curLang === 'rw' ? 'Habaye ikosa' : 'Error loading agents') + '</option>';
+    });
+}
+
+function _saveLeadReassign() {
+  var sel    = document.getElementById('ld-reassign-select');
+  var panel  = document.getElementById('ld-reassign-panel');
+  var nameEl = document.getElementById('ld-agent-name');
+  var leadId = (document.getElementById('ld-lead-id') || {}).value || '';
+  if (!sel || !sel.value || !leadId) {
+    showToast(curLang === 'rw' ? 'Hitamo agent' : 'Please select an agent', 'error');
+    return;
+  }
+  var newAgentId  = sel.value;
+  var selOpt      = sel.options[sel.selectedIndex];
+  var newAgentName = selOpt ? selOpt.textContent.trim() : '';
+  if (typeof db === 'undefined' || !currentUser) return;
+  var uid = currentUser.uid;
+  db.collection('leads').doc(leadId).update({
+    agentId:   newAgentId,
+    agentName: newAgentName,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: uid
+  }).then(function() {
+    showToast(curLang === 'rw' ? 'Lead yashyiziwe agent nshya!' : 'Lead reassigned successfully!', 'success');
+    if (nameEl) nameEl.textContent = newAgentName;
+    if (panel)  panel.style.display = 'none';
+    logAudit('lead.agent.reassigned', 'leads', leadId,
+      { agentName: _ldCurrentLead ? _ldCurrentLead.agentName : '' },
+      { agentId: newAgentId, agentName: newAgentName }
+    );
+    if (_ldCurrentLead) { _ldCurrentLead.agentId = newAgentId; _ldCurrentLead.agentName = newAgentName; }
+    for (var i = 0; i < _crmLeads.length; i++) {
+      if ((_crmLeads[i]._docId || _crmLeads[i].id) === leadId) {
+        _crmLeads[i].agentId   = newAgentId;
+        _crmLeads[i].agentName = newAgentName;
+        break;
+      }
+    }
+    if (typeof renderCrmLeads === 'function') renderCrmLeads();
+    // Notify new agent
+    kmNotify(
+      curLang === 'rw' ? 'Lead Nshya Yashyikirijwe!' : 'New Lead Assigned!',
+      (curLang === 'rw' ? 'Lead ya ' : 'Lead from ') + (_ldCurrentLead ? (_ldCurrentLead.clientName || '') : ''),
+      'lead-reassign-' + leadId,
+      { type: 'lead_assigned', relatedId: leadId, relatedCollection: 'leads' }
+    );
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa reka ugerageze nanone' : 'Error saving — please retry', 'error');
+    console.error('[Reassign]', err);
+  });
 }
 
 /* ══════════════════════════════════════════════════════
