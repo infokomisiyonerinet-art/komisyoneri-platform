@@ -10153,11 +10153,19 @@ function renderUserPropCard(prop) {
   // Image
   var imgBg = prop.img1 ? ' style="background-image:url(' + prop.img1 + ');background-size:cover;background-position:center;background-repeat:no-repeat"' : '';
 
-  // Badges
+  // Context-aware status badges
+  var isNew  = false;
+  if (prop.createdAt && prop.createdAt.seconds) {
+    isNew = (Date.now() / 1000 - prop.createdAt.seconds) < 7 * 86400;
+  }
+  var isHot = (prop.viewCount || 0) >= 50;
+
   var topBadges = '';
-  if(prop.isDemo) topBadges += '<span style="position:absolute;top:.4rem;left:.4rem;z-index:4;background:rgba(245,166,35,.95);color:#000;border-radius:20px;padding:.1rem .5rem;font-size:.6rem;font-weight:800">✦ DEMO</span>';
-  if(prop.verified) topBadges += '<span style="position:absolute;top:.4rem;right:.4rem;z-index:4;background:rgba(39,168,74,.9);color:#fff;border-radius:20px;padding:.1rem .4rem;font-size:.6rem;font-weight:700">✅</span>';
-  if(prop.rating) topBadges += '<span style="position:absolute;bottom:.4rem;right:.4rem;z-index:4;background:rgba(0,0,0,.6);color:#fff;border-radius:20px;padding:.1rem .45rem;font-size:.65rem;font-weight:700">★ '+prop.rating+'</span>';
+  if (prop.isDemo) topBadges += '<span style="position:absolute;top:.4rem;left:.4rem;z-index:4;background:rgba(245,166,35,.95);color:#000;border-radius:20px;padding:.1rem .5rem;font-size:.6rem;font-weight:800">✦ DEMO</span>';
+  else if (isNew)  topBadges += '<span style="position:absolute;top:.4rem;left:.4rem;z-index:4;background:rgba(22,163,74,.92);color:#fff;border-radius:20px;padding:.1rem .5rem;font-size:.6rem;font-weight:800">NEW</span>';
+  else if (isHot)  topBadges += '<span style="position:absolute;top:.4rem;left:.4rem;z-index:4;background:rgba(220,38,38,.92);color:#fff;border-radius:20px;padding:.1rem .5rem;font-size:.6rem;font-weight:800">🔥 HOT</span>';
+  if (prop.verified) topBadges += '<span style="position:absolute;top:.4rem;right:.4rem;z-index:4;background:rgba(39,168,74,.9);color:#fff;border-radius:20px;padding:.1rem .4rem;font-size:.6rem;font-weight:700">✅</span>';
+  if (prop.rating)   topBadges += '<span style="position:absolute;bottom:.4rem;right:.4rem;z-index:4;background:rgba(0,0,0,.6);color:#fff;border-radius:20px;padding:.1rem .45rem;font-size:.65rem;font-weight:700">★ '+prop.rating+'</span>';
 
   // No image placeholder
   var placeholder = prop.img1 ? '' : '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.4"><svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="white" stroke-width="1"><path d="M3 12l9-9 9 9M5 10v9h14v-9"/></svg></div>';
@@ -10165,12 +10173,14 @@ function renderUserPropCard(prop) {
   // Short desc
   var shortDesc = prop.desc ? prop.desc.substring(0, 55) + '...' : '';
 
-  // Star rating HTML
-  var ratingVal = prop.rating || (4.5 + Math.random() * 0.5).toFixed(1);
-  var reviewCount = prop.reviews || Math.floor(Math.random() * 20 + 3);
+  // Star rating HTML — only shown when real data exists
+  var ratingVal = parseFloat(prop.rating) || 0;
+  var reviewCount = parseInt(prop.reviews) || 0;
   var starsHtml = '';
-  for (var si = 1; si <= 5; si++) {
-    starsHtml += '<span class="p-star' + (si <= Math.floor(ratingVal) ? ' on' : '') + '">★</span>';
+  if (ratingVal) {
+    for (var si = 1; si <= 5; si++) {
+      starsHtml += '<span class="p-star' + (si <= Math.floor(ratingVal) ? ' on' : '') + '">★</span>';
+    }
   }
 
   // Verified bottom-left badge
@@ -10192,7 +10202,7 @@ function renderUserPropCard(prop) {
     + '</div>'
     + '<div class="p-body" onclick="openPropDetail(\'' + pid + '\')">'
     +   '<div class="p-loc">' + loc + '</div>'
-    +   '<div class="p-rating"><div class="p-stars">' + starsHtml + '</div><span class="p-rating-count">(' + reviewCount + ')</span>' + (prop.viewCount ? '<span style="margin-left:auto;font-size:.68rem;color:var(--muted)">&#128065; ' + Number(prop.viewCount).toLocaleString() + '</span>' : '') + '</div>'
+    +   '<div class="p-rating"><div class="p-stars">' + starsHtml + '</div>' + (ratingVal && reviewCount ? '<span class="p-rating-count">(' + reviewCount + ')</span>' : '') + (prop.viewCount ? '<span style="margin-left:auto;font-size:.68rem;color:var(--muted)">&#128065; ' + Number(prop.viewCount).toLocaleString() + '</span>' : '') + '</div>'
     +   '<div class="p-title">' + propName + '</div>'
     +   (shortDesc ? '<div style="font-size:.76rem;color:#6b7280;line-height:1.45;margin:.2rem 0">' + shortDesc + '</div>' : '')
     +   '<div class="p-feats">' + featsHtml + '</div>'
