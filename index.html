@@ -10369,8 +10369,12 @@ function submitBooking() {
   // Firestore — write to viewings collection (all 7 standard fields)
   try {
     if (typeof db !== 'undefined' && typeof firebase !== 'undefined') {
-      var _vUid = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.uid : '';
+      var _vUid     = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.uid : '';
       var _vAgentId = (cur && cur.agentId) ? cur.agentId : '';
+      /* Build scheduledAt Timestamp so viewings appear in agent calendar queries */
+      var _vSchedAt = firebase.firestore.Timestamp.fromDate(
+        new Date(bk.date + 'T' + (bk.time || '09:00:00'))
+      );
       db.collection('viewings').add({
         id:             '',
         propertyId:     cur.id || bk.propId || '',
@@ -10380,11 +10384,11 @@ function submitBooking() {
         clientPhone:    bk.phone,
         agentId:        _vAgentId,
         agentName:      cur.agentName || '',
+        scheduledAt:    _vSchedAt,
         scheduledDate:  bk.date,
         scheduledTime:  bk.time || '',
         note:           bk.note || '',
         leadId:         '',
-        status:         'scheduled',
         report:         {},
         status:         'scheduled',
         isActive:       true,
@@ -10398,6 +10402,46 @@ function submitBooking() {
           logAudit('viewing.scheduled', 'viewings', vRef.id, null,
             { clientName: bk.name, propertyId: cur.id || '', date: bk.date });
         }
+        /* Auto-create CRM lead so viewing appears in agent CRM pipeline */
+        var _autoLead = {
+          id:            '',
+          clientId:      _vUid,
+          clientName:    bk.name,
+          clientPhone:   bk.phone,
+          propertyId:    cur.id || bk.propId || '',
+          propertyTitle: bk.propTitle || '',
+          agentId:       _vAgentId,
+          source:        'Platform Booking',
+          type:          (cur.service === 'Gukodesha') ? 'Rental' : 'Purchase',
+          budget:        parseInt(cur.price) || 0,
+          pipelineStage: 'viewing_scheduled',
+          priority:      'medium',
+          note:          bk.note || '',
+          nextFollowUp:  null,
+          contactLog:    [],
+          viewingId:     vRef.id,
+          status:        'viewing_scheduled',
+          isActive:      true,
+          createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+          createdBy:     _vUid || 'anonymous',
+          updatedBy:     _vUid || 'anonymous'
+        };
+        db.collection('leads').add(_autoLead).then(function(lRef) {
+          lRef.update({ id: lRef.id });
+          vRef.update({ leadId: lRef.id });
+          if (typeof logAudit === 'function') {
+            logAudit('lead.created', 'leads', lRef.id, null,
+              { clientName: bk.name, source: 'Platform Booking', stage: 'viewing_scheduled' });
+          }
+          /* Notify agent of new viewing + lead */
+          if (typeof notifyUser === 'function' && _vAgentId) {
+            notifyUser(_vAgentId,
+              '&#128197; ' + (curLang === 'rw' ? 'Inzibutso Nshya!' : 'New Viewing Request!'),
+              escapeHtml(bk.name) + (curLang === 'rw' ? ' basabye inzibutso ya ' : ' requested a viewing for ') + escapeHtml(bk.propTitle || 'imitungo') + (curLang === 'rw' ? ' kuri ' : ' on ') + bk.date + (bk.time ? ' ' + bk.time : '') + '.',
+              'viewing_confirmed', 'viewings', vRef.id);
+          }
+        }).catch(function(lErr) { console.warn('[Lead auto-create] error:', lErr); });
       }).catch(function(vErr) { console.warn('[Viewing] Firestore save failed:', vErr); });
     }
   } catch(vE) { console.warn('[Viewing] error:', vE); }
@@ -10447,6 +10491,48 @@ function submitMessage() {
   try{msgs=JSON.parse(localStorage.getItem('km_messages')||'[]');}catch(e){}
   msgs.push({id:'MSG-'+Date.now(),name:name.value,phone:(phone||{}).value||'',email:(document.getElementById('msg-email')||{}).value||'',text:text.value,date:new Date().toISOString(),status:'unread'});
   try{localStorage.setItem('km_messages',JSON.stringify(msgs));}catch(e){}
+  /* Save enquiry to Firestore as CRM lead (stage: contacted) + notify agent */
+  if (typeof db !== 'undefined' && typeof firebase !== 'undefined') {
+    var _mCur  = window._currentProp || {};
+    var _mUid  = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.uid : '';
+    var _mAgId = _mCur.agentId || _mCur.ownerId || '';
+    var _mLead = {
+      id:            '',
+      clientId:      _mUid,
+      clientName:    name.value,
+      clientPhone:   (phone || {}).value || '',
+      clientEmail:   (document.getElementById('msg-email') || {}).value || '',
+      propertyId:    _mCur.id || '',
+      propertyTitle: _mCur.title || _mCur.titleEN || '',
+      agentId:       _mAgId,
+      source:        'Platform Message',
+      type:          _mCur.service === 'Gukodesha' ? 'Rental' : 'Purchase',
+      budget:        parseInt(_mCur.price) || 0,
+      note:          text.value,
+      pipelineStage: 'contacted',
+      priority:      'medium',
+      nextFollowUp:  null,
+      contactLog:    [],
+      status:        'contacted',
+      isActive:      true,
+      createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy:     _mUid || 'anonymous',
+      updatedBy:     _mUid || 'anonymous'
+    };
+    db.collection('leads').add(_mLead).then(function(lRef) {
+      lRef.update({ id: lRef.id });
+      if (typeof logAudit === 'function') {
+        logAudit('lead.created', 'leads', lRef.id, null, { clientName: name.value, source: 'Platform Message', stage: 'contacted' });
+      }
+      if (typeof notifyUser === 'function' && _mAgId) {
+        notifyUser(_mAgId,
+          '&#128172; ' + (curLang === 'rw' ? 'Ubutumwa Ushya!' : 'New Visitor Enquiry!'),
+          escapeHtml(name.value) + (curLang === 'rw' ? ' yoherejwe message ku: ' : ' sent an enquiry about: ') + escapeHtml(_mCur.title || _mCur.titleEN || 'imitungo') + '.',
+          'system', 'leads', lRef.id);
+      }
+    }).catch(function(lErr) { console.warn('[Lead enquiry] error:', lErr); });
+  }
   // Open WhatsApp with message
   var waText = 'KOMISIYONERI+Platform+-+'+encodeURIComponent(name.value)+'-+Tel:+'+encodeURIComponent((phone||{}).value||'N/A')+'-+'+encodeURIComponent(text.value);
   closeMsgOwner();
