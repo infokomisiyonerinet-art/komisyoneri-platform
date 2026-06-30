@@ -4184,6 +4184,7 @@ html,body{overscroll-behavior-x:none}
           <button onclick="switchAdminTab('deals')" id="adm-tab-deals" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">💰 Deals</button>
           <button onclick="switchAdminTab('referrals')" id="adm-tab-referrals" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">🔗 Referrals <span id="adm-ref-badge" style="background:var(--gold);color:#fff;border-radius:8px;padding:0 5px;font-size:.65rem;margin-left:2px"></span></button>
           <button onclick="switchAdminTab('platform')" id="adm-tab-platform" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">⚙️ Platform</button>
+          <button onclick="switchAdminTab('reports')" id="adm-tab-reports" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">📊 Reports</button>
         </div>
         <!-- Listings sub-tabs -->
         <div id="adm-listings-filters" style="display:flex;gap:.4rem;flex-wrap:wrap">
@@ -4221,6 +4222,9 @@ html,body{overscroll-behavior-x:none}
         <div id="adm-ref-list"></div>
       </div>
       <div id="admin-platform-panel" style="display:none;padding:.5rem 0"></div>
+      <div id="admin-reports-panel" style="display:none;padding:.5rem 0">
+        <div id="admin-reports-content"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -12016,28 +12020,9 @@ function submitLead() {
             (lead.clientName || 'Client') + (curLang === 'rw' ? ' asaba agent i ' : ' needs an agent in ') + (lead.zone || ''),
             'lead_assigned', 'leads', ref.id);
         }
-        /* Firestore-based agent lookup if no localStorage agent found */
+        /* Smart workload-balanced district-aware agent assignment */
         if (!_agId && lead.zone && typeof db !== 'undefined') {
-          db.collection('users')
-            .where('role', '==', 'agent')
-            .where('isActive', '==', true)
-            .where('status', '==', 'active')
-            .limit(5)
-            .get()
-            .then(function(agSnap) {
-              if (agSnap.empty) return;
-              var firstAgent = agSnap.docs[0];
-              var agData = firstAgent.data();
-              var agUid  = firstAgent.id;
-              /* Update lead with Firestore agent */
-              ref.update({ agentId: agUid, agentName: agData.displayName || agData.email || '', updatedAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(function(){});
-              if (typeof notifyUser === 'function') {
-                notifyUser(agUid,
-                  curLang === 'rw' ? 'Lead Nshya Yaguhaye!' : 'New Lead Assigned!',
-                  (lead.clientName || 'Client') + (curLang === 'rw' ? ' asaba agent i ' : ' needs an agent in ') + (lead.zone || ''),
-                  'lead_assigned', 'leads', ref.id);
-              }
-            }).catch(function(){});
+          _smartAssignAgent(ref, lead);
         }
       }).catch(function(fsErr) { console.warn('[Lead] Firestore save failed:', fsErr); });
     }
@@ -12078,6 +12063,90 @@ function submitLead() {
       window.open('https://wa.me/250783177254?text=' + encodeURIComponent(msg), '_blank');
     }, 500);
   }
+}
+
+// Workload-balanced, district-aware automatic agent assignment for incoming leads.
+// Queries agents by role only (safe single-field index), filters client-side,
+// prefers district match, then picks the agent with fewest open leads.
+function _smartAssignAgent(leadRef, lead) {
+  var _closed = { closed_won: true, closed_lost: true };
+
+  db.collection('users').where('role', '==', 'agent').limit(50).get()
+    .then(function(agSnap) {
+      var candidates = [];
+      agSnap.forEach(function(doc) {
+        var u = doc.data();
+        if (u.isActive === false) return;
+        if (u.status === 'suspended' || u.status === 'inactive') return;
+        candidates.push({ id: doc.id, data: u });
+      });
+      if (!candidates.length) return;
+
+      // Prefer agents whose districts/zone field matches the lead zone
+      var zone = (lead.zone || '').toLowerCase().trim();
+      var zoneMatch = candidates.filter(function(ag) {
+        var agZones = ag.data.districts || ag.data.zones || ag.data.zone || [];
+        if (typeof agZones === 'string') agZones = [agZones];
+        return Array.isArray(agZones) && agZones.some(function(z) {
+          return (z || '').toLowerCase().trim() === zone;
+        });
+      });
+      var pool = zoneMatch.length > 0 ? zoneMatch : candidates;
+
+      var workloads = {};
+      var remaining = pool.length;
+      pool.forEach(function(ag) { workloads[ag.id] = 0; });
+
+      function _doAssign() {
+        var best = pool.reduce(function(prev, curr) {
+          return (workloads[curr.id] || 0) < (workloads[prev.id] || 0) ? curr : prev;
+        });
+        leadRef.update({
+          agentId:    best.id,
+          agentName:  best.data.displayName || best.data.name || best.data.email || '',
+          agentPhone: best.data.phone || '',
+          updatedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+          updatedBy:  'system'
+        }).catch(function() {});
+        if (typeof notifyUser === 'function') {
+          notifyUser(best.id,
+            curLang === 'rw' ? 'Lead Nshya Yaguhaye!' : 'New Lead Assigned!',
+            (lead.clientName || 'Client') + (curLang === 'rw' ? ' asaba agent i ' : ' needs an agent in ') + (lead.zone || ''),
+            'lead_assigned', 'leads', leadRef.id);
+        }
+        if (typeof logAudit === 'function') {
+          logAudit('lead.autoAssigned', 'leads', leadRef.id, { agentId: '' }, {
+            agentId:   best.id,
+            agentName: best.data.displayName || best.data.name || '',
+            method:    'workload_balanced',
+            zoneMatch: zoneMatch.length > 0,
+            workload:  workloads[best.id]
+          });
+        }
+      }
+
+      // Count open leads per agent (single equality filter — no composite index needed)
+      pool.forEach(function(ag) {
+        db.collection('leads').where('agentId', '==', ag.id).limit(100).get()
+          .then(function(ls) {
+            var cnt = 0;
+            ls.forEach(function(d) {
+              var ld = d.data();
+              if (ld.isActive === false) return;
+              if (_closed[ld.pipelineStage]) return;
+              cnt++;
+            });
+            workloads[ag.id] = cnt;
+            remaining--;
+            if (remaining === 0) _doAssign();
+          })
+          .catch(function() {
+            remaining--;
+            if (remaining === 0) _doAssign();
+          });
+      });
+    })
+    .catch(function() {});
 }
 
 // === ADMIN LEAD DASHBOARD ===
@@ -13271,7 +13340,7 @@ function switchAdminTab(tab) {
   adminCurrentTab = tab;
 
   // Update tab buttons
-  ['listings','agents','deals','referrals','platform'].forEach(function(t) {
+  ['listings','agents','deals','referrals','platform','reports'].forEach(function(t) {
     var btn = document.getElementById('adm-tab-'+t);
     if(!btn) return;
     if(t === tab) {
@@ -13287,19 +13356,22 @@ function switchAdminTab(tab) {
   var agentsPanel = document.getElementById('admin-agents-panel');
   var dealsPanel = document.getElementById('admin-deals-panel');
   var referralsPanel = document.getElementById('admin-referrals-panel');
-  var platformPanel = document.getElementById('admin-platform-panel');
+  var platformPanel  = document.getElementById('admin-platform-panel');
+  var reportsPanel   = document.getElementById('admin-reports-panel');
 
-  if(listingsPanel) listingsPanel.style.display = tab === 'listings' ? 'block' : 'none';
-  if(listingsFilters) listingsFilters.style.display = tab === 'listings' ? 'flex' : 'none';
-  if(agentsPanel) agentsPanel.style.display = tab === 'agents' ? 'block' : 'none';
-  if(dealsPanel) dealsPanel.style.display = tab === 'deals' ? 'block' : 'none';
+  if(listingsPanel)  listingsPanel.style.display  = tab === 'listings'  ? 'block' : 'none';
+  if(listingsFilters) listingsFilters.style.display = tab === 'listings' ? 'flex'  : 'none';
+  if(agentsPanel)    agentsPanel.style.display    = tab === 'agents'    ? 'block' : 'none';
+  if(dealsPanel)     dealsPanel.style.display     = tab === 'deals'     ? 'block' : 'none';
   if(referralsPanel) referralsPanel.style.display = tab === 'referrals' ? 'block' : 'none';
-  if(platformPanel) platformPanel.style.display = tab === 'platform' ? 'block' : 'none';
+  if(platformPanel)  platformPanel.style.display  = tab === 'platform'  ? 'block' : 'none';
+  if(reportsPanel)   reportsPanel.style.display   = tab === 'reports'   ? 'block' : 'none';
 
-  if(tab === 'agents') renderAdminAgents();
-  if(tab === 'deals') renderAdminDeals();
+  if(tab === 'agents')   renderAdminAgents();
+  if(tab === 'deals')    renderAdminDeals();
   if(tab === 'referrals') loadAdminReferrals();
   if(tab === 'platform') renderAdminPlatform();
+  if(tab === 'reports')  loadAdminReports();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -13607,6 +13679,350 @@ function renderAdminPlatform() {
 }
 
 // ═══════════════════════════════════════════════════════════
+//  ADMIN — Reports & Export Engine
+// ═══════════════════════════════════════════════════════════
+
+function _downloadCSV(filename, headers, rows) {
+  var lines = [headers.join(',')];
+  rows.forEach(function(row) {
+    lines.push(headers.map(function(h) {
+      var val = row[h] !== undefined && row[h] !== null ? String(row[h]) : '';
+      val = val.replace(/\r?\n/g, ' ');
+      return val.indexOf(',') > -1 || val.indexOf('"') > -1 ? '"' + val.replace(/"/g, '""') + '"' : val;
+    }).join(','));
+  });
+  var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(function() { URL.revokeObjectURL(url); }, 2000);
+}
+
+function _fmtTs(ts) {
+  if (!ts) return '';
+  var d = ts.toDate ? ts.toDate() : (ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts));
+  return isNaN(d) ? '' : d.toISOString().slice(0, 10);
+}
+
+function exportDealsCSV() {
+  var btn = document.getElementById('rpt-export-deals');
+  if (btn) { btn.disabled = true; btn.textContent = 'Gutegura...'; }
+  db.collection('deals').orderBy('createdAt', 'desc').limit(500).get()
+    .then(function(snap) {
+      var rows = [];
+      snap.forEach(function(doc) {
+        var d = doc.data(); if (d.isActive === false) return;
+        rows.push({
+          'Deal ID':        doc.id,
+          'Property':       d.propertyTitle || '',
+          'Client':         d.clientName    || '',
+          'Client Phone':   d.clientPhone   || '',
+          'Agent':          d.agentName     || '',
+          'Type':           d.dealType      || '',
+          'Agreed Price':   d.agreedPrice   || '',
+          'Commission Rate':d.commissionRate || '',
+          'Commission RWF': d.agreedPrice && d.commissionRate ? Math.round(d.agreedPrice * d.commissionRate) : '',
+          'Stage':          d.pipelineStage || '',
+          'Status':         d.status        || '',
+          'Created':        _fmtTs(d.createdAt),
+          'Updated':        _fmtTs(d.updatedAt)
+        });
+      });
+      var fn = 'komisiyoneri-deals-' + new Date().toISOString().slice(0,10) + '.csv';
+      _downloadCSV(fn, ['Deal ID','Property','Client','Client Phone','Agent','Type','Agreed Price','Commission Rate','Commission RWF','Stage','Status','Created','Updated'], rows);
+    })
+    .catch(function(e) { showToast('Export ikosa: ' + e.message, 'error'); })
+    .finally(function() { if (btn) { btn.disabled = false; btn.textContent = curLang === 'rw' ? 'Deals CSV' : 'Deals CSV'; } });
+}
+
+function exportLeadsCSV() {
+  var btn = document.getElementById('rpt-export-leads');
+  if (btn) { btn.disabled = true; btn.textContent = 'Gutegura...'; }
+  db.collection('leads').orderBy('createdAt', 'desc').limit(1000).get()
+    .then(function(snap) {
+      var rows = [];
+      snap.forEach(function(doc) {
+        var d = doc.data(); if (d.isActive === false) return;
+        rows.push({
+          'Lead ID':      doc.id,
+          'Client':       d.clientName    || '',
+          'Phone':        d.clientPhone   || '',
+          'Action':       d.action        || '',
+          'Zone':         d.zone          || '',
+          'Budget Min':   d.budgetMin     || '',
+          'Budget Max':   d.budgetMax     || '',
+          'Stage':        d.pipelineStage || 'new',
+          'Priority':     d.priority      || '',
+          'Agent':        d.agentName     || '',
+          'Source':       d.source        || '',
+          'Status':       d.status        || '',
+          'Notes':        d.notes         || '',
+          'Created':      _fmtTs(d.createdAt)
+        });
+      });
+      var fn = 'komisiyoneri-leads-' + new Date().toISOString().slice(0,10) + '.csv';
+      _downloadCSV(fn, ['Lead ID','Client','Phone','Action','Zone','Budget Min','Budget Max','Stage','Priority','Agent','Source','Status','Notes','Created'], rows);
+    })
+    .catch(function(e) { showToast('Export ikosa: ' + e.message, 'error'); })
+    .finally(function() { if (btn) { btn.disabled = false; btn.textContent = 'Leads CSV'; } });
+}
+
+function exportCommissionsCSV() {
+  var btn = document.getElementById('rpt-export-comm');
+  if (btn) { btn.disabled = true; btn.textContent = 'Gutegura...'; }
+  db.collection('commissions').orderBy('createdAt', 'desc').limit(500).get()
+    .then(function(snap) {
+      var rows = [];
+      snap.forEach(function(doc) {
+        var d = doc.data(); if (d.isActive === false) return;
+        rows.push({
+          'Commission ID':  doc.id,
+          'Agent':          d.agentName     || '',
+          'Agent ID':       d.agentId       || '',
+          'Deal Value RWF': d.dealValue     || '',
+          'Rate':           d.commissionRate|| '',
+          'Total RWF':      d.totalCommission|| '',
+          'Agent Share RWF':d.agentShare    || '',
+          'Company Share':  d.companyShare  || '',
+          'Status':         d.status        || '',
+          'Approved By':    d.approvedBy    || '',
+          'Paid At':        _fmtTs(d.paidAt),
+          'Created':        _fmtTs(d.createdAt)
+        });
+      });
+      var fn = 'komisiyoneri-commissions-' + new Date().toISOString().slice(0,10) + '.csv';
+      _downloadCSV(fn, ['Commission ID','Agent','Agent ID','Deal Value RWF','Rate','Total RWF','Agent Share RWF','Company Share','Status','Approved By','Paid At','Created'], rows);
+    })
+    .catch(function(e) { showToast('Export ikosa: ' + e.message, 'error'); })
+    .finally(function() { if (btn) { btn.disabled = false; btn.textContent = 'Commissions CSV'; } });
+}
+
+function exportInvoicesCSV() {
+  var btn = document.getElementById('rpt-export-inv');
+  if (btn) { btn.disabled = true; btn.textContent = 'Gutegura...'; }
+  db.collection('invoices').orderBy('createdAt', 'desc').limit(500).get()
+    .then(function(snap) {
+      var rows = [];
+      snap.forEach(function(doc) {
+        var d = doc.data(); if (d.isActive === false) return;
+        rows.push({
+          'Invoice No':   d.invoiceNo     || doc.id,
+          'Billed To':    d.billedTo      || '',
+          'Deal ID':      d.dealId        || '',
+          'Subtotal RWF': d.subtotal      || '',
+          'VAT RWF':      d.vatAmount     || '',
+          'Total RWF':    d.totalAmount   || '',
+          'Due Date':     d.dueDate       || '',
+          'Paid At':      _fmtTs(d.paidAt),
+          'Status':       d.status        || '',
+          'Created':      _fmtTs(d.createdAt)
+        });
+      });
+      var fn = 'komisiyoneri-invoices-' + new Date().toISOString().slice(0,10) + '.csv';
+      _downloadCSV(fn, ['Invoice No','Billed To','Deal ID','Subtotal RWF','VAT RWF','Total RWF','Due Date','Paid At','Status','Created'], rows);
+    })
+    .catch(function(e) { showToast('Export ikosa: ' + e.message, 'error'); })
+    .finally(function() { if (btn) { btn.disabled = false; btn.textContent = 'Invoices CSV'; } });
+}
+
+function exportPropertiesCSV() {
+  var btn = document.getElementById('rpt-export-props');
+  if (btn) { btn.disabled = true; btn.textContent = 'Gutegura...'; }
+  db.collection('properties').orderBy('createdAt', 'desc').limit(1000).get()
+    .then(function(snap) {
+      var rows = [];
+      snap.forEach(function(doc) {
+        var d = doc.data(); if (d.isActive === false) return;
+        rows.push({
+          'Property ID': doc.id,
+          'Title':       d.title      || d.titleRW || '',
+          'Type':        d.type       || '',
+          'Category':    d.category   || '',
+          'District':    d.district   || '',
+          'Price RWF':   d.price      || '',
+          'Bedrooms':    d.bedrooms   || '',
+          'Size m2':     d.size       || '',
+          'Agent ID':    d.agentId    || '',
+          'Owner ID':    d.ownerId    || '',
+          'Status':      d.status     || '',
+          'Featured':    d.featured ? 'Yes' : 'No',
+          'Created':     _fmtTs(d.createdAt)
+        });
+      });
+      var fn = 'komisiyoneri-properties-' + new Date().toISOString().slice(0,10) + '.csv';
+      _downloadCSV(fn, ['Property ID','Title','Type','Category','District','Price RWF','Bedrooms','Size m2','Agent ID','Owner ID','Status','Featured','Created'], rows);
+    })
+    .catch(function(e) { showToast('Export ikosa: ' + e.message, 'error'); })
+    .finally(function() { if (btn) { btn.disabled = false; btn.textContent = 'Properties CSV'; } });
+}
+
+function loadAdminReports() {
+  var container = document.getElementById('admin-reports-content');
+  if (!container) return;
+
+  var now  = new Date();
+  var y    = now.getFullYear();
+  var m    = now.getMonth();
+  var mStart  = new Date(y, m, 1);
+  var mEnd    = new Date(y, m + 1, 0, 23, 59, 59);
+  var mLabel  = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+  var tsStart = firebase.firestore.Timestamp.fromDate(mStart);
+  var tsEnd   = firebase.firestore.Timestamp.fromDate(mEnd);
+
+  var btnStyle = 'display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border:none;border-radius:8px;font-weight:700;font-size:.78rem;cursor:pointer;transition:opacity .2s';
+
+  container.innerHTML =
+    '<div style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:1rem">Reports &amp; Data Export</div>' +
+
+    '<div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1rem">' +
+      '<div style="font-size:.7rem;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.7rem">MTD Summary — ' + mLabel + '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.6rem" id="rpt-summary-cards">' +
+        '<div style="background:var(--light);border-radius:10px;padding:.75rem;text-align:center"><div style="font-size:1.4rem;font-weight:800;color:var(--navy)" id="rpt-kpi-leads">—</div><div style="font-size:.68rem;color:var(--muted);margin-top:.2rem">New Leads</div></div>' +
+        '<div style="background:var(--light);border-radius:10px;padding:.75rem;text-align:center"><div style="font-size:1.4rem;font-weight:800;color:var(--navy)" id="rpt-kpi-deals">—</div><div style="font-size:.68rem;color:var(--muted);margin-top:.2rem">New Deals</div></div>' +
+        '<div style="background:var(--light);border-radius:10px;padding:.75rem;text-align:center"><div style="font-size:1.4rem;font-weight:800;color:var(--navy)" id="rpt-kpi-won">—</div><div style="font-size:.68rem;color:var(--muted);margin-top:.2rem">Deals Won</div></div>' +
+        '<div style="background:var(--light);border-radius:10px;padding:.75rem;text-align:center"><div style="font-size:1.4rem;font-weight:800;color:#16A34A" id="rpt-kpi-rev">—</div><div style="font-size:.68rem;color:var(--muted);margin-top:.2rem">Revenue (RWF)</div></div>' +
+        '<div style="background:var(--light);border-radius:10px;padding:.75rem;text-align:center"><div style="font-size:1.4rem;font-weight:800;color:var(--gold)" id="rpt-kpi-comm">—</div><div style="font-size:.68rem;color:var(--muted);margin-top:.2rem">Commissions</div></div>' +
+        '<div style="background:var(--light);border-radius:10px;padding:.75rem;text-align:center"><div style="font-size:1.4rem;font-weight:800;color:var(--navy)" id="rpt-kpi-views">—</div><div style="font-size:.68rem;color:var(--muted);margin-top:.2rem">Viewings</div></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1rem">' +
+      '<div style="font-size:.7rem;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.7rem">Export Full Data (CSV — opens in Excel)</div>' +
+      '<div style="display:flex;gap:.5rem;flex-wrap:wrap">' +
+        '<button id="rpt-export-deals" onclick="exportDealsCSV()" style="' + btnStyle + ';background:var(--navy);color:#fff">&#128196; Deals CSV</button>' +
+        '<button id="rpt-export-leads" onclick="exportLeadsCSV()" style="' + btnStyle + ';background:var(--blue);color:#fff">&#128196; Leads CSV</button>' +
+        '<button id="rpt-export-comm" onclick="exportCommissionsCSV()" style="' + btnStyle + ';background:var(--gold);color:#fff">&#128196; Commissions CSV</button>' +
+        '<button id="rpt-export-inv" onclick="exportInvoicesCSV()" style="' + btnStyle + ';background:#16A34A;color:#fff">&#128196; Invoices CSV</button>' +
+        '<button id="rpt-export-props" onclick="exportPropertiesCSV()" style="' + btnStyle + ';background:#475569;color:#fff">&#128196; Properties CSV</button>' +
+      '</div>' +
+      '<div style="font-size:.7rem;color:var(--muted);margin-top:.5rem">UTF-8 with BOM — compatible with Excel and Google Sheets</div>' +
+    '</div>' +
+
+    '<div id="rpt-monthly-table-wrap" style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:1rem 1.2rem">' +
+      '<div style="font-size:.7rem;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.7rem">Last 6 Months — Overview</div>' +
+      '<div id="rpt-monthly-table"><div style="text-align:center;padding:1rem;color:var(--muted);font-size:.82rem">&#8987; Loading...</div></div>' +
+    '</div>';
+
+  // Load MTD KPIs
+  var _rptPending = 5;
+  function _rptDone() { _rptPending--; }
+
+  db.collection('leads').where('createdAt','>=',tsStart).orderBy('createdAt').limit(500).get()
+    .then(function(s) {
+      var cnt = 0; s.forEach(function(d){ if(d.data().isActive!==false) cnt++; });
+      var el = document.getElementById('rpt-kpi-leads'); if(el) el.textContent = cnt;
+      _rptDone();
+    }).catch(_rptDone);
+
+  db.collection('deals').where('createdAt','>=',tsStart).orderBy('createdAt').limit(300).get()
+    .then(function(s) {
+      var cnt = 0, won = 0;
+      s.forEach(function(d){ var x=d.data(); if(x.isActive===false) return; cnt++; if(x.pipelineStage==='closed_won') won++; });
+      var el1 = document.getElementById('rpt-kpi-deals'); if(el1) el1.textContent = cnt;
+      var el2 = document.getElementById('rpt-kpi-won');   if(el2) el2.textContent = won;
+      _rptDone();
+    }).catch(_rptDone);
+
+  db.collection('invoices').where('createdAt','>=',tsStart).orderBy('createdAt').limit(300).get()
+    .then(function(s) {
+      var rev = 0; s.forEach(function(d){ var x=d.data(); if(x.isActive===false||x.status!=='paid') return; rev+=(x.totalAmount||0); });
+      var el = document.getElementById('rpt-kpi-rev'); if(el) el.textContent = rev>=1000000?(rev/1000000).toFixed(1)+'M':rev>=1000?Math.round(rev/1000)+'K':String(Math.round(rev));
+      _rptDone();
+    }).catch(_rptDone);
+
+  db.collection('commissions').where('createdAt','>=',tsStart).orderBy('createdAt').limit(300).get()
+    .then(function(s) {
+      var tot = 0; s.forEach(function(d){ var x=d.data(); if(x.isActive===false) return; tot+=(x.totalCommission||0); });
+      var el = document.getElementById('rpt-kpi-comm'); if(el) el.textContent = tot>=1000000?(tot/1000000).toFixed(1)+'M':tot>=1000?Math.round(tot/1000)+'K':String(Math.round(tot));
+      _rptDone();
+    }).catch(_rptDone);
+
+  db.collection('viewings').where('createdAt','>=',tsStart).orderBy('createdAt').limit(300).get()
+    .then(function(s) {
+      var cnt = 0; s.forEach(function(d){ if(d.data().isActive!==false) cnt++; });
+      var el = document.getElementById('rpt-kpi-views'); if(el) el.textContent = cnt;
+      _rptDone();
+    }).catch(_rptDone);
+
+  // Load 6-month table
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var monthData = [];
+  for (var mi = 5; mi >= 0; mi--) {
+    var md = new Date(y, m - mi, 1);
+    monthData.push({ y: md.getFullYear(), mo: md.getMonth(), label: MONTHS[md.getMonth()] + ' ' + md.getFullYear() });
+  }
+  var earliest = new Date(monthData[0].y, monthData[0].mo, 1);
+  var tsEarliest = firebase.firestore.Timestamp.fromDate(earliest);
+
+  var _sixStats = {};
+  monthData.forEach(function(md) { _sixStats[md.label] = { leads:0, deals:0, won:0, rev:0, comm:0 }; });
+
+  function _getLabel(ts) {
+    if (!ts) return '';
+    var d = ts.toDate ? ts.toDate() : (ts.seconds ? new Date(ts.seconds*1000) : null);
+    if (!d) return '';
+    return MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+  var _sixPending = 4;
+  function _sixDone() {
+    _sixPending--;
+    if (_sixPending > 0) return;
+    var wrap = document.getElementById('rpt-monthly-table');
+    if (!wrap) return;
+    var html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem">'
+      + '<thead><tr style="border-bottom:2px solid var(--border)">'
+      + '<th style="text-align:left;padding:.4rem .6rem;color:var(--muted);font-weight:600">Month</th>'
+      + '<th style="padding:.4rem .6rem;color:var(--muted);font-weight:600;text-align:right">Leads</th>'
+      + '<th style="padding:.4rem .6rem;color:var(--muted);font-weight:600;text-align:right">Deals</th>'
+      + '<th style="padding:.4rem .6rem;color:var(--muted);font-weight:600;text-align:right">Won</th>'
+      + '<th style="padding:.4rem .6rem;color:var(--muted);font-weight:600;text-align:right">Revenue</th>'
+      + '<th style="padding:.4rem .6rem;color:var(--muted);font-weight:600;text-align:right">Commissions</th>'
+      + '</tr></thead><tbody>';
+    monthData.forEach(function(md) {
+      var s = _sixStats[md.label] || {};
+      var rev  = s.rev  >= 1000000 ? (s.rev/1000000).toFixed(1)+'M'  : s.rev  >= 1000 ? Math.round(s.rev/1000)+'K'  : String(Math.round(s.rev  || 0));
+      var comm = s.comm >= 1000000 ? (s.comm/1000000).toFixed(1)+'M' : s.comm >= 1000 ? Math.round(s.comm/1000)+'K' : String(Math.round(s.comm || 0));
+      html += '<tr style="border-bottom:1px solid var(--border)">'
+        + '<td style="padding:.4rem .6rem;font-weight:600">' + md.label + '</td>'
+        + '<td style="padding:.4rem .6rem;text-align:right">' + (s.leads||0) + '</td>'
+        + '<td style="padding:.4rem .6rem;text-align:right">' + (s.deals||0) + '</td>'
+        + '<td style="padding:.4rem .6rem;text-align:right;color:#16A34A;font-weight:700">' + (s.won||0) + '</td>'
+        + '<td style="padding:.4rem .6rem;text-align:right;font-weight:700">' + rev + '</td>'
+        + '<td style="padding:.4rem .6rem;text-align:right;color:var(--gold);font-weight:700">' + comm + '</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div>';
+    wrap.innerHTML = html;
+  }
+
+  db.collection('leads').where('createdAt','>=',tsEarliest).orderBy('createdAt').limit(2000).get()
+    .then(function(s) {
+      s.forEach(function(d){ var x=d.data(); if(x.isActive===false) return; var lbl=_getLabel(x.createdAt); if(_sixStats[lbl]) _sixStats[lbl].leads++; });
+      _sixDone();
+    }).catch(_sixDone);
+
+  db.collection('deals').where('createdAt','>=',tsEarliest).orderBy('createdAt').limit(1000).get()
+    .then(function(s) {
+      s.forEach(function(d){ var x=d.data(); if(x.isActive===false) return; var lbl=_getLabel(x.createdAt); if(_sixStats[lbl]){ _sixStats[lbl].deals++; if(x.pipelineStage==='closed_won') _sixStats[lbl].won++; } });
+      _sixDone();
+    }).catch(_sixDone);
+
+  db.collection('invoices').where('createdAt','>=',tsEarliest).orderBy('createdAt').limit(1000).get()
+    .then(function(s) {
+      s.forEach(function(d){ var x=d.data(); if(x.isActive===false||x.status!=='paid') return; var lbl=_getLabel(x.createdAt); if(_sixStats[lbl]) _sixStats[lbl].rev+=(x.totalAmount||0); });
+      _sixDone();
+    }).catch(_sixDone);
+
+  db.collection('commissions').where('createdAt','>=',tsEarliest).orderBy('createdAt').limit(1000).get()
+    .then(function(s) {
+      s.forEach(function(d){ var x=d.data(); if(x.isActive===false) return; var lbl=_getLabel(x.createdAt); if(_sixStats[lbl]) _sixStats[lbl].comm+=(x.totalCommission||0); });
+      _sixDone();
+    }).catch(_sixDone);
+}
+
+// ═══════════════════════════════════════════════════════════
 //  ADMIN — Agents Management
 // ═══════════════════════════════════════════════════════════
 
@@ -13640,17 +14056,22 @@ function _loadFsPendingUsers() {
   wrap.innerHTML = '';
 
   db.collection('users')
-    .where('isActive', '==', true)
     .where('status', '==', 'pending')
-    .orderBy('createdAt', 'desc')
     .limit(50)
     .get()
     .then(function(snap) {
-      if (snap.empty) { wrap.innerHTML = ''; return; }
+      var pendingDocs = [];
+      snap.forEach(function(doc) { if (doc.data().isActive !== false) pendingDocs.push(doc); });
+      pendingDocs.sort(function(a,b) {
+        var ta = a.data().createdAt && a.data().createdAt.seconds ? a.data().createdAt.seconds : 0;
+        var tb = b.data().createdAt && b.data().createdAt.seconds ? b.data().createdAt.seconds : 0;
+        return tb - ta;
+      });
+      if (!pendingDocs.length) { wrap.innerHTML = ''; return; }
       var html = '<div style="background:#fff3cd;border:1.5px solid #ffc107;border-radius:10px;padding:.75rem 1rem;margin-bottom:.75rem">'
-        + '<div style="font-weight:700;font-size:.82rem;color:#7c3a00;margin-bottom:.6rem">&#9203; ' + snap.size + ' user(s) bategereje kwemezwa (Firestore)</div>'
+        + '<div style="font-weight:700;font-size:.82rem;color:#7c3a00;margin-bottom:.6rem">&#9203; ' + pendingDocs.length + ' user(s) bategereje kwemezwa (Firestore)</div>'
         + '<div id="adm-fs-pending-rows">';
-      snap.forEach(function(doc) {
+      pendingDocs.forEach(function(doc) {
         var u = doc.data();
         var uid = doc.id;
         var roleLabel = u.role === 'agent' ? '&#128084; Agent' : (u.role || 'client');
@@ -13677,11 +14098,11 @@ function _loadFsPendingUsers() {
           var b = document.createElement('span');
           b.id = 'adm-pending-badge';
           b.style.cssText = 'background:#e53e3e;color:#fff;border-radius:8px;padding:0 5px;font-size:.65rem;margin-left:3px';
-          b.textContent = snap.size;
+          b.textContent = pendingDocs.length;
           tabBtn.appendChild(b);
         }
       } else {
-        badge.textContent = snap.size;
+        badge.textContent = pendingDocs.length;
       }
     })
     .catch(function(err) {
@@ -23791,17 +24212,13 @@ function loadAgentDashboard() {
     setDelta('dash-delta-commission', curComm, prevComm, '%');
   }).catch(function(){});
 
-  /* Upcoming visits */
-  var visitQuery = _isAgentRole
-    ? db.collection('viewings').where('agentId','==',cu.uid).where('isActive','==',true)
-    : db.collection('viewings').where('isActive','==',true);
-  visitQuery.where('scheduledAt','>=',firebase.firestore.Timestamp.fromDate(now)).orderBy('scheduledAt','asc').limit(8).get().then(function(snap) {
-    /* Populate sidebar badge with upcoming viewings count */
-    var vBadge = document.getElementById('viewings-sidebar-count');
-    if (vBadge) vBadge.textContent = snap.size > 0 ? snap.size : '';
+  /* Upcoming visits — single-field range+orderBy on scheduledAt; role+isActive filtered client-side */
+  db.collection('viewings').where('scheduledAt','>=',firebase.firestore.Timestamp.fromDate(now)).orderBy('scheduledAt','asc').limit(30).get().then(function(snap) {
     var bookings = [];
     snap.forEach(function(d) {
       var x = d.data();
+      if (x.isActive === false) return;
+      if (_isAgentRole && x.agentId !== cu.uid) return;
       var dt = x.scheduledAt ? (x.scheduledAt.toDate ? x.scheduledAt.toDate() : new Date(x.scheduledAt)) : null;
       bookings.push({
         date: dt ? dt.toISOString().slice(0,10) : '',
@@ -23811,7 +24228,9 @@ function loadAgentDashboard() {
         propTitle: x.propertyTitle || (curLang==='rw'?'Imitungo':'Property')
       });
     });
-    renderDashboardBookings(bookings);
+    var vBadge = document.getElementById('viewings-sidebar-count');
+    if (vBadge) vBadge.textContent = bookings.length > 0 ? bookings.length : '';
+    renderDashboardBookings(bookings.slice(0, 8));
   }).catch(function(){
     renderDashboardBookings([]);
   });
