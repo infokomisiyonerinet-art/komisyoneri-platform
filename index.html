@@ -3025,6 +3025,28 @@ html,body{overscroll-behavior-x:none}
     </div>
   </section>
 
+  <!-- RECENTLY VIEWED PROPERTIES -->
+  <section class="section" id="recently-viewed-section" style="display:none;padding-top:2rem;padding-bottom:2rem">
+    <div class="wrap">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.8rem;flex-wrap:wrap;gap:.8rem">
+        <div>
+          <div class="eyebrow" data-rw="Warereye Vuba" data-en="Recently Viewed">Warereye Vuba</div>
+          <h2 class="h2" style="margin-top:.35rem" data-rw="Imitungo Warereye" data-en="Properties You Viewed">Imitungo Warereye</h2>
+        </div>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn btn-outline btn-sm" onclick="go('listings')">
+            <span data-rw="Reba Yose" data-en="View All">Reba Yose</span>
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+          <button class="btn btn-sm" style="background:none;border:1.5px solid var(--border);color:var(--muted);font-size:.75rem" onclick="_clearRecentlyViewed()" title="Clear history">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="p-grid" id="recently-viewed-grid"></div>
+    </div>
+  </section>
+
   <!-- 6 PLATFORM FEATURES (from pitch deck) -->
   <section class="section section-light">
     <div class="wrap">
@@ -12243,6 +12265,19 @@ function openPropDetail(propId) {
   }
 
   window._currentProp = prop;
+
+  // Track in recently-viewed history
+  (function() {
+    var pid = String(prop.id || propId);
+    if (!pid) return;
+    var recent = [];
+    try { recent = JSON.parse(localStorage.getItem('km_recently_viewed') || '[]'); } catch(e) {}
+    recent = recent.filter(function(id) { return id !== pid; });
+    recent.unshift(pid);
+    if (recent.length > 6) recent = recent.slice(0, 6);
+    try { localStorage.setItem('km_recently_viewed', JSON.stringify(recent)); } catch(e) {}
+  })();
+
   kmTrack('view_item',{item_id:String(prop.id),item_name:prop.title||'',price:prop.price||'',district:prop.district||'',type:prop.type||''});
 
   // Property view tracking — increment Firestore counter, session-deduped
@@ -24229,17 +24264,59 @@ function loadLiveHomeStats() {
   }).catch(function(){});
 }
 
-/* Hook loadLiveHomeStats into home page navigation */
+/* Hook loadLiveHomeStats + Recently Viewed into home page navigation */
 (function() {
   var _goP7 = go;
   go = function(name) {
     _goP7(name);
-    if (name === 'home') setTimeout(loadLiveHomeStats, 800);
+    if (name === 'home') {
+      setTimeout(loadLiveHomeStats, 800);
+      setTimeout(_renderRecentlyViewed, 400);
+    }
   };
   document.addEventListener('DOMContentLoaded', function() {
     setTimeout(loadLiveHomeStats, 1500);
+    setTimeout(_renderRecentlyViewed, 800);
   });
 })();
+
+/* ── Recently Viewed Properties ─────────────────────── */
+function _renderRecentlyViewed() {
+  var section = document.getElementById('recently-viewed-section');
+  if (!section) return;
+
+  var recent = [];
+  try { recent = JSON.parse(localStorage.getItem('km_recently_viewed') || '[]'); } catch(e) {}
+  if (recent.length === 0) { section.style.display = 'none'; return; }
+
+  var allProps = [];
+  try { allProps = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+
+  var found = [];
+  for (var ri = 0; ri < recent.length; ri++) {
+    var pid = recent[ri];
+    for (var ai = 0; ai < allProps.length; ai++) {
+      if (String(allProps[ai].id) === String(pid)) { found.push(allProps[ai]); break; }
+    }
+  }
+
+  if (found.length === 0) { section.style.display = 'none'; return; }
+
+  section.style.display = '';
+  var grid = document.getElementById('recently-viewed-grid');
+  if (!grid) return;
+  if (typeof renderUserPropCard === 'function') {
+    grid.innerHTML = found.map(function(p) { return renderUserPropCard(p); }).join('');
+    if (typeof _applyFavState === 'function') _applyFavState();
+    if (typeof switchLang === 'function') switchLang(curLang);
+  }
+}
+
+function _clearRecentlyViewed() {
+  try { localStorage.removeItem('km_recently_viewed'); } catch(e) {}
+  var section = document.getElementById('recently-viewed-section');
+  if (section) section.style.display = 'none';
+}
 
 /* ══════════════════════════════════════════════════════════════════════
    PHASE 9 — Firestore-Backed Property Submission & Admin Approval
