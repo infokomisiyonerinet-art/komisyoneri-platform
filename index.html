@@ -4039,7 +4039,13 @@ html,body{overscroll-behavior-x:none}
         </div>
       </div>
       <div id="admin-list"></div>
-      <div id="admin-agents-panel" style="display:none;padding:.5rem 0"><div id="admin-agents-list"></div></div>
+      <div id="admin-agents-panel" style="display:none;padding:.5rem 0">
+        <!-- Pending Firestore users awaiting approval -->
+        <div id="adm-pending-users-wrap" style="margin-bottom:1rem">
+          <div id="adm-pending-users-list"></div>
+        </div>
+        <div id="admin-agents-list"></div>
+      </div>
       <div id="admin-deals-panel" style="display:none;padding:.5rem 0"><div id="admin-deals-list"></div></div>
       <div id="admin-referrals-panel" style="display:none;padding:.5rem 0">
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.8rem">
@@ -9553,6 +9559,20 @@ async function handleRegister() {
     }
     saveUser(user);
     kmTrack('sign_up',{method:'email',role:user.role});
+    /* Notify admins via RTDB admin alert (non-blocking) */
+    try {
+      if (typeof rtdb !== 'undefined') {
+        rtdb.ref('adminAlerts').push({
+          type:      'new_user',
+          userId:    fb.uid,
+          userName:  name,
+          userEmail: email,
+          userRole:  canonRole,
+          status:    canonRole === 'agent' ? 'pending' : 'active',
+          createdAt: Date.now()
+        }).catch(function(){});
+      }
+    } catch(_ae){}
     showToast(curLang==='rw'?'Konti yakozwe! Reba imeyili yawe kugira ngo uremeze.':'Account created! Check your email to verify.');
     var pa = _pendingAction; _pendingAction = null;
     if (pa === 'agent-reg') { go('home'); openAgentReg(); }
@@ -13164,6 +13184,9 @@ function renderAdminAgents() {
   if(!list) return;
   list.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:.82rem">⏳ Gutegura...</div>';
 
+  // Load Firestore pending users first
+  _loadFsPendingUsers();
+
   // Pull live from Firebase first, then render
   try {
     firebase.database().ref('agents').once('value').then(function(s) {
@@ -13177,6 +13200,113 @@ function renderAdminAgents() {
       _renderAdminAgentsList();
     }).catch(function(){ _renderAdminAgentsList(); });
   } catch(e){ _renderAdminAgentsList(); }
+}
+
+/* Load pending Firestore users (status:'pending') — agents awaiting admin approval */
+function _loadFsPendingUsers() {
+  var wrap = document.getElementById('adm-pending-users-list');
+  if (!wrap || typeof db === 'undefined') return;
+  wrap.innerHTML = '';
+
+  db.collection('users')
+    .where('isActive', '==', true)
+    .where('status', '==', 'pending')
+    .orderBy('createdAt', 'desc')
+    .limit(50)
+    .get()
+    .then(function(snap) {
+      if (snap.empty) { wrap.innerHTML = ''; return; }
+      var html = '<div style="background:#fff3cd;border:1.5px solid #ffc107;border-radius:10px;padding:.75rem 1rem;margin-bottom:.75rem">'
+        + '<div style="font-weight:700;font-size:.82rem;color:#7c3a00;margin-bottom:.6rem">&#9203; ' + snap.size + ' user(s) bategereje kwemezwa (Firestore)</div>'
+        + '<div id="adm-fs-pending-rows">';
+      snap.forEach(function(doc) {
+        var u = doc.data();
+        var uid = doc.id;
+        var roleLabel = u.role === 'agent' ? '&#128084; Agent' : (u.role || 'client');
+        html += '<div style="border:1px solid rgba(0,0,0,.1);border-radius:8px;padding:.6rem .8rem;margin-bottom:.5rem;background:#fffef0;display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap">'
+          + '<div style="flex:1">'
+          + '<div style="font-weight:700;font-size:.85rem;color:var(--navy)">' + escapeHtml(u.displayName || u.name || '—') + '</div>'
+          + '<div style="font-size:.73rem;color:var(--muted)">&#128231; ' + escapeHtml(u.email || '—') + ' | &#128222; ' + escapeHtml(u.phone || '—') + '</div>'
+          + '<div style="font-size:.7rem;margin-top:.15rem"><span style="background:var(--gold);color:#fff;border-radius:8px;padding:1px 7px;font-size:.65rem;font-weight:700">' + roleLabel + '</span></div>'
+          + '</div>'
+          + '<div style="display:flex;gap:.35rem;flex-shrink:0">'
+          + '<button onclick="_fsPendingApprove(\'' + uid + '\')" style="background:#27A84A;color:#fff;border:none;padding:.35rem .65rem;border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:700">&#9989; Emeza</button>'
+          + '<button onclick="_fsPendingReject(\'' + uid + '\')" style="background:#e53e3e;color:#fff;border:none;padding:.35rem .65rem;border-radius:6px;cursor:pointer;font-size:.72rem">&#10060; Kataa</button>'
+          + '</div>'
+          + '</div>';
+      });
+      html += '</div></div>';
+      wrap.innerHTML = html;
+
+      /* Also update adm-tab-agents badge */
+      var badge = document.getElementById('adm-pending-badge');
+      if (!badge) {
+        var tabBtn = document.getElementById('adm-tab-agents');
+        if (tabBtn) {
+          var b = document.createElement('span');
+          b.id = 'adm-pending-badge';
+          b.style.cssText = 'background:#e53e3e;color:#fff;border-radius:8px;padding:0 5px;font-size:.65rem;margin-left:3px';
+          b.textContent = snap.size;
+          tabBtn.appendChild(b);
+        }
+      } else {
+        badge.textContent = snap.size;
+      }
+    })
+    .catch(function(err) {
+      console.warn('[Admin] Firestore pending users query failed:', err);
+      wrap.innerHTML = '';
+    });
+}
+
+function _fsPendingApprove(uid) {
+  if (!uid || typeof db === 'undefined') return;
+  var adminUid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'admin';
+  var serverTs  = firebase.firestore.FieldValue.serverTimestamp();
+  db.collection('users').doc(uid).update({
+    status:    'active',
+    isActive:  true,
+    updatedAt: serverTs,
+    updatedBy: adminUid
+  }).then(function() {
+    logAudit('user.approved', 'users', uid, { status: 'pending' }, { status: 'active' });
+    if (typeof notifyUser === 'function') {
+      notifyUser(uid,
+        curLang === 'rw' ? 'Konti Yawe Yemejwe!' : 'Account Approved!',
+        curLang === 'rw' ? 'Urushaka rwawe rw\'agent rwemejwe. Ubu ushobora gukolana n\'KOMISIYONERI.' : 'Your agent application has been approved. You can now work with KOMISIYONERI.',
+        'account_approved', 'users', uid);
+    }
+    showToast(curLang === 'rw' ? 'Konti yemejwe!' : 'Account approved!', 'success');
+    _loadFsPendingUsers();
+  }).catch(function(e) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error approving user', 'error');
+    console.warn('[Admin] _fsPendingApprove error:', e);
+  });
+}
+
+function _fsPendingReject(uid) {
+  if (!uid || typeof db === 'undefined') return;
+  var adminUid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'admin';
+  var serverTs  = firebase.firestore.FieldValue.serverTimestamp();
+  db.collection('users').doc(uid).update({
+    status:    'rejected',
+    isActive:  false,
+    updatedAt: serverTs,
+    updatedBy: adminUid
+  }).then(function() {
+    logAudit('user.rejected', 'users', uid, { status: 'pending' }, { status: 'rejected' });
+    if (typeof notifyUser === 'function') {
+      notifyUser(uid,
+        curLang === 'rw' ? 'Urushaka Rwawe Rwanzwe' : 'Application Not Approved',
+        curLang === 'rw' ? 'Turababajwe kubibwira, urushaka rwawe ntirwemejwe. Wadutumanahanya kugira ngo ubashe amakuru yiyongera.' : 'We regret to inform you that your application was not approved at this time. Please contact us for more information.',
+        'account_rejected', 'users', uid);
+    }
+    showToast(curLang === 'rw' ? 'Urushaka rwanzwe' : 'Application rejected', 'info');
+    _loadFsPendingUsers();
+  }).catch(function(e) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error rejecting user', 'error');
+    console.warn('[Admin] _fsPendingReject error:', e);
+  });
 }
 
 function _renderAdminAgentsList() {
@@ -13961,7 +14091,10 @@ function _fsNotifIcon(type) {
   if (type === 'task_assigned' || type === 'task_due')     return '&#9989;';
   if (type === 'service_assigned' || type === 'service_completed') return '&#128203;';
   if (type === 'referral_qualified' || type === 'referral_rewarded') return '&#127873;';
-  if (type === 'message')                                  return '&#9993;';
+  if (type === 'account_approved')                                   return '&#9989;';
+  if (type === 'account_rejected')                                   return '&#10060;';
+  if (type === 'role_changed')                                       return '&#128084;';
+  if (type === 'message')                                            return '&#9993;';
   return '&#128276;';
 }
 
@@ -14011,6 +14144,8 @@ function _handleNotifClick(collection, relatedId) {
     setTimeout(function() { if (relatedId && typeof openVerificationDetail === 'function') openVerificationDetail(relatedId); }, 600);
   } else if (collection === 'referrals') {
     openReferralPanel();
+  } else if (collection === 'users') {
+    go('dashboard');
   } else if (collection === 'messages') {
     if (typeof openInbox === 'function') openInbox();
   } else {
@@ -24216,6 +24351,8 @@ function _fsAdminDelete(idx) {
     }
     var m = document.getElementById('admin-modal'); if (m) m.style.display = 'flex';
     adminRender('pending');
+    /* Load Firestore pending users badge on admin open */
+    setTimeout(function() { if (typeof _loadFsPendingUsers === 'function') _loadFsPendingUsers(); }, 400);
   };
 })();
 
