@@ -3800,7 +3800,7 @@ html,body{overscroll-behavior-x:none}
       <div class="ds-logo"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span>KOMISIYONERI</span></div>
       <div class="ds-section" data-rw="URUBUGA" data-en="MAIN">URUBUGA</div>
       <div class="dn active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span data-rw="Overview" data-en="Overview">Overview</span></div>
-      <div class="dn" onclick="go('listings')"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span data-rw="Imitungo Yanjye" data-en="My Listings">Imitungo Yanjye</span><span class="ds-badge" id="dash-sidebar-listings">0</span></div>
+      <div class="dn" onclick="goMyListings()"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span data-rw="Imitungo Yanjye" data-en="My Listings">Imitungo Yanjye</span><span class="ds-badge" id="dash-sidebar-listings">0</span></div>
       <div class="dn" onclick="go('listings')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span data-rw="Shakisha" data-en="Search">Shakisha</span></div>
       <div class="dn" onclick="go('analytics')"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Analytics</span></div>
       <div class="dn" onclick="go('clients')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Abakiliya" data-en="Clients">Abakiliya</span><span class="ds-badge" id="clients-sidebar-count">0</span></div>
@@ -19731,6 +19731,25 @@ function advanceDealStage() {
     }).then(function() {
       showToast((curLang === 'rw' ? 'Deal yafunguwe ku: ' : 'Deal moved to: ') + label, 'success');
       logAudit('deal.stage.changed', 'deals', dealId, { pipelineStage: curKey }, { pipelineStage: nextKey });
+      /* Notify client on closed_won; notify agent if moved by admin/staff on milestones */
+      if (typeof notifyUser === 'function' && _ddCurrentDeal) {
+        if (nextKey === 'closed_won' && _ddCurrentDeal.clientId) {
+          notifyUser(_ddCurrentDeal.clientId,
+            curLang === 'rw' ? '&#127881; Deal Yarangiye!' : '&#127881; Deal Closed Successfully!',
+            curLang === 'rw' ? 'Umuganho warangiye neza. Murakoze guhitamo KOMISIYONERI!' : 'Your transaction was completed successfully. Thank you for choosing KOMISIYONERI!',
+            'deal_closed', 'deals', dealId);
+        }
+        var _advRole = currentUser ? (currentUser.role || '').toLowerCase() : '';
+        var _advMilestones = ['offer_submitted','negotiation','contract','closing','closed_won'];
+        if (_ddCurrentDeal.agentId && _ddCurrentDeal.agentId !== (currentUser ? currentUser.uid : '')
+            && ['admin','staff','super_admin'].indexOf(_advRole) > -1
+            && _advMilestones.indexOf(nextKey) > -1) {
+          notifyUser(_ddCurrentDeal.agentId,
+            curLang === 'rw' ? '&#128203; Deal Inzira: ' + label : '&#128203; Deal Stage: ' + label,
+            curLang === 'rw' ? 'Deal yawe yafuguye ku: ' + label + '.' : 'Your deal has been moved to: ' + label + '.',
+            'deal_stage', 'deals', dealId);
+        }
+      }
       if (nextKey === 'closed_won' && typeof autoCalculateCommission === 'function') {
         setTimeout(function() { autoCalculateCommission(dealId, _ddCurrentDeal); }, 500);
       }
@@ -20525,6 +20544,38 @@ function updateLeadStage(leadId, newStageKey) {
         { pipelineStage: oldStage },
         { pipelineStage: newStageKey }
       );
+      /* Notify agent if non-agent moved stage; notify client on key milestones */
+      if (typeof notifyUser === 'function' && _ldCurrentLead) {
+        var _lStageObj = typeof getCrmStage === 'function' ? getCrmStage(newStageKey) : {};
+        var _lLabel = curLang === 'rw' ? (_lStageObj.labelRW || newStageKey) : (_lStageObj.labelEN || newStageKey);
+        var _lCurRole = currentUser ? (currentUser.role || '').toLowerCase() : '';
+        if (_ldCurrentLead.agentId && _ldCurrentLead.agentId !== (currentUser ? currentUser.uid : '')
+            && ['admin','staff','super_admin'].indexOf(_lCurRole) > -1) {
+          notifyUser(_ldCurrentLead.agentId,
+            curLang === 'rw' ? '&#128203; Lead Yahinduwe: ' + _lLabel : '&#128203; Lead Stage: ' + _lLabel,
+            (curLang === 'rw' ? 'Lead ya ' : 'Lead for ') + escapeHtml(_ldCurrentLead.clientName || 'Client') + (curLang === 'rw' ? ' yafuguye ku: ' : ' moved to: ') + _lLabel + '.',
+            'lead_stage', 'leads', leadId);
+        }
+        var _lMilestones = ['offer_submitted','contract','closing','closed_won'];
+        if (_ldCurrentLead.clientId && _lMilestones.indexOf(newStageKey) > -1) {
+          var _lClientTitles = {
+            offer_submitted: curLang === 'rw' ? '&#128203; Offer Yoherejwe' : '&#128203; Offer Submitted',
+            contract:        curLang === 'rw' ? '&#128196; Amasezerano Ateguwe' : '&#128196; Contract Ready',
+            closing:         curLang === 'rw' ? '&#128273; Gufunga Bukomeza' : '&#128273; Closing Soon',
+            closed_won:      curLang === 'rw' ? '&#127881; Umuganho Warangiye!' : '&#127881; Transaction Complete!'
+          };
+          var _lClientBodies = {
+            offer_submitted: curLang === 'rw' ? 'Offer yawe yoherejwe kandi irimo gusuzumwa.' : 'Your offer has been submitted and is under review.',
+            contract:        curLang === 'rw' ? 'Amasezerano ateguwe — Twandikire kuyasoma.' : 'Your contract is ready — please contact us to review.',
+            closing:         curLang === 'rw' ? 'Intambwe ya nyuma igeze. Agent azakugezaho vuba.' : 'Final closing step started. Your agent will contact you shortly.',
+            closed_won:      curLang === 'rw' ? 'Murakoze guhitamo KOMISIYONERI. Umuganho warangiye neza!' : 'Thank you for choosing KOMISIYONERI. Your transaction completed successfully!'
+          };
+          notifyUser(_ldCurrentLead.clientId,
+            _lClientTitles[newStageKey] || _lLabel,
+            _lClientBodies[newStageKey] || _lLabel,
+            newStageKey === 'closed_won' ? 'deal_closed' : 'lead_stage', 'leads', leadId);
+        }
+      }
       // Update local caches
       if (_ldCurrentLead) _ldCurrentLead.pipelineStage = newStageKey;
       for (var i = 0; i < _crmLeads.length; i++) {
@@ -22622,6 +22673,114 @@ function loadApprovedProperties() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
+   MY LISTINGS — Agent-scoped filtered view (all statuses from Firestore)
+   ══════════════════════════════════════════════════════════════════════ */
+
+var _myListingsMode = false;
+
+function goMyListings() {
+  if (!currentUser) {
+    showToast(curLang === 'rw' ? 'Injira mbere!' : 'Please log in first!', 'warn');
+    return;
+  }
+  _myListingsMode = true;
+  go('listings');
+  var hdr = document.querySelector('#page-listings .list-hdr .wrap h1');
+  var sub = document.querySelector('#page-listings .list-hdr .wrap p');
+  if (hdr) hdr.textContent = curLang === 'rw' ? 'Imitungo Yanjye' : 'My Listings';
+  if (sub) {
+    sub.innerHTML = (curLang === 'rw'
+      ? 'Imitungo yawe yose — Yemejwe, Itegerejwe, Yananiwe.'
+      : 'All your property listings — Approved, Pending, Rejected.')
+      + ' <button onclick="exitMyListings()" style="margin-left:.6rem;padding:.18rem .7rem;font-size:.7rem;border:1.5px solid var(--navy);background:transparent;color:var(--navy);border-radius:20px;cursor:pointer;font-weight:600">'
+      + (curLang === 'rw' ? '&#8592; Imitungo Yose' : '&#8592; All Properties') + '</button>';
+  }
+  var grids = document.querySelectorAll('#p-grid-main');
+  var skHtml = '<div class="skeleton-card sk-init"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line sl-title"></div><div class="skeleton-line sl-sub"></div><div class="skeleton-line sl-price"></div></div></div>';
+  grids.forEach(function(grid) { grid.innerHTML = skHtml + skHtml + skHtml; });
+  if (typeof db !== 'undefined') {
+    db.collection('properties')
+      .where('agentId', '==', currentUser.uid)
+      .where('isActive', '==', true)
+      .orderBy('createdAt', 'desc')
+      .limit(100)
+      .get()
+      .then(function(snap) {
+        var props = [];
+        snap.forEach(function(doc) {
+          var d = doc.data();
+          if (!d.id) d.id = doc.id;
+          d._id = doc.id;
+          props.push(d);
+        });
+        _renderMyListingsGrid(props);
+      })
+      .catch(function(err) {
+        console.warn('[My Listings] Firestore error:', err);
+        var all = [];
+        try { all = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+        _renderMyListingsGrid(all.filter(function(p) {
+          return (p.agentId || p.createdBy) === currentUser.uid;
+        }));
+      });
+  } else {
+    var all = [];
+    try { all = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+    _renderMyListingsGrid(all.filter(function(p) {
+      return (p.agentId || p.createdBy) === currentUser.uid;
+    }));
+  }
+}
+
+function exitMyListings() {
+  _myListingsMode = false;
+  var hdr = document.querySelector('#page-listings .list-hdr .wrap h1');
+  var sub = document.querySelector('#page-listings .list-hdr .wrap p');
+  if (hdr) hdr.textContent = curLang === 'rw' ? 'Imitungo Yose' : 'All Properties';
+  if (sub) sub.textContent = curLang === 'rw'
+    ? 'Imitungo irenga 1,240 iraboneka mu Rwanda — Shakisha, Banya, Gura.'
+    : '1,240+ properties across Rwanda — Search, Filter, Buy or Rent.';
+  loadApprovedProperties();
+}
+
+function _renderMyListingsGrid(props) {
+  var grids = document.querySelectorAll('#p-grid-main');
+  var countEl = document.getElementById('listings-count');
+  if (countEl) countEl.textContent = props.length;
+  grids.forEach(function(grid) {
+    grid.querySelectorAll('.user-prop-card, .sk-init, .empty-listings').forEach(function(el) { el.remove(); });
+    if (!props.length) {
+      var d = document.createElement('div');
+      d.className = 'empty-listings empty-state';
+      d.innerHTML = '<div class="es-icon">&#127968;</div>'
+        + '<div class="es-title">' + (curLang === 'rw' ? 'Nta mitungo yawe' : 'No listings yet') + '</div>'
+        + '<div class="es-sub">' + (curLang === 'rw' ? 'Ongeramo imitungo nshya ukoresha buto hepfo.' : 'Add your first property listing using the button below.') + '</div>'
+        + '<button onclick="openAddProperty()" class="btn btn-navy btn-sm">'
+        + (curLang === 'rw' ? '+ Ongeramo' : '+ Add Listing') + '</button>';
+      grid.appendChild(d);
+      return;
+    }
+    props.forEach(function(prop) {
+      var status = (prop.status || 'Pending');
+      var statusNorm = status.toLowerCase();
+      var statusColor = statusNorm === 'approved' ? 'var(--success)' : statusNorm === 'rejected' ? 'var(--error)' : 'var(--warning)';
+      var statusLabel = statusNorm === 'approved'
+        ? (curLang === 'rw' ? 'Yemejwe' : 'Approved')
+        : statusNorm === 'rejected'
+          ? (curLang === 'rw' ? 'Yananiwe' : 'Rejected')
+          : (curLang === 'rw' ? 'Itegerejwe' : 'Pending');
+      var w = document.createElement('div');
+      w.className = 'user-prop-card';
+      w.setAttribute('data-pid', String(prop.id || prop._id || ''));
+      w.style.position = 'relative';
+      var badge = '<div style="position:absolute;top:.5rem;left:.5rem;z-index:10;background:' + statusColor + ';color:#fff;border-radius:20px;padding:.15rem .65rem;font-size:.62rem;font-weight:800;letter-spacing:.02em">' + statusLabel + '</div>';
+      w.innerHTML = badge + (typeof renderUserPropCard === 'function' ? renderUserPropCard(prop) : '');
+      grid.appendChild(w);
+    });
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════════
    PHASE 7 — Listings Sidebar Filters, Sort, View Toggle & Live Stats
    ══════════════════════════════════════════════════════════════════════ */
 
@@ -23196,6 +23355,12 @@ function _fsAdminApprove(idx) {
         updatedBy:currentUser.uid
       }).then(function() {
         logAudit('property.approved','properties',docId,{status:'pending'},{status:'approved'});
+        if (typeof notifyUser === 'function' && prop.agentId) {
+          notifyUser(prop.agentId,
+            '&#9989; Imitungo Yemejwe! / Property Approved!',
+            escapeHtml(prop.title || prop.titleEN || 'Imitungo') + (curLang === 'rw' ? ' yemejwe kandi igaragara muri Listings.' : ' has been approved and is now live.'),
+            'property_approved', 'properties', docId);
+        }
         showToast('✅ Imitungo yemejwe! Igaragara muri Listings.');
         invalidatePropsCache();
         loadApprovedProperties();
@@ -23230,12 +23395,18 @@ function _fsAdminReject(idx) {
       status:'rejected', updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
     }).then(function() {
       logAudit('property.rejected','properties',fsId,{status:'pending'},{status:'rejected'});
+      if (typeof notifyUser === 'function' && prop.agentId) {
+        notifyUser(prop.agentId,
+          '&#10060; Imitungo Ntiyemejwe / Property Not Approved',
+          escapeHtml(prop.title || prop.titleEN || 'Imitungo') + (curLang === 'rw' ? ' ntiyemejwe. Twandikire kugira ngo tugufashe.' : ' was not approved. Please contact admin for more details.'),
+          'system', 'properties', fsId);
+      }
     }).catch(function(){});
   }
   var ls=[]; try{ls=JSON.parse(localStorage.getItem('km_properties')||'[]');}catch(e){}
   var li=ls.findIndex(function(p){return String(p.id)===String(prop.id||prop._fsId);});
   if(li>=0) ls[li].status='Rejected'; try{localStorage.setItem('km_properties',JSON.stringify(ls));}catch(e){}
-  showToast('❌ Imitungo yananiwe.'); adminRender(adminCurrentFilter);
+  showToast('&#10060; Imitungo yananiwe.'); adminRender(adminCurrentFilter);
 }
 
 /* Soft-delete a property */
