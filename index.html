@@ -13268,6 +13268,186 @@ go = function(page) {
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
+     NOTIFICATION CENTER — Firestore-backed real-time panel
+════════════════════════════════════════════════════════ -->
+<script>
+// ── Firestore Notification Center ──────────────────────────────────────
+var _fsNotifUnsub  = null;
+var _fsNotifList   = [];    // [{_docId, title, body, type, relatedId, relatedCollection, read, createdAt}]
+var _fsNotifUnread = 0;
+
+function _fsNotifSetBadge(count) {
+  _fsNotifUnread = Math.max(0, count);
+  var badge = document.getElementById('notif-badge');
+  if (!badge) return;
+  if (_fsNotifUnread > 0) { badge.style.display = 'flex'; badge.textContent = _fsNotifUnread > 9 ? '9+' : String(_fsNotifUnread); }
+  else { badge.style.display = 'none'; }
+}
+
+function _startFsNotifListener(uid) {
+  if (_fsNotifUnsub) { try { _fsNotifUnsub(); } catch(e){} _fsNotifUnsub = null; }
+  if (typeof db === 'undefined' || !uid) return;
+  _fsNotifUnsub = db.collection('notifications')
+    .where('userId','==',uid)
+    .where('isActive','==',true)
+    .orderBy('createdAt','desc')
+    .limit(20)
+    .onSnapshot(function(snap) {
+      _fsNotifList = [];
+      var unread = 0;
+      snap.forEach(function(doc) {
+        var d = doc.data(); d._docId = doc.id;
+        _fsNotifList.push(d);
+        if (!d.read) unread++;
+      });
+      _fsNotifSetBadge(unread);
+    }, function(err) { /* index building or permission error — fail silently */ });
+}
+
+function _stopFsNotifListener() {
+  if (_fsNotifUnsub) { try { _fsNotifUnsub(); } catch(e){} _fsNotifUnsub = null; }
+  _fsNotifList   = [];
+  _fsNotifUnread = 0;
+  _fsNotifSetBadge(0);
+}
+
+function _fsNotifTimeAgo(ts) {
+  if (!ts) return '';
+  var ms = ts.toDate ? ts.toDate().getTime() : new Date(ts).getTime();
+  var s = Math.floor((Date.now() - ms) / 1000);
+  if (s < 60)    return curLang === 'rw' ? 'Vuba' : 'now';
+  if (s < 3600)  return Math.floor(s / 60) + 'm';
+  if (s < 86400) return Math.floor(s / 3600) + 'h';
+  return Math.floor(s / 86400) + 'd';
+}
+
+function _fsNotifIcon(type) {
+  if (type === 'lead_assigned' || type === 'lead')        return '&#128197;';
+  if (type === 'deal_update'   || type === 'deal')        return '&#128188;';
+  if (type === 'viewing_confirmed' || type === 'viewing') return '&#127968;';
+  if (type === 'commission_approved' || type === 'commission') return '&#128176;';
+  if (type === 'document_shared'  || type === 'document') return '&#128196;';
+  if (type === 'message')                                  return '&#9993;';
+  return '&#128276;';
+}
+
+function _markAllFsNotifsRead() {
+  if (!currentUser || typeof db === 'undefined') return;
+  var uid = currentUser.uid;
+  var toMark = _fsNotifList.filter(function(n) { return !n.read && n._docId; });
+  if (toMark.length === 0) return;
+  var batch = db.batch();
+  toMark.forEach(function(n) {
+    batch.update(db.collection('notifications').doc(n._docId), {
+      read: true, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: uid
+    });
+  });
+  batch.commit().catch(function(){});
+}
+
+function _handleNotifClick(collection, relatedId) {
+  closeNotifPanel();
+  if (collection === 'leads')   { go('crm');   setTimeout(function() { if (typeof openLeadDetail === 'function') openLeadDetail(relatedId); }, 600); }
+  else if (collection === 'deals')   { go('deals'); }
+  else if (collection === 'viewings'){ go('crm'); }
+  else if (collection === 'messages'){ if (typeof openInbox === 'function') openInbox(); }
+  else { go('dashboard'); }
+}
+
+/* Override openNotifPanel to render Firestore notifications when available */
+(function() {
+  var _origOpen = window.openNotifPanel;
+  window.openNotifPanel = function() {
+    var panel = document.getElementById('notif-panel');
+    var list  = document.getElementById('notif-list');
+    if (!panel) { if (_origOpen) _origOpen(); return; }
+
+    if (_fsNotifList.length === 0) {
+      if (_origOpen) { _origOpen(); return; }
+    }
+
+    _markAllFsNotifsRead();
+    _fsNotifSetBadge(0);
+
+    if (list) {
+      list.innerHTML = _fsNotifList.map(function(n) {
+        var unread = !n.read;
+        var bg     = unread ? 'var(--light)' : '#fff';
+        var icon   = _fsNotifIcon(n.type || '');
+        var ts     = _fsNotifTimeAgo(n.createdAt);
+        var hasLink = n.relatedId && n.relatedCollection;
+        return '<div style="padding:.72rem 1rem;border-bottom:1px solid var(--light);background:' + bg + ';'
+          + (hasLink ? 'cursor:pointer' : '') + '"'
+          + (hasLink ? ' onclick="_handleNotifClick(' + JSON.stringify(n.relatedCollection) + ',' + JSON.stringify(n.relatedId) + ')"' : '')
+          + '>'
+          + '<div style="display:flex;align-items:flex-start;gap:.5rem">'
+          + '<span style="font-size:.92rem;flex-shrink:0;margin-top:.06rem">' + icon + '</span>'
+          + '<div style="flex:1;min-width:0">'
+          + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.3rem">'
+          + '<span style="font-weight:' + (unread ? '700' : '600') + ';font-size:.82rem;color:var(--navy);line-height:1.25">' + escapeHtml(n.title || '') + '</span>'
+          + '<span style="font-size:.65rem;color:var(--muted);white-space:nowrap;flex-shrink:0;margin-top:.1rem">' + ts + '</span>'
+          + '</div>'
+          + '<div style="font-size:.78rem;color:var(--dark);margin-top:.12rem;line-height:1.35">' + escapeHtml(n.body || '') + '</div>'
+          + '</div></div></div>';
+      }).join('');
+    }
+
+    panel.style.display = 'block';
+    setTimeout(function() {
+      document.addEventListener('click', function _fsNotifOutside(e) {
+        var p    = document.getElementById('notif-panel');
+        var bell = document.getElementById('notif-bell');
+        if (p && !p.contains(e.target) && bell && !bell.contains(e.target)) {
+          p.style.display = 'none';
+          document.removeEventListener('click', _fsNotifOutside);
+        }
+      });
+    }, 10);
+  };
+})();
+
+/* Override kmNotify to also persist notification to Firestore */
+(function() {
+  var _origKmNotify = window.kmNotify;
+  window.kmNotify = function(title, body, tag, options) {
+    if (_origKmNotify) _origKmNotify(title, body, tag);
+    if (!currentUser || typeof db === 'undefined') return;
+    var opts = options || {};
+    db.collection('notifications').add({
+      id:                '',
+      userId:            currentUser.uid,
+      title:             title || '',
+      body:              body  || '',
+      type:              opts.type              || 'system',
+      relatedId:         opts.relatedId         || '',
+      relatedCollection: opts.relatedCollection || '',
+      read:              false,
+      status:            'unread',
+      isActive:          true,
+      createdAt:         firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:         firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy:         currentUser.uid,
+      updatedBy:         currentUser.uid
+    }).then(function(ref) { ref.update({ id: ref.id }).catch(function(){}); }).catch(function(){});
+  };
+})();
+
+/* Extend updateNavForUser to start/stop Firestore notification listener on login/logout */
+(function() {
+  var _origNav = typeof updateNavForUser !== 'undefined' ? updateNavForUser : null;
+  if (!_origNav) return;
+  updateNavForUser = function(user) {
+    _origNav(user);
+    if (user && user.uid) {
+      setTimeout(function() { _startFsNotifListener(user.uid); }, 1500);
+    } else {
+      _stopFsNotifListener();
+    }
+  };
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
      PHASE 15 — NATIONAL EXPANSION (MULTI-BRANCH)
      Branch Network | Staff Assignment | Performance | Coverage
 ════════════════════════════════════════════════════════ -->
