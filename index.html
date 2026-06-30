@@ -13705,6 +13705,9 @@ function _handleNotifClick(collection, relatedId) {
       if (tasksTab) tasksTab.click();
       if (relatedId) setTimeout(function() { if (typeof openTaskDetail === 'function') openTaskDetail(relatedId); }, 400);
     }, 500);
+  } else if (collection === 'services') {
+    go('verifications');
+    setTimeout(function() { if (relatedId && typeof openVerificationDetail === 'function') openVerificationDetail(relatedId); }, 600);
   } else if (collection === 'messages') {
     if (typeof openInbox === 'function') openInbox();
   } else {
@@ -18984,6 +18987,19 @@ function assignServicePartner() {
   db.collection('services').doc(id).update(update).then(function() {
     logAudit('service.assigned', 'services', id, { assignedTo: '', status: 'pending' }, { assignedTo: partner, status: 'assigned' });
     showToast(curLang === 'rw' ? 'Serivisi yahawe ' + partner : 'Assigned to ' + partner, 'success');
+    /* Notify the requester that their service request has been assigned */
+    var svc = null;
+    for (var si = 0; si < _verifications.length; si++) {
+      if ((_verifications[si]._docId || _verifications[si].id) === id) { svc = _verifications[si]; break; }
+    }
+    if (svc && svc.requestedBy && typeof notifyUser === 'function') {
+      notifyUser(svc.requestedBy,
+        curLang === 'rw' ? '&#128203; Ikibazo Cyahindaguwe' : '&#128203; Service Request Assigned',
+        (curLang === 'rw'
+          ? 'Ikibazo cya ' + escapeHtml(svc.serviceType || 'serivisi') + ' cyahawe inzobere. Bazakugera vuba.'
+          : 'Your ' + escapeHtml(svc.serviceType || 'service') + ' request has been assigned to a specialist. They will contact you shortly.'),
+        'service_assigned', 'services', id);
+    }
     for (var i = 0; i < _verifications.length; i++) {
       if ((_verifications[i]._docId || _verifications[i].id) === id) {
         _verifications[i].assignedTo  = partner;
@@ -19016,6 +19032,15 @@ function updateServiceStatus(newStatus) {
     logAudit('service.status.changed', 'services', id, { status: oldStatus }, { status: newStatus });
     var label = newStatus.replace(/_/g,' ');
     showToast((curLang === 'rw' ? 'Status yahinduwe: ' : 'Status updated: ') + label, 'success');
+    /* Notify requester when service is completed */
+    if ((newStatus === 'completed' || newStatus === 'report_ready') && _vdCurrentService && _vdCurrentService.requestedBy && typeof notifyUser === 'function') {
+      notifyUser(_vdCurrentService.requestedBy,
+        curLang === 'rw' ? '&#9989; Serivisi Yarangiye!' : '&#9989; Service Completed!',
+        (curLang === 'rw'
+          ? 'Serivisi ya ' + escapeHtml(_vdCurrentService.serviceType || 'serivisi') + ' yarangiye. Reba raporo muri konti yawe.'
+          : 'Your ' + escapeHtml(_vdCurrentService.serviceType || 'service') + ' request has been completed. Check your account for the report.'),
+        'service_completed', 'services', id);
+    }
     for (var i = 0; i < _verifications.length; i++) {
       if ((_verifications[i]._docId || _verifications[i].id) === id) {
         _verifications[i].status = newStatus; break;
