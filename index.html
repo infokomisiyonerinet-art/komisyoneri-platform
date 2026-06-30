@@ -12521,6 +12521,7 @@ function renderAgentsGrid(agents) {
     return;
   }
 
+  var _agViewListTxt = (typeof curLang !== 'undefined' && curLang === 'rw') ? 'Reba Imitungo' : 'View Listings';
   grid.innerHTML = agents.map(function(agent) {
     var isActive = agent.status === 'Active';
     var isPending = agent.status === 'Pending Verification';
@@ -12550,10 +12551,11 @@ function renderAgentsGrid(agents) {
       +   '</div>'
       +   '<div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">🌐 ' + (langs||'Kinyarwanda') + '</div>'
       +   '<div style="font-size:.75rem;color:var(--muted);margin-bottom:.7rem">' + transport + ' · Uburambe: ' + (agent.experience==='0'?'Mushya':agent.experience+'yr+') + '</div>'
-      +   '<div style="display:flex;gap:.4rem">'
-      +     '<a href="tel:' + (agent.phone||'') + '" style="flex:1;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">📞 Hamagara</a>'
-      +     '<a href="https://wa.me/' + (agent.phone||'').replace(/[^0-9]/g,'') + '?text=' + encodeURIComponent('Muraho! Ndabona kuri KOMISIYONERI ndashaka agent. Ni wowe '+agent.name+'?') + '" target="_blank" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">💬 WhatsApp</a>'
+      +   '<div style="display:flex;gap:.4rem;flex-wrap:wrap">'
+      +     '<a href="tel:' + (agent.phone||'') + '" style="flex:1;min-width:80px;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">&#128222; Hamagara</a>'
+      +     '<a href="https://wa.me/' + (agent.phone||'').replace(/[^0-9]/g,'') + '?text=' + encodeURIComponent('Muraho! Ndabona kuri KOMISIYONERI ndashaka agent.') + '" target="_blank" style="flex:1;min-width:80px;background:#25D366;color:#fff;border:none;border-radius:8px;padding:.5rem;text-align:center;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.3rem">&#128172; WhatsApp</a>'
       +   '</div>'
+      +   '<button onclick="goAgentListings(' + JSON.stringify(agent.id||'') + ',' + JSON.stringify(agent.name||'Agent') + ')" style="width:100%;margin-top:.45rem;background:var(--light);color:var(--navy);border:1.5px solid var(--navy);border-radius:8px;padding:.45rem;font-size:.76rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.35rem">&#127968; ' + _agViewListTxt + ' (' + (agent.deals||0) + ')</button>'
       + '</div>'
       + '</div>';
   }).join('');
@@ -22827,6 +22829,60 @@ function exitMyListings() {
     ? 'Imitungo irenga 1,240 iraboneka mu Rwanda — Shakisha, Banya, Gura.'
     : '1,240+ properties across Rwanda — Search, Filter, Buy or Rent.';
   loadApprovedProperties();
+}
+
+/* Show all APPROVED listings for any given agent on the public listings page */
+function goAgentListings(agentId, agentName) {
+  if (!agentId) { showToast(curLang === 'rw' ? 'Agent ntaboneka' : 'Agent not found', 'warn'); return; }
+  _myListingsMode = true;
+  go('listings');
+  var safeName = escapeHtml(agentName || 'Agent');
+  var hdr = document.querySelector('#page-listings .list-hdr .wrap h1');
+  var sub = document.querySelector('#page-listings .list-hdr .wrap p');
+  if (hdr) hdr.textContent = curLang === 'rw' ? 'Imitungo ya ' + safeName : safeName + '\'s Listings';
+  if (sub) {
+    sub.innerHTML = (curLang === 'rw'
+      ? 'Imitungo yose yemejwe ya agent ' + safeName + '.'
+      : 'All approved listings by agent ' + safeName + '.')
+      + ' <button onclick="exitMyListings()" style="margin-left:.6rem;padding:.18rem .7rem;font-size:.7rem;border:1.5px solid var(--navy);background:transparent;color:var(--navy);border-radius:20px;cursor:pointer;font-weight:600">'
+      + (curLang === 'rw' ? '&#8592; Imitungo Yose' : '&#8592; All Properties') + '</button>';
+  }
+  var skHtml = '<div class="skeleton-card sk-init"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line sl-title"></div><div class="skeleton-line sl-sub"></div><div class="skeleton-line sl-price"></div></div></div>';
+  document.querySelectorAll('#p-grid-main').forEach(function(g) { g.innerHTML = skHtml + skHtml + skHtml; });
+  if (typeof db !== 'undefined') {
+    db.collection('properties')
+      .where('agentId', '==', agentId)
+      .where('isActive', '==', true)
+      .orderBy('createdAt', 'desc')
+      .limit(60)
+      .get()
+      .then(function(snap) {
+        var props = [];
+        snap.forEach(function(doc) {
+          var d = doc.data();
+          if ((d.status || '').toLowerCase() === 'approved') {
+            if (!d.id) d.id = doc.id;
+            d._id = doc.id;
+            props.push(d);
+          }
+        });
+        _renderMyListingsGrid(props);
+      })
+      .catch(function(err) {
+        console.warn('[AgentListings] Firestore error:', err);
+        var all = [];
+        try { all = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+        _renderMyListingsGrid(all.filter(function(p) {
+          return p.agentId === agentId && (p.status || '').toLowerCase() === 'approved';
+        }));
+      });
+  } else {
+    var all = [];
+    try { all = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
+    _renderMyListingsGrid(all.filter(function(p) {
+      return p.agentId === agentId && (p.status || '').toLowerCase() === 'approved';
+    }));
+  }
 }
 
 function _renderMyListingsGrid(props) {
