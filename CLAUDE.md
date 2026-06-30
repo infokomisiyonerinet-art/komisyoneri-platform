@@ -21,6 +21,29 @@ It does NOT apply to:
 - Placeholder UI
 - Demo pages
 - Duplicate pages
+- ## Ecosystem Vision
+
+KOMISIYONERI is NOT a property listing website.
+
+It is an integrated Real Estate Operating System composed of:
+
+- Public Marketplace
+- Customer Portal
+- Agent Network
+- CRM
+- Deal Management
+- Commission Engine
+- Office Management
+- HR
+- Accounting
+- Investor Portal
+- Partner Portal
+- Analytics
+- AI Automation
+
+Every engineering decision must strengthen the integration between these modules.
+
+Never optimize a single module in isolation if a better ecosystem-wide solution exists.
 - Experimental layouts
 - Temporary implementations
 - Poor UX
