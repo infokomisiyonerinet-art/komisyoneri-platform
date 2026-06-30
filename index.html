@@ -10914,10 +10914,7 @@ function closeCompare() {
 
 // === REVIEWS ===
 var currentRating = 0;
-function renderReviewsTab(prop) {
-  var reviews = [];
-  try { reviews = JSON.parse(localStorage.getItem('km_reviews')||'[]'); } catch(e) {}
-  var propRevs = reviews.filter(function(r){ return r.propId && String(r.propId) === String(prop.id); });
+function _updateReviewsUI(prop, propRevs) {
   var count = propRevs.length;
   var avg = count > 0
     ? Math.round(propRevs.reduce(function(s,r){ return s+(r.rating||0); },0) / count * 10) / 10
@@ -10953,14 +10950,49 @@ function renderReviewsTab(prop) {
         var stars = '★'.repeat(r.rating||0) + '☆'.repeat(5-(r.rating||0));
         return '<div style="padding:.9rem;border:1.5px solid var(--border);border-radius:10px">'
           + '<div style="display:flex;justify-content:space-between;margin-bottom:.4rem">'
-          + '<div style="font-weight:700;font-size:.88rem">'+escapeHtml(r.name||'—')+'</div>'
-          + '<div style="color:var(--gold);font-size:.85rem">'+stars+'</div></div>'
-          + '<div style="font-size:.8rem;color:var(--muted);margin-bottom:.4rem">'+escapeHtml(r.date||'')+'</div>'
-          + '<div style="font-size:.85rem;color:#444">'+escapeHtml(r.text||'')+'</div></div>';
+          + '<div style="font-weight:700;font-size:.88rem">'+escapeHtml(r.name||r.reviewerName||'—')+'</div>'
+          + '<div style="color:var(--gold);font-size:.88rem">'+stars+'</div>'
+          + '</div>'
+          + '<p style="font-size:.83rem;color:var(--dark);margin:0">'+escapeHtml(r.text||r.comment||'')+'</p>'
+          + '<div style="font-size:.72rem;color:var(--muted);margin-top:.4rem">'+(r.date||'')+'</div>'
+          + '</div>';
       }).join('');
     }
   }
 }
+
+function renderReviewsTab(prop) {
+  var localRevs = [];
+  try { localRevs = JSON.parse(localStorage.getItem('km_reviews')||'[]'); } catch(e) {}
+  var propRevs = localRevs.filter(function(r){ return r.propId && String(r.propId) === String(prop.id); });
+  // Render immediately from localStorage so the tab feels instant
+  _updateReviewsUI(prop, propRevs);
+  // Then fetch fresh data from Firestore and re-render
+  if (typeof db !== 'undefined' && prop.id) {
+    db.collection('reviews')
+      .where('isActive','==',true)
+      .where('propertyId','==',String(prop.id))
+      .orderBy('createdAt','desc')
+      .limit(20)
+      .get().then(function(snap) {
+        if (snap.empty) return;
+        var fsRevs = [];
+        snap.forEach(function(d) {
+          var x = d.data();
+          fsRevs.push({ name: x.reviewerName||'', reviewerName: x.reviewerName||'', rating: x.rating||0, text: x.comment||x.text||'', comment: x.comment||x.text||'', date: x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toLocaleDateString() : '', propId: x.propertyId||prop.id });
+        });
+        // Merge: Firestore results are authoritative; also keep any local-only reviews not yet in FS
+        var fsIds = fsRevs.map(function(r){ return r.name + r.rating + (r.text||'').slice(0,20); });
+        var localOnly = propRevs.filter(function(r){
+          var k = (r.name||r.reviewerName||'') + r.rating + (r.text||r.comment||'').slice(0,20);
+          return fsIds.indexOf(k) === -1;
+        });
+        _updateReviewsUI(prop, fsRevs.concat(localOnly));
+      }).catch(function(){});
+  }
+  return; // prevent fall-through to old code
+}
+
 
 function openReviewForm() {
   var m = document.getElementById('review-modal');
@@ -10987,15 +11019,48 @@ function submitReview() {
   if(currentRating === 0){showToast('Hitamo inyenyeri (rating)!');return;}
   if(!text||!text.value){showToast('Andika ibitekerezo byawe!');return;}
   var cur = window._currentProp || {};
+  var uid = currentUser ? currentUser.uid : '';
+  var reviewObj = {
+    id:           'RVW-'+Date.now(),
+    name:         name.value,
+    reviewerName: name.value,
+    rating:       currentRating,
+    text:         text.value,
+    comment:      text.value,
+    date:         new Date().toLocaleDateString(),
+    propId:       cur.id || null,
+    district:     cur.district || cur.zone || 'Rwanda'
+  };
+  // Save to localStorage immediately (offline-first)
   var reviews = [];
   try{reviews=JSON.parse(localStorage.getItem('km_reviews')||'[]');}catch(e){}
-  reviews.push({
-    id: 'RVW-'+Date.now(),
-    name: name.value, rating: currentRating, text: text.value,
-    date: new Date().toLocaleDateString(),
-    propId: cur.id || null
-  });
+  reviews.push(reviewObj);
   try{localStorage.setItem('km_reviews',JSON.stringify(reviews));}catch(e){}
+  // Persist to Firestore reviews collection
+  if (typeof db !== 'undefined' && cur.id) {
+    db.collection('reviews').add({
+      id:           '',
+      reviewerName: name.value,
+      reviewerId:   uid,
+      rating:       currentRating,
+      comment:      text.value,
+      propertyId:   String(cur.id),
+      propertyTitle: cur.title || '',
+      district:     cur.district || cur.zone || 'Rwanda',
+      status:       'active',
+      isActive:     true,
+      createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy:    uid,
+      updatedBy:    uid
+    }).then(function(ref) {
+      ref.update({ id: ref.id });
+      if (typeof logAudit === 'function') {
+        logAudit('review.submitted', 'reviews', ref.id, null,
+          { propertyId: String(cur.id), rating: currentRating });
+      }
+    }).catch(function(e){ console.warn('[Review] Firestore write error:', e); });
+  }
 
   // Recalculate and persist avg rating on the property
   if (cur.id) {
