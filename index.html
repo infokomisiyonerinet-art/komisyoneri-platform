@@ -7584,8 +7584,10 @@ html,body{overscroll-behavior-x:none}
     </div>
     <div class="form-row-2">
       <div class="form-group">
-        <label data-rw="Igenamiterere ya: Uwahawe" data-en="Assigned To (User ID)">Assigned To (User ID)</label>
-        <input type="text" id="tcm-assigned" placeholder="User UID or email" class="form-control">
+        <label data-rw="Shyira Umurimo kuri" data-en="Assign To">Assign To</label>
+        <select id="tcm-assigned" class="form-control">
+          <option value="">-- Loading users... --</option>
+        </select>
       </div>
       <div class="form-group">
         <label data-rw="Itariki y'Iherezo" data-en="Due Date">Due Date</label>
@@ -16378,6 +16380,31 @@ function renderTasks(list) {
   }).join('');
 }
 
+function _loadTaskAssigneeDropdown(selectedUid) {
+  var sel = g('tcm-assigned');
+  if (!sel || typeof db === 'undefined') return;
+  if (sel.options.length > 2) {
+    /* Already loaded — just set value */
+    if (selectedUid !== undefined) sel.value = selectedUid || '';
+    return;
+  }
+  sel.innerHTML = '<option value="">-- ' + (curLang === 'rw' ? 'Ntabwo Bagenewe' : 'Unassigned') + ' --</option>';
+  db.collection('users').where('isActive', '==', true).orderBy('displayName').limit(100).get()
+    .then(function(snap) {
+      snap.forEach(function(d) {
+        var u = d.data();
+        var opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = (u.displayName || u.name || u.email || d.id)
+          + (u.role ? ' (' + u.role + ')' : '');
+        sel.appendChild(opt);
+      });
+      if (selectedUid) sel.value = selectedUid;
+    }).catch(function() {
+      sel.innerHTML = '<option value="">-- ' + (curLang === 'rw' ? 'Ntabwo Bigenze' : 'Could not load') + ' --</option>';
+    });
+}
+
 function openTaskCreate(editId) {
   var m = g('task-create-modal');
   if (!m) return;
@@ -16386,10 +16413,10 @@ function openTaskCreate(editId) {
   g('tcm-priority').value  = 'medium';
   g('tcm-department').value= '';
   g('tcm-due').value       = '';
-  g('tcm-assigned').value  = '';
   g('tcm-edit-id').value   = '';
   var hd = g('task-modal-heading');
   if (hd) hd.textContent = 'New Task';
+  var assignedUid = '';
   if (editId) {
     var t = _tasks.find(function(x) { return x.id === editId; });
     if (t) {
@@ -16398,11 +16425,12 @@ function openTaskCreate(editId) {
       g('tcm-priority').value   = t.priority || 'medium';
       g('tcm-department').value = t.department || '';
       g('tcm-due').value        = t.dueAt ? (t.dueAt.toDate ? t.dueAt.toDate().toISOString().slice(0,10) : t.dueAt) : '';
-      g('tcm-assigned').value   = t.assignedTo || '';
       g('tcm-edit-id').value    = editId;
       if (hd) hd.textContent = 'Edit Task';
+      assignedUid = t.assignedTo || '';
     }
   }
+  _loadTaskAssigneeDropdown(assignedUid);
   openModal('task-create-modal');
 }
 function closeTaskCreate() { closeModal('task-create-modal'); }
