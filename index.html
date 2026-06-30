@@ -3668,7 +3668,7 @@ html,body{overscroll-behavior-x:none}
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
             <span data-rw="Ohereza Offer" data-en="Submit Offer">Submit Offer</span>
           </button>
-          <button class="btn btn-navy" style="width:100%;justify-content:center;background:linear-gradient(135deg,#F5A623,#e6951f)" onclick="openLead()">
+          <button class="btn btn-navy" style="width:100%;justify-content:center;background:linear-gradient(135deg,#F5A623,#e6951f)" onclick="openLead(window._currentProp&&window._currentProp.id||'',window._currentProp&&(window._currentProp.title||window._currentProp.titleRW)||'',window._currentProp&&window._currentProp.agentId||'',window._currentProp&&window._currentProp.ownerId||'',window._currentProp&&window._currentProp.district||'')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
             <span data-rw="Saba Agent Wawe — Vuba!" data-en="Get an Agent — Fast!">Saba Agent Wawe</span>
           </button>
@@ -6397,7 +6397,8 @@ html,body{overscroll-behavior-x:none}
       <div class="modal-title">🏠 Saba Agent Wawe</div>
       <button class="modal-x" onclick="closeLead()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">Uzuza hasi — agent wo mu gace kawe azakuhamagara mu masaa 2!</p>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:.6rem">Uzuza hasi — agent wo mu gace kawe azakuhamagara mu masaa 2!</p>
+    <div id="lead-prop-hint" style="display:none;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:.45rem .7rem;font-size:.78rem;font-weight:600;color:#1E40AF;margin-bottom:.6rem"></div>
     <div style="display:flex;flex-direction:column;gap:.8rem">
       <div class="field"><label>Amazina Yawe</label><input type="text" id="lead-name" placeholder="Amazina yuzuye"></div>
       <div class="field"><label>Telefoni / WhatsApp</label><input type="tel" id="lead-phone" placeholder="+250 7XX XXX XXX"></div>
@@ -11909,13 +11910,35 @@ function closeTour() {
 }
 
 // === LEAD MANAGEMENT ===
-function openLead() {
+var _leadCtx = { propId: '', propTitle: '', propAgentId: '', propOwnerId: '', propZone: '' };
+
+function openLead(propId, propTitle, propAgentId, propOwnerId, propZone) {
+  _leadCtx.propId      = propId      || '';
+  _leadCtx.propTitle   = propTitle   || '';
+  _leadCtx.propAgentId = propAgentId || '';
+  _leadCtx.propOwnerId = propOwnerId || '';
+  _leadCtx.propZone    = propZone    || '';
+
   var m = document.getElementById('lead-modal');
   if(m) m.style.display = 'flex';
+
+  // Pre-fill zone if property has a district
+  if (propZone) {
+    var zEl = document.getElementById('lead-zone');
+    if (zEl) zEl.value = propZone;
+  }
+
+  // Add property context hint to the form
+  var hintEl = document.getElementById('lead-prop-hint');
+  if (hintEl) {
+    hintEl.textContent = propTitle ? (curLang === 'rw' ? 'Ureba: ' : 'About: ') + propTitle : '';
+    hintEl.style.display = propTitle ? 'block' : 'none';
+  }
+
   if(currentUser) {
     var n = document.getElementById('lead-name');
     var p = document.getElementById('lead-phone');
-    if(n && !n.value) n.value = currentUser.name || '';
+    if(n && !n.value) n.value = currentUser.name || currentUser.displayName || '';
     if(p && !p.value) p.value = currentUser.phone || '';
   }
 }
@@ -11923,6 +11946,9 @@ function openLead() {
 function closeLead() {
   var m = document.getElementById('lead-modal');
   if(m) m.style.display = 'none';
+  _leadCtx = { propId: '', propTitle: '', propAgentId: '', propOwnerId: '', propZone: '' };
+  var hintEl = document.getElementById('lead-prop-hint');
+  if (hintEl) { hintEl.style.display = 'none'; hintEl.textContent = ''; }
 }
 
 function submitLead() {
@@ -11932,7 +11958,7 @@ function submitLead() {
   var _lb=document.getElementById('lead-submit-btn'),_ll=document.getElementById('lead-submit-lbl');
   if(_lb){_lb.disabled=true;_lb.classList.add('btn-loading');if(_ll)_ll.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Tegereza...':'Sending...');}
 
-  var zone = g('lead-zone');
+  var zone = g('lead-zone') || _leadCtx.propZone || '';
   var lead = {
     id: 'LEAD-' + Date.now(),
     clientName: g('lead-name'),
@@ -11944,8 +11970,12 @@ function submitLead() {
     notes: g('lead-notes'),
     status: 'New',
     assignedAgent: null,
+    propertyId:    _leadCtx.propId      || '',
+    propertyTitle: _leadCtx.propTitle   || '',
+    propAgentId:   _leadCtx.propAgentId || '',
+    propOwnerId:   _leadCtx.propOwnerId || '',
     createdAt: new Date().toISOString(),
-    deadline: new Date(Date.now() + 2*60*60*1000).toISOString() // 2hrs deadline
+    deadline: new Date(Date.now() + 2*60*60*1000).toISOString()
   };
 
   // Find agent in the zone
@@ -11985,7 +12015,9 @@ function submitLead() {
         clientPhone:   lead.clientPhone,
         agentId:       lead.assignedAgent || '',
         agentName:     lead.agentName || '',
-        propertyId:    lead.propertyId || '',
+        propertyId:    lead.propertyId    || '',
+        propertyTitle: lead.propertyTitle || '',
+        ownerId:       lead.propOwnerId   || '',
         action:        lead.action,
         zone:          lead.zone,
         district:      lead.zone,
@@ -12024,6 +12056,16 @@ function submitLead() {
         if (!_agId && lead.zone && typeof db !== 'undefined') {
           _smartAssignAgent(ref, lead);
         }
+        /* Notify property owner if this lead references a specific property */
+        var _ownId = lead.propOwnerId || '';
+        if (_ownId && _ownId !== _agId && typeof notifyUser === 'function') {
+          notifyUser(_ownId,
+            curLang === 'rw' ? 'Ubusabe Bushya kuri Mutungo Wawe!' : 'New Inquiry on Your Property!',
+            (lead.clientName || 'Client') + (curLang === 'rw' ? ' asaba amakuru' : ' is interested') + (lead.propertyTitle ? ': ' + lead.propertyTitle : ''),
+            'property_inquiry', 'leads', ref.id);
+        }
+        /* Clear property context after successful save */
+        _leadCtx = { propId: '', propTitle: '', propAgentId: '', propOwnerId: '', propZone: '' };
       }).catch(function(fsErr) { console.warn('[Lead] Firestore save failed:', fsErr); });
     }
   } catch(fsE) { console.warn('[Lead] Firestore error:', fsE); }
