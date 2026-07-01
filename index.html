@@ -271,7 +271,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 /* FORM CONTROLS */
 .field{display:flex;flex-direction:column;gap:.55rem}
 .field label{font-size:.69rem;font-weight:700;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
-.field input,.field select,.field textarea{padding:.6rem .9rem;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:.86rem;color:var(--dark);background:#fff;outline:none;transition:var(--tr);appearance:none;-webkit-appearance:none}
+.field input,.field select,.field textarea{padding:.6rem .9rem;min-height:44px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:.86rem;color:var(--dark);background:#fff;outline:none;transition:var(--tr);appearance:none;-webkit-appearance:none}
 .field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(22,87,204,.1)}
 /* iOS Safari: font-size < 16px on focused inputs triggers viewport zoom */
 @media(max-width:768px){
@@ -482,7 +482,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .p-img-inner svg{width:72px;height:72px;fill:none;stroke:rgba(255,255,255,.55);stroke-width:1}.p-img[style*="background-image"] .p-img-inner{display:none}
 .p-tag{position:absolute;top:11px;left:11px}
 .p-price{position:absolute;bottom:11px;right:11px;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);padding:.26rem .78rem;border-radius:100px;font-size:.76rem;font-weight:700;color:var(--navy);box-shadow:0 2px 8px rgba(0,0,0,.12)}
-.p-fav{position:absolute;top:11px;right:11px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.p-fav{position:absolute;top:6px;right:6px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
 .p-fav svg{width:14px;height:14px;fill:none;stroke:var(--muted);stroke-width:2}
 .p-fav:hover svg,.p-fav.on svg{stroke:#e53e3e;fill:#e53e3e}
 .p-body{padding:1.15rem}
@@ -674,9 +674,11 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 @keyframes mIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
 .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
 .modal-title{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:700}
-.modal-x{background:var(--light);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.modal-x{background:var(--light);border:none;width:44px;height:44px;flex-shrink:0;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
 .modal-x:hover{background:var(--border)}
 .modal-x svg{width:15px;height:15px;fill:none;stroke:var(--muted);stroke-width:2}
+.modal-close{background:var(--light);border:none;min-width:44px;min-height:44px;flex-shrink:0;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--muted);transition:var(--tr)}
+.modal-close:hover{background:var(--border)}
 .pay-progress{display:flex;gap:0;margin-bottom:1.8rem}
 .pay-step{flex:1;text-align:center;position:relative}
 .pay-step::after{content:'';position:absolute;top:14px;left:50%;right:-50%;height:2px;background:var(--border)}
@@ -754,6 +756,11 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .dn:hover,.dn.active{background:rgba(255,255,255,.09);color:#fff;border-left-color:var(--gold)}
 .dn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;flex-shrink:0}
 .ds-badge{margin-left:auto;background:var(--gold);color:var(--dark);font-size:.62rem;font-weight:700;padding:.1rem .45rem;border-radius:100px}
+/* Mobile sidebar drawer toggle — hidden on desktop, shown ≤1024px (see RESPONSIVE block) */
+.dash-sidebar-toggle{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;margin-bottom:1rem}
+.dash-sidebar-toggle svg{width:20px;height:20px;stroke:var(--navy);stroke-width:2}
+.dash-sidebar-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.dash-sidebar-overlay.open{display:block}
 .dash-content{background:var(--light);padding:2rem;overflow-y:auto}
 .dash-welcome{margin-bottom:1.8rem}
 .dash-welcome h2{font-family:'Cormorant Garamond',serif;font-size:1.85rem;font-weight:700}
@@ -1022,7 +1029,17 @@ footer{background:var(--dark);color:rgba(255,255,255,.5);padding:3.8rem 4% calc(
   .an-kpis{grid-template-columns:1fr 1fr}
   .an-body{grid-template-columns:1fr}
   .dash-wrap{grid-template-columns:1fr}
-  .dash-sidebar{display:none}
+  .dash-sidebar{
+    display:flex;
+    position:fixed;
+    top:0;bottom:0;left:-280px;
+    width:260px;
+    z-index:1001;
+    transition:left .3s ease;
+    box-shadow:8px 0 32px rgba(0,0,0,.25);
+  }
+  .dash-sidebar.open{left:0}
+  .dash-sidebar-toggle{display:inline-flex}
   .kpis{grid-template-columns:1fr 1fr}
   .auth-wrap{grid-template-columns:1fr}
   .auth-left{display:none}
@@ -1070,6 +1087,11 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .hero{min-height:calc(100svh - 96px)}
 .auth-wrap{min-height:calc(100svh - 64px)}
 .dash-sidebar{height:calc(100svh - 64px)}
+/* Short landscape phones: a full-viewport-height hero forces a scroll before
+   any content is visible — let it size to its own content instead. */
+@media(max-height:500px) and (orientation:landscape){
+  .hero{min-height:auto}
+}
 /* Print styles for Google (SEO signal) */
 @media print{
   .topnav,.chat-fab,.chat-panel,.toast,.ticker-strip{display:none}
@@ -1085,6 +1107,14 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 /* Chrome scroll behavior */
 @media(prefers-reduced-motion:no-preference){
   html{scroll-behavior:smooth}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+    scroll-behavior:auto!important;
+  }
 }
 /* Skip to content (Accessibility / Google) */
 .skip-link{
@@ -1834,12 +1864,19 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .btn{min-height:44px}
 .btn-lg{min-height:48px}
 @media(max-width:768px){
-  .btn-sm{min-height:36px}
+  .btn-sm{min-height:44px}
   .p-btn-detail,.p-btn-wa{min-height:44px;padding:.72rem}
   /* Nav links invisible on mobile but set for safety */
   .nl{min-height:44px;display:inline-flex;align-items:center}
   /* Language switcher pills: easier to tap */
-  .lang-btn{min-height:36px;padding:.44rem .8rem}
+  .lang-btn{min-height:44px;padding:.44rem .8rem}
+}
+
+/* 1b ── Stack inline 2-column form grids on narrow phones (form sections built
+   with inline style="display:grid;grid-template-columns:1fr 1fr" throughout
+   the add-property / edit forms have no per-instance mobile override) */
+@media(max-width:480px){
+  [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}
 }
 
 /* 2 ── Momentum scrolling (iOS) + scroll containment on all scrollable panes */
@@ -3793,7 +3830,8 @@ html,body{overscroll-behavior-x:none}
 ════════════════════════════════════ -->
 <div class="page" id="page-dashboard">
   <div class="dash-wrap">
-    <aside class="dash-sidebar">
+    <div class="dash-sidebar-overlay" id="dash-sidebar-overlay" onclick="closeDashSidebar()"></div>
+    <aside class="dash-sidebar" id="dash-sidebar">
       <div class="ds-logo"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span>KOMISIYONERI</span></div>
       <div class="ds-section" data-rw="URUBUGA" data-en="MAIN">URUBUGA</div>
       <div class="dn active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span data-rw="Overview" data-en="Overview">Overview</span></div>
@@ -3827,6 +3865,9 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="openProfile()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-rw="Igenamiterere" data-en="Settings">Igenamiterere</span></div>
     </aside>
     <main class="dash-content">
+      <button class="dash-sidebar-toggle" onclick="toggleDashSidebar()" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
       <div class="dash-welcome">
         <h2 id="dash-welcome-name" data-rw="Murakaza neza, Agent!" data-en="Welcome back, Agent!">Murakaza neza, Agent!</h2>
         <p data-rw="Ibyo bigezweho ku butunzi bwawe kuri uyu wa 3" data-en="Here's what's happening with your portfolio today">Ibyo bigezweho ku butunzi bwawe kuri uyu wa 3</p>
@@ -12756,6 +12797,40 @@ function closeHamburger() {
   if(b2){b2.style.opacity='1';}
   if(b3){b3.style.transform='';}
 }
+
+// Mobile dashboard sidebar drawer (≤1024px) — same open/close pattern as the
+// public hamburger menu above, so the CRM/Deals/HR/Exec/etc. nav that lives in
+// .dash-sidebar is reachable on mobile instead of just vanishing.
+var dashSidebarOpen = false;
+
+function toggleDashSidebar() {
+  dashSidebarOpen ? closeDashSidebar() : openDashSidebar();
+}
+
+function openDashSidebar() {
+  dashSidebarOpen = true;
+  var sb = document.getElementById('dash-sidebar');
+  var ov = document.getElementById('dash-sidebar-overlay');
+  if (sb) sb.classList.add('open');
+  if (ov) ov.classList.add('open');
+}
+
+function closeDashSidebar() {
+  dashSidebarOpen = false;
+  var sb = document.getElementById('dash-sidebar');
+  var ov = document.getElementById('dash-sidebar-overlay');
+  if (sb) sb.classList.remove('open');
+  if (ov) ov.classList.remove('open');
+}
+
+// Auto-close the drawer when any nav item is clicked, via delegation
+// (avoids editing every existing .dn onclick attribute individually).
+(function() {
+  var sb = document.getElementById('dash-sidebar');
+  if (sb) sb.addEventListener('click', function(e) {
+    if (e.target.closest('.dn')) closeDashSidebar();
+  });
+})();
 
 function updateHamburgerAuth() {
   var isLoggedIn = !!currentUser;
@@ -24481,7 +24556,7 @@ function adminRender(filter) {
       var statusColor = st.toLowerCase()==='approved'?'#27A84A':st.toLowerCase()==='rejected'?'#e53e3e':'#F5A623';
       var imgs = (prop.images || []).filter(Boolean);
       var thumbSrc = imgs[0] || prop.img1 || '';
-      var thumbHtml = thumbSrc ? '<img src="'+thumbSrc+'" style="width:60px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0" loading="lazy">' : '';
+      var thumbHtml = thumbSrc ? '<img src="'+thumbSrc+'" alt="'+(prop.title||'Property')+'" style="width:60px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0" loading="lazy">' : '';
       return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.8rem;background:#fafbff">'
         + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;flex-wrap:wrap">'
         + thumbHtml
