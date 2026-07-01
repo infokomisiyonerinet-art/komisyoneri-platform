@@ -6566,6 +6566,64 @@ html,body{overscroll-behavior-x:none}
   </div>
 </div>
 
+<!-- === CONVERT LEAD TO DEAL MODAL === -->
+<div class="modal-wrap" id="convert-deal-modal" style="display:none">
+  <div class="modal" style="max-width:480px;width:95%;max-height:92vh;overflow-y:auto">
+    <button class="modal-x" onclick="closeConvertDealModal()" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--gold);letter-spacing:.08em;margin-bottom:.25rem" data-rw="HINDURA LEAD KUBA DEAL" data-en="CONVERT LEAD TO DEAL">CONVERT LEAD TO DEAL</div>
+      <h2 id="cdm-title" style="font-size:1.1rem;font-weight:800;color:var(--navy)">—</h2>
+      <div id="cdm-client" style="font-size:.82rem;color:var(--muted);margin-top:.25rem">—</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.7rem">
+      <div>
+        <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;display:block;margin-bottom:.3rem" data-rw="UBWOKO BW'AMASEZERANO" data-en="DEAL TYPE">DEAL TYPE</label>
+        <select id="cdm-deal-type" onchange="updateDealConversionPreview()" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.87rem;box-sizing:border-box">
+          <option value="sale" data-rw="Kugurisha / Sale" data-en="Sale / Kugurisha">Sale / Kugurisha</option>
+          <option value="rental" data-rw="Gukodesha / Rental" data-en="Rental / Gukodesha">Rental / Gukodesha</option>
+          <option value="management" data-rw="Gucunga Imitungo" data-en="Property Management">Property Management</option>
+          <option value="valuation" data-rw="Kugena Agaciro" data-en="Valuation">Valuation</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;display:block;margin-bottom:.3rem" data-rw="IGICIRO CYEMEJWE (RWF)" data-en="AGREED PRICE (RWF)">AGREED PRICE (RWF)</label>
+        <input type="number" id="cdm-price" min="0" step="500000" oninput="updateDealConversionPreview()" placeholder="80000000" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.87rem;box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;display:block;margin-bottom:.3rem" data-rw="IGIPIMO CYA KOMISIYONI (%) — Ntibisabwa" data-en="COMMISSION RATE (%) — Optional Override">COMMISSION RATE (%) — Optional Override</label>
+        <input type="number" id="cdm-rate" min="0.5" max="20" step="0.5" oninput="updateDealConversionPreview()" placeholder="Leave blank for default" style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.87rem;box-sizing:border-box">
+      </div>
+      <!-- Live commission preview -->
+      <div id="cdm-preview" style="display:none;background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:10px;padding:.8rem">
+        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#16A34A;letter-spacing:.06em;margin-bottom:.5rem" data-rw="ICYEGERANYO CYA KOMISIYONI" data-en="COMMISSION BREAKDOWN">COMMISSION BREAKDOWN</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem;text-align:center">
+          <div>
+            <div id="cdm-prev-total" style="font-size:.95rem;font-weight:800;color:var(--navy)">—</div>
+            <div style="font-size:.62rem;color:var(--muted);text-transform:uppercase;margin-top:.2rem" data-en="Total" data-rw="Igiteranyo">Total</div>
+          </div>
+          <div>
+            <div id="cdm-prev-agent" style="font-size:.95rem;font-weight:800;color:#16A34A">—</div>
+            <div style="font-size:.62rem;color:var(--muted);text-transform:uppercase;margin-top:.2rem" data-en="Agent (60%)" data-rw="Agent (60%)">Agent (60%)</div>
+          </div>
+          <div>
+            <div id="cdm-prev-co" style="font-size:.95rem;font-weight:800;color:var(--gold)">—</div>
+            <div style="font-size:.62rem;color:var(--muted);text-transform:uppercase;margin-top:.2rem" data-en="Company (40%)" data-rw="Sosiyete (40%)">Company (40%)</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;display:block;margin-bottom:.3rem" data-rw="AMANOTISI (Ntibisabwa)" data-en="NOTES (Optional)">NOTES</label>
+        <textarea id="cdm-notes" rows="2" placeholder="Additional notes about this deal..." style="width:100%;padding:.52rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;resize:vertical;box-sizing:border-box;display:block"></textarea>
+      </div>
+      <button id="cdm-submit-btn" class="btn btn-gold" style="width:100%;justify-content:center;font-size:.87rem;padding:.6rem" onclick="submitConvertDeal()">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5a1 1 0 00-1-1H3a1 1 0 00-1 1v6c0 .552.448 1 1 1"/><path d="M3 12v6a1 1 0 001 1h16a1 1 0 001-1v-6"/></svg>
+        <span id="cdm-submit-lbl" data-rw="Fungura Deal + Komisiyoni" data-en="Open Deal + Create Commission">Open Deal + Create Commission</span>
+      </button>
+    </div>
+    <input type="hidden" id="cdm-lead-id">
+  </div>
+</div>
+
 <!-- === OFFER SUBMISSION MODAL (Phase 3) === -->
 <div class="modal-wrap" id="offer-modal" style="display:none">
   <div class="modal" style="max-width:460px;width:95%">
@@ -26904,87 +26962,142 @@ function convertLeadToDeal(leadId) {
     if ((_crmLeads[i]._docId || _crmLeads[i].id) === leadId) { lead = _crmLeads[i]; break; }
   }
   if (!lead) { showToast(curLang === 'rw' ? 'Lead ntiyabonetse' : 'Lead not found', 'error'); return; }
+
+  var clientName = lead.clientName || lead.name || 'Client';
+  var propTitle  = lead.propertyTitle || lead.zone || lead.district || (curLang === 'rw' ? 'Imitungo' : 'Property');
+  var dealType   = (lead.action || lead.type || 'sale').toLowerCase() === 'gukodesha' ? 'rental' : 'sale';
+  var price      = parseInt(lead.budgetMax || lead.budgetMin || 0);
+
+  var el = document.getElementById.bind(document);
+  if (el('cdm-title'))     el('cdm-title').textContent  = propTitle;
+  if (el('cdm-client'))    el('cdm-client').textContent = '👤 ' + clientName + (lead.clientPhone ? ' · 📞 ' + lead.clientPhone : '');
+  if (el('cdm-deal-type')) el('cdm-deal-type').value    = dealType;
+  if (el('cdm-price'))     el('cdm-price').value        = price || '';
+  if (el('cdm-rate'))      el('cdm-rate').value         = '';
+  if (el('cdm-notes'))     el('cdm-notes').value        = '';
+  if (el('cdm-lead-id'))   el('cdm-lead-id').value      = leadId;
+  var btn = el('cdm-submit-btn'); if (btn) btn.disabled = false;
+  var lbl = el('cdm-submit-lbl'); if (lbl) lbl.textContent = curLang === 'rw' ? 'Fungura Deal + Komisiyoni' : 'Open Deal + Create Commission';
+
+  updateDealConversionPreview();
+  var m = el('convert-deal-modal');
+  if (m) m.style.display = 'flex';
+}
+
+function closeConvertDealModal() {
+  var m = document.getElementById('convert-deal-modal');
+  if (m) m.style.display = 'none';
+}
+
+function updateDealConversionPreview() {
+  var price      = parseFloat((document.getElementById('cdm-price') || {}).value) || 0;
+  var dealType   = ((document.getElementById('cdm-deal-type') || {}).value) || 'sale';
+  var customRate = parseFloat((document.getElementById('cdm-rate') || {}).value) || null;
+  var prv        = document.getElementById('cdm-preview');
+  if (!prv) return;
+  if (!price) { prv.style.display = 'none'; return; }
+  var total = customRate
+    ? Math.round(price * customRate / 100)
+    : (typeof calcCommissionAmount === 'function' ? calcCommissionAmount(dealType, price) : Math.round(price * 0.04));
+  var agSplit = typeof COMM_AGENT_SPLIT !== 'undefined' ? COMM_AGENT_SPLIT : 0.60;
+  var agSh    = Math.round(total * agSplit);
+  var coSh    = total - agSh;
+  var fmt     = function(n) { return n >= 1000000 ? (n/1000000).toFixed(1) + 'M' : n >= 1000 ? Math.round(n/1000) + 'K' : n.toLocaleString(); };
+  prv.style.display = '';
+  var e = document.getElementById.bind(document);
+  if (e('cdm-prev-total')) e('cdm-prev-total').textContent = fmt(total) + ' RWF';
+  if (e('cdm-prev-agent')) e('cdm-prev-agent').textContent = fmt(agSh)  + ' RWF';
+  if (e('cdm-prev-co'))    e('cdm-prev-co').textContent    = fmt(coSh)  + ' RWF';
+}
+
+function submitConvertDeal() {
+  var el       = document.getElementById.bind(document);
+  var leadId   = (el('cdm-lead-id') || {}).value || '';
+  var dealType = (el('cdm-deal-type') || {}).value || 'sale';
+  var price    = parseFloat((el('cdm-price') || {}).value) || 0;
+  var customRate = parseFloat((el('cdm-rate') || {}).value) || null;
+  var notes    = ((el('cdm-notes') || {}).value || '').trim();
+  var btn      = el('cdm-submit-btn');
+  var lbl      = el('cdm-submit-lbl');
+
+  if (!leadId) { showToast(curLang === 'rw' ? 'Lead ntiyabonetse' : 'Lead not found', 'error'); return; }
+  if (!price || price <= 0) { showToast(curLang === 'rw' ? 'Injiza igiciro cyemejwe!' : 'Enter the agreed price!', 'error'); return; }
   if (typeof db === 'undefined') { showToast('Firebase ntabwo ihuye', 'error'); return; }
 
-  var uid       = currentUser ? currentUser.uid : '';
-  var agentName = currentUser ? (currentUser.displayName || currentUser.name || currentUser.email || '') : '';
-  var clientName  = lead.clientName || lead.name || '';
-  var clientPhone = lead.clientPhone || lead.phone || '';
-  var dealType    = (lead.action || lead.type || 'sale').toLowerCase() === 'gukodesha' ? 'rental' : 'sale';
-  var agreedPrice = parseInt(lead.budgetMax || lead.budgetMin || 0);
-  var defaultRate = dealType === 'rental' ? 0.0833 : 0.04;
-  var commAmt     = agreedPrice * defaultRate;
-  var agentShare  = Math.round(commAmt * 0.60);
-  var coShare     = Math.round(commAmt * 0.40);
+  var lead = null;
+  for (var i = 0; i < _crmLeads.length; i++) {
+    if ((_crmLeads[i]._docId || _crmLeads[i].id) === leadId) { lead = _crmLeads[i]; break; }
+  }
+  if (!lead) { showToast(curLang === 'rw' ? 'Lead ntiyabonetse' : 'Lead not found', 'error'); return; }
 
-  if (!confirm((curLang === 'rw'
-    ? 'Gufungura Deal ya: ' + clientName + '\nAgaciro: ' + agreedPrice.toLocaleString() + ' RWF\nObutumwa bw\'Umukozi: ' + agentShare.toLocaleString() + ' RWF\nEmeza?'
-    : 'Open Deal for: ' + clientName + '\nValue: ' + agreedPrice.toLocaleString() + ' RWF\nAgent Share: ' + agentShare.toLocaleString() + ' RWF\nConfirm?'
-  ))) return;
+  if (btn) btn.disabled = true;
+  if (lbl) lbl.textContent = curLang === 'rw' ? 'Gutegura...' : 'Processing...';
+
+  var uid        = currentUser ? currentUser.uid : '';
+  var agentName  = currentUser ? (currentUser.displayName || currentUser.name || currentUser.email || '') : '';
+  var agSplit    = typeof COMM_AGENT_SPLIT !== 'undefined' ? COMM_AGENT_SPLIT : 0.60;
+  var coSplit    = 1 - agSplit;
+  var rate       = customRate
+    ? (customRate / 100)
+    : (typeof COMMISSION_RATES !== 'undefined' && COMMISSION_RATES[dealType]
+        ? (COMMISSION_RATES[dealType].default || 0.04) : 0.04);
+  var total      = customRate
+    ? Math.round(price * customRate / 100)
+    : (typeof calcCommissionAmount === 'function' ? calcCommissionAmount(dealType, price) : Math.round(price * rate));
+  var agSh       = Math.round(total * agSplit);
+  var coSh       = total - agSh;
 
   db.collection('deals').add({
-    id:             '',
-    leadId:         leadId,
-    propertyId:     lead.propertyId || '',
-    propertyTitle:  lead.propertyTitle || (lead.zone || lead.district || ''),
-    clientId:       lead.clientId || '',
-    clientName:     clientName,
-    clientPhone:    clientPhone,
-    sellerId:       lead.agentId || uid,
-    agentId:        uid,
-    agentName:      agentName,
-    dealType:       dealType,
-    agreedPrice:    agreedPrice,
-    commissionRate: defaultRate,
-    pipelineStage:  'contract',
-    offerId:        '',
-    notes:          'Converted from CRM lead: ' + leadId,
-    milestones:     {},
-    closedAt:       null,
-    isActive:       true,
-    status:         'contract',
-    createdAt:      firebase.firestore.FieldValue.serverTimestamp(),
-    updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
-    createdBy:      uid,
-    updatedBy:      uid
+    id: '', leadId: leadId,
+    propertyId:    lead.propertyId    || '',
+    propertyTitle: lead.propertyTitle || lead.zone || lead.district || '',
+    clientId:      lead.clientId      || '',
+    clientName:    lead.clientName    || lead.name  || '',
+    clientPhone:   lead.clientPhone   || lead.phone || '',
+    sellerId:      lead.propOwnerId   || lead.ownerId || uid,
+    agentId: uid, agentName: agentName,
+    dealType: dealType, agreedPrice: price, commissionRate: rate,
+    pipelineStage: 'contract', offerId: '',
+    notes: notes || ('Converted from lead: ' + leadId),
+    milestones: {}, closedAt: null,
+    isActive: true, status: 'contract',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: uid, updatedBy: uid
   }).then(function(dealRef) {
     dealRef.update({ id: dealRef.id });
     logAudit('deal.converted.from.lead', 'deals', dealRef.id, { leadId: leadId },
-      { clientName: clientName, agreedPrice: agreedPrice });
-
-    db.collection('commissions').add({
-      id:              '',
-      dealId:          dealRef.id,
-      agentId:         uid,
-      agentName:       agentName,
-      clientName:      clientName,
-      dealType:        dealType,
-      dealValue:       agreedPrice,
-      commissionRate:  defaultRate,
-      totalCommission: Math.round(commAmt),
-      agentShare:      agentShare,
-      companyShare:    coShare,
-      approvedBy:      '',
-      paidAt:          null,
-      status:          'pending',
-      isActive:        true,
-      createdAt:       firebase.firestore.FieldValue.serverTimestamp(),
-      updatedAt:       firebase.firestore.FieldValue.serverTimestamp(),
-      createdBy:       uid,
-      updatedBy:       uid
+      { clientName: lead.clientName || '', agreedPrice: price, dealType: dealType });
+    return db.collection('commissions').add({
+      id: '', dealId: dealRef.id,
+      propertyId: lead.propertyId || '', propertyTitle: lead.propertyTitle || '',
+      agentId: uid, agentName: agentName,
+      clientName: lead.clientName || lead.name || '',
+      dealType: dealType, dealValue: price, commissionRate: rate,
+      totalCommission: total, agentShare: agSh, companyShare: coSh,
+      agentSplitPct: agSplit, companySplitPct: coSplit,
+      approvedBy: '', approvedAt: null, paidAt: null, paymentRef: '',
+      notes: notes, status: 'pending', isActive: true,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy: uid, updatedBy: uid
     }).then(function(commRef) {
       commRef.update({ id: commRef.id });
       logAudit('commission.created', 'commissions', commRef.id, null,
-        { dealId: dealRef.id, agentShare: agentShare });
-    }).catch(function(e) { console.warn('[Commission] create error:', e); });
-
+        { dealId: dealRef.id, agentShare: agSh, total: total });
+    });
+  }).then(function() {
     updateLeadStage(leadId, 'contract');
-    showToast(curLang === 'rw' ? 'Deal ifunguwe neza!' : 'Deal opened successfully!', 'success');
+    showToast(curLang === 'rw' ? 'Deal + Komisiyoni bifunguwe neza!' : 'Deal and commission created!', 'success');
+    closeConvertDealModal();
     closeLeadDetail();
     if (typeof loadDeals === 'function') loadDeals();
+    if (typeof loadCommissions === 'function') loadCommissions();
   }).catch(function(err) {
-    showToast(curLang === 'rw' ? 'Habaye ikosa — ongera ugerageze' : 'Error creating deal', 'error');
-    console.error('[convertLeadToDeal] error:', err);
+    if (btn) btn.disabled = false;
+    if (lbl) lbl.textContent = curLang === 'rw' ? 'Fungura Deal + Komisiyoni' : 'Open Deal + Create Commission';
+    showToast(curLang === 'rw' ? 'Habaye ikosa — ongera ugerageze' : 'Error creating deal — try again', 'error');
+    console.error('[submitConvertDeal]', err);
   });
 }
 
@@ -27932,17 +28045,35 @@ function _loadLeadActivityFeed(leadId) {
     if (pending === 0) _renderLeadActivityFeed(viewings, deals);
   }
 
-  db.collection('viewings').where('leadId','==',leadId).where('isActive','==',true)
-    .orderBy('scheduledAt','asc').limit(10).get()
+  db.collection('viewings').where('leadId','==',leadId).limit(10).get()
     .then(function(snap) {
-      snap.forEach(function(doc) { var d = doc.data(); d._docId = doc.id; viewings.push(d); });
+      snap.forEach(function(doc) {
+        var d = doc.data();
+        if (d.isActive === false) return;
+        d._docId = doc.id;
+        viewings.push(d);
+      });
+      viewings.sort(function(a,b) {
+        var ta = a.scheduledAt && a.scheduledAt.seconds ? a.scheduledAt.seconds : 0;
+        var tb = b.scheduledAt && b.scheduledAt.seconds ? b.scheduledAt.seconds : 0;
+        return ta - tb;
+      });
       done();
     }).catch(done);
 
-  db.collection('deals').where('leadId','==',leadId).where('isActive','==',true)
-    .orderBy('createdAt','asc').limit(5).get()
+  db.collection('deals').where('leadId','==',leadId).limit(5).get()
     .then(function(snap) {
-      snap.forEach(function(doc) { var d = doc.data(); d._docId = doc.id; deals.push(d); });
+      snap.forEach(function(doc) {
+        var d = doc.data();
+        if (d.isActive === false) return;
+        d._docId = doc.id;
+        deals.push(d);
+      });
+      deals.sort(function(a,b) {
+        var ta = a.createdAt && a.createdAt.seconds ? a.createdAt.seconds : 0;
+        var tb = b.createdAt && b.createdAt.seconds ? b.createdAt.seconds : 0;
+        return ta - tb;
+      });
       done();
     }).catch(done);
 }
