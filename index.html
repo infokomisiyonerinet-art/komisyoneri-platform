@@ -2676,11 +2676,20 @@ html,body{overscroll-behavior-x:none}
 <!-- ═══ ADD PROPERTY MODAL ═══ -->
 <div class="modal-wrap" id="add-prop-modal" style="display:none">
   <div class="modal" style="max-width:500px;max-height:90vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border);padding-bottom:.8rem">
-      <div class="modal-title" data-rw="+ Andika Imitungo Nshya" data-en="+ Add New Property">+ Andika Imitungo Nshya</div>
-      <button class="modal-x" onclick="closeAddProperty()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border);padding-bottom:.8rem;flex-direction:column;align-items:stretch;gap:.6rem">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="modal-title" data-rw="+ Andika Imitungo Nshya" data-en="+ Add New Property">+ Andika Imitungo Nshya</div>
+        <button class="modal-x" onclick="closeAddProperty()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <!-- Progress indicator -->
+      <div style="display:flex;gap:4px">
+        <div class="prop-step-bar active" id="pstep1" style="flex:1;height:4px;background:var(--navy);border-radius:2px 0 0 2px"></div>
+        <div class="prop-step-bar" id="pstep2" style="flex:1;height:4px;background:var(--border)"></div>
+        <div class="prop-step-bar" id="pstep3" style="flex:1;height:4px;background:var(--border);border-radius:0 2px 2px 0"></div>
+      </div>
+      <div style="font-size:.72rem;color:var(--muted);font-weight:600" id="prop-step-label" data-rw="Intambwe 1/3 — Amakuru y'Ibanze" data-en="Step 1/3 — Basic Info">Intambwe 1/3 — Amakuru y'Ibanze</div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:.8rem;padding:.5rem 0">
+    <div id="prop-form-1" style="display:flex;flex-direction:column;gap:.8rem;padding:.5rem 0">
       <div class="field"><label>Ubwoko bw'Imitungo</label>
         <select id="prop-type" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
           <option value="Inzu">🏠 Inzu (House)</option>
@@ -2722,6 +2731,11 @@ html,body{overscroll-behavior-x:none}
         <textarea id="prop-desc" rows="3" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;resize:vertical" placeholder="Sobanura inzu yawe: ibikoresho, ahantu hihutirwa, ibiranga..."></textarea>
       </div>
       <div class="field"><label>Telefoni yo Gutumanahana</label><input type="tel" id="prop-contact" placeholder="+250 7XX XXX XXX"></div>
+      <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="propStep(2)">
+        <span data-rw="Komeza →" data-en="Continue →">Komeza →</span>
+      </button>
+    </div>
+    <div id="prop-form-2" style="display:none;flex-direction:column;gap:.8rem;padding:.5rem 0">
       <!-- ─── Extra Details (optional) ─── -->
       <div style="background:var(--light);border-radius:8px;padding:.7rem;font-size:.78rem;color:var(--navy);font-weight:600">
         📋 Amakuru Yuzuye (Ntibisabwa)
@@ -2795,6 +2809,12 @@ html,body{overscroll-behavior-x:none}
       <div style="font-size:.73rem;color:var(--muted);background:var(--light);border-radius:8px;padding:.5rem">
         💡 Shakisha coordinates kuri <strong>maps.google.com</strong> → Kanda hejuru y'aho imitungo iri → Kopi umubare ugaragara munsi. Urugero: <em>-1.9441, 30.1044</em>
       </div>
+      <div style="display:flex;gap:.6rem">
+        <button class="btn btn-sm" style="flex:1;border:1.5px solid var(--border);justify-content:center" onclick="propStep(1)">← <span data-rw="Subira" data-en="Back">Back</span></button>
+        <button class="btn btn-navy btn-lg" style="flex:2;justify-content:center" onclick="propStep(3)"><span data-rw="Komeza →" data-en="Continue →">Komeza →</span></button>
+      </div>
+    </div>
+    <div id="prop-form-3" style="display:none;flex-direction:column;gap:.8rem;padding:.5rem 0">
       <!-- Media Upload — Admin vs User -->
       <div id="admin-media-section" style="display:none;flex-direction:column;gap:.8rem">
         <div style="background:#e8f0fb;border-radius:8px;padding:.7rem;font-size:.78rem;color:var(--navy);font-weight:600">
@@ -2823,7 +2843,8 @@ html,body{overscroll-behavior-x:none}
           💡 Amafoto azabikwa kuri imgbb.com ubuntu. Uzabona URL nyuma yo kuranga.
         </div>
       </div>
-      <button id="submit-prop-btn" class="btn btn-navy btn-lg" style="width:100%;justify-content:center;margin-top:.4rem" onclick="submitProperty()">
+      <button class="btn btn-sm" style="border:1.5px solid var(--border);justify-content:center;margin-bottom:.2rem" onclick="propStep(2)">← <span data-rw="Subira" data-en="Back">Back</span></button>
+      <button id="submit-prop-btn" class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="submitProperty()">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         <span id="submit-prop-label">Ohereza Imitungo</span>
       </button>
@@ -3704,46 +3725,47 @@ html,body{overscroll-behavior-x:none}
           <div class="ag-stat"><span class="ag-stat-v">98%</span><span class="ag-stat-l" data-rw="Igihe" data-en="Response">Igihe</span></div>
         </div>
         <div class="ag-acts">
-          <button class="btn btn-navy" style="width:100%;justify-content:center" onclick="toggleChat()">
-            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            <span data-rw="Ganira na Agent" data-en="Chat with Agent">Ganira na Agent</span>
+          <!-- PRIMARY — one clear next step: get connected, fast -->
+          <button class="btn btn-gold btn-lg" style="width:100%;justify-content:center" onclick="openLead()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            <span data-rw="Saba Agent Wawe — Vuba!" data-en="Get an Agent — Fast!">Saba Agent Wawe — Vuba!</span>
           </button>
-          <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="window.location.href='tel:+250783177254'">
-            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.13a16 16 0 006.73 6.73l1.35-1.35a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-            <span data-rw="Hamagara Agent" data-en="Call Agent">Hamagara Agent</span>
-          </button>
-          <button class="btn btn-outline" style="width:100%;justify-content:center;border-color:#25D366;color:#25D366" onclick="window.open('https://wa.me/250783177254?text=Ndashaka amakuru y%27imitungo muri KOMISIYONERI','_blank')">
-            <svg viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-            <span>WhatsApp Agent</span>
-          </button>
-          <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="openBooking()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <span data-rw="Gushyiraho Gahunda yo Gusura" data-en="Schedule a Visit">Gushyiraho Gahunda</span>
-          </button>
-          <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="openOfferModal()">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            <span data-rw="Ohereza Offer" data-en="Submit Offer">Submit Offer</span>
-          </button>
-          <button class="btn btn-navy" style="width:100%;justify-content:center;background:linear-gradient(135deg,#F5A623,#e6951f)" onclick="openLead()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-            <span data-rw="Saba Agent Wawe — Vuba!" data-en="Get an Agent — Fast!">Saba Agent Wawe</span>
-          </button>
-          <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="openMessageOwner()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            <span data-rw="Kohereza Message" data-en="Send Message">Kohereza Message</span>
-          </button>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem">
-            <button class="btn btn-sm" style="justify-content:center;border:1.5px solid var(--navy);color:var(--navy);font-size:.75rem" onclick="openMortgage()">
-              🏦 Mortgage Calc
+          <div style="font-size:.72rem;color:var(--muted);text-align:center;margin:.35rem 0 .9rem" data-rw="Asubiza mu masaa 2 gusa" data-en="Responds within 2 hours">Asubiza mu masaa 2 gusa</div>
+
+          <!-- SECONDARY — meaningful next steps for a more decided visitor -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.7rem">
+            <button class="btn btn-outline" style="justify-content:center;font-size:.82rem" onclick="openBooking()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span data-rw="Gusura" data-en="Schedule Visit">Schedule Visit</span>
             </button>
-            <button class="btn btn-sm" style="justify-content:center;border:1.5px solid var(--navy);color:var(--navy);font-size:.75rem" onclick="openCompare()">
-              ⚖️ Gusuzuma 2
+            <button class="btn btn-outline" style="justify-content:center;font-size:.82rem" onclick="openOfferModal()">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              <span data-rw="Ohereza Offer" data-en="Submit Offer">Submit Offer</span>
             </button>
           </div>
-          <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="openDepositPay()">
-            <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-            <span data-rw="Ishyura Deposit / Tangira" data-en="Pay Deposit / Start">Ishyura Deposit</span>
-          </button>
+
+          <!-- CONTACT ROW — every existing channel preserved, just compact -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:.7rem">
+            <button class="btn btn-outline" style="justify-content:center;padding:.6rem;min-height:44px" onclick="toggleChat()" title="Chat with Agent" aria-label="Chat with Agent">
+              <svg viewBox="0 0 24 24" width="18" height="18"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            </button>
+            <button class="btn btn-outline" style="justify-content:center;padding:.6rem;min-height:44px" onclick="window.location.href='tel:+250783177254'" title="Call Agent" aria-label="Call Agent">
+              <svg viewBox="0 0 24 24" width="18" height="18"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.13a16 16 0 006.73 6.73l1.35-1.35a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            </button>
+            <button class="btn btn-outline" style="justify-content:center;padding:.6rem;min-height:44px;border-color:#25D366;color:#25D366" onclick="window.open('https://wa.me/250783177254?text=Ndashaka amakuru y%27imitungo muri KOMISIYONERI','_blank')" title="WhatsApp Agent" aria-label="WhatsApp Agent">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+            </button>
+            <button class="btn btn-outline" style="justify-content:center;padding:.6rem;min-height:44px" onclick="openMessageOwner()" title="Send Message" aria-label="Send Message">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            </button>
+          </div>
+
+          <!-- TERTIARY — small utility links, not full actions -->
+          <div style="display:flex;justify-content:center;gap:1.2rem;font-size:.76rem;flex-wrap:wrap">
+            <span style="cursor:pointer;color:var(--blue);font-weight:600" onclick="openMortgage()">🏦 <span data-rw="Bara Inguzanyo" data-en="Mortgage Calc">Mortgage Calc</span></span>
+            <span style="cursor:pointer;color:var(--blue);font-weight:600" onclick="openCompare()">⚖️ <span data-rw="Gusuzuma 2" data-en="Compare">Compare</span></span>
+            <span style="cursor:pointer;color:var(--blue);font-weight:600" onclick="openDepositPay()">💳 <span data-rw="Ishyura Deposit" data-en="Pay Deposit">Pay Deposit</span></span>
+          </div>
         </div>
       </div>
       <!-- MAP TAB CONTENT -->
@@ -9287,6 +9309,7 @@ function openEditProperty(prop) {
   // Open the modal (bypasses role check since user already owns this property)
   var m = document.getElementById('add-prop-modal');
   if (m) m.style.display = 'flex';
+  propStep(1);
 
   // Update modal title and submit label
   var title = document.querySelector('#add-prop-modal .modal-title');
@@ -9347,6 +9370,7 @@ function openAddProperty() {
   if(!window._listingsOpen) { showToast('⛔ New listings are currently paused.', 'warn'); return; }
   var m = document.getElementById('add-prop-modal');
   if(m) m.style.display='flex';
+  propStep(1);
   var c = document.getElementById('prop-contact');
   if(c && currentUser.phone) c.value = currentUser.phone;
 }
@@ -9523,7 +9547,7 @@ function submitProperty() {
           var sbtn2=document.getElementById('submit-prop-btn'),slbl2=document.getElementById('submit-prop-label');
           if(sbtn2){ sbtn2.disabled=false; sbtn2.classList.remove('btn-loading'); if(slbl2) slbl2.textContent=(curLang==='rw'?'Ohereza Imitungo':'Submit Property'); }
           closeAddProperty();
-          showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Admin azayisuzuma vuba.' : '✅ Property submitted for review!');
+          showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Tuzayisuzuma mu masaa 24 tukumenyeshe niba yemejwe.' : "✅ Property submitted! We'll review it within 24 hours and notify you once it's approved.");
         })
         .catch(function(err) {
           console.error('Storage upload failed, falling back to base64:', err);
@@ -9554,7 +9578,7 @@ function _submitPropertyBase64(fileList, propData) {
         var sbtn3=document.getElementById('submit-prop-btn'),slbl3=document.getElementById('submit-prop-label');
         if(sbtn3){ sbtn3.disabled=false; sbtn3.classList.remove('btn-loading'); if(slbl3) slbl3.textContent=(curLang==='rw'?'Ohereza Imitungo':'Submit Property'); }
         closeAddProperty();
-        showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Admin azayisuzuma vuba.' : '✅ Property submitted for review!');
+        showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Tuzayisuzuma mu masaa 24 tukumenyeshe niba yemejwe.' : "✅ Property submitted! We'll review it within 24 hours and notify you once it's approved.");
       }
     };
     reader.readAsDataURL(f.files[0]);
@@ -11687,6 +11711,29 @@ function agentStep(step) {
     if(form) form.style.display = s === step ? 'flex' : 'none';
     if(bar) bar.style.background = s <= step ? 'var(--navy)' : 'var(--border)';
   });
+}
+
+var PROP_STEP_LABELS = {
+  1: { rw: "Intambwe 1/3 — Amakuru y'Ibanze", en: 'Step 1/3 — Basic Info' },
+  2: { rw: 'Intambwe 2/3 — Ibisobanuro n\'Inyandiko', en: 'Step 2/3 — Details & Documents' },
+  3: { rw: 'Intambwe 3/3 — Amafoto', en: 'Step 3/3 — Photos' }
+};
+function propStep(step) {
+  [1,2,3].forEach(function(s) {
+    var form = document.getElementById('prop-form-' + s);
+    var bar = document.getElementById('pstep' + s);
+    if(form) form.style.display = s === step ? 'flex' : 'none';
+    if(bar) bar.style.background = s <= step ? 'var(--navy)' : 'var(--border)';
+  });
+  var lbl = document.getElementById('prop-step-label');
+  if (lbl) {
+    var l = PROP_STEP_LABELS[step];
+    lbl.setAttribute('data-rw', l.rw);
+    lbl.setAttribute('data-en', l.en);
+    lbl.textContent = curLang === 'rw' ? l.rw : l.en;
+  }
+  var wrap = document.querySelector('#add-prop-modal .modal');
+  if (wrap) wrap.scrollTop = 0;
 }
 
 function submitAgentReg() {
@@ -24452,7 +24499,7 @@ function _agentSubmitFinish(pd) {
   var sb = document.getElementById('submit-prop-btn'), sl = document.getElementById('submit-prop-label');
   if (sb) { sb.disabled = false; sb.classList.remove('btn-loading'); if (sl) sl.textContent = (curLang==='rw'?'Ohereza Imitungo':'Submit Property'); }
   closeAddProperty();
-  showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Admin azayisuzuma vuba.' : '✅ Property submitted for review!');
+  showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Tuzayisuzuma mu masaa 24 tukumenyeshe niba yemejwe.' : "✅ Property submitted! We'll review it within 24 hours and notify you once it's approved.");
 }
 
 /* Base64 fallback that accepts a callback instead of always saving directly */
