@@ -8116,6 +8116,37 @@ html,body{overscroll-behavior-x:none}
       <div class="fin-summary-row"><span data-rw="Itariki yo Kwinjira" data-en="Joined">Joined</span><span id="sp-joined"></span></div>
       <div class="fin-summary-row"><span data-rw="Imiterere y'Konti" data-en="Account Status">Account Status</span><span id="sp-status"></span></div>
     </div>
+    <!-- Employment / Contract record — real HR data, not just the generic user table -->
+    <div class="fin-summary-card" style="margin-bottom:.75rem">
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.5rem" data-rw="Amasezerano y'Akazi" data-en="Employment Contract">Employment Contract</div>
+      <div id="sp-contract-view" style="display:flex;flex-direction:column;gap:.3rem">
+        <div class="fin-summary-row"><span data-rw="Itariki yo Gutangira" data-en="Hire Date">Hire Date</span><span id="sp-hire-date-view">—</span></div>
+        <div class="fin-summary-row"><span data-rw="Ubwoko bw'Amasezerano" data-en="Contract Type">Contract Type</span><span id="sp-contract-type-view">—</span></div>
+        <div class="fin-summary-row"><span data-rw="Iherezo ry'Amasezerano" data-en="Contract End Date">Contract End Date</span><span id="sp-contract-end-view">—</span></div>
+      </div>
+      <div id="sp-contract-edit" style="display:none;flex-direction:column;gap:.5rem;margin-top:.5rem">
+        <div class="form-row-2">
+          <div class="form-group"><label data-rw="Itariki yo Gutangira" data-en="Hire Date">Hire Date</label>
+            <input type="date" id="sp-hire-date" class="form-control" style="font-size:.8rem">
+          </div>
+          <div class="form-group"><label data-rw="Ubwoko" data-en="Contract Type">Contract Type</label>
+            <select id="sp-contract-type" class="form-control" style="font-size:.8rem">
+              <option value="">—</option>
+              <option value="permanent">Permanent</option>
+              <option value="fixed_term">Fixed-Term</option>
+              <option value="probation">Probation</option>
+              <option value="contractor">Contractor</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label data-rw="Iherezo (niba rifite)" data-en="Contract End Date (if applicable)">Contract End Date</label>
+          <input type="date" id="sp-contract-end" class="form-control" style="font-size:.8rem">
+        </div>
+        <button class="btn btn-sm btn-navy" onclick="saveStaffContract(_spProfileId)" style="font-size:.78rem" data-rw="Bika" data-en="Save Contract Info">Save Contract Info</button>
+      </div>
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:.8rem 0 .4rem" data-rw="Amateka y'Umushahara" data-en="Salary History">Salary History</div>
+      <div id="sp-salary-history" style="font-size:.8rem;color:var(--muted)">—</div>
+    </div>
     <!-- Admin-only: recent tasks & leave -->
     <div id="sp-admin-section" style="display:none">
       <!-- Admin: role change + status actions -->
@@ -17006,7 +17037,32 @@ function openStaffProfile(uid) {
   g('sp-joined').textContent  = joined;
   var activeChip = u.isActive ? '<span style="color:var(--success)">Active</span>' : '<span style="color:var(--error)">Suspended</span>';
   g('sp-status').innerHTML    = activeChip;
+
+  // Real employment/contract record (extends the users doc — no separate
+  // page needed, surfaced right in the existing Staff Directory profile).
+  var CONTRACT_LABELS = { permanent:'Permanent', fixed_term:'Fixed-Term', probation:'Probation', contractor:'Contractor' };
+  g('sp-hire-date-view').textContent    = u.hireDate || '—';
+  g('sp-contract-type-view').textContent= CONTRACT_LABELS[u.contractType] || u.contractType || '—';
+  g('sp-contract-end-view').textContent = u.contractEndDate || '—';
+  var spHireEl = g('sp-hire-date'), spTypeEl = g('sp-contract-type'), spEndEl = g('sp-contract-end');
+  if (spHireEl) spHireEl.value = u.hireDate || '';
+  if (spTypeEl) spTypeEl.value = u.contractType || '';
+  if (spEndEl)  spEndEl.value  = u.contractEndDate || '';
+  var salHist = g('sp-salary-history');
+  if (salHist) {
+    var hist = u.salaryHistory || [];
+    salHist.innerHTML = hist.length
+      ? hist.slice(-6).reverse().map(function(h) {
+          return '<div style="display:flex;justify-content:space-between;padding:.2rem 0;border-bottom:1px solid var(--border)">' +
+            '<span>' + (h.period||'') + '</span><span style="font-weight:600;color:var(--navy)">' + Number(h.netSalary||0).toLocaleString() + ' RWF</span></div>';
+        }).join('')
+      : (curLang==='rw' ? 'Nta mateka y\'umushahara arahari.' : 'No salary history yet.');
+  }
+
   var isAdmin = ['admin','super_admin','ceo'].indexOf((currentUser||{}).role) > -1;
+  var contractEditEl = g('sp-contract-edit'), contractViewEl = g('sp-contract-view');
+  if (contractEditEl) contractEditEl.style.display = isAdmin ? 'flex' : 'none';
+  if (contractViewEl) contractViewEl.style.display = isAdmin ? 'none' : 'flex';
   var adminSec = g('sp-admin-section');
   if (adminSec) {
     adminSec.style.display = isAdmin ? '' : 'none';
@@ -17066,6 +17122,25 @@ function changeUserRole(uid) {
     }
     showToast(curLang === 'rw' ? 'Uruhare rwahinduwe!' : 'Role updated successfully!', 'success');
   }).catch(function() { showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error updating role', 'error'); });
+}
+
+// Real employee/contract data — previously HR only had the generic user
+// table with no hireDate/contractType/contractEndDate anywhere.
+function saveStaffContract(uid) {
+  if (!uid || typeof db === 'undefined') return;
+  var hireDate = (document.getElementById('sp-hire-date')||{}).value || '';
+  var contractType = (document.getElementById('sp-contract-type')||{}).value || '';
+  var contractEnd = (document.getElementById('sp-contract-end')||{}).value || '';
+  var adminUid = currentUser ? currentUser.uid : 'admin';
+  db.collection('users').doc(uid).update({
+    hireDate: hireDate, contractType: contractType, contractEndDate: contractEnd,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: adminUid
+  }).then(function() {
+    logAudit('user.contract.updated', 'users', uid, null, { hireDate: hireDate, contractType: contractType, contractEndDate: contractEnd });
+    var u = _hrStaff.find(function(x){ return x.id === uid; });
+    if (u) { u.hireDate = hireDate; u.contractType = contractType; u.contractEndDate = contractEnd; }
+    showToast(curLang === 'rw' ? 'Amasezerano yabitswe!' : 'Contract info saved!', 'success');
+  }).catch(function() { showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error saving contract info', 'error'); });
 }
 
 function toggleUserVerified(uid) {
@@ -17309,15 +17384,17 @@ function openPayslipDetail(id) {
   }
   var isAdmin = ['admin','super_admin','ceo'].indexOf((currentUser||{}).role) > -1;
   var actEl = g('pd-actions');
+  var downloadBtn = '<button class="btn btn-ghost" onclick="downloadPayslipPDF(\'' + id + '\')" data-rw="Kuramo PDF" data-en="Download PDF">Download PDF</button>';
   if (actEl && isAdmin && !p.paidAt) {
-    actEl.innerHTML = '<button class="btn" style="background:var(--success);color:#fff;border:none" onclick="markPayslipPaid(\'' + id + '\')">Mark as Paid</button>';
-  } else if (actEl) { actEl.innerHTML = ''; }
+    actEl.innerHTML = downloadBtn + '<button class="btn" style="background:var(--success);color:#fff;border:none" onclick="markPayslipPaid(\'' + id + '\')">Mark as Paid</button>';
+  } else if (actEl) { actEl.innerHTML = downloadBtn; }
   openModal('payslip-detail-modal');
 }
 function closePayslipDetail() { closeModal('payslip-detail-modal'); }
 
 function markPayslipPaid(id) {
   if (typeof db === 'undefined' || !currentUser) return;
+  var p = _payrollList.find(function(x) { return x.id === id; });
   db.collection('payroll').doc(id).update({
     paidAt:    firebase.firestore.FieldValue.serverTimestamp(),
     status:    'paid',
@@ -17325,12 +17402,80 @@ function markPayslipPaid(id) {
     updatedBy: currentUser.uid
   }).then(function() {
     showToast('Payslip marked as paid', 'success');
-    var p = _payrollList.find(function(x) { return x.id === id; });
     if (p) p.paidAt = new Date();
+    // Real cross-module link: paying a payslip appends to the employee's
+    // own salaryHistory on their user doc — the Staff Directory profile
+    // already reads this field, so no separate feature is needed there.
+    if (p && p.userId) {
+      db.collection('users').doc(p.userId).update({
+        salaryHistory: firebase.firestore.FieldValue.arrayUnion({ period: p.period, netSalary: p.netSalary, totalPay: p.totalPay, paidAt: new Date().toISOString() }),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+      }).catch(function(){});
+    }
     closePayslipDetail();
     loadPayroll();
     logAudit('payslip_paid', 'payroll', id, { paidAt: null }, { paidAt: 'now' });
   }).catch(function() { showToast('Error updating payslip', 'error'); });
+}
+
+// Real PDF payslip generation (previously: no PDF library loaded anywhere,
+// payslipUrl declared but never populated). jsPDF is loaded on demand from
+// the cdn.jsdelivr.net origin already allow-listed in vercel.json's CSP.
+function downloadPayslipPDF(id) {
+  var p = _payrollList.find(function(x) { return x.id === id; });
+  if (!p) { showToast('Payslip not found', 'error'); return; }
+  function build() {
+    var jsPDFCtor = (window.jspdf || {}).jsPDF;
+    if (!jsPDFCtor) { showToast('PDF library failed to load', 'error'); return; }
+    var doc = new jsPDFCtor();
+    var y = 20;
+    doc.setFontSize(16); doc.text('KOMISIYONERI ConnectPro Services Ltd', 20, y); y += 8;
+    doc.setFontSize(11); doc.text('Payslip — ' + (p.period||''), 20, y); y += 10;
+    doc.setFontSize(10);
+    var line = function(label, value) { doc.text(label, 20, y); doc.text(String(value), 140, y); y += 7; };
+    line('Employee:', p.staffName || p.userId || '—');
+    line('Role:', HR_ROLE_LABELS[p.staffRole] || p.staffRole || '—');
+    y += 3;
+    line('Basic Salary:', fmtRwfHR(p.basicSalary));
+    var al = p.allowances || {};
+    line('Housing Allowance:', fmtRwfHR(al.housing||0));
+    line('Transport Allowance:', fmtRwfHR(al.transport||0));
+    line('Medical Allowance:', fmtRwfHR(al.medical||0));
+    line('Other Allowance:', fmtRwfHR(al.other||0));
+    line('Gross Salary:', fmtRwfHR(p.grossSalary));
+    y += 3;
+    line('RSSB (5%):', fmtRwfHR(p.rssbEmployee));
+    line('PAYE Tax:', fmtRwfHR(p.paye));
+    line('Other Deductions:', fmtRwfHR(p.otherDeductions||0));
+    y += 3;
+    line('Net Salary:', fmtRwfHR(p.netSalary));
+    line('Commissions:', fmtRwfHR(p.commissions||0));
+    line('Bonus:', fmtRwfHR(p.bonuses||0));
+    doc.setFontSize(12);
+    doc.text('Total Pay: ' + fmtRwfHR(p.totalPay), 20, y + 5);
+    y += 15;
+    doc.setFontSize(8);
+    doc.text('This payslip is computer-generated by KOMISIYONERI.', 20, y);
+    var fileName = 'payslip_' + (p.userId||'staff') + '_' + (p.period||'').replace(/[^0-9]/g,'') + '.pdf';
+    doc.save(fileName);
+    // Also persist to Firebase Storage so payslipUrl is a real, populated
+    // field (previously declared but never set anywhere in the codebase).
+    if (typeof storage !== 'undefined' && storage && p.userId) {
+      var blob = doc.output('blob');
+      var ref = storage.ref('documents/' + p.userId + '/' + fileName);
+      ref.put(blob).then(function() { return ref.getDownloadURL(); }).then(function(url) {
+        if (typeof db !== 'undefined') {
+          db.collection('payroll').doc(id).update({ payslipUrl: url }).catch(function(){});
+        }
+      }).catch(function(){});
+    }
+  }
+  if (window.jspdf && window.jspdf.jsPDF) { build(); return; }
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
+  script.onload = build;
+  script.onerror = function() { showToast('Could not load PDF library — check your connection', 'error'); };
+  document.head.appendChild(script);
 }
 
 /* ── PERFORMANCE ── */
@@ -17385,9 +17530,46 @@ function loadPerformance() {
           '<div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-bottom:.2rem"><span>Task Completion</span><span>' + completionPct + '%</span></div>' +
           '<div style="background:var(--light);border-radius:4px;height:6px;overflow:hidden"><div style="height:100%;border-radius:4px;background:' + (completionPct >= 80 ? 'var(--success)' : completionPct >= 50 ? 'var(--gold)' : 'var(--error)') + ';width:' + completionPct + '%"></div></div>' +
         '</div>' +
+        (isAdmin ? '<button class="btn btn-sm btn-ghost" style="margin-top:.6rem;width:100%;justify-content:center" onclick="submitStaffReview(\'' + r.user.id + '\',\'' + escapeHtml(r.user.displayName||r.user.email||'') + '\',\'' + mv + '\')" data-rw="Andika Isuzuma" data-en="Write Performance Review">Write Performance Review</button>' : '') +
       '</div>';
     }).join('');
   }).catch(function() { el.innerHTML = '<div class="off-empty">Error loading performance data.</div>'; });
+}
+
+// Real manager-submitted performance review — previously this tab was
+// entirely read-only derived metrics with no way to actually record a
+// review. Reuses the existing `reviews` collection (already used for
+// partner ratings) with a subjectType field so the two stay distinct and
+// staff reviews stay private (see the updated Firestore rule).
+function submitStaffReview(uid, staffName, period) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var ratingStr = prompt((curLang==='rw' ? 'Tanga amanota kuri ' : 'Rate ') + staffName + (curLang==='rw' ? ' (1-5):' : ' (1-5):'));
+  if (!ratingStr) return;
+  var rating = Math.max(1, Math.min(5, parseInt(ratingStr) || 0));
+  if (!rating) { showToast(curLang==='rw'?'Andika umubare hagati ya 1 na 5':'Enter a number between 1 and 5', 'error'); return; }
+  var comment = prompt(curLang==='rw' ? 'Andika ibitekerezo (bishobora kuba ubusa):' : 'Add a comment (optional):') || '';
+  var revRef = db.collection('reviews').doc();
+  revRef.set({
+    id: revRef.id, subjectType: 'staff', staffId: uid, staffName: staffName, period: period,
+    reviewerId: currentUser.uid, reviewerName: currentUser.displayName||currentUser.name||currentUser.email||'',
+    rating: rating, comment: comment,
+    status: 'active', isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: currentUser.uid, updatedBy: currentUser.uid
+  }).then(function() {
+    logAudit('staff_review.submitted', 'reviews', revRef.id, null, { staffId: uid, rating: rating, period: period });
+    showToast(curLang==='rw'?'Isuzuma ryabitswe!':'Performance review saved!', 'success');
+    if (typeof notifyUser === 'function') {
+      notifyUser(uid,
+        curLang==='rw' ? '&#128203; Isuzuma Rishya' : '&#128203; New Performance Review',
+        curLang==='rw' ? 'Wahawe isuzuma rishya ry\'akazi kawe.' : 'You have received a new performance review.',
+        'performance_review', 'reviews', revRef.id);
+    }
+  }).catch(function(e) {
+    showToast(curLang==='rw'?'Habaye ikosa':'Error saving review', 'error');
+    console.error('[HR] submitStaffReview', e);
+  });
 }
 
 /* ── SIDEBAR BADGE ── */

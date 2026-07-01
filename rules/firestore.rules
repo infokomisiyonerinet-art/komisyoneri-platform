@@ -187,7 +187,12 @@ service cloud.firestore {
     }
 
     match /reviews/{id} {
-      allow read:   if true;
+      // Partner reviews (subjectType != 'staff') are intentionally public;
+      // staff performance reviews (subjectType == 'staff') are private to
+      // the reviewed employee and admin/staff — never publicly readable.
+      allow read:   if resource.data.subjectType == 'staff'
+                    ? (isAdminOrStaff() || resource.data.staffId == request.auth.uid)
+                    : true;
       allow create: if isAuth() && hasStandardFields();
       allow update: if isAdminOrStaff();
       allow delete: if false;
