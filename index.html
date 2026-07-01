@@ -2263,8 +2263,6 @@ html,body{overscroll-behavior-x:none}
   .site-plan-img{max-height:55vw}
 }
 </style>
-  <!-- Google Identity Services -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <link rel="preload" as="image" href="/images/logo.png">
 </head>
 <body>
@@ -8975,7 +8973,7 @@ function addMsg(text, who) {
 }
 
 function escapeHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // Enter key handler — attach once on load
@@ -10159,12 +10157,12 @@ function renderQsSuggestions(query, boxId) {
     var p=x.p;
     var hasImg = p.img1 && p.img1.length > 10;
     var thumb = hasImg
-      ? '<img class="qs-thumb" src="'+p.img1+'" loading="lazy" alt="'+p.title+'" onerror="this.style.display=\'none\'">'
+      ? '<img class="qs-thumb" src="'+escapeHtml(p.img1)+'" loading="lazy" alt="'+escapeHtml(p.title)+'" onerror="this.style.display=\'none\'">'
       : '<div class="qs-thumb-ph">🏠</div>';
-    var loc = [p.district,p.sector].filter(Boolean).join(', ');
+    var loc = escapeHtml([p.district,p.sector].filter(Boolean).join(', '));
     return '<div class="qs-item" onclick="qs_openProp(\''+String(p.id)+'\',\''+boxId+'\')">'+thumb
-      +'<div class="qs-info"><div class="qs-title">'+(p.title||p.type||'Imitungo')+'</div>'
-      +'<div class="qs-meta">'+(loc||'Rwanda')+(p.type?' &middot; '+p.type:'')+'</div></div>'
+      +'<div class="qs-info"><div class="qs-title">'+escapeHtml(p.title||p.type||'Imitungo')+'</div>'
+      +'<div class="qs-meta">'+(loc||'Rwanda')+(p.type?' &middot; '+escapeHtml(p.type):'')+'</div></div>'
       +(p.price?'<div class="qs-price">'+fmtPriceSh(p.price)+'</div>':'')+'</div>';
   }).join('');
   html += '<div class="qs-footer" onclick="qs_search()">'
@@ -10463,6 +10461,7 @@ function renderUserPropCard(prop) {
 
   // Location + features
   var loc = [prop.district, prop.sector].filter(Boolean).join(', ');
+  var locHtml = escapeHtml(loc);
   var feats = [];
   if(prop.beds && prop.beds !== '0') feats.push('<span class="p-feat">🛏 '+prop.beds+'</span>');
   if(prop.baths && prop.baths !== '0') feats.push('<span class="p-feat">🚿 '+prop.baths+'</span>');
@@ -10483,7 +10482,7 @@ function renderUserPropCard(prop) {
   var placeholder = prop.img1 ? '' : '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.4"><svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="white" stroke-width="1"><path d="M3 12l9-9 9 9M5 10v9h14v-9"/></svg></div>';
 
   // Short desc
-  var shortDesc = prop.desc ? prop.desc.substring(0, 55) + '...' : '';
+  var shortDesc = prop.desc ? escapeHtml(prop.desc.substring(0, 55)) + '...' : '';
 
   // Star rating — only render if the property has real reviews; never invent one
   var hasRealRating = (prop.rating != null && prop.reviews != null);
@@ -10504,17 +10503,20 @@ function renderUserPropCard(prop) {
   // Verified bottom-left badge
   var verifiedBadge = prop.verified ? '<div class="p-verified"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' + t('verified') + '</div>' : '';
 
-  // WhatsApp message
+  // WhatsApp message — kept raw (not HTML-escaped): this goes into a wa.me
+  // URL's text parameter, not into innerHTML, so HTML entities would show
+  // up literally in the WhatsApp message text.
   var propName = (prop.type||'Imitungo') + (prop.district ? ' — '+prop.district : '');
+  var propNameHtml = escapeHtml(propName);
   var waText = encodeURIComponent(t('waMsg') + propName + ' (' + priceLabel + ')' + t('waMsgEnd'));
   var waPhone = '250783177254';
 
   // Photo has no <img>/alt (CSS background, for lazy-load perf) — role+aria-label
   // gives screen readers and AI content parsers the same context an alt would.
-  var imgAriaLabel = (prop.title || propName) + (loc ? ' — ' + loc : '') + ' photo';
+  var imgAriaLabel = escapeHtml((prop.title || propName) + (loc ? ' — ' + loc : '') + ' photo');
 
   return '<div class="p-card" data-pid="' + pid + '" style="cursor:pointer">'
-    + '<div class="p-img ' + gclass + '" role="img" aria-label="' + imgAriaLabel.replace(/"/g,'&quot;') + '"' + imgBg + ' style="position:relative' + (imgBg ? ';background-size:cover;background-position:center' : '') + '" onclick="openPropDetail(\'' + pid + '\')">'
+    + '<div class="p-img ' + gclass + '" role="img" aria-label="' + imgAriaLabel + '"' + imgBg + ' style="position:relative' + (imgBg ? ';background-size:cover;background-position:center' : '') + '" onclick="openPropDetail(\'' + pid + '\')">'
     +   topBadges
     +   placeholder
     +   '<div class="p-tag">' + svcBadge + '</div>'
@@ -10523,9 +10525,9 @@ function renderUserPropCard(prop) {
     +   '<button class="p-fav" data-pid="' + pid + '" onclick="event.stopPropagation();toggleFav(\'' + pid + '\',event)" title="Save to favorites"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>'
     + '</div>'
     + '<div class="p-body" onclick="openPropDetail(\'' + pid + '\')">'
-    +   '<div class="p-loc">' + loc + '</div>'
+    +   '<div class="p-loc">' + locHtml + '</div>'
     +   '<div class="p-rating">' + ratingRowHtml + photoCountHtml + (prop.viewCount ? '<span style="margin-left:auto;font-size:.68rem;color:var(--muted)">&#128065; ' + Number(prop.viewCount).toLocaleString() + '</span>' : '') + '</div>'
-    +   '<div class="p-title">' + propName + '</div>'
+    +   '<div class="p-title">' + propNameHtml + '</div>'
     +   (shortDesc ? '<div style="font-size:.76rem;color:#6b7280;line-height:1.45;margin:.2rem 0">' + shortDesc + '</div>' : '')
     +   '<div class="p-feats">' + featsHtml + '</div>'
     + '</div>'
@@ -11406,13 +11408,13 @@ function loadSimilarProperties() {
     var colorClass = prop.img1 ? '' : colors[i % colors.length];
     var matchBadge = item.score === 2
       ? '<span style="font-size:.68rem;background:var(--green);color:#fff;border-radius:4px;padding:.1rem .35rem;margin-left:.3rem">✓ Ifanana</span>'
-      : (item.score === 1 ? '<span style="font-size:.68rem;background:var(--light);color:var(--muted);border-radius:4px;padding:.1rem .35rem;margin-left:.3rem">~ ' + (prop.type === (cur&&cur.type) ? prop.type : prop.district) + '</span>' : '');
+      : (item.score === 1 ? '<span style="font-size:.68rem;background:var(--light);color:var(--muted);border-radius:4px;padding:.1rem .35rem;margin-left:.3rem">~ ' + escapeHtml(prop.type === (cur&&cur.type) ? prop.type : prop.district) + '</span>' : '');
     return '<div style="display:flex;align-items:center;gap:.7rem;cursor:pointer;padding:.5rem;border-radius:9px;transition:var(--tr)" '
       + 'onmouseover="this.style.background=\'var(--light)\'" onmouseout="this.style.background=\'\'" '
       + 'onclick="openPropDetail(' + JSON.stringify(prop).replace(/"/g,'&quot;') + ')">'
       + '<div style="width:52px;height:46px;border-radius:8px;flex-shrink:0;' + imgStyle + '" class="' + colorClass + '"></div>'
       + '<div style="flex:1;min-width:0">'
-      + '<div style="font-size:.84rem;font-weight:600;display:flex;align-items:center;flex-wrap:wrap">' + (prop.title || (prop.type + ' — ' + (prop.district||''))) + matchBadge + '</div>'
+      + '<div style="font-size:.84rem;font-weight:600;display:flex;align-items:center;flex-wrap:wrap">' + escapeHtml(prop.title || (prop.type + ' — ' + (prop.district||''))) + matchBadge + '</div>'
       + '<div style="font-size:.76rem;color:var(--muted)">' + priceDisplay + '</div>'
       + '</div></div>';
   }).join('');
@@ -11478,123 +11480,90 @@ function initFirebase() {
 }
 
 // === GOOGLE SIGN-IN ===
+// Uses Firebase's own GoogleAuthProvider + signInWithPopup — the whole
+// OAuth flow (including token verification) is handled by the Firebase
+// Auth SDK against this project's own configured OAuth client, so there's
+// no separate Google Cloud Client ID to keep in sync and no raw ID-token
+// payload to decode/trust on the client before Firebase re-verifies it.
 function initGoogleSignIn() {
   var container = document.getElementById('google-signin-btn');
   if (!container) return;
-
-  // Use Google Identity Services
-  if (typeof google !== 'undefined' && google.accounts) {
-    google.accounts.id.initialize({
-      // Replace with your Google Client ID from console.cloud.google.com
-      client_id: '1008698859279-i85iho206omiura7rb76lmun56vvmio7.apps.googleusercontent.com',
-      callback: handleGoogleResponse,
-      auto_select: false,
-      cancel_on_tap_outside: true
-    });
-    google.accounts.id.renderButton(container, {
-      theme: 'outline',
-      size: 'large',
-      width: container.offsetWidth || 300,
-      text: 'continue_with',
-      shape: 'rectangular',
-      logo_alignment: 'left'
-    });
-  } else {
-    // Fallback - show manual button
-    container.innerHTML = '<button class="soc-btn" onclick="googleSignInFallback()" style="width:100%;justify-content:center"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z" fill="#4285f4"/></svg> Injira na Google</button>';
-  }
+  container.innerHTML = '<button class="soc-btn" onclick="handleGoogleSignInClick()" style="width:100%;justify-content:center"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z" fill="#4285f4"/></svg> <span data-rw="Injira na Google" data-en="Continue with Google">Injira na Google</span></button>';
 }
 
-function handleGoogleResponse(response) {
-  try {
-    var parts = response.credential.split('.');
-    var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-    var user = {
-      name: payload.name || payload.given_name || 'User',
-      email: payload.email || '',
-      phone: '',
-      role: 'Buyer',
-      avatar: payload.picture || '',
-      provider: 'google',
-      date: new Date().toISOString()
-    };
-
-    function finishGoogleLogin(user, fbUid) {
-      var users = [];
-      try { users = JSON.parse(localStorage.getItem('km_users') || '[]'); } catch(e){}
-      var existing = users.find(function(u) { return u.email === user.email; });
-      if (!existing) {
-        users.push(user);
-        try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
+function finishGoogleLogin(user, fbUid) {
+  var users = [];
+  try { users = JSON.parse(localStorage.getItem('km_users') || '[]'); } catch(e){}
+  var existing = users.find(function(u) { return u.email === user.email; });
+  if (!existing) {
+    users.push(user);
+    try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
+  } else {
+    /* Preserve existing role from localStorage if assigned */
+    if (existing.role && existing.role !== 'Buyer') user.role = existing.role;
+    user.phone = existing.phone || user.phone;
+  }
+  /* Sync role from Firestore and upsert user doc */
+  if (fbUid && typeof db !== 'undefined') {
+    db.collection('users').doc(fbUid).get().then(function(doc) {
+      if (doc.exists) {
+        var fsData = doc.data();
+        if (fsData.role) user.role = fsData.role;
+        db.collection('users').doc(fbUid).update({
+          displayName: user.name, photoURL: user.avatar || '',
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: fbUid
+        }).catch(function(){});
       } else {
-        /* Preserve existing role from localStorage if assigned */
-        if (existing.role && existing.role !== 'Buyer') user.role = existing.role;
-        user.phone = existing.phone || user.phone;
-      }
-      /* Sync role from Firestore and upsert user doc */
-      if (fbUid && typeof db !== 'undefined') {
-        db.collection('users').doc(fbUid).get().then(function(doc) {
-          if (doc.exists) {
-            var fsData = doc.data();
-            if (fsData.role) user.role = fsData.role;
-            db.collection('users').doc(fbUid).update({
-              displayName: user.name, photoURL: user.avatar || '',
-              updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: fbUid
-            }).catch(function(){});
-          } else {
-            user.uid = fbUid;
-            db.collection('users').doc(fbUid).set({
-              id: fbUid, uid: fbUid, displayName: user.name, email: user.email,
-              phone: '', role: 'client', isActive: true, status: 'active',
-              photoURL: user.avatar || '',
-              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-              updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-              createdBy: fbUid, updatedBy: fbUid
-            }, { merge: true }).catch(function(){});
-            user.role = 'client';
-          }
-          saveUser(user);
-        }).catch(function(){ saveUser(user); });
-        return;
+        user.uid = fbUid;
+        db.collection('users').doc(fbUid).set({
+          id: fbUid, uid: fbUid, displayName: user.name, email: user.email,
+          phone: '', role: 'client', isActive: true, status: 'active',
+          photoURL: user.avatar || '',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          createdBy: fbUid, updatedBy: fbUid
+        }, { merge: true }).catch(function(){});
+        user.role = 'client';
       }
       saveUser(user);
+    }).catch(function(){ saveUser(user); });
+    return;
+  }
+  saveUser(user);
+  kmTrack('login',{method:'google'});
+  showToast('Murakaza neza ' + user.name + '! (Google) 🎉');
+  setTimeout(function() { go('home'); }, 800);
+}
+
+function handleGoogleSignInClick() {
+  if (!initFirebase() || !firebaseAuth || typeof firebase.auth.GoogleAuthProvider === 'undefined') {
+    showToast(curLang==='rw' ? 'Google Sign-In ntiboneka ubu. Gerageza nanone.' : 'Google Sign-In is unavailable right now. Please try again.');
+    return;
+  }
+  var provider = new firebase.auth.GoogleAuthProvider();
+  firebaseAuth.signInWithPopup(provider)
+    .then(function(result) {
+      var fbUser = result.user;
+      var user = {
+        name: fbUser.displayName || 'User',
+        email: fbUser.email || '',
+        phone: fbUser.phoneNumber || '',
+        role: 'Buyer',
+        avatar: fbUser.photoURL || '',
+        provider: 'google',
+        uid: fbUser.uid,
+        date: new Date().toISOString()
+      };
+      finishGoogleLogin(user, fbUser.uid);
       kmTrack('login',{method:'google'});
       showToast('Murakaza neza ' + user.name + '! (Google) 🎉');
       setTimeout(function() { go('home'); }, 800);
-    }
-
-    // Exchange Google credential with Firebase so Firebase recognizes this session
-    if (initFirebase() && firebaseAuth && typeof firebase.auth.GoogleAuthProvider !== 'undefined') {
-      var credential = firebase.auth.GoogleAuthProvider.credential(response.credential);
-      firebaseAuth.signInWithCredential(credential)
-        .then(function(result) {
-          user.name = result.user.displayName || user.name;
-          user.email = result.user.email || user.email;
-          user.avatar = result.user.photoURL || user.avatar;
-          user.uid = result.user.uid;
-          finishGoogleLogin(user, result.user.uid);
-          kmTrack('login',{method:'google'});
-          showToast('Murakaza neza ' + user.name + '! (Google) 🎉');
-          setTimeout(function() { go('home'); }, 800);
-        })
-        .catch(function() {
-          // Firebase exchange failed — still allow login via localStorage
-          finishGoogleLogin(user, null);
-          kmTrack('login',{method:'google'});
-          showToast('Murakaza neza ' + user.name + '! 🎉');
-          setTimeout(function() { go('home'); }, 800);
-        });
-    } else {
-      finishGoogleLogin(user);
-    }
-  } catch(e) {
-    showToast('Google sign-in error. Gerageza nanone.');
-  }
-}
-
-function googleSignInFallback() {
-  // Simple popup-based Google OAuth fallback
-  showToast('Google Sign-in: Shyiramo Google Client ID muri code mbere.');
+    })
+    .catch(function(error) {
+      console.error('Google sign-in error:', error && error.message);
+      if (error && (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request')) return;
+      showToast(curLang==='rw' ? 'Google sign-in yanze. Gerageza nanone.' : 'Google sign-in failed. Please try again.');
+    });
 }
 
 // === PHONE OTP AUTH ===
@@ -12743,7 +12712,7 @@ function openPropDetail(propId) {
   if(titleEl) titleEl.textContent = propTitleText;
 
   var priceEl = document.querySelector('.det-price');
-  if(priceEl) priceEl.innerHTML = priceStr + '<small>('+(prop.service||'Kugurisha')+')</small>';
+  if(priceEl) priceEl.innerHTML = priceStr + '<small>('+escapeHtml(prop.service||'Kugurisha')+')</small>';
 
   // === SEO/GEO: breadcrumb label, tab title, meta description, structured data ===
   var breadcrumbCurEl = document.getElementById('det-breadcrumb-current');
@@ -12939,8 +12908,8 @@ function openPropDetail(propId) {
   var tab3d = document.getElementById('tab-3d');
   if(tab3d) {
     if(prop.video) {
-      tab3d.innerHTML = '<div style="border-radius:12px;overflow:hidden;margin-bottom:1rem"><iframe src="'+prop.video+'" width="100%" height="260" style="border:0;display:block" allowfullscreen loading="lazy"></iframe></div>'
-        + '<p style="font-size:.82rem;color:var(--muted);text-align:center">'+prop.type+' — '+prop.district+'</p>';
+      tab3d.innerHTML = '<div style="border-radius:12px;overflow:hidden;margin-bottom:1rem"><iframe src="'+escapeHtml(prop.video)+'" width="100%" height="260" style="border:0;display:block" allowfullscreen loading="lazy"></iframe></div>'
+        + '<p style="font-size:.82rem;color:var(--muted);text-align:center">'+escapeHtml(prop.type)+' — '+escapeHtml(prop.district)+'</p>';
     } else {
       tab3d.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">'
         + '<div style="font-size:2rem;margin-bottom:.5rem">📹</div>'
@@ -24975,7 +24944,7 @@ function adminRender(filter) {
       var statusColor = st.toLowerCase()==='approved'?'#27A84A':st.toLowerCase()==='rejected'?'#e53e3e':'#F5A623';
       var imgs = (prop.images || []).filter(Boolean);
       var thumbSrc = imgs[0] || prop.img1 || '';
-      var thumbHtml = thumbSrc ? '<img src="'+thumbSrc+'" alt="'+(prop.title||'Property')+'" style="width:60px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0" loading="lazy">' : '';
+      var thumbHtml = thumbSrc ? '<img src="'+escapeHtml(thumbSrc)+'" alt="'+escapeHtml(prop.title||'Property')+'" style="width:60px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0" loading="lazy">' : '';
       return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.8rem;background:#fafbff">'
         + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;flex-wrap:wrap">'
         + thumbHtml

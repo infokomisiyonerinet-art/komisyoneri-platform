@@ -1,0 +1,47 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+    function isAdminOrStaff() {
+      return isAuth()
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid))
+             .data.role.lower() in ['admin', 'super_admin', 'staff'];
+    }
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    function underSizeLimit(mb) {
+      return request.resource.size < mb * 1024 * 1024;
+    }
+
+    // Property photos — the real upload path used by index.html
+    // (storage.ref('properties/'+propId+'/imgN_'+file.name)). Publicly
+    // readable to match the public marketplace's Firestore
+    // `properties` read rule; any authenticated user may upload, matching
+    // the same collection's `create` rule — admin review happens at the
+    // Firestore `status` field level, not at the file layer.
+    match /properties/{propId}/{fileName} {
+      allow read:  if true;
+      allow write: if isAuth() && isImage() && underSizeLimit(10);
+    }
+
+    // Personal documents (ID scans, contracts) — the real upload path
+    // used by index.html (storage.ref('documents/'+uid+'/...')), keyed by
+    // the uploader's own uid. Only that user or an admin/staff account
+    // may read or write it.
+    match /documents/{uid}/{fileName} {
+      allow read:  if isAuth() && (request.auth.uid == uid || isAdminOrStaff());
+      allow write: if isAuth() && request.auth.uid == uid && underSizeLimit(15);
+    }
+
+    // Default-deny everything else. If a new upload feature is added,
+    // add a matching rule above rather than relying on this fallback.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
