@@ -3671,6 +3671,7 @@ html,body{overscroll-behavior-x:none}
           <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Amasezerano" data-en="Title Deed">Amasezerano</span><strong id="det-title-deed" style="color:var(--muted)">—</strong></div>
           <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Ibirebwa" data-en="Total Views">Ibirebwa</span><strong id="det-view-count-tab" style="color:var(--navy)">—</strong></div>
           <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Iminsi Yatangajwe" data-en="Days Listed">Iminsi Yatangajwe</span><strong id="det-days-listed" style="color:var(--muted)">—</strong></div>
+          <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Byavuguruwe" data-en="Last Updated">Byavuguruwe</span><strong id="det-last-updated" style="color:var(--muted)">—</strong></div>
         </div>
         <!-- 3D TOUR VIEWER (shown on this tab for preview) -->
         <h3 class="h3" style="margin-bottom:1rem" data-rw="Virtual Tour 3D" data-en="3D Virtual Tour">Virtual Tour 3D</h3>
@@ -3712,17 +3713,12 @@ html,body{overscroll-behavior-x:none}
           <div class="ai-g-item"><label data-rw="Score ya AI" data-en="AI Score">AI Score</label><span style="color:var(--gold)">92/100</span></div>
         </div>
       </div>
-      <!-- Agent Card -->
+      <!-- Agent Card — populated dynamically by openPropDetail() from the property's
+           real agentId; never assume "verified" without checking real agent status -->
       <div class="ag-card">
         <div class="ag-head">
-          <div class="ag-av">JM</div>
-          <div><div class="ag-name">NOHERI</div><div class="ag-sub">Senior Property Agent</div><div class="verified"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span data-rw="Agent Wemwe" data-en="Verified Agent">Agent Wemwe</span></div></div>
-        </div>
-        <div class="ag-stats">
-          <div class="ag-stat"><span class="ag-stat-v">127</span><span class="ag-stat-l" data-rw="Imitungo Yagurishije" data-en="Sales">Imitungo</span></div>
-          <div class="ag-stat"><span class="ag-stat-v">4.9</span><span class="ag-stat-l" data-rw="Inyenyeri" data-en="Rating">Inyenyeri</span></div>
-          <div class="ag-stat"><span class="ag-stat-v">6yrs</span><span class="ag-stat-l" data-rw="Uburambe" data-en="Experience">Uburambe</span></div>
-          <div class="ag-stat"><span class="ag-stat-v">98%</span><span class="ag-stat-l" data-rw="Igihe" data-en="Response">Igihe</span></div>
+          <div class="ag-av" id="det-ag-avatar">KM</div>
+          <div><div class="ag-name" id="det-ag-name">KOMISIYONERI Team</div><div class="ag-sub" id="det-ag-sub" data-rw="Itsinda ry'Ubufasha" data-en="Support Team">Support Team</div><div class="verified" id="det-ag-verified" style="display:none"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span data-rw="Agent Wemwe" data-en="Verified Agent">Agent Wemwe</span></div></div>
         </div>
         <div class="ag-acts">
           <!-- PRIMARY — one clear next step: get connected, fast -->
@@ -4184,6 +4180,7 @@ html,body{overscroll-behavior-x:none}
             <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
             <span id="register-btn-label" data-rw="Iyandikishe Ubuntu" data-en="Register Free">Iyandikishe Ubuntu</span>
           </button>
+          <div style="text-align:center;font-size:.68rem;color:var(--muted)">🔒 <span data-rw="Amakuru yawe arinzwe." data-en="Your information is protected.">Your information is protected.</span> <a onclick="go('privacy')" style="color:var(--blue);cursor:pointer;text-decoration:underline" data-rw="Politiki y'Ubwigenge" data-en="Privacy Policy">Privacy Policy</a></div>
         </div>
         <div class="auth-switch"><span id="auth-switch-txt" data-rw="Nta konti ufite?" data-en="Don't have an account?">Nta konti ufite?</span> <button onclick="toggleAuthMode()" id="auth-switch-btn" data-rw="Iyandikishe hano" data-en="Register here">Iyandikishe hano</button></div>
       </div>
@@ -4298,12 +4295,27 @@ html,body{overscroll-behavior-x:none}
       </div>
     </div>
 
+    <!-- Leadership -->
+    <div style="display:flex;align-items:center;gap:1.2rem;background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:1.6rem;margin-bottom:2.5rem">
+      <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.3rem;flex-shrink:0">FN</div>
+      <div>
+        <div style="font-weight:700;color:var(--navy)">Fabrice Ndacyayisenga</div>
+        <div style="font-size:.82rem;color:var(--text2)" data-rw="Umuyobozi Mukuru n'Uwashinze" data-en="Founder & CEO">Founder & CEO</div>
+      </div>
+    </div>
+
     <!-- Key Stats -->
     <div style="background:var(--navy);border-radius:16px;padding:2rem;margin-bottom:2.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1.2rem;text-align:center">
       <div><div style="font-size:1.8rem;font-weight:700;color:var(--gold)">1,240+</div><div style="color:rgba(255,255,255,.7);font-size:.82rem" data-rw="Imitungo" data-en="Listings">Imitungo</div></div>
       <div><div style="font-size:1.8rem;font-weight:700;color:var(--gold)">3</div><div style="color:rgba(255,255,255,.7);font-size:.82rem" data-rw="Imijyi" data-en="Cities">Imijyi</div></div>
       <div><div style="font-size:1.8rem;font-weight:700;color:var(--gold)">100+</div><div style="color:rgba(255,255,255,.7);font-size:.82rem" data-rw="Abajyanama" data-en="Agents">Abajyanama</div></div>
       <div><div style="font-size:1.8rem;font-weight:700;color:var(--gold)">2024</div><div style="color:rgba(255,255,255,.7);font-size:.82rem" data-rw="Yaratangiye" data-en="Founded">Yaratangiye</div></div>
+    </div>
+
+    <!-- Payment & Security -->
+    <div style="display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;margin-bottom:2.5rem">
+      <span style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2);background:var(--surface);border:1.5px solid var(--border);border-radius:100px;padding:.5rem 1rem">🔒 <span data-rw="Guhuza Byizewe (HTTPS)" data-en="Secure HTTPS Connection">Secure HTTPS Connection</span></span>
+      <span style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2);background:var(--surface);border:1.5px solid var(--border);border-radius:100px;padding:.5rem 1rem">📱 <span data-rw="MTN MoMo &amp; Airtel Money — Bizatangira Vuba" data-en="MTN MoMo &amp; Airtel Money — Launching Soon">MTN MoMo &amp; Airtel Money — Launching Soon</span></span>
     </div>
 
     <!-- Contact Info -->
@@ -4327,10 +4339,16 @@ html,body{overscroll-behavior-x:none}
       </div>
     </div>
 
-    <a href="mailto:info.komisiyoneri.net@gmail.com" class="btn btn-gold" style="display:inline-flex;align-items:center;gap:.5rem">
+    <a href="mailto:info.komisiyoneri.net@gmail.com" class="btn btn-gold" style="display:inline-flex;align-items:center;gap:.5rem;margin-bottom:1.5rem">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
       <span data-rw="Twandikire ubutumwa" data-en="Send us a message">Twandikire ubutumwa</span>
     </a>
+
+    <div style="border-radius:12px;overflow:hidden;border:1.5px solid var(--border)">
+      <iframe src="https://maps.google.com/maps?q=Kigali,+Rwanda&z=12&output=embed"
+        width="100%" height="280" style="border:0;display:block" allowfullscreen loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade" title="KOMISIYONERI — Kigali, Rwanda"></iframe>
+    </div>
   </div>
 </div>
 
@@ -6324,6 +6342,7 @@ html,body{overscroll-behavior-x:none}
           <option>18-25</option><option>26-35</option><option>36-45</option><option>46+</option>
         </select>
       </div>
+      <div style="text-align:center;font-size:.68rem;color:var(--muted);margin-bottom:.5rem">🔒 <span data-rw="Indangamuntu yawe ikoreshwa gusa mu kugenzura, ntizasangizwa." data-en="Your ID is used only for verification and is never shared.">Your ID is used only for verification and is never shared.</span> <a onclick="go('privacy')" style="color:var(--blue);cursor:pointer;text-decoration:underline" data-rw="Politiki y'Ubwigenge" data-en="Privacy Policy">Privacy Policy</a></div>
       <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="agentStep(2)">
         Komeza → <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
@@ -6476,6 +6495,7 @@ html,body{overscroll-behavior-x:none}
         <span id="lead-submit-lbl">Ohereza — Agent Azakuhamagara!</span>
       </button>
       <div style="text-align:center;font-size:.75rem;color:var(--muted)">⚡ Agent asubiza mu masaa 2 gusa</div>
+      <div style="text-align:center;font-size:.68rem;color:var(--muted)">🔒 <span data-rw="Amakuru yawe arinzwe." data-en="Your information is protected.">Your information is protected.</span> <a onclick="closeLead();go('privacy')" style="color:var(--blue);cursor:pointer;text-decoration:underline" data-rw="Politiki y'Ubwigenge" data-en="Privacy Policy">Privacy Policy</a></div>
     </div>
   </div>
 </div>
@@ -10380,13 +10400,21 @@ function renderUserPropCard(prop) {
   // Short desc
   var shortDesc = prop.desc ? prop.desc.substring(0, 55) + '...' : '';
 
-  // Star rating HTML
-  var ratingVal = prop.rating || (4.5 + Math.random() * 0.5).toFixed(1);
-  var reviewCount = prop.reviews || Math.floor(Math.random() * 20 + 3);
+  // Star rating — only render if the property has real reviews; never invent one
+  var hasRealRating = (prop.rating != null && prop.reviews != null);
   var starsHtml = '';
-  for (var si = 1; si <= 5; si++) {
-    starsHtml += '<span class="p-star' + (si <= Math.floor(ratingVal) ? ' on' : '') + '">★</span>';
+  if (hasRealRating) {
+    for (var si = 1; si <= 5; si++) {
+      starsHtml += '<span class="p-star' + (si <= Math.floor(prop.rating) ? ' on' : '') + '">★</span>';
+    }
   }
+  var ratingRowHtml = hasRealRating
+    ? '<div class="p-stars">' + starsHtml + '</div><span class="p-rating-count">(' + prop.reviews + ')</span>'
+    : '<span class="p-rating-count" style="color:var(--muted)">' + (curLang==='rw'?'Nta byagaragajwe':'No reviews yet') + '</span>';
+
+  // Photo count — real, computed from the images actually attached to this listing
+  var photoCount = [prop.img1, prop.img2, prop.img3].filter(Boolean).length;
+  var photoCountHtml = photoCount ? '<span style="font-size:.68rem;color:var(--muted)">📷 ' + photoCount + '</span>' : '';
 
   // Verified bottom-left badge
   var verifiedBadge = prop.verified ? '<div class="p-verified"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' + t('verified') + '</div>' : '';
@@ -10407,7 +10435,7 @@ function renderUserPropCard(prop) {
     + '</div>'
     + '<div class="p-body" onclick="openPropDetail(\'' + pid + '\')">'
     +   '<div class="p-loc">' + loc + '</div>'
-    +   '<div class="p-rating"><div class="p-stars">' + starsHtml + '</div><span class="p-rating-count">(' + reviewCount + ')</span>' + (prop.viewCount ? '<span style="margin-left:auto;font-size:.68rem;color:var(--muted)">&#128065; ' + Number(prop.viewCount).toLocaleString() + '</span>' : '') + '</div>'
+    +   '<div class="p-rating">' + ratingRowHtml + photoCountHtml + (prop.viewCount ? '<span style="margin-left:auto;font-size:.68rem;color:var(--muted)">&#128065; ' + Number(prop.viewCount).toLocaleString() + '</span>' : '') + '</div>'
     +   '<div class="p-title">' + propName + '</div>'
     +   (shortDesc ? '<div style="font-size:.76rem;color:#6b7280;line-height:1.45;margin:.2rem 0">' + shortDesc + '</div>' : '')
     +   '<div class="p-feats">' + featsHtml + '</div>'
@@ -12690,6 +12718,47 @@ function openPropDetail(propId) {
         dlEl.style.color = 'var(--muted)';
       }
     }
+    // Last updated — reuses the same standard-fields timestamp already maintained on every doc
+    var luEl = document.getElementById('det-last-updated');
+    if (luEl) {
+      if (prop.updatedAt && prop.updatedAt.seconds) {
+        var daysUpdated = Math.floor((Date.now() / 1000 - prop.updatedAt.seconds) / 86400);
+        luEl.textContent = daysUpdated <= 0 ? (curLang==='rw' ? 'Uyu munsi' : 'Today') : (daysUpdated + (curLang==='rw' ? ' umunsi ushize' : ' days ago'));
+      } else {
+        luEl.textContent = '—';
+      }
+    }
+
+    // Agent identity — real lookup by the property's agentId; never claim "verified"
+    // without checking the agent's actual role (set only after real admin approval).
+    var avEl = document.getElementById('det-ag-avatar');
+    var nameEl = document.getElementById('det-ag-name');
+    var subEl = document.getElementById('det-ag-sub');
+    var vEl = document.getElementById('det-ag-verified');
+    if (avEl && nameEl && subEl && vEl) {
+      var agentUser = null;
+      if (prop.agentId) {
+        try {
+          var _detUsers = JSON.parse(localStorage.getItem('km_users') || '[]');
+          agentUser = _detUsers.find(function(u) { return u.uid === prop.agentId || u.id === prop.agentId; });
+        } catch (e) {}
+      }
+      if (agentUser && agentUser.name) {
+        var _initials = agentUser.name.split(' ').map(function(w){ return w[0] || ''; }).join('').toUpperCase().slice(0, 2) || 'A';
+        avEl.textContent = _initials;
+        nameEl.textContent = agentUser.name;
+        subEl.removeAttribute('data-rw'); subEl.removeAttribute('data-en');
+        subEl.textContent = curLang === 'rw' ? 'Umukomisiyoneri' : 'Property Agent';
+        vEl.style.display = (agentUser.role === 'Agent') ? 'inline-flex' : 'none';
+      } else {
+        avEl.textContent = 'KM';
+        nameEl.textContent = 'KOMISIYONERI Team';
+        subEl.setAttribute('data-rw', "Itsinda ry'Ubufasha");
+        subEl.setAttribute('data-en', 'Support Team');
+        subEl.textContent = curLang === 'rw' ? "Itsinda ry'Ubufasha" : 'Support Team';
+        vEl.style.display = 'none';
+      }
+    }
     // Views placeholder — will be updated once Firestore resolves
     var vcTabEl = document.getElementById('det-view-count-tab');
     if (vcTabEl) vcTabEl.textContent = prop.viewCount ? Number(prop.viewCount).toLocaleString() : '—';
@@ -13164,6 +13233,7 @@ function renderAgentsGrid(agents) {
       +   '<div style="flex:1;min-width:0">'
       +     '<div style="font-weight:700;color:#fff;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (agent.name||'Agent') + '</div>'
       +     '<div style="font-size:.72rem;color:rgba(255,255,255,.75);margin-top:.1rem">📍 ' + (agent.zone||'—') + '</div>'
+      +     (isActive ? '<div style="font-size:.66rem;color:#7CFC9E;margin-top:.15rem;font-weight:600">✓ ' + (curLang==='rw'?'Agent Wemwe':'Verified Agent') + '</div>' : '')
       +   '</div>'
       +   '<div style="flex-shrink:0">'
       +     '<span style="background:' + (isActive?'#27A84A':isPending?'#F5A623':'#718096') + ';color:#fff;border-radius:20px;padding:.15rem .55rem;font-size:.62rem;font-weight:700">'
