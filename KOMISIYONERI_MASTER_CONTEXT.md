@@ -15,7 +15,7 @@ Location:      Kigali, Rwanda
 Founded:       2024
 CEO/Founder:   Fabrice Ndacyayisenga (65% Class A voting shares)
 Live Platform: https://komisiyoneri.co.rw
-Target Domain: www.komisiyoneri.com
+Target Domain: www.komisiyoneri.co.rw
 Contact:       info.komisiyoneri.net@gmail.com
 Languages:     Kinyarwanda (primary) + English
 ```
