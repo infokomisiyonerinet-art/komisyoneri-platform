@@ -14,7 +14,7 @@ Trading As:    KOMISIYONERI
 Location:      Kigali, Rwanda
 Founded:       2024
 CEO/Founder:   Fabrice Ndacyayisenga (65% Class A voting shares)
-Live Platform: https://komisyoneri-platform-nu.vercel.app
+Live Platform: https://komisiyoneri.co.rw
 Target Domain: www.komisiyoneri.com
 Contact:       info.komisiyoneri.net@gmail.com
 Languages:     Kinyarwanda (primary) + English
@@ -1382,7 +1382,10 @@ Property Management Fees:    20% of revenue
 SaaS/Subscription (agents):  10% of revenue
 Data & Reports:               5% of revenue
 ```
+Official Production Domain:
+https://komisiyoneri.co.rw
 
+All production examples, documentation, metadata, SEO, branding, and generated code should use this domain unless explicitly instructed otherwise.
 ### "Become the leading commission-driven real estate ecosystem in Rwanda and East Africa — where every stakeholder profits when a property changes hands."
 
 ---
