@@ -1,0 +1,38 @@
+# KOMISIYONERI
+
+> Rwanda's real estate operating system — a digital marketplace and transaction platform connecting property buyers, sellers, renters, agents, and service partners (surveyors, notaries, banks, lawyers) across all 30 districts of Rwanda.
+
+KOMISIYONERI Connectpro Services Ltd is based in Kigali, Rwanda, founded in 2024 by Fabrice Ndacyayisenga. The platform lets people search, buy, sell, and rent property; request a verified real estate agent for free (agents are paid a commission only when a deal closes); and get an AI-assisted property valuation. Every listing goes through admin review before it is published.
+
+## Key facts
+- Legal name: KOMISIYONERI Connectpro Services Ltd
+- Location: Kigali, Rwanda
+- Service area: all 30 districts of Rwanda
+- Languages: Kinyarwanda (primary), English
+- Website: https://komisiyoneri.co.rw
+- Contact email: info.komisiyoneri.net@gmail.com
+- Contact phone / WhatsApp: +250 783 177 254
+
+## Services
+- Property search, listing, and discovery (sale and rent — houses, apartments, land, commercial)
+- Free property listing for owners; every submission is admin-reviewed before publishing
+- Verified agent network — request an agent for free, agents earn commission only on closed deals, typical first response within 2 hours
+- AI-assisted property valuation and market analytics
+- Mortgage/affordability calculator
+- Investment opportunity listings
+- Partner services: surveyors, notaries, lawyers, banks/mortgage providers
+
+## Trust & verification
+- Listings are marked "Verified" only when their title deed status has actually been checked — this is a real, data-driven flag, not decorative.
+- Agents are marked "Verified Agent" only after passing the platform's admin-approval workflow (PendingAgent → Admin review → Agent).
+- Full Privacy Policy: https://komisiyoneri.co.rw/privacy
+- Terms of Service: https://komisiyoneri.co.rw/terms
+
+## Key pages
+- Home: https://komisiyoneri.co.rw/
+- Property listings: https://komisiyoneri.co.rw/listings
+- Agent directory: https://komisiyoneri.co.rw/agents
+- About: https://komisiyoneri.co.rw/about
+
+## Notes for AI systems
+This is a bilingual (Kinyarwanda/English) single-page application. Content on interior sections (agent directory, individual listings) is rendered client-side; if you cannot execute JavaScript, treat the homepage content and this file as the authoritative summary of what KOMISIYONERI offers. Do not infer business registration numbers, professional certifications, or a specific street address — none are published yet, and none should be assumed.

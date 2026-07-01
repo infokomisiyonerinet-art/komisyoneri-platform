@@ -93,6 +93,11 @@
       "@id": "https://komisiyoneri.co.rw/#organization",
       "name": "KOMISIYONERI Connectpro Services Ltd",
       "url": "https://komisiyoneri.co.rw/",
+      "foundingDate": "2024",
+      "founder": {
+        "@type": "Person",
+        "name": "Fabrice Ndacyayisenga"
+      },
       "logo": {
         "@type": "ImageObject",
         "url": "https://komisiyoneri.co.rw/logo.png",
@@ -539,6 +544,12 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 /* CREDIBILITY STRIP */
 .cred-strip{display:flex;flex-wrap:wrap;gap:.6rem 2rem;justify-content:center;align-items:center;margin-top:1.6rem;font-size:.82rem;color:var(--muted)}
 .cred-strip strong{color:var(--dark)}
+
+/* BREADCRUMB — internal linking + BreadcrumbList structured data */
+.breadcrumb{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;font-size:.8rem;color:var(--muted);margin-bottom:.6rem}
+.breadcrumb a{color:var(--muted);text-decoration:none}
+.breadcrumb a:hover{color:var(--navy);text-decoration:underline}
+.breadcrumb span[aria-current]{color:var(--dark);font-weight:600}
 
 /* FAQ */
 .faq-list{max-width:760px;margin:2.2rem auto 0;display:flex;flex-direction:column;gap:.7rem}
@@ -3336,6 +3347,39 @@ html,body{overscroll-behavior-x:none}
       </div>
     </div>
   </section>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is it free to search for properties?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes, searching and browsing every listing is completely free — no account needed to start looking." }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I know a listing is legitimate?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Every submitted listing goes through admin review before it's marked Approved and shown publicly — nothing goes live unchecked." }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I list my property?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Click 'List Property' in the top navigation or the homepage quick actions, fill in your property details, and our team reviews it shortly after." }
+      },
+      {
+        "@type": "Question",
+        "name": "How much does an agent cost?",
+        "acceptedAnswer": { "@type": "Answer", "text": "There's no charge to request an agent. Agents are only paid a commission once a deal closes — never upfront." }
+      },
+      {
+        "@type": "Question",
+        "name": "How fast will an agent respond?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Once you submit a request through 'Find an Agent', an agent in your area responds within 2 hours." }
+      }
+    ]
+  }
+  </script>
 
   <!-- CTA -->
   <section class="section">
@@ -3514,7 +3558,9 @@ html,body{overscroll-behavior-x:none}
 ════════════════════════════════════ -->
 <div class="page" id="page-listings">
   <div class="list-hdr">
-    <div class="wrap"><h1 data-rw="Imitungo Yose" data-en="All Properties">Imitungo Yose</h1><p data-rw="Imitungo irenga 1,240 iraboneka mu Rwanda — Shakisha, Banya, Gura." data-en="1,240+ properties across Rwanda — Search, Filter, Buy or Rent.">Imitungo irenga 1,240 iraboneka mu Rwanda — Shakisha, Banya, Gura.</p></div>
+    <div class="wrap">
+      <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/" onclick="go('home');return false;" data-rw="Ahabanza" data-en="Home">Home</a><span>/</span><span aria-current="page" data-rw="Imitungo" data-en="Properties">Properties</span></nav>
+      <h1 data-rw="Imitungo Yose" data-en="All Properties">Imitungo Yose</h1><p data-rw="Imitungo irenga 1,240 iraboneka mu Rwanda — Shakisha, Banya, Gura." data-en="1,240+ properties across Rwanda — Search, Filter, Buy or Rent.">Imitungo irenga 1,240 iraboneka mu Rwanda — Shakisha, Banya, Gura.</p></div>
   </div>
   <div class="list-body">
     <aside class="filters">
@@ -3635,6 +3681,7 @@ html,body{overscroll-behavior-x:none}
   <div class="det-layout">
     <!-- Main content -->
     <div>
+      <nav class="breadcrumb" aria-label="Breadcrumb" id="det-breadcrumb"><a href="/" onclick="go('home');return false;" data-rw="Ahabanza" data-en="Home">Home</a><span>/</span><a href="/listings" onclick="go('listings');return false;" data-rw="Imitungo" data-en="Properties">Properties</a><span>/</span><span aria-current="page" id="det-breadcrumb-current">Reba Imitungo</span></nav>
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.75rem;margin-bottom:1.4rem">
         <div><h2 class="h2" id="det-prop-title">Reba Imitungo</h2>
           <div style="display:flex;gap:.75rem;margin-top:.5rem;flex-wrap:wrap">
@@ -9938,6 +9985,13 @@ function go(name) {
   if (pg) pg.classList.add('active');
   if (nb) { nb.classList.add('active'); nb.setAttribute('aria-current', 'page'); }
 
+  // Drop the per-property structured data injected by openPropDetail() once
+  // the visitor leaves the detail page, so stale schema never lingers.
+  if (name !== 'detail') {
+    var stalePropJsonld = document.getElementById('prop-jsonld');
+    if (stalePropJsonld) stalePropJsonld.remove();
+  }
+
   // Scroll to top instantly
   window.scrollTo({ top: 0, behavior: 'instant' });
   // Show floating search bar on listings/detail/analytics, hide on home/auth/dashboard
@@ -9954,9 +10008,25 @@ function go(name) {
     detail:    'Villa Kimironko — KOMISIYONERI',
     analytics: 'AI Analytics — KOMISIYONERI',
     dashboard: 'Dashboard — KOMISIYONERI',
-    auth:      curLang === 'rw' ? 'Injira — KOMISIYONERI'          : 'Sign In — KOMISIYONERI'
+    auth:      curLang === 'rw' ? 'Injira — KOMISIYONERI'          : 'Sign In — KOMISIYONERI',
+    about:     curLang === 'rw' ? 'Abo Turi Bo — KOMISIYONERI'     : 'About Us — KOMISIYONERI',
+    agents:    curLang === 'rw' ? 'Abajyanama — KOMISIYONERI'      : 'Real Estate Agents in Rwanda — KOMISIYONERI',
+    privacy:   curLang === 'rw' ? 'Politiki y\'Ibanga — KOMISIYONERI' : 'Privacy Policy — KOMISIYONERI',
+    terms:     curLang === 'rw' ? 'Amabwiriza — KOMISIYONERI'      : 'Terms of Service — KOMISIYONERI'
   };
   if (titles[name]) document.title = titles[name];
+
+  // Update meta description — helps Google's JS-rendering indexer and AI
+  // browsing agents understand each SPA state, since document.title/meta
+  // updates ARE picked up by crawlers that execute JavaScript.
+  var metaDescs = {
+    home:      curLang === 'rw' ? 'Platform N°1 y\'imitungo mu Rwanda. Kugura, kugurisha, no gukodesha imitungo i Kigali no mu gihugu hose.' : 'Rwanda\'s #1 real estate platform. Buy, sell, or rent property in Kigali and across all 30 districts of Rwanda.',
+    listings:  curLang === 'rw' ? 'Shakisha imitungo yose iri ku KOMISIYONERI — inzu, ubutaka, na apartment biri hagati mu Rwanda.' : 'Browse all verified property listings on KOMISIYONERI — houses, land, and apartments for sale or rent across Rwanda.',
+    agents:    curLang === 'rw' ? 'Menya abajyanama b\'imitungo bemejwe na KOMISIYONERI mu turere twose twa Rwanda.' : 'Find verified real estate agents and brokers across all districts of Rwanda, vetted by KOMISIYONERI.',
+    about:     curLang === 'rw' ? 'Menya KOMISIYONERI ConnectPro Services Ltd — urubuga rw\'imitungo rwizewe mu Rwanda.' : 'Learn about KOMISIYONERI ConnectPro Services Ltd — Rwanda\'s trusted digital real estate operating system.'
+  };
+  var metaDescEl = document.querySelector('meta[name="description"]');
+  if (metaDescEl && metaDescs[name]) metaDescEl.setAttribute('content', metaDescs[name]);
 
   // GA4 page tracking
   if (typeof gtag !== 'undefined') {
@@ -9969,9 +10039,25 @@ function go(name) {
     setTimeout(animateKPIs, 80);
   }
 
-  // SPA back-button support — push a history entry for each page visit
+  // Clean, crawlable paths for the public marketing pages only — internal
+  // app pages (dashboard, crm, hr, etc.) keep hash routing unchanged.
+  var CLEAN_PATHS = {
+    home: '/', listings: '/listings', about: '/about',
+    agents: '/agents', privacy: '/privacy', terms: '/terms'
+  };
+  var cleanPath = CLEAN_PATHS[name];
+  if (cleanPath) {
+    var canonEl = document.querySelector('link[rel="canonical"]');
+    if (canonEl) canonEl.setAttribute('href', 'https://komisiyoneri.co.rw' + (cleanPath === '/' ? '/' : cleanPath));
+    var ogUrlEl = document.querySelector('meta[property="og:url"]');
+    if (ogUrlEl) ogUrlEl.setAttribute('content', 'https://komisiyoneri.co.rw' + (cleanPath === '/' ? '/' : cleanPath));
+  }
+
+  // SPA back-button support — push a history entry for each page visit.
+  // Public marketing pages get a real clean URL; everything else keeps
+  // the existing hash-based scheme so internal navigation is unaffected.
   if (window.history && window.history.pushState) {
-    window.history.pushState({ page: name }, '', '#' + name);
+    window.history.pushState({ page: name }, '', cleanPath || ('#' + name));
   }
 }
 
@@ -10423,8 +10509,12 @@ function renderUserPropCard(prop) {
   var waText = encodeURIComponent(t('waMsg') + propName + ' (' + priceLabel + ')' + t('waMsgEnd'));
   var waPhone = '250783177254';
 
+  // Photo has no <img>/alt (CSS background, for lazy-load perf) — role+aria-label
+  // gives screen readers and AI content parsers the same context an alt would.
+  var imgAriaLabel = (prop.title || propName) + (loc ? ' — ' + loc : '') + ' photo';
+
   return '<div class="p-card" data-pid="' + pid + '" style="cursor:pointer">'
-    + '<div class="p-img ' + gclass + '"' + imgBg + ' style="position:relative' + (imgBg ? ';background-size:cover;background-position:center' : '') + '" onclick="openPropDetail(\'' + pid + '\')">'
+    + '<div class="p-img ' + gclass + '" role="img" aria-label="' + imgAriaLabel.replace(/"/g,'&quot;') + '"' + imgBg + ' style="position:relative' + (imgBg ? ';background-size:cover;background-position:center' : '') + '" onclick="openPropDetail(\'' + pid + '\')">'
     +   topBadges
     +   placeholder
     +   '<div class="p-tag">' + svcBadge + '</div>'
@@ -12649,10 +12739,65 @@ function openPropDetail(propId) {
 
   // === TITLE + PRICE (hero overlay) ===
   var titleEl = document.getElementById('det-prop-title');
-  if(titleEl) titleEl.textContent = prop.title || ((prop.type||'Imitungo') + ' — ' + (prop.district||'') + (prop.sector ? ', '+prop.sector : ''));
+  var propTitleText = prop.title || ((prop.type||'Imitungo') + ' — ' + (prop.district||'') + (prop.sector ? ', '+prop.sector : ''));
+  if(titleEl) titleEl.textContent = propTitleText;
 
   var priceEl = document.querySelector('.det-price');
   if(priceEl) priceEl.innerHTML = priceStr + '<small>('+(prop.service||'Kugurisha')+')</small>';
+
+  // === SEO/GEO: breadcrumb label, tab title, meta description, structured data ===
+  var breadcrumbCurEl = document.getElementById('det-breadcrumb-current');
+  if (breadcrumbCurEl) breadcrumbCurEl.textContent = propTitleText;
+  document.title = propTitleText + ' — KOMISIYONERI';
+  var propMetaDescEl = document.querySelector('meta[name="description"]');
+  if (propMetaDescEl) {
+    var locDesc = [prop.district, prop.sector].filter(Boolean).join(', ');
+    propMetaDescEl.setAttribute('content',
+      (propTitleText + (locDesc ? ' in ' + locDesc : '') + ', Rwanda. ' +
+      (priceStr ? priceStr + ' — ' : '') + 'View photos, details, and contact a verified agent on KOMISIYONERI.').slice(0, 300));
+  }
+  (function injectPropStructuredData() {
+    var existing = document.getElementById('prop-jsonld');
+    if (existing) existing.remove();
+    var data = {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'RealEstateListing',
+          name: propTitleText,
+          description: prop.desc || propTitleText,
+          url: 'https://komisiyoneri.co.rw/listings',
+          image: prop.img1 || undefined,
+          datePosted: prop.createdAt || undefined,
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: prop.district || 'Kigali',
+            addressRegion: prop.sector || undefined,
+            addressCountry: 'RW'
+          },
+          offers: {
+            '@type': 'Offer',
+            price: prop.price || undefined,
+            priceCurrency: 'RWF',
+            availability: prop.status === 'Approved' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
+          }
+        },
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://komisiyoneri.co.rw/' },
+            { '@type': 'ListItem', position: 2, name: 'Properties', item: 'https://komisiyoneri.co.rw/listings' },
+            { '@type': 'ListItem', position: 3, name: propTitleText }
+          ]
+        }
+      ]
+    };
+    var script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = 'prop-jsonld';
+    script.textContent = JSON.stringify(data);
+    document.head.appendChild(script);
+  })();
 
   // === BADGES ===
   var badgesEl = document.querySelector('#det-prop-title + div');
@@ -12876,11 +13021,19 @@ window.addEventListener('popstate', function(event) {
   go(page);
 });
 
-// SPA initial load: read hash and set the first history entry
+// SPA initial load: read the clean path (public pages) or hash (everything
+// else), and set the first history entry accordingly.
 window.addEventListener('DOMContentLoaded', function() {
+  var PATH_TO_PAGE = {
+    '/': 'home', '/listings': 'listings', '/about': 'about',
+    '/agents': 'agents', '/privacy': 'privacy', '/terms': 'terms'
+  };
+  var path = window.location.pathname.replace(/\/$/, '') || '/';
+  var pathPage = PATH_TO_PAGE[path];
+
   var hash = window.location.hash.replace('#', '');
   // Let checkUrlHash() handle property deep-links (#prop=...)
-  if (hash.indexOf('prop=') === 0) return;
+  if (!pathPage && hash.indexOf('prop=') === 0) return;
   var validPages = [
     'home','listings','detail','analytics',
     'sites','site','crm','deals','commissions',
@@ -12889,9 +13042,13 @@ window.addEventListener('DOMContentLoaded', function() {
     'exec','bi','branches','agents',
     'dashboard','auth','about','privacy','terms'
   ];
-  var page = validPages.indexOf(hash) > -1 ? hash : 'home';
+  var page = pathPage || (validPages.indexOf(hash) > -1 ? hash : 'home');
   if (window.history && window.history.replaceState) {
-    window.history.replaceState({ page: page }, '', '#' + page);
+    var CLEAN_PATHS = {
+      home: '/', listings: '/listings', about: '/about',
+      agents: '/agents', privacy: '/privacy', terms: '/terms'
+    };
+    window.history.replaceState({ page: page }, '', CLEAN_PATHS[page] || ('#' + page));
   }
   go(page);
 });
