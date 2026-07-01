@@ -9049,7 +9049,7 @@ function loadSavedUser() {
 
 function updateNavForUser(user) {
   var adminBtn = document.getElementById('nav-admin-btn');
-  if (adminBtn) adminBtn.style.display = (user && (user.email === 'info.komisiyoneri.net@gmail.com' || user.email === 'admin@komisiyoneri.com')) ? 'block' : 'none';
+  if (adminBtn) adminBtn.style.display = (user && user.email === 'info.komisiyoneri.net@gmail.com') ? 'block' : 'none';
   var guest = document.getElementById('nav-guest');
   var userArea = document.getElementById('nav-user');
   var avatar = document.getElementById('nav-avatar');
@@ -10536,7 +10536,6 @@ function loadApprovedProperties() {
 function openAdmin() {
   var isAdmin = currentUser && (
     currentUser.email === 'info.komisiyoneri.net@gmail.com' ||
-    currentUser.email === 'admin@komisiyoneri.com' ||
     currentUser.role === 'Admin'
   );
   if (!isAdmin) {
@@ -12138,7 +12137,6 @@ function submitLead() {
 function openAdminLeads() {
   var isAdmin = currentUser && (
     currentUser.email === 'info.komisiyoneri.net@gmail.com' ||
-    currentUser.email === 'admin@komisiyoneri.com' ||
     currentUser.role === 'Admin'
   );
   if (!isAdmin) {
@@ -24950,7 +24948,6 @@ function _fsAdminDelete(idx) {
   openAdmin = function() {
     var isAdmin = currentUser && (
       currentUser.email === 'info.komisiyoneri.net@gmail.com' ||
-      currentUser.email === 'admin@komisiyoneri.com' ||
       currentUser.role  === 'Admin' || currentUser.role === 'admin' ||
       currentUser.role  === 'super_admin'
     );

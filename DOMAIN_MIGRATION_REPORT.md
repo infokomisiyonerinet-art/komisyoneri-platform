@@ -38,13 +38,22 @@ Updated all instructional/example references to the custom-domain setup, Search 
 - `manifest.json`, `sw.js`, `api/chat.js`, `README.md` — no domain references found.
 - `vercel.json` — only contains the internal Vercel deployment project name (`komisiyoneri-platform`), not a URL; out of scope for a branding migration.
 
+## Follow-up fix: dead admin-auth fallback removed
+
+The 4 `admin@komisiyoneri.com` checks flagged below were confirmed by you to reference a domain you don't own — `komisiyoneri.com` was never a real mailbox, so that OR-clause could never match any real login. In every one of the 4 locations it sat alongside the actual working check (`currentUser.email === 'info.komisiyoneri.net@gmail.com'`, or a `role === 'Admin'` check), so it was pure dead code, not a safety net. Removed from `index.html`:
+- `updateNavForUser()` (admin nav-button visibility)
+- `openAdmin()`
+- `openAdminLeads()`
+- the `openAdmin` override further down the file (~line 24950)
+
+Real admin access is unaffected — it still resolves via `info.komisiyoneri.net@gmail.com` or `role === 'Admin'`/`'admin'`/`'super_admin'` exactly as before. Verified all 24 inline `<script>` blocks still pass `node --check` after this change.
+
 ## Flagged for manual/external review (deliberately not auto-edited)
 
-1. **4 authentication/authorization checks** using the literal string `admin@komisiyoneri.com` in `index.html` (lines ~9052, 10539, 12141, 24953). These gate real admin-only UI. If the actual admin login is on a different address (e.g. the real `info.komisiyoneri.net@gmail.com`, which is already checked alongside it in one location), the `admin@komisiyoneri.com` fallback should be updated by someone who can confirm the real credential in use — a blind text-replace here risks silently locking out or granting admin access incorrectly.
-2. **Google Search Console verification file** (`google75d59cf7770a60a9.html`). This token is cryptographically tied to Google's verification of the *old* domain/property and can't be produced by find-and-replace. A new verification file/token must be obtained from Google Search Console once `komisiyoneri.co.rw` is added and verified there as its own property.
-3. **`komisyoneri-platform.vercel.app` retained in two developer docs** (`property-card-fix.html`, `KOMISIYONERI_MASTER_CONTEXT.md`'s Hosting section) as the Firebase-authorized preview/staging domain. Confirm whether Vercel preview deploys are still needed post-launch; if not, this can be removed from Firebase's Authorized domains list and from these docs.
-4. **`info@komisiyoneri.com` in `KOMISIYONERI_Firebase_Guide.html`'s footer** — this is a *different* address from the platform's real, actively-used contact email (`info.komisiyoneri.net@gmail.com`, a Gmail address used everywhere else). This looks like a pre-existing placeholder/typo in the dev doc, unrelated to this migration. Left unchanged rather than inventing a new `@komisiyoneri.co.rw` mailbox that may not exist yet — flagging for someone to confirm the correct address.
-5. **DNS/hosting cutover itself** is an infrastructure action outside this codebase change: this pass only updates what the *code* says the domain is, not the actual DNS records, SSL certificate, or Vercel/Firebase domain configuration.
+1. **Google Search Console verification file** (`google75d59cf7770a60a9.html`). This token is cryptographically tied to Google's verification of the *old* domain/property and can't be produced by find-and-replace. A new verification file/token must be obtained from Google Search Console once `komisiyoneri.co.rw` is added and verified there as its own property.
+2. **`komisyoneri-platform.vercel.app` retained in two developer docs** (`property-card-fix.html`, `KOMISIYONERI_MASTER_CONTEXT.md`'s Hosting section) as the Firebase-authorized preview/staging domain. Confirm whether Vercel preview deploys are still needed post-launch; if not, this can be removed from Firebase's Authorized domains list and from these docs.
+3. **`info@komisiyoneri.com` in `KOMISIYONERI_Firebase_Guide.html`'s footer** — this is a *different* address from the platform's real, actively-used contact email (`info.komisiyoneri.net@gmail.com`, a Gmail address used everywhere else). This looks like a pre-existing placeholder/typo in the dev doc, unrelated to this migration. Left unchanged rather than inventing a new `@komisiyoneri.co.rw` mailbox that may not exist yet — flagging for someone to confirm the correct address.
+4. **DNS/hosting cutover itself** is an infrastructure action outside this codebase change: this pass only updates what the *code* says the domain is, not the actual DNS records, SSL certificate, or Vercel/Firebase domain configuration.
 
 ## What was intentionally preserved
 - `info.komisiyoneri.net@gmail.com` — the real, actively-used contact email — untouched everywhere, since it's a Gmail address structurally unrelated to the `.com`→`.co.rw` domain change.
