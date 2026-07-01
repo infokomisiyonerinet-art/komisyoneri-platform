@@ -28,7 +28,21 @@
       "src": "/images/(.*)",
       "dest": "/images/$1",
       "headers": {
-        "Cache-Control": "public, max-age=86400"
+        "Cache-Control": "public, max-age=604800"
+      }
+    },
+    {
+      "src": "/",
+      "dest": "/index.html",
+      "headers": {
+        "Cache-Control": "public, max-age=60, stale-while-revalidate=86400"
+      }
+    },
+    {
+      "src": "/index\\.html",
+      "dest": "/index.html",
+      "headers": {
+        "Cache-Control": "public, max-age=60, stale-while-revalidate=86400"
       }
     },
     {
@@ -36,7 +50,10 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/index.html",
+      "headers": {
+        "Cache-Control": "public, max-age=60, stale-while-revalidate=86400"
+      }
     }
   ],
   "headers": [
