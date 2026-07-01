@@ -271,7 +271,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 /* FORM CONTROLS */
 .field{display:flex;flex-direction:column;gap:.55rem}
 .field label{font-size:.69rem;font-weight:700;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
-.field input,.field select,.field textarea{padding:.6rem .9rem;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:.86rem;color:var(--dark);background:#fff;outline:none;transition:var(--tr);appearance:none;-webkit-appearance:none}
+.field input,.field select,.field textarea{padding:.6rem .9rem;min-height:44px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:.86rem;color:var(--dark);background:#fff;outline:none;transition:var(--tr);appearance:none;-webkit-appearance:none}
 .field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(22,87,204,.1)}
 /* iOS Safari: font-size < 16px on focused inputs triggers viewport zoom */
 @media(max-width:768px){
@@ -482,7 +482,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .p-img-inner svg{width:72px;height:72px;fill:none;stroke:rgba(255,255,255,.55);stroke-width:1}.p-img[style*="background-image"] .p-img-inner{display:none}
 .p-tag{position:absolute;top:11px;left:11px}
 .p-price{position:absolute;bottom:11px;right:11px;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);padding:.26rem .78rem;border-radius:100px;font-size:.76rem;font-weight:700;color:var(--navy);box-shadow:0 2px 8px rgba(0,0,0,.12)}
-.p-fav{position:absolute;top:11px;right:11px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.p-fav{position:absolute;top:6px;right:6px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
 .p-fav svg{width:14px;height:14px;fill:none;stroke:var(--muted);stroke-width:2}
 .p-fav:hover svg,.p-fav.on svg{stroke:#e53e3e;fill:#e53e3e}
 .p-body{padding:1.15rem}
@@ -524,6 +524,33 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .f-link svg{width:13px;height:13px;fill:none;stroke:var(--blue);stroke-width:2.2;transition:var(--tr)}
 .f-card:hover .f-link svg{transform:translateX(3px)}
 
+/* WHY CHOOSE US */
+.why-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem 2.2rem;margin-top:2.4rem}
+.why-item{display:flex;gap:1rem;align-items:flex-start}
+.why-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(13,59,140,.08)}
+.why-icon svg{width:22px;height:22px;fill:none;stroke:var(--navy);stroke-width:1.8}
+.why-item h4{font-size:.95rem;font-weight:700;margin-bottom:.3rem;color:var(--dark)}
+.why-item p{font-size:.83rem;color:var(--muted);line-height:1.6}
+
+/* PROFESSIONAL NETWORK (real partner categories, not logos) */
+.network-strip{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin-top:2rem}
+.network-chip{display:flex;align-items:center;gap:.55rem;padding:.75rem 1.3rem;border-radius:100px;border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;color:var(--dark)}
+.network-chip svg{width:18px;height:18px;fill:none;stroke:var(--navy);stroke-width:1.9}
+
+/* CREDIBILITY STRIP */
+.cred-strip{display:flex;flex-wrap:wrap;gap:.6rem 2rem;justify-content:center;align-items:center;margin-top:1.6rem;font-size:.82rem;color:var(--muted)}
+.cred-strip strong{color:var(--dark)}
+
+/* FAQ */
+.faq-list{max-width:760px;margin:2.2rem auto 0;display:flex;flex-direction:column;gap:.7rem}
+.faq-item{border:1.5px solid var(--border);border-radius:var(--r-sm);overflow:hidden;background:#fff}
+.faq-q{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1rem 1.3rem;cursor:pointer;font-weight:700;font-size:.9rem;min-height:44px}
+.faq-q svg{width:18px;height:18px;fill:none;stroke:var(--navy);stroke-width:2.2;flex-shrink:0;transition:var(--tr)}
+.faq-item.open .faq-q svg{transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .25s ease}
+.faq-item.open .faq-a{max-height:280px}
+.faq-a p{padding:0 1.3rem 1.1rem;font-size:.85rem;color:var(--muted);line-height:1.65}
+
 /* HOW IT WORKS STEPS */
 .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;margin-top:3.2rem;position:relative}
 .steps::before{content:'';position:absolute;top:24px;left:12.5%;right:12.5%;height:2px;background:linear-gradient(90deg,var(--navy),var(--blue),var(--green));opacity:.35}
@@ -531,6 +558,17 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .step-n{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 1.3rem;box-shadow:0 4px 16px rgba(13,59,140,.3);border:3px solid #fff}
 .step h4{font-size:.96rem;font-weight:700;margin-bottom:.48rem}
 .step p{font-size:.81rem;color:var(--muted);line-height:1.68}
+
+/* QUICK ACTIONS — above-the-fold journey strip (Buy/Rent already covered by
+   the hero search card; this covers the other primary journeys so no visitor
+   has to hunt through menus to find them) */
+.qa-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;max-width:1240px;margin:0 auto;padding:1.8rem 4% 0}
+.qa-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:.5rem;padding:1.3rem 1rem;min-height:44px;border-radius:var(--r);border:1.5px solid var(--border);background:#fff;cursor:pointer;transition:var(--tr)}
+.qa-card:hover{border-color:var(--gold);box-shadow:var(--sh);transform:translateY(-2px)}
+.qa-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(13,59,140,.08)}
+.qa-icon svg{width:22px;height:22px;fill:none;stroke:var(--navy);stroke-width:1.8}
+.qa-label{font-weight:700;font-size:.85rem;color:var(--dark)}
+.qa-sub{font-size:.72rem;color:var(--muted);line-height:1.4}
 
 /* ROLES */
 .roles{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:2.6rem}
@@ -674,9 +712,11 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 @keyframes mIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
 .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
 .modal-title{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:700}
-.modal-x{background:var(--light);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.modal-x{background:var(--light);border:none;width:44px;height:44px;flex-shrink:0;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
 .modal-x:hover{background:var(--border)}
 .modal-x svg{width:15px;height:15px;fill:none;stroke:var(--muted);stroke-width:2}
+.modal-close{background:var(--light);border:none;min-width:44px;min-height:44px;flex-shrink:0;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--muted);transition:var(--tr)}
+.modal-close:hover{background:var(--border)}
 .pay-progress{display:flex;gap:0;margin-bottom:1.8rem}
 .pay-step{flex:1;text-align:center;position:relative}
 .pay-step::after{content:'';position:absolute;top:14px;left:50%;right:-50%;height:2px;background:var(--border)}
@@ -754,6 +794,11 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .dn:hover,.dn.active{background:rgba(255,255,255,.09);color:#fff;border-left-color:var(--gold)}
 .dn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;flex-shrink:0}
 .ds-badge{margin-left:auto;background:var(--gold);color:var(--dark);font-size:.62rem;font-weight:700;padding:.1rem .45rem;border-radius:100px}
+/* Mobile sidebar drawer toggle — hidden on desktop, shown ≤1024px (see RESPONSIVE block) */
+.dash-sidebar-toggle{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;margin-bottom:1rem}
+.dash-sidebar-toggle svg{width:20px;height:20px;stroke:var(--navy);stroke-width:2}
+.dash-sidebar-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.dash-sidebar-overlay.open{display:block}
 .dash-content{background:var(--light);padding:2rem;overflow-y:auto}
 .dash-welcome{margin-bottom:1.8rem}
 .dash-welcome h2{font-family:'Cormorant Garamond',serif;font-size:1.85rem;font-weight:700}
@@ -1017,12 +1062,23 @@ footer{background:var(--dark);color:rgba(255,255,255,.5);padding:3.8rem 4% calc(
   .steps{grid-template-columns:1fr 1fr}
   .steps::before{display:none}
   .f-grid{grid-template-columns:1fr 1fr}
+  .qa-strip{grid-template-columns:1fr 1fr}
   .roles{grid-template-columns:1fr}
   .det-layout{grid-template-columns:1fr}
   .an-kpis{grid-template-columns:1fr 1fr}
   .an-body{grid-template-columns:1fr}
   .dash-wrap{grid-template-columns:1fr}
-  .dash-sidebar{display:none}
+  .dash-sidebar{
+    display:flex;
+    position:fixed;
+    top:0;bottom:0;left:-280px;
+    width:260px;
+    z-index:1001;
+    transition:left .3s ease;
+    box-shadow:8px 0 32px rgba(0,0,0,.25);
+  }
+  .dash-sidebar.open{left:0}
+  .dash-sidebar-toggle{display:inline-flex}
   .kpis{grid-template-columns:1fr 1fr}
   .auth-wrap{grid-template-columns:1fr}
   .auth-left{display:none}
@@ -1036,7 +1092,7 @@ footer{background:var(--dark);color:rgba(255,255,255,.5);padding:3.8rem 4% calc(
   .logo-text span{font-size:.5rem;letter-spacing:.12em}
 
   .s-card{margin:0 3%;margin-top:-30px;padding:1.3rem}
-  .p-grid,.f-grid{grid-template-columns:1fr}
+  .p-grid,.f-grid,.qa-strip,.why-grid{grid-template-columns:1fr}
   .kpis{grid-template-columns:1fr 1fr}
   .an-kpis{grid-template-columns:1fr 1fr}
   .topnav-links{display:none}
@@ -1070,6 +1126,11 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .hero{min-height:calc(100svh - 96px)}
 .auth-wrap{min-height:calc(100svh - 64px)}
 .dash-sidebar{height:calc(100svh - 64px)}
+/* Short landscape phones: a full-viewport-height hero forces a scroll before
+   any content is visible — let it size to its own content instead. */
+@media(max-height:500px) and (orientation:landscape){
+  .hero{min-height:auto}
+}
 /* Print styles for Google (SEO signal) */
 @media print{
   .topnav,.chat-fab,.chat-panel,.toast,.ticker-strip{display:none}
@@ -1085,6 +1146,14 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 /* Chrome scroll behavior */
 @media(prefers-reduced-motion:no-preference){
   html{scroll-behavior:smooth}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+    scroll-behavior:auto!important;
+  }
 }
 /* Skip to content (Accessibility / Google) */
 .skip-link{
@@ -1834,12 +1903,19 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .btn{min-height:44px}
 .btn-lg{min-height:48px}
 @media(max-width:768px){
-  .btn-sm{min-height:36px}
+  .btn-sm{min-height:44px}
   .p-btn-detail,.p-btn-wa{min-height:44px;padding:.72rem}
   /* Nav links invisible on mobile but set for safety */
   .nl{min-height:44px;display:inline-flex;align-items:center}
   /* Language switcher pills: easier to tap */
-  .lang-btn{min-height:36px;padding:.44rem .8rem}
+  .lang-btn{min-height:44px;padding:.44rem .8rem}
+}
+
+/* 1b ── Stack inline 2-column form grids on narrow phones (form sections built
+   with inline style="display:grid;grid-template-columns:1fr 1fr" throughout
+   the add-property / edit forms have no per-instance mobile override) */
+@media(max-width:480px){
+  [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}
 }
 
 /* 2 ── Momentum scrolling (iOS) + scroll containment on all scrollable panes */
@@ -2326,6 +2402,7 @@ html,body{overscroll-behavior-x:none}
     <button class="nl" id="nl-analytics" onclick="go('analytics')" aria-label="AI Analytics page" data-rw="AI Analytics" data-en="AI Analytics">AI Analytics</button>
     <button class="nl" id="nl-sites" onclick="go('sites')" aria-label="New Developments page" data-rw="Sitey Nshya" data-en="New Sites">Sitey Nshya</button>
     <button class="nl" id="nl-dashboard" onclick="go('dashboard')" aria-label="Dashboard page" data-rw="Dashboard" data-en="Dashboard" style="display:none">Dashboard</button>
+    <button class="btn btn-gold btn-sm" onclick="openAddProperty()" style="margin-left:.4rem" data-rw="Ongeramo Imitungo" data-en="List Property">Ongeramo Imitungo</button>
     <button class="nl" id="nl-auth" onclick="go('auth')" data-rw="Injira" data-en="Sign In">Injira</button>
   </div>
   <div class="topnav-right">
@@ -2599,11 +2676,20 @@ html,body{overscroll-behavior-x:none}
 <!-- ═══ ADD PROPERTY MODAL ═══ -->
 <div class="modal-wrap" id="add-prop-modal" style="display:none">
   <div class="modal" style="max-width:500px;max-height:90vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border);padding-bottom:.8rem">
-      <div class="modal-title" data-rw="+ Andika Imitungo Nshya" data-en="+ Add New Property">+ Andika Imitungo Nshya</div>
-      <button class="modal-x" onclick="closeAddProperty()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border);padding-bottom:.8rem;flex-direction:column;align-items:stretch;gap:.6rem">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="modal-title" data-rw="+ Andika Imitungo Nshya" data-en="+ Add New Property">+ Andika Imitungo Nshya</div>
+        <button class="modal-x" onclick="closeAddProperty()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <!-- Progress indicator -->
+      <div style="display:flex;gap:4px">
+        <div class="prop-step-bar active" id="pstep1" style="flex:1;height:4px;background:var(--navy);border-radius:2px 0 0 2px"></div>
+        <div class="prop-step-bar" id="pstep2" style="flex:1;height:4px;background:var(--border)"></div>
+        <div class="prop-step-bar" id="pstep3" style="flex:1;height:4px;background:var(--border);border-radius:0 2px 2px 0"></div>
+      </div>
+      <div style="font-size:.72rem;color:var(--muted);font-weight:600" id="prop-step-label" data-rw="Intambwe 1/3 — Amakuru y'Ibanze" data-en="Step 1/3 — Basic Info">Intambwe 1/3 — Amakuru y'Ibanze</div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:.8rem;padding:.5rem 0">
+    <div id="prop-form-1" style="display:flex;flex-direction:column;gap:.8rem;padding:.5rem 0">
       <div class="field"><label>Ubwoko bw'Imitungo</label>
         <select id="prop-type" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
           <option value="Inzu">🏠 Inzu (House)</option>
@@ -2645,6 +2731,11 @@ html,body{overscroll-behavior-x:none}
         <textarea id="prop-desc" rows="3" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;resize:vertical" placeholder="Sobanura inzu yawe: ibikoresho, ahantu hihutirwa, ibiranga..."></textarea>
       </div>
       <div class="field"><label>Telefoni yo Gutumanahana</label><input type="tel" id="prop-contact" placeholder="+250 7XX XXX XXX"></div>
+      <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="propStep(2)">
+        <span data-rw="Komeza →" data-en="Continue →">Komeza →</span>
+      </button>
+    </div>
+    <div id="prop-form-2" style="display:none;flex-direction:column;gap:.8rem;padding:.5rem 0">
       <!-- ─── Extra Details (optional) ─── -->
       <div style="background:var(--light);border-radius:8px;padding:.7rem;font-size:.78rem;color:var(--navy);font-weight:600">
         📋 Amakuru Yuzuye (Ntibisabwa)
@@ -2718,6 +2809,12 @@ html,body{overscroll-behavior-x:none}
       <div style="font-size:.73rem;color:var(--muted);background:var(--light);border-radius:8px;padding:.5rem">
         💡 Shakisha coordinates kuri <strong>maps.google.com</strong> → Kanda hejuru y'aho imitungo iri → Kopi umubare ugaragara munsi. Urugero: <em>-1.9441, 30.1044</em>
       </div>
+      <div style="display:flex;gap:.6rem">
+        <button class="btn btn-sm" style="flex:1;border:1.5px solid var(--border);justify-content:center" onclick="propStep(1)">← <span data-rw="Subira" data-en="Back">Back</span></button>
+        <button class="btn btn-navy btn-lg" style="flex:2;justify-content:center" onclick="propStep(3)"><span data-rw="Komeza →" data-en="Continue →">Komeza →</span></button>
+      </div>
+    </div>
+    <div id="prop-form-3" style="display:none;flex-direction:column;gap:.8rem;padding:.5rem 0">
       <!-- Media Upload — Admin vs User -->
       <div id="admin-media-section" style="display:none;flex-direction:column;gap:.8rem">
         <div style="background:#e8f0fb;border-radius:8px;padding:.7rem;font-size:.78rem;color:var(--navy);font-weight:600">
@@ -2746,7 +2843,8 @@ html,body{overscroll-behavior-x:none}
           💡 Amafoto azabikwa kuri imgbb.com ubuntu. Uzabona URL nyuma yo kuranga.
         </div>
       </div>
-      <button id="submit-prop-btn" class="btn btn-navy btn-lg" style="width:100%;justify-content:center;margin-top:.4rem" onclick="submitProperty()">
+      <button class="btn btn-sm" style="border:1.5px solid var(--border);justify-content:center;margin-bottom:.2rem" onclick="propStep(2)">← <span data-rw="Subira" data-en="Back">Back</span></button>
+      <button id="submit-prop-btn" class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="submitProperty()">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         <span id="submit-prop-label">Ohereza Imitungo</span>
       </button>
@@ -3007,6 +3105,30 @@ html,body{overscroll-behavior-x:none}
     </div>
   </section>
 
+  <!-- QUICK ACTIONS — every major journey, one click away, no menu-hunting -->
+  <div class="qa-strip">
+    <div class="qa-card" onclick="openAddProperty()">
+      <div class="qa-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+      <div class="qa-label" data-rw="Andika Imitungo Yawe" data-en="List My Property">Andika Imitungo Yawe</div>
+      <div class="qa-sub" data-rw="Ubuntu, mu minota" data-en="Free, takes minutes">Ubuntu, mu minota</div>
+    </div>
+    <div class="qa-card" onclick="openLead()">
+      <div class="qa-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+      <div class="qa-label" data-rw="Saba Agent Wawe" data-en="Find an Agent">Saba Agent Wawe</div>
+      <div class="qa-sub" data-rw="Asubiza mu masaa 2" data-en="Responds in 2 hours">Asubiza mu masaa 2</div>
+    </div>
+    <div class="qa-card" onclick="openMortgage()">
+      <div class="qa-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+      <div class="qa-label" data-rw="Bara Inguzanyo" data-en="Mortgage Calculator">Bara Inguzanyo</div>
+      <div class="qa-sub" data-rw="Menya icyo wishyura buri kwezi" data-en="See your monthly payment">Menya icyo wishyura buri kwezi</div>
+    </div>
+    <div class="qa-card" onclick="go('sites')">
+      <div class="qa-icon"><svg viewBox="0 0 24 24"><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg></div>
+      <div class="qa-label" data-rw="Shoramari mu Mitungo" data-en="Investment Opportunities">Shoramari mu Mitungo</div>
+      <div class="qa-sub" data-rw="Sitey nshya n'ubutaka" data-en="New sites and land">Sitey nshya n'ubutaka</div>
+    </div>
+  </div>
+
   <!-- FEATURED LISTINGS -->
   <section class="section">
     <div class="wrap">
@@ -3031,8 +3153,8 @@ html,body{overscroll-behavior-x:none}
   <section class="section section-light">
     <div class="wrap">
       <div class="eyebrow tag-green" data-rw="Ibikorwa by'Urubuga" data-en="Platform Features">Ibikorwa by'Urubuga</div>
-      <h2 class="h2" style="margin-top:.35rem" data-rw="Ibintu 6 Bikora kuri Platform Yacu" data-en="6 Powerful Platform Features">Ibintu 6 Bikora kuri Platform Yacu</h2>
-      <p style="font-size:.92rem;color:var(--muted);margin-top:.5rem;max-width:520px" data-rw="Byose biboneka mu rubuga rumwe — Smart Listings, 3D Tours, Digital Payments, AI Analytics, Agent Dashboard, na Live Chat." data-en="Everything in one platform — Smart Listings, 3D Tours, Digital Payments, AI Analytics, Agent Dashboard, and Live Chat.">Byose biboneka mu rubuga rumwe — Smart Listings, 3D Tours, Digital Payments, AI Analytics, Agent Dashboard, na Live Chat.</p>
+      <h2 class="h2" style="margin-top:.35rem" data-rw="Byose Uhereye ku Gushakisha Kugeza ku Isoko" data-en="Everything From Search to Closing, In One Place">Byose Uhereye ku Gushakisha Kugeza ku Isoko</h2>
+      <p style="font-size:.92rem;color:var(--muted);margin-top:.5rem;max-width:520px" data-rw="Ntugomba gukoresha ibikoresho byinshi bitandukanye — shakisha, suzuma, wishyure, kandi ukurikirane byose uri kuri KOMISIYONERI." data-en="No more juggling separate tools — search, verify, pay, and track your whole transaction without ever leaving KOMISIYONERI.">Ntugomba gukoresha ibikoresho byinshi bitandukanye — shakisha, suzuma, wishyure, kandi ukurikirane byose uri kuri KOMISIYONERI.</p>
       <div class="f-grid">
         <div class="f-card fc1">
           <div class="f-icon" style="background:rgba(13,59,140,.1)"><svg viewBox="0 0 24 24" stroke="#0D3B8C"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg></div>
@@ -3069,6 +3191,32 @@ html,body{overscroll-behavior-x:none}
           <h3 data-rw="Live Chat & Support" data-en="Live Chat & Support">Live Chat & Support</h3>
           <p data-rw="Ganira na abakomisiyoneri na support yacu ku gihe — vuba, neza, mu Kinyarwanda cyangwa Icyongereza." data-en="Chat with agents and our team instantly — fast, friendly, in Kinyarwanda or English.">Ganira na abakomisiyoneri na support yacu ku gihe — vuba, neza, mu Kinyarwanda cyangwa Icyongereza.</p>
           <span class="f-link" onclick="toggleChat()" style="cursor:pointer"><span data-rw="Tangira Kuvugana →" data-en="Start Chat →">Tangira Kuvugana →</span><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY CHOOSE US -->
+  <section class="section">
+    <div class="wrap">
+      <div class="eyebrow" data-rw="Impamvu Watwitirira" data-en="Why Choose Us">Impamvu Watwitirira</div>
+      <h2 class="h2" style="margin-top:.35rem" data-rw="Impamvu Rwandans Bizera KOMISIYONERI" data-en="Why Rwandans Trust KOMISIYONERI">Impamvu Rwandans Bizera KOMISIYONERI</h2>
+      <div class="why-grid">
+        <div class="why-item">
+          <div class="why-icon"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+          <div><h4 data-rw="Imitungo Yose Igenzurwa" data-en="Every Listing Verified">Imitungo Yose Igenzurwa</h4><p data-rw="Buri kintu cyoherejwe kirasuzumwa n'itsinda ryacu mbere yo kwerekanwa ku rubuga — nta bihuha, nta gukoreshwa nabi." data-en="Every submission is reviewed by our team before it goes live — no fake listings, no scams.">Buri kintu cyoherejwe kirasuzumwa n'itsinda ryacu mbere yo kwerekanwa ku rubuga — nta bihuha, nta gukoreshwa nabi.</p></div>
+        </div>
+        <div class="why-item">
+          <div class="why-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div><h4 data-rw="Ubufasha bwa AI" data-en="AI-Powered Matching">Ubufasha bwa AI</h4><p data-rw="Isesengura ry'isoko rikoresha AI rigufasha guhitamo neza, uko ibiciro bigenda kandi n'aho ishoramari rikwiye." data-en="AI-powered analysis helps you choose well, tracking price trends and the best places to invest.">Isesengura ry'isoko rikoresha AI rigufasha guhitamo neza, uko ibiciro bigenda kandi n'aho ishoramari rikwiye.</p></div>
+        </div>
+        <div class="why-item">
+          <div class="why-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg></div>
+          <div><h4 data-rw="Byanditswe mu Ndimi Zombi" data-en="Fully Bilingual">Byanditswe mu Ndimi Zombi</h4><p data-rw="Urubuga rwose rukora mu Kinyarwanda no mu Cyongereza, rugera ku karere kose 30 ka Rwanda." data-en="The entire platform works in Kinyarwanda and English, covering all 30 districts of Rwanda.">Urubuga rwose rukora mu Kinyarwanda no mu Cyongereza, rugera ku karere kose 30 ka Rwanda.</p></div>
+        </div>
+        <div class="why-item">
+          <div class="why-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+          <div><h4 data-rw="Agent Asubiza Vuba" data-en="Fast Human Support">Agent Asubiza Vuba</h4><p data-rw="Saba agent uwo ari we wese, akubwiza mu masaa 2 gusa — kuri telefoni, WhatsApp cyangwa live chat." data-en="Request any agent and get a response within 2 hours — by phone, WhatsApp, or live chat.">Saba agent uwo ari we wese, akubwiza mu masaa 2 gusa — kuri telefoni, WhatsApp cyangwa live chat.</p></div>
         </div>
       </div>
     </div>
@@ -3137,6 +3285,54 @@ html,body{overscroll-behavior-x:none}
           <h3 data-rw="Umukomisiyoneri" data-en="Real Estate Agent">Umukomisiyoneri</h3>
           <p data-rw="Ufite ubuhanga mu nganda y'imitungo? Iyandikishe nk'umukomisiyoneri wacu ubone abakiliya barenze kandi uhabwe komisiyoni nziza." data-en="Expert in real estate? Join as an agent, get more clients, and earn great commissions.">Ufite ubuhanga mu nganda y'imitungo? Iyandikishe nk'umukomisiyoneri wacu ubone abakiliya barenze kandi uhabwe komisiyoni nziza.</p>
           <span class="role-link"><span data-rw="Iyandikishe nk'Agent →" data-en="Join as Agent →">Iyandikishe nk'Agent →</span><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROFESSIONAL NETWORK -->
+  <section class="section section-light">
+    <div class="wrap" style="text-align:center">
+      <div class="eyebrow tag-green" data-rw="Abafatanyabikorwa Bacu" data-en="Our Professional Network">Abafatanyabikorwa Bacu</div>
+      <h2 class="h2" style="margin-top:.35rem" data-rw="Duhuza n'Inzobere Zemewe" data-en="Connected to Verified Professionals">Duhuza n'Inzobere Zemewe</h2>
+      <p style="font-size:.92rem;color:var(--muted);margin:.5rem auto 0;max-width:560px" data-rw="Buri gikorwa cy'imitungo gishobora gukenera inzobere zisimburana — dufite umuyoboro w'abahuza bemewe muri buri category." data-en="Every property transaction may need specialist help — we maintain a network of verified partners across these categories.">Every property transaction may need specialist help — we maintain a network of verified partners across these categories.</p>
+      <div class="network-strip">
+        <div class="network-chip"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg><span data-rw="Abapima Ubutaka" data-en="Surveyors">Abapima Ubutaka</span></div>
+        <div class="network-chip"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span data-rw="Noteri" data-en="Notaries">Noteri</span></div>
+        <div class="network-chip"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg><span data-rw="Amabanki / Inguzanyo" data-en="Banks / Mortgage">Amabanki / Inguzanyo</span></div>
+        <div class="network-chip"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span data-rw="Abavoka" data-en="Lawyers">Abavoka</span></div>
+      </div>
+      <div class="cred-strip">
+        <span><strong>KOMISIYONERI ConnectPro Services Ltd</strong> — <span data-rw="Kigali, Rwanda, kuva 2024" data-en="Kigali, Rwanda, since 2024">Kigali, Rwanda, since 2024</span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="eyebrow" style="text-align:center" data-rw="Ibibazo Bikunze Kubazwa" data-en="Frequently Asked Questions">Ibibazo Bikunze Kubazwa</div>
+      <h2 class="h2" style="margin-top:.35rem;text-align:center" data-rw="Ibibazo Bikunze Kubazwa" data-en="Got Questions? We've Got Answers">Ibibazo Bikunze Kubazwa</h2>
+      <div class="faq-list">
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+          <div class="faq-q"><span data-rw="Ese gushakisha imitungo birihombo?" data-en="Is it free to search for properties?">Ese gushakisha imitungo birihombo?</span><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          <div class="faq-a"><p data-rw="Yego, gushakisha no kureba imitungo yose ni ubuntu burundu — nta konti isabwa gutangira gushakisha." data-en="Yes, searching and browsing every listing is completely free — no account needed to start looking.">Yes, searching and browsing every listing is completely free — no account needed to start looking.</p></div>
+        </div>
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+          <div class="faq-q"><span data-rw="Ese nabona nte niba imitungo ari iy'ukuri?" data-en="How do I know a listing is legitimate?">Ese nabona nte niba imitungo ari iy'ukuri?</span><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          <div class="faq-a"><p data-rw="Buri mitungo yoherejwe irasuzumwa n'itsinda ryacu mbere yo kwerekanwa ku rubuga rwacu — ntibiba 'Approved' bitarasuzumwa." data-en="Every submitted listing goes through admin review before it's marked Approved and shown publicly — nothing goes live unchecked.">Every submitted listing goes through admin review before it's marked Approved and shown publicly — nothing goes live unchecked.</p></div>
+        </div>
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+          <div class="faq-q"><span data-rw="Nakwandika nte imitungo yanjye?" data-en="How do I list my property?">Nakwandika nte imitungo yanjye?</span><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          <div class="faq-a"><p data-rw="Kanda 'Ongeramo Imitungo' hejuru cyangwa ku ipaji y'ibanze, wandike amakuru y'imitungo yawe, hanyuma itsinda ryacu rirayisuzuma mu gihe gito." data-en="Click 'List Property' in the top navigation or the homepage quick actions, fill in your property details, and our team reviews it shortly after.">Click 'List Property' in the top navigation or the homepage quick actions, fill in your property details, and our team reviews it shortly after.</p></div>
+        </div>
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+          <div class="faq-q"><span data-rw="Agent asaba angahe?" data-en="How much does an agent cost?">Agent asaba angahe?</span><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          <div class="faq-a"><p data-rw="Nta kiguzi cyo gusaba agent. Agent yishyurwa gusa igihe igurishwa ryarangiye, akoresheje komisiyoni isanzwe y'urwego." data-en="There's no charge to request an agent. Agents are only paid a commission once a deal closes — never upfront.">There's no charge to request an agent. Agents are only paid a commission once a deal closes — never upfront.</p></div>
+        </div>
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+          <div class="faq-q"><span data-rw="Ni ryari agent azansubiza?" data-en="How fast will an agent respond?">Ni ryari agent azansubiza?</span><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          <div class="faq-a"><p data-rw="Iyo wohereje icyifuzo kuri 'Saba Agent Wawe', agent wo mu gace kawe azaguhamagara mu masaa 2." data-en="Once you submit a request through 'Find an Agent', an agent in your area responds within 2 hours.">Once you submit a request through 'Find an Agent', an agent in your area responds within 2 hours.</p></div>
         </div>
       </div>
     </div>
@@ -3529,46 +3725,47 @@ html,body{overscroll-behavior-x:none}
           <div class="ag-stat"><span class="ag-stat-v">98%</span><span class="ag-stat-l" data-rw="Igihe" data-en="Response">Igihe</span></div>
         </div>
         <div class="ag-acts">
-          <button class="btn btn-navy" style="width:100%;justify-content:center" onclick="toggleChat()">
-            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            <span data-rw="Ganira na Agent" data-en="Chat with Agent">Ganira na Agent</span>
+          <!-- PRIMARY — one clear next step: get connected, fast -->
+          <button class="btn btn-gold btn-lg" style="width:100%;justify-content:center" onclick="openLead()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            <span data-rw="Saba Agent Wawe — Vuba!" data-en="Get an Agent — Fast!">Saba Agent Wawe — Vuba!</span>
           </button>
-          <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="window.location.href='tel:+250783177254'">
-            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.13a16 16 0 006.73 6.73l1.35-1.35a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-            <span data-rw="Hamagara Agent" data-en="Call Agent">Hamagara Agent</span>
-          </button>
-          <button class="btn btn-outline" style="width:100%;justify-content:center;border-color:#25D366;color:#25D366" onclick="window.open('https://wa.me/250783177254?text=Ndashaka amakuru y%27imitungo muri KOMISIYONERI','_blank')">
-            <svg viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-            <span>WhatsApp Agent</span>
-          </button>
-          <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="openBooking()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <span data-rw="Gushyiraho Gahunda yo Gusura" data-en="Schedule a Visit">Gushyiraho Gahunda</span>
-          </button>
-          <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="openOfferModal()">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            <span data-rw="Ohereza Offer" data-en="Submit Offer">Submit Offer</span>
-          </button>
-          <button class="btn btn-navy" style="width:100%;justify-content:center;background:linear-gradient(135deg,#F5A623,#e6951f)" onclick="openLead()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-            <span data-rw="Saba Agent Wawe — Vuba!" data-en="Get an Agent — Fast!">Saba Agent Wawe</span>
-          </button>
-          <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="openMessageOwner()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            <span data-rw="Kohereza Message" data-en="Send Message">Kohereza Message</span>
-          </button>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem">
-            <button class="btn btn-sm" style="justify-content:center;border:1.5px solid var(--navy);color:var(--navy);font-size:.75rem" onclick="openMortgage()">
-              🏦 Mortgage Calc
+          <div style="font-size:.72rem;color:var(--muted);text-align:center;margin:.35rem 0 .9rem" data-rw="Asubiza mu masaa 2 gusa" data-en="Responds within 2 hours">Asubiza mu masaa 2 gusa</div>
+
+          <!-- SECONDARY — meaningful next steps for a more decided visitor -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.7rem">
+            <button class="btn btn-outline" style="justify-content:center;font-size:.82rem" onclick="openBooking()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span data-rw="Gusura" data-en="Schedule Visit">Schedule Visit</span>
             </button>
-            <button class="btn btn-sm" style="justify-content:center;border:1.5px solid var(--navy);color:var(--navy);font-size:.75rem" onclick="openCompare()">
-              ⚖️ Gusuzuma 2
+            <button class="btn btn-outline" style="justify-content:center;font-size:.82rem" onclick="openOfferModal()">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              <span data-rw="Ohereza Offer" data-en="Submit Offer">Submit Offer</span>
             </button>
           </div>
-          <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="openDepositPay()">
-            <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-            <span data-rw="Ishyura Deposit / Tangira" data-en="Pay Deposit / Start">Ishyura Deposit</span>
-          </button>
+
+          <!-- CONTACT ROW — every existing channel preserved, just compact -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:.7rem">
+            <button class="btn btn-outline" style="justify-content:center;padding:.6rem;min-height:44px" onclick="toggleChat()" title="Chat with Agent" aria-label="Chat with Agent">
+              <svg viewBox="0 0 24 24" width="18" height="18"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            </button>
+            <button class="btn btn-outline" style="justify-content:center;padding:.6rem;min-height:44px" onclick="window.location.href='tel:+250783177254'" title="Call Agent" aria-label="Call Agent">
+              <svg viewBox="0 0 24 24" width="18" height="18"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.13a16 16 0 006.73 6.73l1.35-1.35a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            </button>
+            <button class="btn btn-outline" style="justify-content:center;padding:.6rem;min-height:44px;border-color:#25D366;color:#25D366" onclick="window.open('https://wa.me/250783177254?text=Ndashaka amakuru y%27imitungo muri KOMISIYONERI','_blank')" title="WhatsApp Agent" aria-label="WhatsApp Agent">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+            </button>
+            <button class="btn btn-outline" style="justify-content:center;padding:.6rem;min-height:44px" onclick="openMessageOwner()" title="Send Message" aria-label="Send Message">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            </button>
+          </div>
+
+          <!-- TERTIARY — small utility links, not full actions -->
+          <div style="display:flex;justify-content:center;gap:1.2rem;font-size:.76rem;flex-wrap:wrap">
+            <span style="cursor:pointer;color:var(--blue);font-weight:600" onclick="openMortgage()">🏦 <span data-rw="Bara Inguzanyo" data-en="Mortgage Calc">Mortgage Calc</span></span>
+            <span style="cursor:pointer;color:var(--blue);font-weight:600" onclick="openCompare()">⚖️ <span data-rw="Gusuzuma 2" data-en="Compare">Compare</span></span>
+            <span style="cursor:pointer;color:var(--blue);font-weight:600" onclick="openDepositPay()">💳 <span data-rw="Ishyura Deposit" data-en="Pay Deposit">Pay Deposit</span></span>
+          </div>
         </div>
       </div>
       <!-- MAP TAB CONTENT -->
@@ -3793,7 +3990,8 @@ html,body{overscroll-behavior-x:none}
 ════════════════════════════════════ -->
 <div class="page" id="page-dashboard">
   <div class="dash-wrap">
-    <aside class="dash-sidebar">
+    <div class="dash-sidebar-overlay" id="dash-sidebar-overlay" onclick="closeDashSidebar()"></div>
+    <aside class="dash-sidebar" id="dash-sidebar">
       <div class="ds-logo"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span>KOMISIYONERI</span></div>
       <div class="ds-section" data-rw="URUBUGA" data-en="MAIN">URUBUGA</div>
       <div class="dn active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span data-rw="Overview" data-en="Overview">Overview</span></div>
@@ -3827,6 +4025,9 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="openProfile()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-rw="Igenamiterere" data-en="Settings">Igenamiterere</span></div>
     </aside>
     <main class="dash-content">
+      <button class="dash-sidebar-toggle" onclick="toggleDashSidebar()" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
       <div class="dash-welcome">
         <h2 id="dash-welcome-name" data-rw="Murakaza neza, Agent!" data-en="Welcome back, Agent!">Murakaza neza, Agent!</h2>
         <p data-rw="Ibyo bigezweho ku butunzi bwawe kuri uyu wa 3" data-en="Here's what's happening with your portfolio today">Ibyo bigezweho ku butunzi bwawe kuri uyu wa 3</p>
@@ -8783,6 +8984,18 @@ document.querySelectorAll('.rt').forEach(btn => {
 var currentUser = null;
 var _pendingAction = null;
 
+// Can this user submit/manage property listings? Accepts registered agents
+// AND property owners (role stored lowercase per the canonical schema — see
+// handleRegister()) — matches the already-deployed Firestore rule, which
+// allows both roles to create properties. Listings still go to Pending status
+// for admin review either way, so verification is preserved either path.
+function canListProperty(user) {
+  if (!user) return false;
+  if (user.email === 'info.komisiyoneri.net@gmail.com') return true;
+  var r = (user.role || '').toLowerCase();
+  return r === 'agent' || r === 'owner';
+}
+
 function saveUser(user) {
   try { localStorage.setItem('km_current', JSON.stringify(user)); } catch(e){}
   currentUser = user;
@@ -8966,11 +9179,10 @@ function openProfile() {
   if (!m) return;
   m.style.display = 'flex';
   var e = function(id){ return document.getElementById(id); };
-  // Show Add Property button only for approved agents and admin
+  // Show Add Property button for approved agents, property owners, and admin
   var addPropBtn = e('profile-add-prop-btn');
   if (addPropBtn) {
-    var canAdd = currentUser.role === 'Agent' || currentUser.email === 'info.komisiyoneri.net@gmail.com';
-    addPropBtn.style.display = canAdd ? '' : 'none';
+    addPropBtn.style.display = canListProperty(currentUser) ? '' : 'none';
   }
   // ensure view mode is shown
   if(e('profile-view')) e('profile-view').style.display = '';
@@ -9097,6 +9309,7 @@ function openEditProperty(prop) {
   // Open the modal (bypasses role check since user already owns this property)
   var m = document.getElementById('add-prop-modal');
   if (m) m.style.display = 'flex';
+  propStep(1);
 
   // Update modal title and submit label
   var title = document.querySelector('#add-prop-modal .modal-title');
@@ -9142,22 +9355,22 @@ function openAddProperty() {
     showToast(curLang==='rw'?'Injira mbere yo kongeramo imitungo!':'Please login first!', 'warn');
     go('auth'); return;
   }
-  var isAdminUser = currentUser.email === 'info.komisiyoneri.net@gmail.com';
-  if (!isAdminUser && currentUser.role !== 'Agent') {
+  if (!canListProperty(currentUser)) {
     if (currentUser.role === 'PendingAgent') {
       showToast(curLang==='rw'
         ? '⏳ Konti yawe irimo gusuzumwa. Tegereza kwemererwa.'
         : '⏳ Your account is under review. Wait for approval.');
     } else {
       showToast(curLang==='rw'
-        ? '🔒 Agents bemewe gusa ni bo bashobora kongeramo imitungo. Iyandikishe nk\'Agent!'
-        : '🔒 Only approved agents can add listings. Register as an Agent!');
+        ? '🔒 Injira nk\'umutunzi w\'inzu cyangwa Agent kugira ngo wongeremo imitungo.'
+        : '🔒 Register as a property owner or agent to add a listing.');
     }
     return;
   }
   if(!window._listingsOpen) { showToast('⛔ New listings are currently paused.', 'warn'); return; }
   var m = document.getElementById('add-prop-modal');
   if(m) m.style.display='flex';
+  propStep(1);
   var c = document.getElementById('prop-contact');
   if(c && currentUser.phone) c.value = currentUser.phone;
 }
@@ -9183,11 +9396,10 @@ function submitProperty() {
     return;
   }
 
-  var isAdmin = currentUser.email === 'info.komisiyoneri.net@gmail.com';
-  if (!isAdmin && currentUser.role !== 'Agent') {
+  if (!canListProperty(currentUser)) {
     showToast(curLang==='rw'
-      ? '🔒 Agents bemewe gusa ni bo bashobora ohereza imitungo.'
-      : '🔒 Only approved agents can submit listings.', 'warn');
+      ? '🔒 Injira nk\'umutunzi w\'inzu cyangwa Agent kugira ngo wohereze imitungo.'
+      : '🔒 Register as a property owner or agent to submit a listing.', 'warn');
     return;
   }
 
@@ -9335,7 +9547,7 @@ function submitProperty() {
           var sbtn2=document.getElementById('submit-prop-btn'),slbl2=document.getElementById('submit-prop-label');
           if(sbtn2){ sbtn2.disabled=false; sbtn2.classList.remove('btn-loading'); if(slbl2) slbl2.textContent=(curLang==='rw'?'Ohereza Imitungo':'Submit Property'); }
           closeAddProperty();
-          showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Admin azayisuzuma vuba.' : '✅ Property submitted for review!');
+          showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Tuzayisuzuma mu masaa 24 tukumenyeshe niba yemejwe.' : "✅ Property submitted! We'll review it within 24 hours and notify you once it's approved.");
         })
         .catch(function(err) {
           console.error('Storage upload failed, falling back to base64:', err);
@@ -9366,7 +9578,7 @@ function _submitPropertyBase64(fileList, propData) {
         var sbtn3=document.getElementById('submit-prop-btn'),slbl3=document.getElementById('submit-prop-label');
         if(sbtn3){ sbtn3.disabled=false; sbtn3.classList.remove('btn-loading'); if(slbl3) slbl3.textContent=(curLang==='rw'?'Ohereza Imitungo':'Submit Property'); }
         closeAddProperty();
-        showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Admin azayisuzuma vuba.' : '✅ Property submitted for review!');
+        showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Tuzayisuzuma mu masaa 24 tukumenyeshe niba yemejwe.' : "✅ Property submitted! We'll review it within 24 hours and notify you once it's approved.");
       }
     };
     reader.readAsDataURL(f.files[0]);
@@ -11501,6 +11713,29 @@ function agentStep(step) {
   });
 }
 
+var PROP_STEP_LABELS = {
+  1: { rw: "Intambwe 1/3 — Amakuru y'Ibanze", en: 'Step 1/3 — Basic Info' },
+  2: { rw: 'Intambwe 2/3 — Ibisobanuro n\'Inyandiko', en: 'Step 2/3 — Details & Documents' },
+  3: { rw: 'Intambwe 3/3 — Amafoto', en: 'Step 3/3 — Photos' }
+};
+function propStep(step) {
+  [1,2,3].forEach(function(s) {
+    var form = document.getElementById('prop-form-' + s);
+    var bar = document.getElementById('pstep' + s);
+    if(form) form.style.display = s === step ? 'flex' : 'none';
+    if(bar) bar.style.background = s <= step ? 'var(--navy)' : 'var(--border)';
+  });
+  var lbl = document.getElementById('prop-step-label');
+  if (lbl) {
+    var l = PROP_STEP_LABELS[step];
+    lbl.setAttribute('data-rw', l.rw);
+    lbl.setAttribute('data-en', l.en);
+    lbl.textContent = curLang === 'rw' ? l.rw : l.en;
+  }
+  var wrap = document.querySelector('#add-prop-modal .modal');
+  if (wrap) wrap.scrollTop = 0;
+}
+
 function submitAgentReg() {
   var g = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
   if(!g('ag-name')){showToast('Shyira amazina yawe!', 'error');return;}
@@ -12757,6 +12992,40 @@ function closeHamburger() {
   if(b3){b3.style.transform='';}
 }
 
+// Mobile dashboard sidebar drawer (≤1024px) — same open/close pattern as the
+// public hamburger menu above, so the CRM/Deals/HR/Exec/etc. nav that lives in
+// .dash-sidebar is reachable on mobile instead of just vanishing.
+var dashSidebarOpen = false;
+
+function toggleDashSidebar() {
+  dashSidebarOpen ? closeDashSidebar() : openDashSidebar();
+}
+
+function openDashSidebar() {
+  dashSidebarOpen = true;
+  var sb = document.getElementById('dash-sidebar');
+  var ov = document.getElementById('dash-sidebar-overlay');
+  if (sb) sb.classList.add('open');
+  if (ov) ov.classList.add('open');
+}
+
+function closeDashSidebar() {
+  dashSidebarOpen = false;
+  var sb = document.getElementById('dash-sidebar');
+  var ov = document.getElementById('dash-sidebar-overlay');
+  if (sb) sb.classList.remove('open');
+  if (ov) ov.classList.remove('open');
+}
+
+// Auto-close the drawer when any nav item is clicked, via delegation
+// (avoids editing every existing .dn onclick attribute individually).
+(function() {
+  var sb = document.getElementById('dash-sidebar');
+  if (sb) sb.addEventListener('click', function(e) {
+    if (e.target.closest('.dn')) closeDashSidebar();
+  });
+})();
+
 function updateHamburgerAuth() {
   var isLoggedIn = !!currentUser;
   var isAdmin = isLoggedIn && currentUser.email === 'info.komisiyoneri.net@gmail.com';
@@ -12788,8 +13057,9 @@ function updateHamburgerAuth() {
   var show = function(id, v){ var el=document.getElementById(id); if(el) el.style.display=v?'flex':'none'; };
   show('hm-login-btn', !isLoggedIn);
   show('hm-profile-btn', isLoggedIn);
-  var isAgent = isLoggedIn && (currentUser.role === 'Agent' || isAdmin);
-  show('hm-addprop-btn', isAgent);
+  // Always visible — openAddProperty() itself handles the "not logged in yet"
+  // and "wrong role" cases, same as the topnav's "List Property" button.
+  show('hm-addprop-btn', true);
   show('hm-agent-btn', isLoggedIn);
   show('hm-logout-btn', isLoggedIn);
   show('hm-admin-btn', isAdmin);
@@ -24229,7 +24499,7 @@ function _agentSubmitFinish(pd) {
   var sb = document.getElementById('submit-prop-btn'), sl = document.getElementById('submit-prop-label');
   if (sb) { sb.disabled = false; sb.classList.remove('btn-loading'); if (sl) sl.textContent = (curLang==='rw'?'Ohereza Imitungo':'Submit Property'); }
   closeAddProperty();
-  showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Admin azayisuzuma vuba.' : '✅ Property submitted for review!');
+  showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Tuzayisuzuma mu masaa 24 tukumenyeshe niba yemejwe.' : "✅ Property submitted! We'll review it within 24 hours and notify you once it's approved.");
 }
 
 /* Base64 fallback that accepts a callback instead of always saving directly */
@@ -24263,10 +24533,10 @@ function submitProperty() {
     currentUser.role  === 'Admin' || currentUser.role === 'admin' ||
     currentUser.role  === 'super_admin'
   );
-  if (!isAdmin && currentUser.role !== 'Agent' && currentUser.role !== 'agent') {
+  if (!isAdmin && !canListProperty(currentUser)) {
     showToast(curLang==='rw'
-      ? '🔒 Agents bemewe gusa ni bo bashobora ohereza imitungo.'
-      : '🔒 Only approved agents can submit listings.', 'warn');
+      ? '🔒 Injira nk\'umutunzi w\'inzu cyangwa Agent kugira ngo wohereze imitungo.'
+      : '🔒 Register as a property owner or agent to submit a listing.', 'warn');
     return;
   }
 
@@ -24481,7 +24751,7 @@ function adminRender(filter) {
       var statusColor = st.toLowerCase()==='approved'?'#27A84A':st.toLowerCase()==='rejected'?'#e53e3e':'#F5A623';
       var imgs = (prop.images || []).filter(Boolean);
       var thumbSrc = imgs[0] || prop.img1 || '';
-      var thumbHtml = thumbSrc ? '<img src="'+thumbSrc+'" style="width:60px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0" loading="lazy">' : '';
+      var thumbHtml = thumbSrc ? '<img src="'+thumbSrc+'" alt="'+(prop.title||'Property')+'" style="width:60px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0" loading="lazy">' : '';
       return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.8rem;background:#fafbff">'
         + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;flex-wrap:wrap">'
         + thumbHtml
