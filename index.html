@@ -1070,6 +1070,14 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .hero{min-height:calc(100svh - 96px)}
 .auth-wrap{min-height:calc(100svh - 64px)}
 .dash-sidebar{height:calc(100svh - 64px)}
+/* Mobile sidebar drawer */
+#ds-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(10,15,30,.55);z-index:999;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+#ds-sidebar-overlay.ds-ov-open{display:block}
+.dash-sidebar.ds-open{display:flex!important;position:fixed;left:0;top:64px;width:260px;height:calc(100svh - 64px);z-index:1000;box-shadow:6px 0 32px rgba(0,0,0,.28);animation:_dsSlideIn .22s ease}
+@keyframes _dsSlideIn{from{transform:translateX(-100%)}to{transform:translateX(0)}}
+#ds-toggle-btn{display:none;align-items:center;gap:.45rem;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:.45rem .8rem;font-size:.76rem;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:.03em;flex-shrink:0;transition:background .2s}
+#ds-toggle-btn:hover{background:var(--blue)}
+@media(max-width:1024px){#ds-toggle-btn{display:flex}}
 /* Print styles for Google (SEO signal) */
 @media print{
   .topnav,.chat-fab,.chat-panel,.toast,.ticker-strip{display:none}
@@ -3953,6 +3961,7 @@ html,body{overscroll-behavior-x:none}
      PAGE: DASHBOARD
 ════════════════════════════════════ -->
 <div class="page" id="page-dashboard">
+  <div id="ds-sidebar-overlay" onclick="toggleDashSidebar(true)"></div>
   <div class="dash-wrap">
     <aside class="dash-sidebar">
       <div class="ds-logo"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span>KOMISIYONERI</span></div>
@@ -3988,6 +3997,10 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" data-roles="all" onclick="openProfile()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-rw="Igenamiterere" data-en="Settings">Igenamiterere</span></div>
     </aside>
     <main class="dash-content">
+      <button id="ds-toggle-btn" onclick="toggleDashSidebar()" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <span data-rw="Menu" data-en="Menu">Menu</span>
+      </button>
       <div class="dash-welcome">
         <h2 id="dash-welcome-name" data-rw="Murakaza neza, Agent!" data-en="Welcome back, Agent!">Murakaza neza, Agent!</h2>
         <p data-rw="Ibyo bigezweho ku butunzi bwawe kuri uyu wa 3" data-en="Here's what's happening with your portfolio today">Ibyo bigezweho ku butunzi bwawe kuri uyu wa 3</p>
@@ -24172,6 +24185,28 @@ function submitSiteForm() {
 //  LIVE DASHBOARD — Firestore KPIs + Activity Feed
 // ═══════════════════════════════════════════════════════
 
+function toggleDashSidebar(forceClose) {
+  var sidebar  = document.querySelector('.dash-sidebar');
+  var overlay  = document.getElementById('ds-sidebar-overlay');
+  if (!sidebar || !overlay) return;
+  var isOpen = sidebar.classList.contains('ds-open');
+  if (forceClose === true || isOpen) {
+    sidebar.classList.remove('ds-open');
+    overlay.classList.remove('ds-ov-open');
+    document.body.style.overflow = '';
+  } else {
+    sidebar.classList.add('ds-open');
+    overlay.classList.add('ds-ov-open');
+    document.body.style.overflow = 'hidden';
+    if (!toggleDashSidebar._escWired) {
+      toggleDashSidebar._escWired = true;
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') toggleDashSidebar(true);
+      });
+    }
+  }
+}
+
 function _filterDashSidebar(role) {
   var r = (role || 'agent').toLowerCase();
   var sidebar = document.querySelector('.dash-sidebar');
@@ -24187,6 +24222,15 @@ function _filterDashSidebar(role) {
       if (m.style.display !== 'none') anyVisible = true;
     });
     sec.style.display = anyVisible ? '' : 'none';
+  });
+  // Close drawer on mobile when a nav item is clicked
+  sidebar.querySelectorAll('.dn').forEach(function(item) {
+    if (!item._dsCloseWired) {
+      item._dsCloseWired = true;
+      item.addEventListener('click', function() {
+        if (window.innerWidth <= 1024) toggleDashSidebar(true);
+      });
+    }
   });
 }
 
