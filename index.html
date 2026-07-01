@@ -167,12 +167,13 @@ var _phKey='YOUR_POSTHOG_API_KEY';
 if(_phKey&&_phKey.indexOf('YOUR_')!==0){posthog.init(_phKey,{api_host:'https://us.i.posthog.com',person_profiles:'identified_only',capture_pageview:false,autocapture:true,session_recording:{maskAllInputs:true}});}
 </script>
 
-<!-- Sentry — production error monitoring -->
+<!-- Sentry — disabled until real DSN is configured (replace YOUR_SENTRY_DSN then uncomment)
 <script src="https://browser.sentry-cdn.com/8.28.0/bundle.min.js" crossorigin="anonymous"></script>
 <script>
 var _sentryDsn='YOUR_SENTRY_DSN';
 if(typeof Sentry!=='undefined'&&_sentryDsn.indexOf('YOUR_')!==0){Sentry.init({dsn:_sentryDsn,release:'komisiyoneri@1.0.0',environment:location.hostname.includes('localhost')?'development':'production',tracesSampleRate:0.1,beforeSend:function(ev){return location.hostname==='localhost'?null:ev;}});}
 </script>
+-->
 
 <style>
 /* ══════════════════════════════════════
@@ -9643,6 +9644,12 @@ window.addEventListener('DOMContentLoaded', function() {
   go('home');
   setLang('rw');
   initChat();
+  // Set min=today on all booking/viewing/offer date pickers (bug #7)
+  var todayStr = new Date().toISOString().split('T')[0];
+  ['book-date','vr-date','offer-expiry','asr-date'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.min = todayStr;
+  });
 });
 
 // ============================================
