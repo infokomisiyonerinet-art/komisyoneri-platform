@@ -1,5 +1,5 @@
 # KOMISIYONERI Connectpro Services
-# komisyoneri-platform-nu.vercel.app
+# komisiyoneri.co.rw
 
 User-agent: *
 Allow: /
@@ -16,7 +16,7 @@ Disallow: /admin
 Disallow: /api/
 
 # Sitemap location
-Sitemap: https://komisyoneri-platform-nu.vercel.app/sitemap.xml
+Sitemap: https://komisiyoneri.co.rw/sitemap.xml
 
 # Crawl delay (be nice to the server)
 Crawl-delay: 1
