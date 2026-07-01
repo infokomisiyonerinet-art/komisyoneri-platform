@@ -15,7 +15,7 @@ Location:      Kigali, Rwanda
 Founded:       2024
 CEO/Founder:   Fabrice Ndacyayisenga (65% Class A voting shares)
 Live Platform: https://komisiyoneri.co.rw
-Target Domain: www.komisiyoneri.co.rw
+Target Domain: komisiyoneri.co.rw
 Contact:       info.komisiyoneri.net@gmail.com
 Languages:     Kinyarwanda (primary) + English
 ```
@@ -225,8 +225,8 @@ Measurement ID:    G-ERRNCE85E2
 ```
 Hosting:     Vercel (auto-deploy from GitHub)
 Repository:  GitHub (main branch = production)
-Domain:      komisyoneri-platform-nu.vercel.app (live)
-             www.komisiyoneri.com (target — pending DNS)
+Domain:      komisiyoneri.co.rw (live — production)
+             komisyoneri-platform-nu.vercel.app (Vercel preview/staging alias)
 SSL:         Automatic via Vercel
 ```
 
