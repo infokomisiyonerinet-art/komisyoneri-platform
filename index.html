@@ -168,7 +168,7 @@ if(_phKey&&_phKey.indexOf('YOUR_')!==0){posthog.init(_phKey,{api_host:'https://u
 </script>
 
 <!-- Sentry — production error monitoring -->
-<script src="https://browser.sentry-cdn.com/8.28.0/bundle.min.js" crossorigin="anonymous"></script>
+<script async src="https://browser.sentry-cdn.com/8.28.0/bundle.min.js" crossorigin="anonymous"></script>
 <script>
 var _sentryDsn='YOUR_SENTRY_DSN';
 if(typeof Sentry!=='undefined'&&_sentryDsn.indexOf('YOUR_')!==0){Sentry.init({dsn:_sentryDsn,release:'komisiyoneri@1.0.0',environment:location.hostname.includes('localhost')?'development':'production',tracesSampleRate:0.1,beforeSend:function(ev){return location.hostname==='localhost'?null:ev;}});}
@@ -1364,7 +1364,9 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 /* ── HERO UPGRADE ── */
 .hero {
   /* Kigali skyline — embedded inline so it works on any deployment */
-  background-image: url('/images/kigali-skyline.jpg');
+  background-image: url('/images/kigali-skyline.jpg'); /* fallback for browsers without image-set() support */
+  background-image: -webkit-image-set(url('/images/kigali-skyline.webp') 1x type('image/webp'), url('/images/kigali-skyline.jpg') 1x type('image/jpeg'));
+  background-image: image-set(url('/images/kigali-skyline.webp') type('image/webp'), url('/images/kigali-skyline.jpg') type('image/jpeg'));
   background-size: cover;
   background-position: center 18%;
   background-repeat: no-repeat;
@@ -10150,8 +10152,9 @@ function renderUserPropCard(prop) {
   if(prop.size) feats.push('<span class="p-feat">📐 '+prop.size+'m²</span>');
   var featsHtml = feats.join('');
 
-  // Image
-  var imgBg = prop.img1 ? ' style="background-image:url(' + prop.img1 + ');background-size:cover;background-position:center;background-repeat:no-repeat"' : '';
+  // Image — lazy-loaded: URL stashed in data-bg, applied by the IntersectionObserver
+  // in lazyLoadPropImages() once the card scrolls near the viewport.
+  var imgBg = prop.img1 ? ' data-bg="' + prop.img1 + '" style="background-size:cover;background-position:center;background-repeat:no-repeat"' : '';
 
   // Badges
   var topBadges = '';
@@ -10208,6 +10211,47 @@ function renderUserPropCard(prop) {
     + '</div>';
 }
 
+// --- LAZY-LOAD PROPERTY CARD IMAGES ---
+// Property cards keep their overlay badges/buttons as real DOM children of .p-img
+// (can't do that inside a plain <img>), so lazy-loading is done via a data-bg
+// attribute + IntersectionObserver instead of native <img loading="lazy">.
+// A single MutationObserver watches the whole document so every grid that calls
+// renderUserPropCard() gets lazy-loading automatically, with no per-call-site wiring.
+(function initLazyPropImages() {
+  var supportsIO = 'IntersectionObserver' in window;
+  var io = supportsIO ? new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (!entry.isIntersecting) return;
+      applyLazyBg(entry.target);
+      io.unobserve(entry.target);
+    });
+  }, { rootMargin: '200px 0px' }) : null;
+
+  function applyLazyBg(el) {
+    var url = el.getAttribute('data-bg');
+    if (url) { el.style.backgroundImage = 'url(' + url + ')'; el.removeAttribute('data-bg'); }
+  }
+
+  function observe(el) {
+    if (!io) { applyLazyBg(el); return; } // no IntersectionObserver support — load immediately
+    io.observe(el);
+  }
+
+  function scan(node) {
+    if (!node || node.nodeType !== 1) return;
+    if (node.matches && node.matches('.p-img[data-bg]')) observe(node);
+    if (node.querySelectorAll) {
+      var found = node.querySelectorAll('.p-img[data-bg]');
+      for (var i = 0; i < found.length; i++) observe(found[i]);
+    }
+  }
+
+  new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      for (var i = 0; i < m.addedNodes.length; i++) scan(m.addedNodes[i]);
+    });
+  }).observe(document.body, { childList: true, subtree: true });
+})();
 
 // --- INJECT APPROVED PROPERTIES INTO LISTINGS PAGE ---
 function loadApprovedProperties() {
@@ -13703,8 +13747,8 @@ go = function(page) {
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <script>
   // ═══════════════════════════════════════════════════════
@@ -13733,10 +13777,20 @@ go = function(page) {
   var rtdb    = firebase.database();    // Realtime DB — notifications + presence
   var storage = firebase.storage();     // Storage — images + documents
 
-  // Analytics (optional — graceful fail if blocked by ad-blocker)
-  try { firebase.analytics(); } catch(e) {}
+  // Offline/IndexedDB cache — repeat navigations read from local cache instantly
+  // instead of always waiting on a network round-trip (fails gracefully if the
+  // browser has multiple tabs open or persistence isn't supported).
+  db.enablePersistence({ synchronizeTabs: true }).catch(function(err) {
+    console.warn('[Firestore] persistence not enabled:', err.code);
+  });
 
   console.log('[KOMISIYONERI] Firebase yahuye na project:', firebase.app().options.projectId);
+
+  // Analytics (optional — loaded via a deferred script, so init waits for window
+  // load; graceful fail if blocked by an ad-blocker or not yet loaded).
+  window.addEventListener('load', function() {
+    try { firebase.analytics(); } catch(e) {}
+  });
 
   // ── EmailJS config — replace placeholders in your EmailJS dashboard ──
   var _ejsKey          = 'YOUR_EMAILJS_PUBLIC_KEY';
@@ -14367,33 +14421,36 @@ function loadBranchNetwork() {
 
   loadBranchKPIs();
   fetchBranches(function() {
+    renderBranchDistrictKPIs();
     switchBranchTab(_brTabActive);
   });
 }
 
 function loadBranchKPIs() {
-  db.collection('branches').where('isActive','==',true).get().then(function(snap) {
-    var el = g('br-kpi-branches'); if (el) el.textContent = snap.size;
-    var districts = new Set();
-    snap.forEach(function(d) {
-      var covArr = d.data().districtsCovered || [];
-      covArr.forEach(function(dist) { districts.add(dist); });
-      if (d.data().district) districts.add(d.data().district);
-    });
-    var el2 = g('br-kpi-districts'); if (el2) el2.textContent = districts.size;
+  /* Branch + district counts are derived from the shared _branches cache
+     (populated by fetchBranches) instead of an extra query — see renderBranchDistrictKPIs(). */
+  db.collection('users').where('role','==','agent').where('isActive','==',true).count().get().then(function(snap) {
+    var el = g('br-kpi-agents'); if (el) el.textContent = snap.data().count;
   }).catch(function(){});
 
-  db.collection('users').where('role','==','agent').where('isActive','==',true).get().then(function(snap) {
-    var el = g('br-kpi-agents'); if (el) el.textContent = snap.size;
+  db.collection('users').where('role','==','staff').where('isActive','==',true).count().get().then(function(snap) {
+    var el = g('br-kpi-staff'); if (el) el.textContent = snap.data().count;
   }).catch(function(){});
 
-  db.collection('users').where('role','==','staff').where('isActive','==',true).get().then(function(snap) {
-    var el = g('br-kpi-staff'); if (el) el.textContent = snap.size;
+  db.collection('properties').where('isActive','==',true).where('status','==','approved').count().get().then(function(snap) {
+    var el = g('br-kpi-props'); if (el) el.textContent = snap.data().count;
   }).catch(function(){});
+}
 
-  db.collection('properties').where('isActive','==',true).where('status','==','approved').get().then(function(snap) {
-    var el = g('br-kpi-props'); if (el) el.textContent = snap.size;
-  }).catch(function(){});
+function renderBranchDistrictKPIs() {
+  var el = g('br-kpi-branches'); if (el) el.textContent = _branches.length;
+  var districts = new Set();
+  _branches.forEach(function(b) {
+    var covArr = b.districtsCovered || [];
+    covArr.forEach(function(dist) { districts.add(dist); });
+    if (b.district) districts.add(b.district);
+  });
+  var el2 = g('br-kpi-districts'); if (el2) el2.textContent = districts.size;
 }
 
 function fetchBranches(cb) {
@@ -14453,11 +14510,11 @@ function renderBranchCards() {
 
   /* Async load per-branch counts */
   filtered.forEach(function(b) {
-    db.collection('users').where('branchId','==',b.id).where('role','==','agent').where('isActive','==',true).get().then(function(s) {
-      var el2 = g('br-stat-agents-' + b.id); if (el2) el2.innerHTML = '<span>' + s.size + '</span> agents';
+    db.collection('users').where('branchId','==',b.id).where('role','==','agent').where('isActive','==',true).count().get().then(function(s) {
+      var el2 = g('br-stat-agents-' + b.id); if (el2) el2.innerHTML = '<span>' + s.data().count + '</span> agents';
     }).catch(function(){});
-    db.collection('properties').where('branchId','==',b.id).where('isActive','==',true).get().then(function(s) {
-      var el2 = g('br-stat-props-' + b.id); if (el2) el2.innerHTML = '<span>' + s.size + '</span> listings';
+    db.collection('properties').where('branchId','==',b.id).where('isActive','==',true).count().get().then(function(s) {
+      var el2 = g('br-stat-props-' + b.id); if (el2) el2.innerHTML = '<span>' + s.data().count + '</span> listings';
     }).catch(function(){});
   });
   switchLang(currentLang);
@@ -14547,7 +14604,7 @@ function saveBranch() {
     showToast(currentLang==='rw' ? 'Ishami ryabitswe!' : 'Branch saved!', 'success');
     logAudit(editId ? 'branch_updated' : 'branch_created', 'branches', payload.id, null, payload);
     closeBranchCreate();
-    fetchBranches(renderBranchCards);
+    fetchBranches(function() { renderBranchCards(); renderBranchDistrictKPIs(); });
     loadBranchKPIs();
     updateBranchSidebarBadge();
   }).catch(function(err) {
@@ -14597,10 +14654,10 @@ function openBranchDetail(branchId) {
     if (statsEl) statsEl.innerHTML =
       '<div class="br-live-stats"><div class="br-live-kpi"><span class="br-live-val">'+st.agents+'</span><span class="br-live-lbl">Agents</span></div><div class="br-live-kpi"><span class="br-live-val">'+st.staff+'</span><span class="br-live-lbl">Staff</span></div><div class="br-live-kpi"><span class="br-live-val">'+st.props+'</span><span class="br-live-lbl">Listings</span></div><div class="br-live-kpi"><span class="br-live-val">'+st.deals+'</span><span class="br-live-lbl">Deals</span></div></div>';
   }
-  db.collection('users').where('branchId','==',b.id).where('role','==','agent').where('isActive','==',true).get().then(function(s){st.agents=s.size;done();}).catch(done);
-  db.collection('users').where('branchId','==',b.id).where('role','==','staff').where('isActive','==',true).get().then(function(s){st.staff=s.size;done();}).catch(done);
-  db.collection('properties').where('branchId','==',b.id).where('isActive','==',true).get().then(function(s){st.props=s.size;done();}).catch(done);
-  db.collection('deals').where('branchId','==',b.id).where('isActive','==',true).get().then(function(s){st.deals=s.size;done();}).catch(done);
+  db.collection('users').where('branchId','==',b.id).where('role','==','agent').where('isActive','==',true).count().get().then(function(s){st.agents=s.data().count;done();}).catch(done);
+  db.collection('users').where('branchId','==',b.id).where('role','==','staff').where('isActive','==',true).count().get().then(function(s){st.staff=s.data().count;done();}).catch(done);
+  db.collection('properties').where('branchId','==',b.id).where('isActive','==',true).count().get().then(function(s){st.props=s.data().count;done();}).catch(done);
+  db.collection('deals').where('branchId','==',b.id).where('isActive','==',true).count().get().then(function(s){st.deals=s.data().count;done();}).catch(done);
 }
 
 function closeBranchDetail() { closeModal('branch-detail-modal'); }
@@ -14701,9 +14758,9 @@ function loadBranchPerformance() {
   if (pending === 0) { renderBranchPerf(results, el); return; }
   function done() { pending--; if (pending === 0) renderBranchPerf(results, el); }
   results.forEach(function(r) {
-    db.collection('users').where('branchId','==',r.id).where('role','==','agent').where('isActive','==',true).get().then(function(s){r.agents=s.size;done();}).catch(done);
-    db.collection('deals').where('branchId','==',r.id).where('isActive','==',true).get().then(function(s){r.deals=s.size;done();}).catch(done);
-    db.collection('properties').where('branchId','==',r.id).where('isActive','==',true).get().then(function(s){r.props=s.size;done();}).catch(done);
+    db.collection('users').where('branchId','==',r.id).where('role','==','agent').where('isActive','==',true).count().get().then(function(s){r.agents=s.data().count;done();}).catch(done);
+    db.collection('deals').where('branchId','==',r.id).where('isActive','==',true).count().get().then(function(s){r.deals=s.data().count;done();}).catch(done);
+    db.collection('properties').where('branchId','==',r.id).where('isActive','==',true).count().get().then(function(s){r.props=s.data().count;done();}).catch(done);
     db.collection('invoices').where('branchId','==',r.id).where('status','==','paid').where('isActive','==',true).get().then(function(s){var t=0;s.forEach(function(d){t+=(d.data().totalAmount||0);});r.revenue=t;done();}).catch(done);
   });
 }
@@ -14775,8 +14832,8 @@ function loadBranchCoverage() {
 }
 
 function updateBranchSidebarBadge() {
-  db.collection('branches').where('isActive','==',true).get().then(function(s) {
-    var el = g('branch-sidebar-badge'); if (el) el.textContent = s.size > 0 ? s.size : '';
+  db.collection('branches').where('isActive','==',true).count().get().then(function(s) {
+    var el = g('branch-sidebar-badge'); if (el) el.textContent = s.data().count > 0 ? s.data().count : '';
   }).catch(function(){});
 }
 
@@ -14848,9 +14905,13 @@ function loadBIDash() {
 
 /* ── summary strip ── */
 function loadBISummary() {
-  /* total listings */
-  db.collection('properties').where('isActive','==',true).get().then(function(snap) {
-    var el = g('bi-sum-props'); if (el) el.textContent = snap.size;
+  /* total listings — exact count via aggregation, no document download needed */
+  db.collection('properties').where('isActive','==',true).count().get().then(function(snap) {
+    var el = g('bi-sum-props'); if (el) el.textContent = snap.data().count;
+  }).catch(function(){});
+
+  /* avg price — sampled from a bounded set (same convention as other BI market widgets) */
+  db.collection('properties').where('isActive','==',true).limit(300).get().then(function(snap) {
     var total = 0, cnt = 0;
     snap.forEach(function(d) { var p = d.data().price; if (p) { total += parseFloat(p)||0; cnt++; } });
     var av = g('bi-sum-avgprice');
@@ -14885,8 +14946,8 @@ function loadBISummary() {
   /* team win rate */
   var pending = 2; var won = 0; var total = 0;
   function calcWin() { pending--; if (pending > 0) return; var el = g('bi-sum-winrate'); if (el) el.textContent = total > 0 ? Math.round(won/total*100)+'%' : '—'; }
-  db.collection('deals').where('isActive','==',true).where('pipelineStage','==','closed_won').get().then(function(s){ won = s.size; calcWin(); }).catch(calcWin);
-  db.collection('leads').where('isActive','==',true).get().then(function(s){ total = s.size; calcWin(); }).catch(calcWin);
+  db.collection('deals').where('isActive','==',true).where('pipelineStage','==','closed_won').count().get().then(function(s){ won = s.data().count; calcWin(); }).catch(calcWin);
+  db.collection('leads').where('isActive','==',true).count().get().then(function(s){ total = s.data().count; calcWin(); }).catch(calcWin);
 }
 
 /* ────────────────────────────────────────────
@@ -15075,14 +15136,15 @@ function biBenchmarkTable() {
     if (snap.empty) { el.innerHTML = '<div class="exec-empty">No agents</div>'; return; }
     var agents = [];
     snap.forEach(function(d) { agents.push({ id:d.id, name:d.data().displayName||d.data().email||d.id, leads:0, deals:0, won:0, commission:0, viewings:0 }); });
-    var pending = agents.length * 4;
+    var pending = agents.length * 5;
     if (pending === 0) { renderBenchTable(agents, el); return; }
     function done() { pending--; if (pending === 0) renderBenchTable(agents, el); }
     agents.forEach(function(a) {
-      db.collection('leads').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s){ a.leads=s.size; done(); }).catch(done);
-      db.collection('deals').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s){ a.deals=s.size; s.forEach(function(d){ if(d.data().pipelineStage==='closed_won') a.won++; }); done(); }).catch(done);
+      db.collection('leads').where('agentId','==',a.id).where('isActive','==',true).count().get().then(function(s){ a.leads=s.data().count; done(); }).catch(done);
+      db.collection('deals').where('agentId','==',a.id).where('isActive','==',true).count().get().then(function(s){ a.deals=s.data().count; done(); }).catch(done);
+      db.collection('deals').where('agentId','==',a.id).where('isActive','==',true).where('pipelineStage','==','closed_won').count().get().then(function(s){ a.won=s.data().count; done(); }).catch(done);
       db.collection('commissions').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s){ s.forEach(function(d){ a.commission+=(d.data().agentShare||0); }); done(); }).catch(done);
-      db.collection('viewings').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s){ a.viewings=s.size; done(); }).catch(done);
+      db.collection('viewings').where('agentId','==',a.id).where('isActive','==',true).count().get().then(function(s){ a.viewings=s.data().count; done(); }).catch(done);
     });
   }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
 }
@@ -15318,29 +15380,24 @@ function loadExecKPIs() {
       if (el) el.textContent = fmtRWF(total);
     }).catch(function(){});
 
-  db.collection('deals').where('isActive','==',true).get().then(function(snap) {
-    var active = 0;
-    snap.forEach(function(d) {
-      var s = d.data().pipelineStage || '';
-      if (s !== 'closed_won' && s !== 'closed_lost') active++;
-    });
+  db.collection('deals').where('isActive','==',true).where('pipelineStage','not-in',['closed_won','closed_lost']).count().get().then(function(snap) {
     var el = g('exec-kpi-deals');
-    if (el) el.textContent = active;
+    if (el) el.textContent = snap.data().count;
   }).catch(function(){});
 
-  db.collection('properties').where('isActive','==',true).where('status','==','approved').get().then(function(snap) {
+  db.collection('properties').where('isActive','==',true).where('status','==','approved').count().get().then(function(snap) {
     var el = g('exec-kpi-props');
-    if (el) el.textContent = snap.size;
+    if (el) el.textContent = snap.data().count;
   }).catch(function(){});
 
-  db.collection('users').where('role','==','agent').where('isActive','==',true).get().then(function(snap) {
+  db.collection('users').where('role','==','agent').where('isActive','==',true).count().get().then(function(snap) {
     var el = g('exec-kpi-agents');
-    if (el) el.textContent = snap.size;
+    if (el) el.textContent = snap.data().count;
   }).catch(function(){});
 
-  db.collection('leads').where('isActive','==',true).where('createdAt','>=',ts).get().then(function(snap) {
+  db.collection('leads').where('isActive','==',true).where('createdAt','>=',ts).count().get().then(function(snap) {
     var el = g('exec-kpi-leads');
-    if (el) el.textContent = snap.size;
+    if (el) el.textContent = snap.data().count;
   }).catch(function(){});
 
   db.collection('commissions').where('isActive','==',true).where('createdAt','>=',ts).get().then(function(snap) {
@@ -15577,8 +15634,8 @@ function loadExecConversion() {
     }
     switchLang(currentLang);
   }
-  db.collection('leads').where('isActive','==',true).get().then(function(snap) {
-    totalLeads = snap.size; render();
+  db.collection('leads').where('isActive','==',true).count().get().then(function(snap) {
+    totalLeads = snap.data().count; render();
   }).catch(function() { render(); });
   db.collection('deals').where('isActive','==',true).get().then(function(snap) {
     snap.forEach(function(d) {
@@ -15612,8 +15669,8 @@ function loadExecAgentPerf() {
     if (pending === 0) { renderAgentPerf(agents, container); return; }
     function done() { pending--; if (pending === 0) renderAgentPerf(agents, container); }
     agents.forEach(function(a) {
-      db.collection('leads').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s) { a.leads = s.size; done(); }).catch(done);
-      db.collection('deals').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s) { a.deals = s.size; done(); }).catch(done);
+      db.collection('leads').where('agentId','==',a.id).where('isActive','==',true).count().get().then(function(s) { a.leads = s.data().count; done(); }).catch(done);
+      db.collection('deals').where('agentId','==',a.id).where('isActive','==',true).count().get().then(function(s) { a.deals = s.data().count; done(); }).catch(done);
       db.collection('commissions').where('agentId','==',a.id).where('isActive','==',true).get().then(function(s) { var tot = 0; s.forEach(function(d) { tot += (d.data().agentShare || 0); }); a.commission = tot; done(); }).catch(done);
     });
   }).catch(function() {

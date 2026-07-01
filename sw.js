@@ -1,8 +1,8 @@
-// KOMISIYONERI — Service Worker v3.0
-// PWA: Offline support + Fast loading
+// KOMISIYONERI — Service Worker v4.0
+// PWA: Offline support + Fast loading (stale-while-revalidate)
 
-const CACHE = 'komisiyoneri-v3';
-const PRECACHE = ['/', '/index.html', '/manifest.json', '/icon-192.svg', '/icon-512.svg'];
+const CACHE = 'komisiyoneri-v4';
+const PRECACHE = ['/', '/index.html', '/manifest.json', '/icon-192.svg', '/icon-512.svg', '/images/kigali-skyline.webp'];
 
 // INSTALL
 self.addEventListener('install', e => {
@@ -22,25 +22,49 @@ self.addEventListener('activate', e => {
   );
 });
 
-// FETCH — Network first, cache fallback
+// FETCH
+// - Navigations (the HTML shell): network-first, so deploys are visible right away;
+//   fall back to cache only when offline/network fails.
+// - Everything else (manifest, icons, images): stale-while-revalidate — serve the
+//   cached copy instantly, then refresh it in the background for next time.
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   if (e.request.url.includes('/api/')) return;
   if (!e.request.url.startsWith(self.location.origin)) return;
 
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          if (res && res.status === 200) {
+            const clone = res.clone();
+            caches.open(CACHE).then(c => c.put(e.request, clone));
+          }
+          return res;
+        })
+        .catch(() => caches.match(e.request).then(cached => cached || caches.match('/')))
+    );
+    return;
+  }
+
   e.respondWith(
-    fetch(e.request)
-      .then(res => {
-        if (res && res.status === 200) {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
+    caches.open(CACHE).then(cache =>
+      cache.match(e.request).then(cached => {
+        const networkFetch = fetch(e.request)
+          .then(res => {
+            if (res && res.status === 200) cache.put(e.request, res.clone());
+            return res;
+          })
+          .catch(() => null);
+
+        if (cached) {
+          // Serve the cached response immediately; refresh the cache in the background.
+          networkFetch.catch(() => {});
+          return cached;
         }
-        return res;
-      })
-      .catch(() =>
-        caches.match(e.request).then(cached => {
-          if (cached) return cached;
-          if (e.request.mode === 'navigate') return caches.match('/');
+
+        return networkFetch.then(res => {
+          if (res) return res;
           // Offline image placeholder
           if (e.request.destination === 'image') {
             return new Response(
@@ -48,8 +72,9 @@ self.addEventListener('fetch', e => {
               { headers: { 'Content-Type': 'image/svg+xml' } }
             );
           }
-        })
-      )
+        });
+      })
+    )
   );
 });
 
@@ -72,4 +97,4 @@ self.addEventListener('notificationclick', e => {
   e.waitUntil(clients.openWindow(e.notification.data?.url || '/'));
 });
 
-console.log('[KOMISIYONERI SW v3] Loaded ✅');
+console.log('[KOMISIYONERI SW v4] Loaded ✅');
