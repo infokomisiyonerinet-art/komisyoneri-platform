@@ -2786,6 +2786,29 @@ html,body{overscroll-behavior-x:none}
           <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:400;cursor:pointer"><input type="checkbox" id="am-generator"> ⚡ Generator</label>
         </div>
       </div>
+      <!-- Investment Opportunity — admin/staff only -->
+      <div id="prop-investment-section" style="display:none;flex-direction:column;gap:.7rem">
+        <div style="background:#fff8e1;border:1.5px solid var(--gold);border-radius:8px;padding:.7rem;font-size:.78rem;color:#7c5e10;font-weight:600">
+          💼 Investment Opportunity (Investor Portal)
+        </div>
+        <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;font-weight:600;cursor:pointer">
+          <input type="checkbox" id="prop-is-investment" onchange="document.getElementById('prop-investment-fields').style.display=this.checked?'flex':'none'">
+          <span data-rw="Iyi ni Investment Opportunity" data-en="List this as an Investment Opportunity">List this as an Investment Opportunity</span>
+        </label>
+        <div id="prop-investment-fields" style="display:none;flex-direction:column;gap:.6rem">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+            <div class="field"><label data-rw="Ishoramari Ntarengwa (RWF)" data-en="Min Investment (RWF)">Min Investment (RWF)</label>
+              <input type="number" id="prop-inv-min" min="0" placeholder="5000000">
+            </div>
+            <div class="field"><label data-rw="ROI Igenwe (%/umwaka)" data-en="Target ROI (%/yr)">Target ROI (%/yr)</label>
+              <input type="number" id="prop-inv-roi" min="0" step="0.1" placeholder="8.5">
+            </div>
+          </div>
+          <div class="field"><label data-rw="Ikigereranyo cy'Amafaranga Akenewe (RWF)" data-en="Total Raise Target (RWF)">Total Raise Target (RWF)</label>
+            <input type="number" id="prop-inv-target" min="0" placeholder="50000000">
+          </div>
+        </div>
+      </div>
       <!-- Documents section -->
       <div style="background:#fff7e6;border:1.5px solid #f59e0b;border-radius:8px;padding:.7rem;font-size:.78rem;color:#92400e;font-weight:600">
         📄 Inyandiko z'Imitungo (Documents)
@@ -4046,6 +4069,7 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="go('verification')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg><span data-rw="Kugenzura" data-en="Verification">Verification</span><span class="ds-badge" id="verif-sidebar-count">0</span></div>
       <div class="dn" onclick="go('documents')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span data-rw="Dosiye / Vault" data-en="Document Vault">Document Vault</span><span class="ds-badge" id="docs-sidebar-count">0</span></div>
       <div class="dn" onclick="go('partners')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Abahuza" data-en="Partners">Partners</span><span class="ds-badge" id="partners-sidebar-count">0</span></div>
+      <div class="dn" onclick="go('investors')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span data-rw="Investors" data-en="Investors">Investors</span></div>
       <div class="dn" onclick="go('financing')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg><span data-rw="Inguzanyo" data-en="Financing">Financing</span><span class="ds-badge" id="fin-sidebar-count">0</span></div>
       <div class="ds-section" data-rw="IMARI" data-en="FINANCE">IMARI</div>
       <div class="dn" onclick="go('commissions')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span data-rw="Komisiyoni" data-en="Commissions">Komisiyoni</span><span class="ds-badge" id="comm-sidebar-count">0</span></div>
@@ -5122,6 +5146,61 @@ html,body{overscroll-behavior-x:none}
       <div class="crm-empty" style="grid-column:1/-1">
         <div class="crm-empty-icon">🤝</div>
         <div class="crm-empty-title" data-rw="Gutegura abahuza..." data-en="Loading partners...">Loading partners...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === PAGE: INVESTOR PORTAL === -->
+<div class="page" id="page-investors">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">💼 Investors</div>
+      <h1 class="h1" data-rw="Investor Portal" data-en="Investor Portal">Investor Portal</h1>
+      <p style="color:rgba(255,255,255,.82);font-size:.85rem" data-rw="Shakisha amahirwe yo gushora imari, bara ROI yawe, kandi ukurikirane portfolio yawe." data-en="Browse investment opportunities, calculate your ROI, and track your real portfolio.">Browse investment opportunities, calculate your ROI, and track your real portfolio.</p>
+    </div>
+  </div>
+  <div class="crm-wrap">
+    <div class="crm-filters" style="margin-bottom:1rem">
+      <button class="btn btn-sm inv-tab-btn active" data-tab="opps" onclick="switchInvestorTab('opps',this)" data-rw="Amahirwe yo Gushora Imari" data-en="Investment Opportunities">Opportunities</button>
+      <button class="btn btn-sm inv-tab-btn" data-tab="calc" onclick="switchInvestorTab('calc',this)" data-rw="Kubara ROI" data-en="ROI Calculator">ROI Calculator</button>
+      <button class="btn btn-sm inv-tab-btn" data-tab="portfolio" onclick="switchInvestorTab('portfolio',this)" data-rw="Portfolio Yanjye" data-en="My Portfolio">My Portfolio</button>
+    </div>
+
+    <!-- Opportunities tab -->
+    <div id="inv-tab-opps">
+      <div id="inv-opps-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.85rem">
+        <div class="crm-empty" style="grid-column:1/-1">
+          <div class="crm-empty-icon">💼</div>
+          <div class="crm-empty-title" data-rw="Gutegura amahirwe..." data-en="Loading opportunities...">Loading opportunities...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROI Calculator tab -->
+    <div id="inv-tab-calc" style="display:none;max-width:480px">
+      <div class="crm-header"><p style="color:var(--muted);font-size:.82rem" data-rw="Injiza amakuru y'ukuri kugira ngo urebe ROI y'agaciro — nta bipimo byahimbwe." data-en="Enter real assumptions to see a genuine ROI estimate — nothing here is a fabricated number.">Enter your own assumptions — this computes a real estimate, it does not look up or guarantee a return.</p></div>
+      <div style="display:flex;flex-direction:column;gap:.7rem">
+        <div class="field"><label data-rw="Igiciro cyo Kugura (RWF)" data-en="Purchase Price (RWF)">Purchase Price (RWF)</label>
+          <input type="number" id="roi-purchase-price" min="0" placeholder="50000000" oninput="calcInvestorROI()">
+        </div>
+        <div class="field"><label data-rw="Ubukode bw'Ukwezi (RWF)" data-en="Expected Monthly Rent (RWF)">Expected Monthly Rent (RWF)</label>
+          <input type="number" id="roi-monthly-rent" min="0" placeholder="400000" oninput="calcInvestorROI()">
+        </div>
+        <div class="field"><label data-rw="Ikoreshwa ry'Umwaka (RWF) — imisoro, ubwiteganyirize..." data-en="Annual Expenses (RWF) — taxes, maintenance, management...">Annual Expenses (RWF)</label>
+          <input type="number" id="roi-annual-expenses" min="0" placeholder="500000" oninput="calcInvestorROI()">
+        </div>
+        <div id="roi-result" style="background:var(--light);border-radius:10px;padding:1rem;font-size:.9rem;color:var(--muted)" data-rw="Uzuza amakuru hejuru kugira ngo ubone ibisubizo." data-en="Fill in the fields above to see your results.">Fill in the fields above to see your results.</div>
+      </div>
+    </div>
+
+    <!-- My Portfolio tab -->
+    <div id="inv-tab-portfolio" style="display:none">
+      <div id="inv-portfolio-list" style="display:flex;flex-direction:column;gap:.7rem">
+        <div class="crm-empty">
+          <div class="crm-empty-icon">📊</div>
+          <div class="crm-empty-title" data-rw="Injira kugira ngo urebe portfolio yawe" data-en="Log in to see your portfolio">Log in to see your portfolio</div>
+        </div>
       </div>
     </div>
   </div>
@@ -7099,7 +7178,9 @@ html,body{overscroll-behavior-x:none}
       <div id="vd-admin-actions" style="display:none;flex-direction:column;gap:.65rem">
         <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.08em" data-rw="GUTUNGA / GUTURA" data-en="ASSIGN PARTNER">ASSIGN PARTNER</div>
         <div style="display:flex;gap:.5rem">
-          <input type="text" id="vd-assign-partner" placeholder="Partner name or email" style="flex:1;padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem">
+          <select id="vd-assign-partner" style="flex:1;padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem">
+            <option value="" data-rw="-- Hitamo umunyamuryango --" data-en="-- Select a verified partner --">-- Select a verified partner --</option>
+          </select>
           <input type="number" id="vd-quoted-price" placeholder="Quote (RWF)" min="0" style="width:120px;padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;box-sizing:border-box">
         </div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap">
@@ -7165,6 +7246,13 @@ html,body{overscroll-behavior-x:none}
       <div class="vr-field">
         <label data-rw="Imitungo Ihuye (optional)" data-en="Related Property (optional)">Related Property</label>
         <input type="text" id="du-prop" placeholder="Property title or ID" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+      </div>
+      <div class="vr-field">
+        <label data-rw="Umukiriya Uhabwa Dosiye" data-en="Owning Client">Owning Client *</label>
+        <select id="du-client" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
+          <option value="" data-rw="-- Hitamo umukiriya --" data-en="-- Select client --">-- Select client --</option>
+        </select>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:.25rem" data-rw="Iyi dosiye izagaragara muri 'My Documents' y'uyu mukiriya gusa." data-en="This document will appear in this client's own document vault, not yours.">This document will appear in this client's own document vault, not yours.</div>
       </div>
       <div class="vr-field">
         <label data-rw="Abagomba Gusinya" data-en="Signatories (names, comma-separated)">Signatories</label>
@@ -7281,6 +7369,12 @@ html,body{overscroll-behavior-x:none}
               <label data-rw="Amazina y'Ugura" data-en="Buyer / Tenant">Buyer / Tenant</label>
               <input type="text" id="cg-buyer" placeholder="Full name" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;box-sizing:border-box">
             </div>
+          </div>
+          <div class="vr-field">
+            <label data-rw="Huza n'Umukiriya (kugira ngo abone iyi dosiye)" data-en="Link to Client Account (so they see this in their vault)">Link to Client Account *</label>
+            <select id="cg-client" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
+              <option value="" data-rw="-- Hitamo umukiriya --" data-en="-- Select client --">-- Select client --</option>
+            </select>
           </div>
           <div class="vr-field">
             <label data-rw="Imitungo / Inzu" data-en="Property Description">Property Description</label>
@@ -9957,9 +10051,11 @@ function go(name) {
       return;
     } else {
       var _dr = (currentUser.role || '').toLowerCase();
-      /* Clients have their own portal — redirect transparently */
+      /* Clients and investors have their own portals — redirect transparently */
       if (_dr === 'client') {
         name = 'customer';
+      } else if (_dr === 'investor') {
+        name = 'investors';
       } else {
         var _dAllowed = ['agent','admin','staff','ceo','super_admin','owner','partner','investor'];
         if (_dAllowed.indexOf(_dr) === -1) {
@@ -12412,6 +12508,10 @@ openAddProperty = function() {
   var userMedia = document.getElementById('user-media-section');
   if(adminMedia) adminMedia.style.display = isAdmin ? 'flex' : 'none';
   if(userMedia) userMedia.style.display = isAdmin ? 'none' : 'flex';
+  var canFlagInvestment = currentUser &&
+    (isAdmin || ['admin','staff','super_admin','Admin'].indexOf(currentUser.role) > -1);
+  var invSection = document.getElementById('prop-investment-section');
+  if (invSection) invSection.style.display = canFlagInvestment ? 'flex' : 'none';
 };
 
 // === FILE UPLOAD HANDLER (for regular users) ===
@@ -13006,7 +13106,7 @@ window.addEventListener('DOMContentLoaded', function() {
   var validPages = [
     'home','listings','detail','analytics',
     'sites','site','crm','deals','commissions',
-    'verification','documents','financing','partners',
+    'verification','documents','financing','partners','investors',
     'customer','office','hr','accounting',
     'exec','bi','branches','agents',
     'dashboard','auth','about','privacy','terms'
@@ -16575,25 +16675,58 @@ function renderExpenses(list) {
   if (!el) return;
   if (!list.length) { el.innerHTML = '<div class="off-empty">No expenses found.</div>'; return; }
   var catColors = { office:'#1249B3', transport:'#D97706', utilities:'#16A34A', marketing:'#6366F1', legal:'#64748B', maintenance:'#EA580C', equipment:'#C9A84C', salaries:'#0D3B8C', other:'#9CA3AF' };
+  var statusColors = { pending:'#F59E0B', approved:'#16A34A', rejected:'#DC2626', reimbursed:'#1249B3' };
+  var isAdmin = typeof currentUser !== 'undefined' && currentUser &&
+    ['admin','staff','ceo','super_admin','Admin'].indexOf(currentUser.role) !== -1;
   el.innerHTML = list.map(function(ex) {
     var cc = catColors[ex.category] || '#64748B';
     var catLabel = EXP_CATEGORIES[ex.category] || ex.category || 'Other';
+    var st = ex.status || 'pending';
+    var sc = statusColors[st] || '#64748B';
     return '<div class="ac-expense-card">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem">' +
         '<div style="display:flex;align-items:center;gap:.6rem">' +
           '<div class="ac-exp-cat-dot" style="background:' + cc + '"></div>' +
           '<div>' +
-            '<div class="ac-exp-desc">' + (ex.description||'Expense') + '</div>' +
-            '<div style="display:flex;gap:.5rem;align-items:center;margin-top:.15rem">' +
-              '<span class="ac-exp-cat-chip" style="background:' + cc + '20;color:' + cc + '">' + catLabel + '</span>' +
+            '<div class="ac-exp-desc">' + escapeHtml(ex.description||'Expense') + '</div>' +
+            '<div style="display:flex;gap:.5rem;align-items:center;margin-top:.15rem;flex-wrap:wrap">' +
+              '<span class="ac-exp-cat-chip" style="background:' + cc + '20;color:' + cc + '">' + escapeHtml(catLabel) + '</span>' +
+              '<span style="font-size:.7rem;font-weight:700;padding:.05rem .4rem;border-radius:10px;background:' + sc + '20;color:' + sc + '">' + st + '</span>' +
               '<span style="font-size:.72rem;color:var(--muted)">' + (ex.date||'') + '</span>' +
             '</div>' +
           '</div>' +
         '</div>' +
         '<div class="ac-exp-amount">' + fmtMRwf(ex.amount) + '</div>' +
       '</div>' +
+      (isAdmin && st === 'pending'
+        ? '<div style="display:flex;gap:.4rem;margin-top:.6rem">' +
+            '<button class="btn btn-sm" style="background:#16A34A;color:#fff" onclick="approveExpense(\'' + ex.id + '\')">' + (curLang==='rw'?'Emeza':'Approve') + '</button>' +
+            '<button class="btn btn-sm" style="background:#DC2626;color:#fff" onclick="rejectExpense(\'' + ex.id + '\')">' + (curLang==='rw'?'Anga':'Reject') + '</button>' +
+          '</div>'
+        : '') +
     '</div>';
   }).join('');
+}
+
+// Wires the approvedBy field that was declared but never used — matches
+// the existing processLeave() approve/reject pattern for consistency.
+function approveExpense(id)  { setExpenseApproval(id, 'approved'); }
+function rejectExpense(id)   { setExpenseApproval(id, 'rejected'); }
+function setExpenseApproval(id, newStatus) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var ex = _expenses.find(function(e) { return e.id === id; });
+  var oldStatus = ex ? ex.status : 'pending';
+  db.collection('expenses').doc(id).update({
+    status: newStatus, approvedBy: currentUser.uid,
+    approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  }).then(function() {
+    showToast('Expense ' + newStatus, 'success');
+    if (ex) { ex.status = newStatus; ex.approvedBy = currentUser.uid; }
+    logAudit('expense_' + newStatus, 'expenses', id, { status: oldStatus }, { status: newStatus });
+    filterExpenses();
+    if (typeof loadAccountingStats === 'function') loadAccountingStats();
+  }).catch(function() { showToast('Error updating expense', 'error'); });
 }
 
 function openExpenseCreate() {
@@ -16621,7 +16754,7 @@ function submitExpense() {
     reference: g('ex-ref').value||'',
     notes: g('ex-notes').value||'',
     approvedBy: null,
-    status: 'recorded', isActive: true,
+    status: 'pending', isActive: true,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     createdBy: currentUser.uid, updatedBy: currentUser.uid
@@ -19280,6 +19413,311 @@ document.addEventListener('DOMContentLoaded', function() {
       }).catch(function(){});
   }, 5500);
 });
+
+/* ── Partner self-service: "My Assigned Jobs" ──────────────
+   Real ecosystem integration — a logged-in partner sees only the
+   services.assignedToId == their own uid, can submit a report, and
+   sees a real payout invoice once the company marks the job paid. */
+function injectPartnerMyJobsSection() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var role = (currentUser.role || '').toLowerCase();
+  if (role !== 'partner') return;
+  var wrap = document.querySelector('#page-partners .crm-wrap');
+  if (!wrap) return;
+  var existing = document.getElementById('partner-my-jobs-section');
+  if (existing) { loadMyPartnerJobs(); return; }
+
+  var section = document.createElement('div');
+  section.id = 'partner-my-jobs-section';
+  section.style.cssText = 'margin-bottom:1.5rem;border-bottom:2px solid var(--border);padding-bottom:1.2rem';
+  section.innerHTML = '<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.08em;margin-bottom:.6rem" data-rw="AKAZI KANJYE" data-en="MY ASSIGNED JOBS">MY ASSIGNED JOBS</div>'
+    + '<div id="partner-my-jobs-list" style="display:flex;flex-direction:column;gap:.6rem"></div>';
+  wrap.insertBefore(section, wrap.firstChild);
+  loadMyPartnerJobs();
+}
+
+function loadMyPartnerJobs() {
+  var list = document.getElementById('partner-my-jobs-list');
+  if (!list || typeof db === 'undefined' || !currentUser) return;
+  list.innerHTML = '<div style="color:var(--muted);font-size:.85rem;padding:.5rem">' + (curLang==='rw'?'Gutegura...':'Loading...') + '</div>';
+  db.collection('services').where('assignedToId','==', currentUser.uid).where('isActive','==',true)
+    .orderBy('createdAt','desc').limit(50).get().then(function(snap) {
+      if (snap.empty) {
+        list.innerHTML = '<div style="color:var(--muted);font-size:.85rem;padding:.5rem">' + (curLang==='rw'?'Nta kazi kawe gahawe kugeza ubu.':'No jobs assigned to you yet.') + '</div>';
+        return;
+      }
+      var html = '';
+      snap.forEach(function(doc) {
+        var s = doc.data();
+        var svcDef = (typeof SERVICE_TYPES !== 'undefined' && SERVICE_TYPES[s.serviceType]) || { label: s.serviceType||'Service', icon:'🔧' };
+        var canReport = s.status === 'in_progress' || s.status === 'assigned';
+        html += '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.85rem">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap">'
+          + '<strong style="font-size:.88rem">' + svcDef.icon + ' ' + escapeHtml(svcDef.label) + '</strong>'
+          + '<span class="badge" style="background:var(--light);color:var(--navy);font-size:.7rem">' + escapeHtml((s.status||'').replace(/_/g,' ')) + '</span>'
+          + '</div>'
+          + '<div style="font-size:.78rem;color:var(--muted);margin-top:.3rem">' + escapeHtml(s.propertyTitle||s.district||'') + '</div>'
+          + (s.quotedPrice ? '<div style="font-size:.82rem;font-weight:700;color:var(--navy);margin-top:.3rem">' + Number(s.quotedPrice).toLocaleString() + ' RWF</div>' : '')
+          + (canReport
+              ? '<div style="display:flex;gap:.4rem;margin-top:.6rem">'
+                + '<input type="url" placeholder="' + (curLang==='rw'?'URL ya raporo':'Report URL') + '" id="pjob-report-' + doc.id + '" style="flex:1;padding:.4rem .6rem;border:1.5px solid var(--border);border-radius:6px;font-size:.78rem">'
+                + '<button class="btn btn-navy btn-sm" onclick="submitPartnerJobReport(\'' + doc.id + '\')">' + (curLang==='rw'?'Ohereza':'Submit') + '</button>'
+                + '</div>'
+              : (s.status === 'completed'
+                  ? '<div style="font-size:.76rem;color:#16A34A;margin-top:.5rem">✅ ' + (curLang==='rw'?'Byarangiye — kwishyurwa birimo gutunganywa':'Completed — payout processed by Accounting') + '</div>'
+                  : ''));
+        html += '</div>';
+      });
+      list.innerHTML = html;
+    }).catch(function(e) {
+      list.innerHTML = '<div style="color:var(--error);font-size:.82rem;padding:.5rem">Error loading jobs</div>';
+      console.error('[Partners] loadMyPartnerJobs', e);
+    });
+}
+
+function submitPartnerJobReport(serviceId) {
+  var input = document.getElementById('pjob-report-' + serviceId);
+  var url = input ? input.value.trim() : '';
+  if (!url) { showToast(curLang==='rw'?'Injiza URL ya raporo!':'Enter a report URL!', 'error'); return; }
+  if (typeof db === 'undefined' || !currentUser) return;
+  db.collection('services').doc(serviceId).update({
+    reportUrl: url, status: 'completed',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  }).then(function() {
+    logAudit('service.report.submitted_by_partner', 'services', serviceId, { status: 'in_progress' }, { status: 'completed', reportUrl: url });
+    showToast(curLang==='rw'?'Raporo yoherejwe! Reba kwishyurwa.':'Report submitted! Payout will follow.', 'success');
+    generatePartnerPayoutInvoice(serviceId);
+    loadMyPartnerJobs();
+  }).catch(function(e) {
+    showToast(curLang==='rw'?'Habaye ikosa':'Error submitting report', 'error');
+    console.error('[Partners] submitPartnerJobReport', e);
+  });
+}
+
+// Real cross-module integration: a completed, reported service job
+// automatically creates a payable invoice, visible both to the partner
+// (their own "My Assigned Jobs" and the invoices they can read) and to
+// the Accounting module's existing invoice list — not a separate ledger.
+function generatePartnerPayoutInvoice(serviceId) {
+  if (typeof db === 'undefined') return;
+  db.collection('services').doc(serviceId).get().then(function(doc) {
+    if (!doc.exists) return;
+    var s = doc.data();
+    if (!s.assignedToId || !s.quotedPrice) return; // nothing to pay out
+    var uid = currentUser ? currentUser.uid : 'system';
+    var vat = typeof RWANDA_VAT === 'number' ? RWANDA_VAT : 0;
+    var subtotal = Number(s.quotedPrice) || 0;
+    var vatAmount = Math.round(subtotal * vat);
+    var total = subtotal + vatAmount;
+    db.collection('invoices').add({
+      id: '', invoiceNumber: '', type: 'service', direction: 'payable',
+      billedTo: s.assignedToId, serviceId: serviceId, partnerId: s.partnerId || '',
+      lineItems: [{ description: (SERVICE_TYPES[s.serviceType]||{}).label || s.serviceType || 'Partner service', quantity: 1, unitPrice: subtotal, total: subtotal }],
+      subtotal: subtotal, vatRate: vat, vatAmount: vatAmount, total: total,
+      paidAmount: 0, balance: total, status: 'draft',
+      isActive: true,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy: uid, updatedBy: uid
+    }).then(function(ref) {
+      ref.update({ id: ref.id });
+      logAudit('invoice.partner_payout.created', 'invoices', ref.id, null, { serviceId: serviceId, total: total });
+      if (typeof notifyUser === 'function') {
+        notifyUser(s.assignedToId,
+          curLang==='rw' ? '&#128176; Kwishyurwa Kurateguwe' : '&#128176; Payout Invoice Created',
+          curLang==='rw' ? 'Akazi kawe karangiye — kwishyurwa kurimo gutunganywa.' : 'Your completed job now has a payout invoice pending approval.',
+          'partner_payout', 'invoices', ref.id);
+      }
+    });
+  }).catch(function(e) { console.error('[Partners] generatePartnerPayoutInvoice', e); });
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     INVESTOR PORTAL
+     Investment opportunities | ROI calculator | My portfolio
+════════════════════════════════════════════════════════ -->
+<script>
+var _invOpportunities = [];
+var _invPortfolio = [];
+
+function switchInvestorTab(tab, btn) {
+  ['opps','calc','portfolio'].forEach(function(t) {
+    var el = document.getElementById('inv-tab-' + t);
+    if (el) el.style.display = t === tab ? '' : 'none';
+  });
+  document.querySelectorAll('.inv-tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  if (tab === 'opps') loadInvestmentOpportunities();
+  if (tab === 'portfolio') loadMyPortfolio();
+}
+
+// Real investment opportunities — properties an admin/staff member has
+// explicitly flagged via the Add Property wizard's investment section.
+// Never fabricated: if no property has been flagged, this shows an honest
+// empty state instead of inventing listings.
+function loadInvestmentOpportunities() {
+  var grid = document.getElementById('inv-opps-grid');
+  if (!grid || typeof db === 'undefined') return;
+  grid.innerHTML = '<div class="crm-empty" style="grid-column:1/-1"><div class="crm-empty-icon">💼</div><div class="crm-empty-title">' + (curLang==='rw'?'Gutegura...':'Loading...') + '</div></div>';
+  db.collection('properties').where('isInvestmentOpportunity','==',true).where('isActive','==',true)
+    .limit(60).get().then(function(snap) {
+      _invOpportunities = [];
+      snap.forEach(function(d) { _invOpportunities.push(Object.assign({ id: d.id }, d.data())); });
+      renderInvestmentOpportunities();
+    }).catch(function(e) {
+      grid.innerHTML = '<div class="crm-empty" style="grid-column:1/-1">Error loading opportunities</div>';
+      console.error('[Investors] loadInvestmentOpportunities', e);
+    });
+}
+
+function renderInvestmentOpportunities() {
+  var grid = document.getElementById('inv-opps-grid');
+  if (!grid) return;
+  if (!_invOpportunities.length) {
+    grid.innerHTML = '<div class="crm-empty" style="grid-column:1/-1">'
+      + '<div class="crm-empty-icon">💼</div>'
+      + '<div class="crm-empty-title" data-rw="Nta mahirwe abonetse ubu" data-en="No investment opportunities listed yet">No investment opportunities listed yet</div>'
+      + '<div style="font-size:.8rem;color:var(--muted);margin-top:.3rem" data-rw="Admin agomba kubanza kwerekana imitungo nk\'ihirwe ryo gushora imari." data-en="An admin must first flag a property as an investment opportunity.">An admin must first flag a property as an investment opportunity.</div>'
+      + '</div>';
+    return;
+  }
+  grid.innerHTML = _invOpportunities.map(function(p) {
+    var d = p.investmentDetails || {};
+    var pct = d.totalRaiseTarget ? Math.min(100, Math.round(100 * (d.totalRaised||0) / d.totalRaiseTarget)) : 0;
+    return '<div class="crm-card" style="padding:1rem;border:1.5px solid var(--border);border-radius:12px">'
+      + '<div style="font-weight:700;font-size:.92rem;color:var(--navy)">' + escapeHtml(p.title||p.type||'Property') + '</div>'
+      + '<div style="font-size:.78rem;color:var(--muted);margin:.2rem 0 .6rem">' + escapeHtml(p.district||'') + (p.sector?', '+escapeHtml(p.sector):'') + '</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-size:.78rem;margin-bottom:.6rem">'
+      +   '<div><span style="color:var(--muted)">' + (curLang==='rw'?'Ntarengwa':'Min Investment') + '</span><br><strong>' + Number(d.minInvestment||0).toLocaleString() + ' RWF</strong></div>'
+      +   '<div><span style="color:var(--muted)">' + (curLang==='rw'?'ROI Igenwe':'Target ROI') + '</span><br><strong style="color:var(--gold)">' + (d.targetROI||0) + '%/yr</strong></div>'
+      + '</div>'
+      + (d.totalRaiseTarget ? '<div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;margin-bottom:.3rem"><div style="background:var(--gold);height:100%;width:' + pct + '%"></div></div>'
+          + '<div style="font-size:.72rem;color:var(--muted);margin-bottom:.7rem">' + Number(d.totalRaised||0).toLocaleString() + ' / ' + Number(d.totalRaiseTarget).toLocaleString() + ' RWF ' + (curLang==='rw'?'byakusanyirijwe':'raised') + '</div>' : '')
+      + '<button class="btn btn-gold btn-sm" style="width:100%;justify-content:center" onclick="openInvestmentPledge(\'' + p.id + '\')">' + (curLang==='rw'?'Shora Imari':'Invest Now') + '</button>'
+      + '</div>';
+  }).join('');
+}
+
+function openInvestmentPledge(propertyId) {
+  if (!currentUser) { showToast(curLang==='rw'?'Injira mbere!':'Please log in first!', 'warn'); go('auth'); return; }
+  var p = _invOpportunities.find(function(x) { return x.id === propertyId; });
+  if (!p) return;
+  var d = p.investmentDetails || {};
+  var amountStr = prompt((curLang==='rw' ? 'Ushaka gushora angahe (RWF)? Ntarengwa: ' : 'How much would you like to invest (RWF)? Minimum: ') + Number(d.minInvestment||0).toLocaleString());
+  if (!amountStr) return;
+  var amount = parseInt(amountStr.replace(/[^0-9]/g,'')) || 0;
+  if (amount < (d.minInvestment||0)) {
+    showToast(curLang==='rw' ? 'Umubare uri munsi y\'ikigenwe!' : 'Amount is below the minimum investment!', 'error');
+    return;
+  }
+  if (typeof db === 'undefined') return;
+  var sharePercent = d.totalRaiseTarget ? +(100 * amount / d.totalRaiseTarget).toFixed(2) : 0;
+  db.collection('investments').add({
+    id: '', investorId: currentUser.uid, investorName: currentUser.displayName||currentUser.name||currentUser.email||'',
+    propertyId: propertyId, propertyTitle: p.title||p.type||'',
+    amountInvested: amount, sharePercent: sharePercent,
+    expectedROI: d.targetROI||0, status: 'pledged',
+    isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: currentUser.uid, updatedBy: currentUser.uid
+  }).then(function(ref) {
+    ref.update({ id: ref.id });
+    logAudit('investment.pledged', 'investments', ref.id, null, { propertyId: propertyId, amountInvested: amount });
+    // Reflect the pledge in the property's own raise total — real
+    // cross-module update, not a separate disconnected number.
+    db.collection('properties').doc(propertyId).update({
+      'investmentDetails.totalRaised': firebase.firestore.FieldValue.increment(amount),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+    }).catch(function(){});
+    showToast(curLang==='rw' ? '✅ Ishoramari ryawe ryemejwe! Reba muri Portfolio Yanjye.' : '✅ Your investment pledge was recorded! Check My Portfolio.', 'success');
+    switchInvestorTab('portfolio', document.querySelector('.inv-tab-btn[data-tab="portfolio"]'));
+  }).catch(function(e) {
+    showToast(curLang==='rw'?'Habaye ikosa':'Error recording investment', 'error');
+    console.error('[Investors] openInvestmentPledge', e);
+  });
+}
+
+// Real ROI calculator — computed live from the user's own inputs, never
+// a fabricated "your ROI is X" claim next to a specific property.
+function calcInvestorROI() {
+  var price = parseFloat((document.getElementById('roi-purchase-price')||{}).value) || 0;
+  var rent  = parseFloat((document.getElementById('roi-monthly-rent')||{}).value) || 0;
+  var exp   = parseFloat((document.getElementById('roi-annual-expenses')||{}).value) || 0;
+  var out = document.getElementById('roi-result');
+  if (!out) return;
+  if (!price || !rent) {
+    out.textContent = curLang==='rw' ? 'Uzuza amakuru hejuru kugira ngo ubone ibisubizo.' : 'Fill in the fields above to see your results.';
+    return;
+  }
+  var annualRent = rent * 12;
+  var netAnnualIncome = annualRent - exp;
+  var grossYield = (annualRent / price) * 100;
+  var netYield   = (netAnnualIncome / price) * 100;
+  out.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">'
+    + '<div><div style="font-size:.7rem;color:var(--muted);text-transform:uppercase">' + (curLang==='rw'?'Umusaruro Wuzuye':'Gross Yield') + '</div><div style="font-size:1.1rem;font-weight:800;color:var(--navy)">' + grossYield.toFixed(2) + '%</div></div>'
+    + '<div><div style="font-size:.7rem;color:var(--muted);text-transform:uppercase">' + (curLang==='rw'?'Umusaruro Nyawo':'Net Yield') + '</div><div style="font-size:1.1rem;font-weight:800;color:var(--gold)">' + netYield.toFixed(2) + '%</div></div>'
+    + '<div><div style="font-size:.7rem;color:var(--muted);text-transform:uppercase">' + (curLang==='rw'?'Umusaruro w\'Umwaka':'Annual Net Income') + '</div><div style="font-size:.95rem;font-weight:700">' + Math.round(netAnnualIncome).toLocaleString() + ' RWF</div></div>'
+    + '<div><div style="font-size:.7rem;color:var(--muted);text-transform:uppercase">' + (curLang==='rw'?'Igihe cyo Kwishyura':'Payback Period') + '</div><div style="font-size:.95rem;font-weight:700">' + (netAnnualIncome > 0 ? (price/netAnnualIncome).toFixed(1) + ' yrs' : '—') + '</div></div>'
+    + '</div>';
+}
+
+// My Portfolio — real Firestore query scoped to the logged-in investor's
+// own uid, matching the Firestore rule (investments.investorId == uid).
+function loadMyPortfolio() {
+  var list = document.getElementById('inv-portfolio-list');
+  if (!list) return;
+  if (!currentUser) {
+    list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">📊</div><div class="crm-empty-title" data-rw="Injira kugira ngo urebe portfolio yawe" data-en="Log in to see your portfolio">Log in to see your portfolio</div></div>';
+    return;
+  }
+  if (typeof db === 'undefined') return;
+  list.innerHTML = '<div style="color:var(--muted);font-size:.85rem">' + (curLang==='rw'?'Gutegura...':'Loading...') + '</div>';
+  db.collection('investments').where('investorId','==',currentUser.uid).where('isActive','==',true)
+    .orderBy('createdAt','desc').limit(100).get().then(function(snap) {
+      _invPortfolio = [];
+      snap.forEach(function(d) { _invPortfolio.push(Object.assign({ id: d.id }, d.data())); });
+      renderMyPortfolio();
+    }).catch(function(e) {
+      list.innerHTML = '<div class="crm-empty">Error loading portfolio</div>';
+      console.error('[Investors] loadMyPortfolio', e);
+    });
+}
+
+function renderMyPortfolio() {
+  var list = document.getElementById('inv-portfolio-list');
+  if (!list) return;
+  if (!_invPortfolio.length) {
+    list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">📊</div><div class="crm-empty-title" data-rw="Nta shoramari ufite ubu" data-en="You have no investments yet">You have no investments yet</div></div>';
+    return;
+  }
+  var statusColors = { pledged:'#F59E0B', confirmed:'#16A34A', exited:'#64748B' };
+  var totalInvested = _invPortfolio.reduce(function(sum,i){ return sum + (i.amountInvested||0); }, 0);
+  list.innerHTML = '<div style="background:var(--light);border-radius:10px;padding:.9rem;margin-bottom:.5rem">'
+    + '<div style="font-size:.7rem;color:var(--muted);text-transform:uppercase">' + (curLang==='rw'?'Igiteranyo cy\'Ishoramari':'Total Invested') + '</div>'
+    + '<div style="font-size:1.3rem;font-weight:800;color:var(--navy)">' + totalInvested.toLocaleString() + ' RWF</div></div>'
+    + _invPortfolio.map(function(inv) {
+      var sc = statusColors[inv.status] || '#64748B';
+      return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.85rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">'
+        + '<div><div style="font-weight:700;font-size:.88rem">' + escapeHtml(inv.propertyTitle||'Property') + '</div>'
+        + '<div style="font-size:.76rem;color:var(--muted)">' + (inv.sharePercent||0) + '% share &middot; ' + (curLang==='rw'?'ROI yagenwe':'target ROI') + ' ' + (inv.expectedROI||0) + '%/yr</div></div>'
+        + '<div style="text-align:right"><div style="font-weight:700;color:var(--navy)">' + Number(inv.amountInvested||0).toLocaleString() + ' RWF</div>'
+        + '<span style="font-size:.7rem;font-weight:700;padding:.05rem .4rem;border-radius:10px;background:' + sc + '20;color:' + sc + '">' + inv.status + '</span></div>'
+        + '</div>';
+    }).join('');
+}
+
+// Wire go('investors') to load opportunities, and route the investor role
+// straight into this real portal instead of the generic company-wide
+// dashboard view.
+(function() {
+  var _origGoInv = go;
+  go = function(name) {
+    _origGoInv(name);
+    if (name === 'investors') { setTimeout(function(){ switchInvestorTab('opps', document.querySelector('.inv-tab-btn[data-tab="opps"]')); }, 80); }
+  };
+})();
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
@@ -19399,31 +19837,56 @@ function renderDocumentList() {
 function openDocumentUpload() {
   var m = document.getElementById('document-upload-modal');
   if (m) m.style.display = 'flex';
+  populateDocClientSelect();
 }
 function closeDocumentUpload() {
   var m = document.getElementById('document-upload-modal');
   if (m) m.style.display = 'none';
 }
 
+// Real client picker — every document must be attributed to the actual
+// client it belongs to, not the staff/agent uploading it, or it can never
+// reach that client's own document vault (Customer Portal).
+function populateDocClientSelect(selectId) {
+  var sel = document.getElementById(selectId || 'du-client');
+  if (!sel || typeof db === 'undefined') return;
+  sel.innerHTML = '<option value="">' + (curLang==='rw' ? '-- Hitamo umukiriya --' : '-- Select client --') + '</option>';
+  db.collection('users').limit(500).get().then(function(snap) {
+    snap.forEach(function(doc) {
+      var u = doc.data();
+      var r = (u.role || '').toLowerCase();
+      if (r !== 'client' && r !== 'buyer') return;
+      var opt = document.createElement('option');
+      opt.value = doc.id;
+      opt.textContent = (u.displayName || u.name || u.email || doc.id) + (u.email ? ' — ' + u.email : '');
+      sel.appendChild(opt);
+    });
+  }).catch(function(){});
+}
+
 function submitDocumentUpload() {
-  var nameEl  = document.getElementById('du-name');
-  var typeEl  = document.getElementById('du-type');
-  var urlEl   = document.getElementById('du-url');
-  var propEl  = document.getElementById('du-prop');
-  var sigEl   = document.getElementById('du-signatories');
-  var needSig = document.getElementById('du-needs-sign');
-  var btn     = document.getElementById('du-submit-btn');
-  var lbl     = document.getElementById('du-submit-lbl');
+  var nameEl   = document.getElementById('du-name');
+  var typeEl   = document.getElementById('du-type');
+  var urlEl    = document.getElementById('du-url');
+  var propEl   = document.getElementById('du-prop');
+  var clientEl = document.getElementById('du-client');
+  var sigEl    = document.getElementById('du-signatories');
+  var needSig  = document.getElementById('du-needs-sign');
+  var btn      = document.getElementById('du-submit-btn');
+  var lbl      = document.getElementById('du-submit-lbl');
 
-  var name      = nameEl  ? nameEl.value.trim()  : '';
-  var type      = typeEl  ? typeEl.value          : '';
-  var fileUrl   = urlEl   ? urlEl.value.trim()   : '';
-  var propTitle = propEl  ? propEl.value.trim()  : '';
-  var reqSign   = needSig ? needSig.checked       : false;
+  var name      = nameEl   ? nameEl.value.trim()   : '';
+  var type      = typeEl   ? typeEl.value           : '';
+  var fileUrl   = urlEl    ? urlEl.value.trim()    : '';
+  var propTitle = propEl   ? propEl.value.trim()   : '';
+  var clientId  = clientEl ? clientEl.value         : '';
+  var clientName= clientEl && clientEl.selectedIndex > 0 ? clientEl.options[clientEl.selectedIndex].textContent : '';
+  var reqSign   = needSig  ? needSig.checked        : false;
 
-  if (!name)    { showToast(curLang === 'rw' ? 'Injiza izina rya dosiye!' : 'Enter document name!', 'error'); return; }
-  if (!type)    { showToast(curLang === 'rw' ? 'Hitamo ubwoko!' : 'Select document type!', 'error'); return; }
-  if (!fileUrl) { showToast(curLang === 'rw' ? 'Injiza URL ya dosiye!' : 'Enter file URL!', 'error'); return; }
+  if (!name)     { showToast(curLang === 'rw' ? 'Injiza izina rya dosiye!' : 'Enter document name!', 'error'); return; }
+  if (!type)     { showToast(curLang === 'rw' ? 'Hitamo ubwoko!' : 'Select document type!', 'error'); return; }
+  if (!fileUrl)  { showToast(curLang === 'rw' ? 'Injiza URL ya dosiye!' : 'Enter file URL!', 'error'); return; }
+  if (!clientId) { showToast(curLang === 'rw' ? 'Hitamo umukiriya!' : 'Select the owning client!', 'error'); return; }
   if (typeof db === 'undefined') { showToast('Firebase ntabwo ihuye', 'error'); return; }
 
   // Collect checked access roles
@@ -19450,7 +19913,8 @@ function submitDocumentUpload() {
     propertyTitle:propTitle,
     propertyId:   '',
     dealId:       '',
-    clientId:     uid,
+    clientId:     clientId,
+    clientName:   clientName,
     uploadedByName: uName,
     accessRoles:  accessRoles,
     signatories:  sigNames.map(function(n){ return { name:n, signed:false, signedAt:null }; }),
@@ -19687,6 +20151,7 @@ function openContractGenerator() {
   document.getElementById('cg-step1').style.display = '';
   document.getElementById('cg-step2').style.display = 'none';
   m.style.display = 'flex';
+  populateDocClientSelect('cg-client');
 }
 function closeContractGenerator() {
   var m = document.getElementById('contract-generator-modal');
@@ -19701,12 +20166,18 @@ function previewContract() {
   var price  = parseFloat((document.getElementById('cg-price') || {}).value) || 0;
   var date   = ((document.getElementById('cg-date')   || {}).value || new Date().toISOString().split('T')[0]);
   var agent  = ((document.getElementById('cg-agent')  || {}).value || '').trim();
+  var clientEl = document.getElementById('cg-client');
+  var clientId = clientEl ? clientEl.value : '';
+  var clientName = clientEl && clientEl.selectedIndex > 0 ? clientEl.options[clientEl.selectedIndex].textContent : '';
 
   if (!seller || !buyer || !prop) {
     showToast(curLang === 'rw' ? 'Uzuza amamakuru yose!' : 'Fill in all required fields!', 'error'); return;
   }
+  if (!clientId) {
+    showToast(curLang === 'rw' ? 'Huza aya masezerano n\'umukiriya!' : 'Link this contract to a client account!', 'error'); return;
+  }
 
-  _cgContractData = { type: type, seller: seller, buyer: buyer, prop: prop, price: price, date: date, agent: agent };
+  _cgContractData = { type: type, seller: seller, buyer: buyer, prop: prop, price: price, date: date, agent: agent, clientId: clientId, clientName: clientName };
 
   var isSale = type === 'sale';
   var title  = isSale ? 'SALE AGREEMENT' : 'RENTAL AGREEMENT';
@@ -19770,7 +20241,7 @@ function saveGeneratedContract() {
 
   db.collection('documents').add({
     id: '', name: docName, type: docType, fileUrl: '',
-    propertyTitle: d.prop, propertyId: '', dealId: '', clientId: uid,
+    propertyTitle: d.prop, propertyId: '', dealId: '', clientId: d.clientId, clientName: d.clientName,
     uploadedByName: uName,
     contractData: d,
     accessRoles: ['agent','admin','client'],
@@ -20093,7 +20564,32 @@ function openVerificationDetail(id) {
   if (reportSection) reportSection.style.display = isAdmin && svc.status === 'completed' ? '' : 'none';
   if (svc.reportUrl && e2('vd-report-url')) e2('vd-report-url').value = svc.reportUrl;
 
+  populateAssignPartnerSelect(svc.assignedToId || '');
   m.style.display = 'flex';
+}
+
+// Real partner picker for job assignment — only verified partners are
+// assignable, and the value is the partner's real account uid (userId),
+// not a free-text name, so the assignment is a genuine cross-module link
+// a logged-in partner can query against (services.assignedToId == their uid).
+function populateAssignPartnerSelect(selectedUserId) {
+  var sel = document.getElementById('vd-assign-partner');
+  if (!sel || typeof db === 'undefined') return;
+  sel.innerHTML = '<option value="">-- Select a verified partner --</option>';
+  db.collection('partners').where('isActive','==',true).where('status','==','verified')
+    .limit(200).get().then(function(snap) {
+      snap.forEach(function(doc) {
+        var p = doc.data();
+        if (!p.userId) return; // can't assign a partner with no linked account
+        var opt = document.createElement('option');
+        opt.value = p.userId;
+        opt.setAttribute('data-partner-doc-id', doc.id);
+        opt.setAttribute('data-name', p.companyName || p.userId);
+        opt.textContent = (p.companyName || 'Partner') + ' — ' + (PARTNER_TYPES[p.type] ? PARTNER_TYPES[p.type].label : (p.type||''));
+        if (p.userId === selectedUserId) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }).catch(function(e) { console.error('[Verification] populateAssignPartnerSelect', e); });
 }
 
 function closeVerificationDetail() {
@@ -20104,19 +20600,28 @@ function closeVerificationDetail() {
 
 // ── Assign Partner ────────────────────────────────────
 function assignServicePartner() {
-  var id = (document.getElementById('vd-service-id') || {}).value || '';
-  var partner = ((document.getElementById('vd-assign-partner') || {}).value || '').trim();
+  var id  = (document.getElementById('vd-service-id') || {}).value || '';
+  var sel = document.getElementById('vd-assign-partner');
+  var partnerUserId = sel ? sel.value : '';
+  var partnerName   = sel && sel.selectedIndex > 0 ? (sel.options[sel.selectedIndex].getAttribute('data-name') || sel.options[sel.selectedIndex].textContent) : '';
+  var partnerDocId  = sel && sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].getAttribute('data-partner-doc-id') : '';
   var price   = parseFloat((document.getElementById('vd-quoted-price') || {}).value) || 0;
-  if (!id || !partner) { showToast(curLang === 'rw' ? 'Injiza amazina y\'umunyamakuru!' : 'Enter partner name!', 'error'); return; }
+  if (!id || !partnerUserId) { showToast(curLang === 'rw' ? 'Hitamo umunyamuryango!' : 'Select a partner!', 'error'); return; }
   if (typeof db === 'undefined') return;
   var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
 
-  var update = { assignedTo: partner, status: 'assigned', updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: uid };
+  // assignedToId is the partner's real account uid — this is what lets a
+  // logged-in partner query for their own assigned jobs (My Assigned Jobs);
+  // assignedTo/partnerId are kept for the existing display code and rating flow.
+  var update = {
+    assignedTo: partnerName, assignedToId: partnerUserId, partnerId: partnerDocId || '',
+    status: 'assigned', updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: uid
+  };
   if (price) update.quotedPrice = price;
 
   db.collection('services').doc(id).update(update).then(function() {
-    logAudit('service.assigned', 'services', id, { assignedTo: '', status: 'pending' }, { assignedTo: partner, status: 'assigned' });
-    showToast(curLang === 'rw' ? 'Serivisi yahawe ' + partner : 'Assigned to ' + partner, 'success');
+    logAudit('service.assigned', 'services', id, { assignedTo: '', status: 'pending' }, { assignedTo: partnerName, assignedToId: partnerUserId, status: 'assigned' });
+    showToast(curLang === 'rw' ? 'Serivisi yahawe ' + partnerName : 'Assigned to ' + partnerName, 'success');
     /* Notify the requester that their service request has been assigned */
     var svc = null;
     for (var si = 0; si < _verifications.length; si++) {
@@ -20130,10 +20635,20 @@ function assignServicePartner() {
           : 'Your ' + escapeHtml(svc.serviceType || 'service') + ' request has been assigned to a specialist. They will contact you shortly.'),
         'service_assigned', 'services', id);
     }
+    /* Notify the partner they have a new assigned job — real cross-module link */
+    if (typeof notifyUser === 'function') {
+      notifyUser(partnerUserId,
+        curLang === 'rw' ? '&#128188; Akazi Gashya Gahawe' : '&#128188; New Job Assigned',
+        curLang === 'rw'
+          ? 'Wahawe akazi gashya kuri KOMISIYONERI. Reba muri "Akazi Kanjye" kuri Partner Portal.'
+          : 'You have been assigned a new job on KOMISIYONERI. Check "My Assigned Jobs" on your Partner Portal.',
+        'partner_job_assigned', 'services', id);
+    }
     for (var i = 0; i < _verifications.length; i++) {
       if ((_verifications[i]._docId || _verifications[i].id) === id) {
-        _verifications[i].assignedTo  = partner;
-        _verifications[i].status      = 'assigned';
+        _verifications[i].assignedTo   = partnerName;
+        _verifications[i].assignedToId = partnerUserId;
+        _verifications[i].status       = 'assigned';
         if (price) _verifications[i].quotedPrice = price;
         break;
       }
@@ -23593,6 +24108,7 @@ function submitSiteForm() {
       if (name === 'crm')         { setTimeout(loadCRM, 80); }
       if (name === 'deals')       { setTimeout(loadDeals, 80); }
       if (name === 'commissions') { setTimeout(loadCommissions, 80); }
+      if (name === 'partners')    { setTimeout(loadPartners, 80); setTimeout(function(){ if (typeof injectPartnerMyJobsSection === 'function') injectPartnerMyJobsSection(); }, 100); }
     };
   }
 })();
@@ -24678,6 +25194,22 @@ function _savePropToFirestoreFS(propData, status, userId, isVerified) {
   };
   if (propData.latitude && propData.longitude) {
     fsDoc.coordinates = { lat: propData.latitude, lng: propData.longitude };
+  }
+  // Investor Portal — only ever set by the admin/staff-only checkbox in the
+  // Add Property wizard (hidden for regular agents/owners); reading it here
+  // is safe even when the section is hidden, since an unchecked/hidden
+  // checkbox simply evaluates to false.
+  var isInvEl = document.getElementById('prop-is-investment');
+  if (isInvEl && isInvEl.checked) {
+    fsDoc.isInvestmentOpportunity = true;
+    fsDoc.investmentDetails = {
+      minInvestment:     parseInt((document.getElementById('prop-inv-min')||{}).value) || 0,
+      targetROI:         parseFloat((document.getElementById('prop-inv-roi')||{}).value) || 0,
+      totalRaiseTarget:  parseInt((document.getElementById('prop-inv-target')||{}).value) || 0,
+      totalRaised:       0
+    };
+  } else {
+    fsDoc.isInvestmentOpportunity = false;
   }
   return db.collection('properties').add(fsDoc).then(function(ref) {
     return ref.update({ id: ref.id }).then(function() { return ref.id; });
@@ -28112,6 +28644,7 @@ function submitCompose() {
     { match: "go('verification')", roles: _AGENT },
     { match: "go('documents')",    roles: _ALL },
     { match: "go('partners')",     roles: ['super_admin','admin','staff','agent','partner'] },
+    { match: "go('investors')",    roles: ['super_admin','admin','staff','investor'] },
     { match: "go('financing')",    roles: ['super_admin','admin','staff','agent','client','owner','investor'] },
     { match: "go('commissions')",  roles: ['super_admin','admin','staff','agent','ceo'] },
     { match: 'showToast',          roles: _STAFF },

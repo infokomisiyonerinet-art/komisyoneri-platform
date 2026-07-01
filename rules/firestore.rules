@@ -117,12 +117,15 @@ service cloud.firestore {
     }
 
     match /services/{id} {
+      // assignedToId is the assigned partner's real account uid (see
+      // index.html's assignServicePartner()) — assignedTo is a display
+      // name string only, never an auth uid, so it must not be used here.
       allow read:   if isAdminOrStaff()
                     || (isAuth() && (resource.data.requestedBy == request.auth.uid
-                        || resource.data.assignedTo == request.auth.uid));
+                        || resource.data.assignedToId == request.auth.uid));
       allow create: if isAuth() && hasStandardFields();
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.assignedTo == request.auth.uid);
+                    || (isAuth() && resource.data.assignedToId == request.auth.uid);
       allow delete: if false;
     }
 
@@ -201,6 +204,19 @@ service cloud.firestore {
       allow read:   if isAuth() && (resource.data.referrerId == request.auth.uid || isAdminOrStaff());
       allow create: if isAuth() && hasStandardFields();
       allow update: if isAdminOrStaff();
+      allow delete: if false;
+    }
+
+    // ── INVESTOR PORTAL ────────────────────────────────
+    match /investments/{id} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && resource.data.investorId == request.auth.uid);
+      allow create: if isAuth() && hasStandardFields()
+                    && request.resource.data.investorId == request.auth.uid;
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && resource.data.investorId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
