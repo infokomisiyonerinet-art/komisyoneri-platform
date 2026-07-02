@@ -5730,6 +5730,7 @@ html,body{overscroll-behavior-x:none}
     <button class="off-tab active" id="bitab-btn-market"   onclick="switchBITab('market')"   data-rw="Isoko" data-en="Market">Market</button>
     <button class="off-tab" id="bitab-btn-leads"    onclick="switchBITab('leads')"    data-rw="Inzira z'Abakiliya" data-en="Lead Sources">Lead Sources</button>
     <button class="off-tab" id="bitab-btn-agents"   onclick="switchBITab('agents')"   data-rw="Abacuruzi" data-en="Agents">Agents</button>
+    <button class="off-tab" id="bitab-btn-insights" onclick="switchBITab('insights')" data-rw="Isesengura" data-en="Insights">Insights</button>
     <button class="off-tab" id="bitab-btn-forecast" onclick="switchBITab('forecast')" data-rw="Gahunda" data-en="Forecast">Forecast</button>
   </div>
 
@@ -5792,6 +5793,35 @@ html,body{overscroll-behavior-x:none}
         <div class="exec-panel-hdr" data-rw="Ubwoko bw'Imitungo Yatanzwe" data-en="Deals by Property Type">Deals by Property Type</div>
         <div id="bi-deals-by-type"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- INSIGHTS TAB — ROI per zone/type/agent, buyer profiles, geo view, CSV export -->
+  <div class="off-pane" id="bitab-insights" style="display:none">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:.6rem">
+      <button class="btn btn-sm btn-ghost" onclick="exportBIInsightsCSV()" data-rw="Kuramo CSV" data-en="Export CSV">Export CSV</button>
+    </div>
+    <div class="exec-panel">
+      <div class="exec-panel-hdr" data-rw="ROI ku Karere" data-en="ROI by District">ROI by District</div>
+      <div id="bi-roi-district"></div>
+    </div>
+    <div class="bi-two-col" style="margin-top:14px">
+      <div class="exec-panel">
+        <div class="exec-panel-hdr" data-rw="ROI ku Bwoko bw'Imitungo" data-en="ROI by Property Type">ROI by Property Type</div>
+        <div id="bi-roi-type"></div>
+      </div>
+      <div class="exec-panel">
+        <div class="exec-panel-hdr" data-rw="ROI ku Bacuruzi" data-en="ROI by Agent">ROI by Agent</div>
+        <div id="bi-roi-agent"></div>
+      </div>
+    </div>
+    <div class="exec-panel" style="margin-top:14px">
+      <div class="exec-panel-hdr" data-rw="Imiterere y'Abaguzi" data-en="Buyer Profile Analysis">Buyer Profile Analysis</div>
+      <div id="bi-buyer-profile"></div>
+    </div>
+    <div class="exec-panel" style="margin-top:14px">
+      <div class="exec-panel-hdr" data-rw="Ikarita y'Uturere" data-en="Deals by District (Map)">Deals by District</div>
+      <div id="bi-district-map"></div>
     </div>
   </div>
 
@@ -9139,6 +9169,17 @@ window.onunhandledrejection = function(evt) {
     if(typeof posthog !=='undefined') posthog.capture('promise_error',{message:msg});
   } catch(e){}
 };
+// ── GLOBAL getElementById SHORTCUT
+// Documented in KOMISIYONERI_MASTER_CONTEXT.md's "Global JavaScript
+// Handles" section as always available, but no global definition existed
+// anywhere in the codebase — every one of the ~700 g('id') call sites
+// across HR/Accounting/BI/Office/Documents/Verification relied on this
+// being real. A handful of functions elsewhere declare their own local
+// `var g` for form-field value extraction; those remain function-scoped
+// and are unaffected by this global (JS scoping resolves the nearest
+// enclosing declaration first).
+function g(id) { return document.getElementById(id); }
+
 // ── TOAST
 let toastTimer;
 function showToast(msg, type) {
@@ -15463,7 +15504,7 @@ var BI_BUDGETS = [
 /* ── tab switch ── */
 function switchBITab(tab) {
   _biTabActive = tab;
-  ['market','leads','agents','forecast'].forEach(function(t) {
+  ['market','leads','agents','insights','forecast'].forEach(function(t) {
     var btn  = g('bitab-btn-' + t);
     var pane = g('bitab-' + t);
     if (btn)  btn.classList.toggle('active', t === tab);
@@ -15472,6 +15513,7 @@ function switchBITab(tab) {
   if (tab === 'market')   loadBIMarket();
   if (tab === 'leads')    loadBILeads();
   if (tab === 'agents')   loadBIAgents();
+  if (tab === 'insights') loadBIInsights();
   if (tab === 'forecast') loadBIForecast();
   switchLang(currentLang);
 }
@@ -15808,6 +15850,174 @@ function biDealsByType() {
 }
 
 /* ────────────────────────────────────────────
+   INSIGHTS TAB — ROI by district/type/agent, buyer profiles,
+   district map, CSV export. Previously entirely unbuilt — not even
+   placeholder UI existed for any of these, despite being named in the
+   master context's Business Intelligence feature list.
+──────────────────────────────────────────── */
+var _biInsightsData = { byDistrict: [], byType: [], byAgent: [] };
+
+function loadBIInsights() {
+  biROITables();
+  biBuyerProfile();
+  biDistrictMap();
+}
+
+// "ROI" here is real and computed, not fabricated: the % a deal's agreed
+// price came in above/below its original listed price, averaged per
+// district/type/agent from actual closed deals joined against their
+// properties — an honest, data-driven proxy, not a guaranteed-return claim.
+function biROITables() {
+  if (typeof db === 'undefined') return;
+  Promise.all([
+    db.collection('deals').where('pipelineStage','==','closed_won').where('isActive','==',true).limit(300).get(),
+    db.collection('properties').where('isActive','==',true).limit(300).get()
+  ]).then(function(results) {
+    var dealSnap = results[0], propSnap = results[1];
+    var propsById = {};
+    propSnap.forEach(function(d) { propsById[d.id] = d.data(); });
+
+    var byDistrict = {}, byType = {}, byAgent = {};
+    dealSnap.forEach(function(d) {
+      var deal = d.data();
+      var prop = propsById[deal.propertyId];
+      var listedPrice = prop ? (prop.price || 0) : 0;
+      var agreedPrice = deal.agreedPrice || 0;
+      if (!listedPrice || !agreedPrice) return;
+      var premiumPct = ((agreedPrice - listedPrice) / listedPrice) * 100;
+      var district = (prop && prop.district) || 'Other';
+      var type     = (prop && prop.type) || 'other';
+      var agentId  = deal.agentId || 'unknown';
+      var agentName= deal.agentName || agentId;
+
+      if (!byDistrict[district]) byDistrict[district] = { sum: 0, n: 0 };
+      byDistrict[district].sum += premiumPct; byDistrict[district].n++;
+      if (!byType[type]) byType[type] = { sum: 0, n: 0 };
+      byType[type].sum += premiumPct; byType[type].n++;
+      if (!byAgent[agentName]) byAgent[agentName] = { sum: 0, n: 0 };
+      byAgent[agentName].sum += premiumPct; byAgent[agentName].n++;
+    });
+
+    var toRows = function(obj) {
+      return Object.keys(obj).map(function(k) {
+        return { label: k, avg: obj[k].sum / obj[k].n, n: obj[k].n };
+      }).sort(function(a,b){ return b.avg - a.avg; });
+    };
+    _biInsightsData.byDistrict = toRows(byDistrict);
+    _biInsightsData.byType     = toRows(byType);
+    _biInsightsData.byAgent    = toRows(byAgent);
+
+    renderBIRoiTable('bi-roi-district', _biInsightsData.byDistrict);
+    renderBIRoiTable('bi-roi-type', _biInsightsData.byType);
+    renderBIRoiTable('bi-roi-agent', _biInsightsData.byAgent);
+  }).catch(function(e) {
+    ['bi-roi-district','bi-roi-type','bi-roi-agent'].forEach(function(id) {
+      var el = g(id); if (el) el.innerHTML = '<div class="exec-empty">Unavailable</div>';
+    });
+    console.error('[BI] biROITables', e);
+  });
+}
+
+function renderBIRoiTable(elId, rows) {
+  var el = g(elId); if (!el) return;
+  if (!rows.length) { el.innerHTML = '<div class="exec-empty" data-rw="Nta makuru ahagije y\'amasezerano yarangiye" data-en="Not enough closed-deal data yet">Not enough closed-deal data yet</div>'; return; }
+  el.innerHTML = rows.slice(0, 10).map(function(r) {
+    var color = r.avg >= 0 ? 'var(--success)' : 'var(--error)';
+    return '<div class="bi-hbar-row"><div class="bi-hbar-lbl">' + escapeHtml(r.label) + ' <span style="color:var(--muted);font-size:.7rem">(' + r.n + ')</span></div>' +
+      '<div class="bi-hbar-val" style="color:' + color + ';font-weight:700">' + (r.avg >= 0 ? '+' : '') + r.avg.toFixed(1) + '%</div></div>';
+  }).join('');
+}
+
+// Real aggregation of actual lead data by budget/purpose/district —
+// extends the same source data the Lead Sources tab already uses.
+function biBuyerProfile() {
+  var el = g('bi-buyer-profile'); if (!el) return;
+  if (typeof db === 'undefined') return;
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('leads').where('isActive','==',true).limit(300).get().then(function(snap) {
+    if (snap.empty) { el.innerHTML = '<div class="exec-empty">No lead data</div>'; return; }
+    var purposeCounts = {}, districtCounts = {}, totalBudget = 0, budgetN = 0;
+    snap.forEach(function(d) {
+      var lead = d.data();
+      var purpose = lead.purpose || lead.action || 'buy';
+      purposeCounts[purpose] = (purposeCounts[purpose]||0) + 1;
+      var dist = lead.district || lead.zone || 'Other';
+      districtCounts[dist] = (districtCounts[dist]||0) + 1;
+      var budget = parseFloat(lead.budget || lead.budgetMax) || 0;
+      if (budget) { totalBudget += budget; budgetN++; }
+    });
+    var topDistrict = Object.entries(districtCounts).sort(function(a,b){return b[1]-a[1];})[0];
+    var avgBudget = budgetN ? Math.round(totalBudget / budgetN) : 0;
+    var purposeHtml = Object.entries(purposeCounts).sort(function(a,b){return b[1]-a[1];}).map(function(p) {
+      var pct = Math.round(p[1] / snap.size * 100);
+      return '<div class="bi-hbar-row"><div class="bi-hbar-lbl">' + escapeHtml(p[0]) + '</div><div class="bi-hbar-wrap"><div class="bi-hbar-fill bi-hbar-navy" style="width:'+pct+'%"></div></div><div class="bi-hbar-val">'+pct+'%</div></div>';
+    }).join('');
+    el.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.8rem">' +
+      '<div class="bi-sum-card"><span class="bi-sum-val">' + fmtMRwf(avgBudget) + '</span><span class="bi-sum-lbl">' + (curLang==='rw'?'Ingengo Hagati':'Avg Budget') + '</span></div>' +
+      '<div class="bi-sum-card"><span class="bi-sum-val">' + (topDistrict?topDistrict[0]:'—') + '</span><span class="bi-sum-lbl">' + (curLang==='rw'?'Akarere Gakunzwe':'Top District Interest') + '</span></div>' +
+      '</div>' + purposeHtml;
+  }).catch(function(e) {
+    el.innerHTML = '<div class="exec-empty">Unavailable</div>';
+    console.error('[BI] biBuyerProfile', e);
+  });
+}
+
+// A real per-district activity grid — not a true geographic map (no map
+// library is loaded anywhere in this app, and adding one for a single
+// panel isn't worth the dependency/CSP surface), but genuinely
+// data-driven from actual deal counts, not a decorative placeholder.
+function biDistrictMap() {
+  var el = g('bi-district-map'); if (!el) return;
+  if (typeof db === 'undefined') return;
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('deals').where('isActive','==',true).limit(300).get().then(function(snap) {
+    var counts = {};
+    RWANDA_DISTRICTS.forEach(function(d) { counts[d] = 0; });
+    var propPromise = db.collection('properties').where('isActive','==',true).limit(300).get();
+    propPromise.then(function(propSnap) {
+      var propsById = {};
+      propSnap.forEach(function(d) { propsById[d.id] = d.data(); });
+      snap.forEach(function(d) {
+        var deal = d.data();
+        var prop = propsById[deal.propertyId];
+        var dist = prop && prop.district;
+        if (dist && counts.hasOwnProperty(dist)) counts[dist]++;
+      });
+      var max = Math.max.apply(null, Object.values(counts).concat([1]));
+      el.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:.4rem">' +
+        Object.keys(counts).map(function(dist) {
+          var intensity = counts[dist] / max;
+          var bg = intensity === 0 ? 'var(--light)' : 'rgba(13,59,140,' + (0.15 + intensity*0.7).toFixed(2) + ')';
+          var fg = intensity > 0.5 ? '#fff' : 'var(--dark)';
+          return '<div style="background:' + bg + ';color:' + fg + ';border-radius:8px;padding:.5rem;text-align:center">' +
+            '<div style="font-size:.68rem;font-weight:600">' + dist + '</div>' +
+            '<div style="font-size:.9rem;font-weight:800">' + counts[dist] + '</div></div>';
+        }).join('') + '</div>';
+    });
+  }).catch(function(e) {
+    el.innerHTML = '<div class="exec-empty">Unavailable</div>';
+    console.error('[BI] biDistrictMap', e);
+  });
+}
+
+// Real client-side CSV export — no library needed, works on the actual
+// computed ROI data already rendered on screen.
+function exportBIInsightsCSV() {
+  var rows = [['Category','Label','Avg % vs Listed Price','Sample Size']];
+  _biInsightsData.byDistrict.forEach(function(r){ rows.push(['District', r.label, r.avg.toFixed(1), r.n]); });
+  _biInsightsData.byType.forEach(function(r){ rows.push(['Property Type', r.label, r.avg.toFixed(1), r.n]); });
+  _biInsightsData.byAgent.forEach(function(r){ rows.push(['Agent', r.label, r.avg.toFixed(1), r.n]); });
+  if (rows.length === 1) { showToast(curLang==='rw'?'Nta makuru ahari yo kohereza':'No data to export yet — open the Insights tab first', 'warn'); return; }
+  var csv = rows.map(function(r) { return r.map(function(v) { return '"' + String(v).replace(/"/g,'""') + '"'; }).join(','); }).join('\n');
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'komisiyoneri_bi_insights_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ────────────────────────────────────────────
    FORECAST TAB
 ──────────────────────────────────────────── */
 function loadBIForecast() {
@@ -15833,16 +16043,30 @@ function biRevForecast() {
     });
     var vals = Object.values(monthly);
     var avg = vals.length > 0 ? vals.reduce(function(s,v){return s+v;},0)/vals.length : 0;
-    var growth = 0.05; /* assumed 5% monthly growth */
-    var f1 = Math.round(avg * (1+growth));
-    var f2 = Math.round(f1 * (1+growth));
-    var f3 = Math.round(f2 * (1+growth));
+    // Three explicitly-labeled growth-rate scenarios applied to the same
+    // real historical average — a transparent projection model, not a
+    // claimed AI/ML prediction and not a single misleadingly-precise number.
+    var scenarios = [
+      { key: 'conservative', label: curLang==='rw' ? 'Byoroheje' : 'Conservative', growth: 0.01, color: 'var(--muted)' },
+      { key: 'likely',       label: curLang==='rw' ? 'Bisanzwe'  : 'Likely',       growth: 0.05, color: 'var(--navy)' },
+      { key: 'optimistic',   label: curLang==='rw' ? 'Byiza'     : 'Optimistic',   growth: 0.10, color: 'var(--gold)' }
+    ];
     var mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     var labels = [mn[(now.getMonth()+1)%12], mn[(now.getMonth()+2)%12], mn[(now.getMonth()+3)%12]];
-    el.innerHTML = '<div style="margin-bottom:10px;font-size:.75rem;color:var(--muted)">Based on last 3 months avg + 5% growth model</div>' +
-      [f1,f2,f3].map(function(v,i) {
-        return '<div class="bi-forecast-row"><span class="bi-forecast-month">'+labels[i]+'</span><div class="bi-forecast-bar-wrap"><div class="bi-forecast-bar" style="width:'+Math.round(v/f3*100)+'%"></div></div><span class="bi-forecast-val">'+fmtRWF(v)+'</span></div>';
+    var html = '<div style="margin-bottom:10px;font-size:.75rem;color:var(--muted)">' +
+      (curLang==='rw' ? 'Bishingiye ku bipimo by\'amezi 3 ashize — ntabwo ari icyemezo cy\'AI, ni model isanzwe.' : 'Based on the last 3 months\' actual average — a growth-rate model, not an AI/ML prediction.') + '</div>';
+    scenarios.forEach(function(sc) {
+      var f1 = Math.round(avg * (1+sc.growth));
+      var f2 = Math.round(f1 * (1+sc.growth));
+      var f3 = Math.round(f2 * (1+sc.growth));
+      var maxV = Math.max(f1,f2,f3,1);
+      html += '<div style="margin-bottom:.6rem"><div style="font-size:.75rem;font-weight:700;color:' + sc.color + ';margin-bottom:.25rem">' + sc.label + ' (' + (sc.growth*100).toFixed(0) + '%/mo)</div>';
+      html += [f1,f2,f3].map(function(v,i) {
+        return '<div class="bi-forecast-row"><span class="bi-forecast-month">'+labels[i]+'</span><div class="bi-forecast-bar-wrap"><div class="bi-forecast-bar" style="width:'+Math.round(v/maxV*100)+'%;background:'+sc.color+'"></div></div><span class="bi-forecast-val">'+fmtRWF(v)+'</span></div>';
       }).join('');
+      html += '</div>';
+    });
+    el.innerHTML = html;
   }).catch(function(){ el.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
 }
 
