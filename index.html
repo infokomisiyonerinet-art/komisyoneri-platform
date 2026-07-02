@@ -16858,6 +16858,20 @@ function loadReports() {
       html += '<div class="ac-mt-row"><span>' + mo + ' ' + yr + '</span><span style="color:var(--success)">' + fmtMRwf(revByMonth[i]) + '</span><span style="color:var(--error)">' + fmtMRwf(expByMonth[i]) + '</span><span style="font-weight:600;color:' + (net >= 0 ? 'var(--navy)' : 'var(--error)') + '">' + fmtMRwf(Math.abs(net)) + '</span></div>';
     });
     html += '</div>';
+    // Cashflow tracker — a running cumulative balance across the year,
+    // computed from the same real revenue/expense data above rather than
+    // a separate fetch or a fabricated number.
+    html += '<div class="ac-chart-title" style="margin-top:1.2rem" data-en="Cumulative Cashflow ' + yr + '" data-rw="Amafaranga Yose Ateraniye ' + yr + '">Cumulative Cashflow ' + yr + '</div>';
+    html += '<div class="ac-monthly-table"><div class="ac-mt-head"><span>Month</span><span>Net</span><span>Running Balance</span></div>';
+    var running = 0;
+    months.forEach(function(mo, i) {
+      var net = revByMonth[i] - expByMonth[i];
+      running += net;
+      html += '<div class="ac-mt-row"><span>' + mo + ' ' + yr + '</span>' +
+        '<span style="color:' + (net >= 0 ? 'var(--success)' : 'var(--error)') + '">' + (net>=0?'+':'-') + fmtMRwf(Math.abs(net)) + '</span>' +
+        '<span style="font-weight:700;color:' + (running >= 0 ? 'var(--navy)' : 'var(--error)') + '">' + (running>=0?'':'-') + fmtMRwf(Math.abs(running)) + '</span></div>';
+    });
+    html += '</div>';
     el.innerHTML = html;
     if (typeof switchLang !== 'undefined') switchLang(currentLang);
     var repRev = revByMonth.reduce(function(a,b){return a+b;},0);
@@ -19690,20 +19704,25 @@ function generatePartnerPayoutInvoice(serviceId) {
     var vat = typeof RWANDA_VAT === 'number' ? RWANDA_VAT : 0;
     var subtotal = Number(s.quotedPrice) || 0;
     var vatAmount = Math.round(subtotal * vat);
-    var total = subtotal + vatAmount;
+    var totalAmount = subtotal + vatAmount;
+    // Field names (invoiceNo, billedTo, lineItems[].lineTotal, totalAmount)
+    // match submitInvoice()'s existing shape exactly — every P&L/BI/Exec
+    // query in this codebase sums invoices by `totalAmount`, so using a
+    // different field name here would make this invoice invisible to
+    // Accounting's own reports.
     db.collection('invoices').add({
-      id: '', invoiceNumber: '', type: 'service', direction: 'payable',
+      id: '', invoiceNo: '', type: 'service', direction: 'payable',
       billedTo: s.assignedToId, serviceId: serviceId, partnerId: s.partnerId || '',
-      lineItems: [{ description: (SERVICE_TYPES[s.serviceType]||{}).label || s.serviceType || 'Partner service', quantity: 1, unitPrice: subtotal, total: subtotal }],
-      subtotal: subtotal, vatRate: vat, vatAmount: vatAmount, total: total,
-      paidAmount: 0, balance: total, status: 'draft',
+      lineItems: [{ description: (SERVICE_TYPES[s.serviceType]||{}).label || s.serviceType || 'Partner service', qty: 1, unitPrice: subtotal, lineTotal: subtotal }],
+      subtotal: subtotal, vatAmount: vatAmount, totalAmount: totalAmount,
+      dueDate: '', notes: '', paidAt: null, pdfUrl: null, status: 'draft',
       isActive: true,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
       createdBy: uid, updatedBy: uid
     }).then(function(ref) {
       ref.update({ id: ref.id });
-      logAudit('invoice.partner_payout.created', 'invoices', ref.id, null, { serviceId: serviceId, total: total });
+      logAudit('invoice.partner_payout.created', 'invoices', ref.id, null, { serviceId: serviceId, totalAmount: totalAmount });
       if (typeof notifyUser === 'function') {
         notifyUser(s.assignedToId,
           curLang==='rw' ? '&#128176; Kwishyurwa Kurateguwe' : '&#128176; Payout Invoice Created',
@@ -21028,6 +21047,10 @@ function autoCalculateCommission(dealId, deal) {
       }
       var badge = document.getElementById('comm-sidebar-count');
       if (badge) badge.textContent = parseInt(badge.textContent || 0) + 1;
+      /* Auto-generate the client invoice for this closed deal — real
+         Deal -> Commission -> Accounting integration, not a manual-only
+         step Accounting has to remember to do separately. */
+      generateDealInvoice(dealId, deal, dealValue);
       /* Auto-qualify referral if client was referred */
       if (deal.clientId && typeof db !== 'undefined') {
         db.collection('referrals')
@@ -21060,6 +21083,43 @@ function autoCalculateCommission(dealId, deal) {
       }
     })
     .catch(function(err) { console.error('[Commission] auto-calc error:', err); });
+}
+
+// Auto-generate the client-facing invoice for a closed deal — previously
+// every invoice had to be created manually even when a deal had already
+// closed with a known price and client. Matches submitInvoice()'s exact
+// field shape (invoiceNo, billedTo, lineItems[].lineTotal, totalAmount)
+// so it shows up correctly in every existing P&L/BI/Exec calculation.
+function generateDealInvoice(dealId, deal, dealValue) {
+  if (typeof db === 'undefined' || !dealId || !dealValue) return;
+  db.collection('invoices').where('dealId','==',dealId).where('isActive','==',true).limit(1).get()
+    .then(function(snap) {
+      if (!snap.empty) return; // already invoiced for this deal
+      var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+      var vat = typeof RWANDA_VAT === 'number' ? RWANDA_VAT : 0;
+      var subtotal = Number(dealValue) || 0;
+      var vatAmount = Math.round(subtotal * vat);
+      var totalAmount = subtotal + vatAmount;
+      var desc = (deal.dealType === 'rent' ? 'Rental' : 'Sale') + ' — ' + (deal.propertyTitle || deal.propTitle || 'Property');
+      return db.collection('invoices').add({
+        id: '', invoiceNo: '', type: 'deal', dealId: dealId,
+        billedTo: deal.clientName || deal.clientId || '', clientEmail: '', clientAddress: '',
+        lineItems: [{ description: desc, qty: 1, unitPrice: subtotal, lineTotal: subtotal }],
+        subtotal: subtotal, vatAmount: vatAmount, totalAmount: totalAmount,
+        dueDate: '', notes: 'Auto-generated on deal closure', paidAt: null, pdfUrl: null,
+        status: 'sent', isActive: true,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: uid, updatedBy: uid
+      });
+    })
+    .then(function(ref) {
+      if (!ref) return;
+      ref.update({ id: ref.id });
+      logAudit('invoice.deal_auto_generated', 'invoices', ref.id, null, { dealId: dealId, totalAmount: dealValue });
+      if (typeof loadAccountingStats === 'function') loadAccountingStats();
+    })
+    .catch(function(e) { console.error('[Accounting] generateDealInvoice', e); });
 }
 
 // ── Load Commissions ──────────────────────────────────
