@@ -3,15 +3,34 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ── Helpers ──────────────────────────────────────
+    // NOTE: role checks read the caller's OWN users/{uid} document rather
+    // than a Firebase Auth custom claim (request.auth.token.role). This app
+    // has no Cloud Function that ever calls setCustomUserClaims(), so a
+    // token-claim-based check would be permanently undefined for every user,
+    // including real admins. Roles are assigned by writing users/{uid}.role
+    // (see index.html's _fsPendingApprove()), so that's the source of truth
+    // these rules must check against.
     function isAuth() {
       return request.auth != null;
     }
+    function callerDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    function getRole() {
+      return isAuth() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? callerDoc().data.role
+        : null;
+    }
     function isRole(r) {
-      return isAuth() && request.auth.token.role == r;
+      return isAuth() && getRole() != null && getRole().lower() == r.lower();
     }
     function isAdminOrStaff() {
-      return isAuth() && request.auth.token.role in
-        ['admin', 'super_admin', 'staff', 'Admin'];
+      return isAuth() && getRole() != null &&
+        getRole().lower() in ['admin', 'super_admin', 'staff'];
+    }
+    function isInternalTeam() {
+      return isAuth() && getRole() != null &&
+        getRole().lower() in ['agent', 'staff', 'admin', 'super_admin', 'ceo'];
     }
     function hasStandardFields() {
       return request.resource.data.keys().hasAll([
@@ -31,7 +50,9 @@ service cloud.firestore {
     match /properties/{id} {
       allow read:   if true;
       allow create: if isAuth() && hasStandardFields();
-      allow update: if isAuth();
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && resource.data.agentId == request.auth.uid)
+                    || (isAuth() && resource.data.ownerId == request.auth.uid);
       allow delete: if false;
     }
 
@@ -68,32 +89,47 @@ service cloud.firestore {
                     || (isAuth() && resource.data.clientId == request.auth.uid)
                     || (isAuth() && resource.data.agentId  == request.auth.uid);
       allow create: if isAuth() && hasStandardFields();
-      allow update: if isAuth();
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && resource.data.clientId == request.auth.uid)
+                    || (isAuth() && resource.data.agentId  == request.auth.uid);
       allow delete: if false;
     }
 
     match /offers/{id} {
       allow read:   if isAdminOrStaff()
-                    || (isAuth() && (resource.data.fromUserId == request.auth.uid));
+                    || (isAuth() && (resource.data.fromUserId == request.auth.uid
+                        || resource.data.toUserId == request.auth.uid));
       allow create: if isAuth() && hasStandardFields();
-      allow update: if isAdminOrStaff() || isAuth();
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && (resource.data.fromUserId == request.auth.uid
+                        || resource.data.toUserId == request.auth.uid));
       allow delete: if false;
     }
 
     match /viewings/{id} {
-      allow read:   if isAuth();
-      allow create: if isAuth() && hasStandardFields();
-      allow update: if isAuth();
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && (resource.data.clientId == request.auth.uid
+                        || resource.data.agentId  == request.auth.uid));
+      allow create: if isAuth() && hasStandardFields()
+                    && (request.resource.data.clientId == request.auth.uid
+                        || request.resource.data.agentId == request.auth.uid
+                        || isAdminOrStaff());
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && (resource.data.clientId == request.auth.uid
+                        || resource.data.agentId  == request.auth.uid));
       allow delete: if false;
     }
 
     match /services/{id} {
+      // assignedToId is the assigned partner's real account uid (see
+      // index.html's assignServicePartner()) — assignedTo is a display
+      // name string only, never an auth uid, so it must not be used here.
       allow read:   if isAdminOrStaff()
                     || (isAuth() && (resource.data.requestedBy == request.auth.uid
-                        || resource.data.assignedTo == request.auth.uid));
+                        || resource.data.assignedToId == request.auth.uid));
       allow create: if isAuth() && hasStandardFields();
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.assignedTo == request.auth.uid);
+                    || (isAuth() && resource.data.assignedToId == request.auth.uid);
       allow delete: if false;
     }
 
@@ -115,7 +151,7 @@ service cloud.firestore {
 
     match /expenses/{id} {
       allow read:   if isAdminOrStaff();
-      allow create: if isAuth() && hasStandardFields();
+      allow create: if isAdminOrStaff() && hasStandardFields();
       allow update: if isAdminOrStaff();
       allow delete: if false;
     }
@@ -155,7 +191,12 @@ service cloud.firestore {
     }
 
     match /reviews/{id} {
-      allow read:   if true;
+      // Partner reviews (subjectType != 'staff') are intentionally public;
+      // staff performance reviews (subjectType == 'staff') are private to
+      // the reviewed employee and admin/staff — never publicly readable.
+      allow read:   if resource.data.subjectType == 'staff'
+                    ? (isAdminOrStaff() || resource.data.staffId == request.auth.uid)
+                    : true;
       allow create: if isAuth() && hasStandardFields();
       allow update: if isAdminOrStaff();
       allow delete: if false;
@@ -175,6 +216,19 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ── INVESTOR PORTAL ────────────────────────────────
+    match /investments/{id} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && resource.data.investorId == request.auth.uid);
+      allow create: if isAuth() && hasStandardFields()
+                    && request.resource.data.investorId == request.auth.uid;
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && resource.data.investorId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status','updatedAt','updatedBy']));
+      allow delete: if false;
+    }
+
     match /notifications/{id} {
       allow read:   if isAuth() && resource.data.userId == request.auth.uid;
       allow create: if isAuth() && hasStandardFields();
@@ -183,13 +237,21 @@ service cloud.firestore {
     }
 
     match /messages/{id} {
+      // Two shapes share this collection: 1:1 client<->agent messages
+      // (participants array) and internal team-channel posts (channel
+      // field, no participants) — added for the Office Management team
+      // channel feature rather than creating a duplicate collection.
       allow read:   if isAuth() && (
-                      request.auth.uid in resource.data.participants ||
                       isAdminOrStaff()
+                      || ('participants' in resource.data && request.auth.uid in resource.data.participants)
+                      || ('channel' in resource.data && isInternalTeam())
                     );
       allow create: if isAuth() && hasStandardFields()
                     && request.resource.data.fromId == request.auth.uid
-                    && request.auth.uid in request.resource.data.participants;
+                    && (
+                      ('participants' in request.resource.data && request.auth.uid in request.resource.data.participants)
+                      || ('channel' in request.resource.data && isInternalTeam())
+                    );
       allow update: if isAdminOrStaff()
                     || (isAuth() && resource.data.toId == request.auth.uid
                         && request.resource.data.diff(resource.data).affectedKeys()
@@ -210,7 +272,7 @@ service cloud.firestore {
     match /sites/{siteId} {
       allow read:   if true;
       allow create: if isAuth()
-                    && request.auth.token.role in ['agent','Agent','developer','staff','admin','Admin','super_admin']
+                    && (isRole('agent') || isRole('developer') || isAdminOrStaff())
                     && hasStandardFields();
       allow update: if isAdminOrStaff()
                     || (isAuth() && isRole('agent')
@@ -223,7 +285,7 @@ service cloud.firestore {
     match /plots/{plotId} {
       allow read:   if true;
       allow create: if isAuth()
-                    && request.auth.token.role in ['agent','Agent','staff','admin','Admin','super_admin']
+                    && (isRole('agent') || isAdminOrStaff())
                     && hasStandardFields();
       allow update: if isAdminOrStaff()
                     || (isAuth()

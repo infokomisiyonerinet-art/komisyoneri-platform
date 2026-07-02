@@ -8,6 +8,7 @@ Allow: /
 Allow: /listings
 Allow: /analytics
 Allow: /about
+Allow: /agents
 
 # Disallow admin/private pages
 Disallow: /dashboard
@@ -17,6 +18,9 @@ Disallow: /api/
 
 # Sitemap location
 Sitemap: https://komisiyoneri.co.rw/sitemap.xml
+
+# AI/LLM discoverability summary
+# https://komisiyoneri.co.rw/llms.txt
 
 # Crawl delay (be nice to the server)
 Crawl-delay: 1
