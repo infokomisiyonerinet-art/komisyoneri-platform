@@ -3207,8 +3207,8 @@ html,body{overscroll-behavior-x:none}
         </div>
         <div class="f-card fc4">
           <div class="f-icon" style="background:rgba(245,166,35,.15)"><svg viewBox="0 0 24 24" stroke="#8B6A00"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-          <h3 data-rw="AI Market Analytics" data-en="AI Market Analytics">AI Market Analytics</h3>
-          <p data-rw="Isesengura ry'isoko rikoresha AI — ibiciro biraganuye, trends z'amasoko, n'inama z'ishoramari zihari kuri gahunda." data-en="AI-powered market analysis — price predictions, trends, and personalized investment recommendations.">Isesengura ry'isoko rikoresha AI — ibiciro biraganuye, trends z'amasoko, n'inama z'ishoramari.</p>
+          <h3 data-rw="Market Analytics" data-en="Market Analytics">Market Analytics</h3>
+          <p data-rw="Ibipimo nyakuri biva ku mitungo yemejwe — igiciro/m² ku karere, ubwoko bw'imitungo, n'uturere dufite imitungo myinshi." data-en="Real, live figures computed from actual approved listings — price/m² by district, property type breakdown, and top districts by listing volume.">Ibipimo nyakuri biva ku mitungo yemejwe — igiciro/m² ku karere, ubwoko bw'imitungo.</p>
           <span class="f-link" onclick="go('analytics')" style="cursor:pointer"><span data-rw="Reba Analytics →" data-en="View Analytics →">Reba Analytics →</span><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
         </div>
         <div class="f-card fc5">
@@ -3239,7 +3239,7 @@ html,body{overscroll-behavior-x:none}
         </div>
         <div class="why-item">
           <div class="why-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-          <div><h4 data-rw="Ubufasha bwa AI" data-en="AI-Powered Matching">Ubufasha bwa AI</h4><p data-rw="Isesengura ry'isoko rikoresha AI rigufasha guhitamo neza, uko ibiciro bigenda kandi n'aho ishoramari rikwiye." data-en="AI-powered analysis helps you choose well, tracking price trends and the best places to invest.">Isesengura ry'isoko rikoresha AI rigufasha guhitamo neza, uko ibiciro bigenda kandi n'aho ishoramari rikwiye.</p></div>
+          <div><h4 data-rw="Ubufasha bwa NOHERI AI" data-en="NOHERI AI Assistant">NOHERI AI Assistant</h4><p data-rw="Umufasha wa AI uboneka igihe cyose kugira ngo agufashe gushakisha no gusubiza ibibazo byawe by'imitungo." data-en="An AI assistant available around the clock to help you search and answer your property questions.">Umufasha wa AI uboneka igihe cyose kugira ngo agufashe gushakisha no gusubiza ibibazo byawe.</p></div>
         </div>
         <div class="why-item">
           <div class="why-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg></div>
@@ -3922,126 +3922,52 @@ html,body{overscroll-behavior-x:none}
 <div class="page" id="page-analytics">
   <div class="an-hdr">
     <div class="wrap">
-      <div class="eyebrow" style="color:var(--gold);margin-bottom:.3rem">AI-Powered</div>
+      <div class="eyebrow" style="color:var(--gold);margin-bottom:.3rem" data-rw="Ibipimo Nyakuri" data-en="Live Data">Live Data</div>
       <h1 data-rw="Isesengura ry'Isoko" data-en="Market Analytics">Isesengura ry'Isoko</h1>
-      <p data-rw="Amakuru y'isoko rikoresha ubwenge bwa AI — ibiciro biraganuye, trends, n'inama z'ishoramari." data-en="Real-time market intelligence powered by AI — price predictions, trends, and investment insights.">Amakuru y'isoko rikoresha ubwenge bwa AI — ibiciro biraganuye, trends, n'inama z'ishoramari.</p>
+      <p data-rw="Ibipimo bifatika biva ku mitungo yemejwe kuri KOMISIYONERI — ntabwo ari amakuru y'ikitegererezo." data-en="Real figures computed live from properties actually listed on KOMISIYONERI — not sample data.">Ibipimo bifatika biva ku mitungo yemejwe kuri KOMISIYONERI — ntabwo ari amakuru y'ikitegererezo.</p>
     </div>
   </div>
   <div class="an-kpis">
     <div class="an-kpi">
-      <span class="an-kpi-v">118,500</span><span class="an-kpi-l" data-rw="Igiciro/m² Kigali (RWF)" data-en="Avg Price/m² Kigali (RWF)">Avg Price/m² Kigali</span>
-      <div class="delta d-up" style="margin-top:.5rem"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>+8.2% cy'umwaka</div>
+      <span class="an-kpi-v" id="an-kpi-listings">—</span><span class="an-kpi-l" data-rw="Imitungo Yanditswe" data-en="Active Listings">Imitungo Yanditswe</span>
     </div>
     <div class="an-kpi">
-      <span class="an-kpi-v">1,240</span><span class="an-kpi-l" data-rw="Imitungo Yanditswe" data-en="Active Listings">Imitungo Yanditswe</span>
-      <div class="delta d-up" style="margin-top:.5rem"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>+142 uku kwezi</div>
+      <span class="an-kpi-v" id="an-kpi-avgprice">—</span><span class="an-kpi-l" data-rw="Igiciro Rusange" data-en="Average Listing Price">Average Listing Price</span>
     </div>
     <div class="an-kpi">
-      <span class="an-kpi-v">34 days</span><span class="an-kpi-l" data-rw="Igihe Gisaba Kugurisha" data-en="Avg Days on Market">Avg Days on Market</span>
-      <div class="delta d-dn" style="margin-top:.5rem"><svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>-5 days</div>
+      <span class="an-kpi-v" id="an-kpi-ppm2">—</span><span class="an-kpi-l" data-rw="Igiciro/m² (aho bipimo bihari)" data-en="Avg Price/m² (where size is listed)">Avg Price/m²</span>
     </div>
     <div class="an-kpi">
-      <span class="an-kpi-v">$2.1B</span><span class="an-kpi-l" data-rw="Agaciro k'Isoko" data-en="Total Market Size">Agaciro k'Isoko</span>
-      <div class="delta d-up" style="margin-top:.5rem"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>+12.1% this year</div>
+      <span class="an-kpi-v" id="an-kpi-districts">—</span><span class="an-kpi-l" data-rw="Uturere Dufite Imitungo" data-en="Districts Covered">Districts Covered</span>
     </div>
   </div>
 
   <div class="an-body">
     <div>
-      <!-- Revenue projections chart -->
-      <div class="chart-card">
-        <div class="chart-hdr">
-          <div class="chart-title" data-rw="Ubwiyongere bw'Ibiciro by'Imitungo — Kigali" data-en="Property Price Growth — Kigali">Ubwiyongere bw'Ibiciro by'Imitungo — Kigali</div>
-          <span class="chart-sub" data-rw="Amezi 12 ashize" data-en="Last 12 months">Amezi 12 ashize</span>
-        </div>
-        <div class="bar-chart" id="chart1">
-          <div class="bc-col"><span class="bc-v">82M</span><div class="bc-bar" style="height:55%;background:linear-gradient(to top,var(--navy),var(--blue))"></div><span class="bc-l">Jan</span></div>
-          <div class="bc-col"><span class="bc-v">88M</span><div class="bc-bar" style="height:60%;background:linear-gradient(to top,var(--navy),var(--blue))"></div><span class="bc-l">Feb</span></div>
-          <div class="bc-col"><span class="bc-v">91M</span><div class="bc-bar" style="height:62%;background:linear-gradient(to top,var(--navy),var(--blue))"></div><span class="bc-l">Mar</span></div>
-          <div class="bc-col"><span class="bc-v">95M</span><div class="bc-bar" style="height:65%;background:linear-gradient(to top,var(--navy),var(--blue))"></div><span class="bc-l">Apr</span></div>
-          <div class="bc-col"><span class="bc-v">98M</span><div class="bc-bar" style="height:67%;background:linear-gradient(to top,var(--navy),var(--blue))"></div><span class="bc-l">May</span></div>
-          <div class="bc-col"><span class="bc-v">102M</span><div class="bc-bar" style="height:70%;background:linear-gradient(to top,var(--navy),var(--blue))"></div><span class="bc-l">Jun</span></div>
-          <div class="bc-col"><span class="bc-v">105M</span><div class="bc-bar" style="height:72%;background:linear-gradient(to top,var(--navy),var(--blue))"></div><span class="bc-l">Jul</span></div>
-          <div class="bc-col"><span class="bc-v">109M</span><div class="bc-bar" style="height:75%;background:linear-gradient(to top,var(--navy),var(--blue))"></div><span class="bc-l">Aug</span></div>
-          <div class="bc-col"><span class="bc-v">112M</span><div class="bc-bar" style="height:78%;background:linear-gradient(to top,var(--navy),var(--blue))"></div><span class="bc-l">Sep</span></div>
-          <div class="bc-col"><span class="bc-v">115M</span><div class="bc-bar" style="height:80%;background:linear-gradient(to top,var(--navy),var(--blue))"></div><span class="bc-l">Oct</span></div>
-          <div class="bc-col"><span class="bc-v">118M</span><div class="bc-bar" style="height:82%;background:linear-gradient(to top,var(--navy),var(--blue))"></div><span class="bc-l">Nov</span></div>
-          <div class="bc-col"><span class="bc-v">120M</span><div class="bc-bar" style="height:85%;background:linear-gradient(to top,var(--gold),#e09b18)"></div><span class="bc-l" style="font-weight:700;color:var(--navy)">Dec</span></div>
-        </div>
-      </div>
-      <!-- Price compare by district -->
+      <!-- Price compare by district (computed from real listings) -->
       <div class="chart-card">
         <div class="chart-hdr">
           <div class="chart-title" data-rw="Igiciro/m² hashingiwe ku Karere" data-en="Price/m² by District">Igiciro/m² hashingiwe ku Karere</div>
           <span class="chart-sub">RWF</span>
         </div>
-        <div class="pc-list">
-          <div class="pc-row"><span class="pc-lbl">Gasabo</span><div class="pc-track"><div class="pc-fill" style="width:100%"></div></div><span class="pc-val">372K</span></div>
-          <div class="pc-row"><span class="pc-lbl">Nyarugenge</span><div class="pc-track"><div class="pc-fill" style="width:88%"></div></div><span class="pc-val">328K</span></div>
-          <div class="pc-row"><span class="pc-lbl">Kicukiro</span><div class="pc-track"><div class="pc-fill" style="width:82%"></div></div><span class="pc-val">305K</span></div>
-          <div class="pc-row"><span class="pc-lbl">Musanze</span><div class="pc-track"><div class="pc-fill" style="width:64%"></div></div><span class="pc-val">238K</span></div>
-          <div class="pc-row"><span class="pc-lbl">Rubavu</span><div class="pc-track"><div class="pc-fill" style="width:58%"></div></div><span class="pc-val">215K</span></div>
-          <div class="pc-row"><span class="pc-lbl">Huye</span><div class="pc-track"><div class="pc-fill" style="width:50%"></div></div><span class="pc-val">186K</span></div>
-          <div class="pc-row"><span class="pc-lbl">Nyagatare</span><div class="pc-track"><div class="pc-fill" style="width:44%"></div></div><span class="pc-val">164K</span></div>
+        <div class="pc-list" id="an-district-compare">
+          <div class="empty-state" style="padding:1rem 0" data-rw="Turimo gutegura ibipimo..." data-en="Loading...">Loading...</div>
         </div>
       </div>
-      <!-- Revenue projection (from pitch deck slide 9) -->
+      <!-- Property type distribution (computed from real listings) -->
       <div class="chart-card">
-        <div class="chart-hdr">
-          <div class="chart-title" data-rw="KOMISIYONERI — Ingingo y'Imari 3 Yimyaka" data-en="KOMISIYONERI — 3-Year Revenue Forecast">KOMISIYONERI — 3-Year Revenue Forecast</div>
-        </div>
-        <div class="bar-chart">
-          <div class="bc-col" style="flex:1.5"><span class="bc-v" style="color:var(--navy)">$50K</span><div class="bc-bar" style="height:35%;background:linear-gradient(to top,var(--blue),#6ab0ff)"></div><span class="bc-l" style="font-weight:600">Year 1</span></div>
-          <div class="bc-col" style="flex:1.5"><span class="bc-v" style="color:var(--navy)">$150K</span><div class="bc-bar" style="height:60%;background:linear-gradient(to top,var(--navy),var(--blue))"></div><span class="bc-l" style="font-weight:600">Year 2</span></div>
-          <div class="bc-col" style="flex:1.5"><span class="bc-v" style="color:var(--gold);font-weight:700">$400K</span><div class="bc-bar" style="height:100%;background:linear-gradient(to top,#7A5500,var(--gold))"></div><span class="bc-l" style="font-weight:700;color:var(--navy)">Year 3</span></div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid var(--border)">
-          <div style="text-align:center;background:var(--light);border-radius:9px;padding:.7rem"><span style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--navy);display:block">Year 2</span><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase" data-rw="Break-Even" data-en="Break-Even">Break-Even</span></div>
-          <div style="text-align:center;background:var(--light);border-radius:9px;padding:.7rem"><span style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--navy);display:block">$100K</span><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase" data-rw="Seed Funding" data-en="Seed Funding">Seed Funding</span></div>
-          <div style="text-align:center;background:rgba(245,166,35,.1);border-radius:9px;padding:.7rem"><span style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:#7A5500;display:block">4x ROI</span><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase" data-rw="Expected Y3" data-en="Expected Y3">Expected Y3</span></div>
+        <div class="chart-hdr"><div class="chart-title" data-rw="Ubwoko bw'Imitungo Yanditswe" data-en="Listings by Property Type">Listings by Property Type</div></div>
+        <div id="an-type-dist" style="display:flex;flex-direction:column;gap:.6rem">
+          <div class="empty-state" style="padding:1rem 0" data-rw="Turimo gutegura ibipimo..." data-en="Loading...">Loading...</div>
         </div>
       </div>
     </div>
-    <!-- AI Sidebar -->
+    <!-- Sidebar -->
     <div>
       <div class="ai-rec" style="margin-bottom:1.4rem">
-        <div class="ai-rec-hdr"><div class="ai-rec-dot"></div><div class="ai-rec-title" data-rw="AI INAMA Z'ISHORAMARI" data-en="AI INVESTMENT INSIGHTS">AI INAMA Z'ISHORAMARI</div></div>
-        <div class="ai-rec-item">
-          <div class="ai-rec-item-t" data-rw="Gasabo ni ahantu heza cyane ho gushora imari" data-en="Gasabo is the top investment district right now">Gasabo ni ahantu heza cyane ho gushora imari</div>
-          <div class="ai-rec-item-s" data-rw="Ubwiyongere bw'ibiciro ni 8.2% kuri uyu mwaka." data-en="Price growth at 8.2% this year with continued demand.">Ubwiyongere bw'ibiciro ni 8.2% kuri uyu mwaka.</div>
-          <div class="ai-score"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Score: 94/100</div>
-        </div>
-        <div class="ai-rec-item">
-          <div class="ai-rec-item-t" data-rw="Apartimanı mu Kicukiro zifite kodesha yield nziza" data-en="Kicukiro apartments offer strong kodesha yields">Apartimanı mu Kicukiro zifite kodesha yield nziza</div>
-          <div class="ai-rec-item-s" data-rw="Yield ya 6.8% kuri apartimanı 2BR — ibipimo bibisho." data-en="6.8% yield on 2BR apartments — solid numbers.">Yield ya 6.8% kuri apartimanı 2BR — ibipimo bibisho.</div>
-          <div class="ai-score">Score: 88/100</div>
-        </div>
-        <div class="ai-rec-item">
-          <div class="ai-rec-item-t" data-rw="Ubutaka bwa Musanze bugenda bugwirira agaciro" data-en="Musanze land steadily appreciating in value">Ubutaka bwa Musanze bugenda bugwirira agaciro</div>
-          <div class="ai-rec-item-s" data-rw="Turismo n'ubwiyongere bw'uturere bitera ibiciro gukomera." data-en="Tourism growth and district development driving prices up.">Turismo n'ubwiyongere bw'uturere bitera ibiciro gukomera.</div>
-          <div class="ai-score">Score: 82/100</div>
-        </div>
-      </div>
-      <!-- Market stats card -->
-      <div class="chart-card">
-        <div class="chart-hdr"><div class="chart-title" data-rw="Imitungo Yagurishijwe" data-en="Monthly Sales Volume">Imitungo Yagurishijwe</div></div>
-        <div class="mini-bars">
-          <div class="mb-col"><div class="mb-bar" style="height:45px"></div><span class="mb-lbl">Jul</span></div>
-          <div class="mb-col"><div class="mb-bar" style="height:52px"></div><span class="mb-lbl">Aug</span></div>
-          <div class="mb-col"><div class="mb-bar" style="height:38px"></div><span class="mb-lbl">Sep</span></div>
-          <div class="mb-col"><div class="mb-bar" style="height:60px"></div><span class="mb-lbl">Oct</span></div>
-          <div class="mb-col"><div class="mb-bar" style="height:48px"></div><span class="mb-lbl">Nov</span></div>
-          <div class="mb-col"><div class="mb-bar" style="height:66px;background:linear-gradient(to top,#7A5500,var(--gold))"></div><span class="mb-lbl" style="font-weight:700;color:var(--navy)">Dec</span></div>
-        </div>
-      </div>
-      <!-- Market breakdown -->
-      <div class="chart-card" style="margin-top:0">
-        <div class="chart-hdr"><div class="chart-title" data-rw="Ubwoko bw'Imitungo Yagurishijwe" data-en="Sales by Property Type">Ubwoko bw'Imitungo</div></div>
-        <div style="display:flex;flex-direction:column;gap:.6rem">
-          <div><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:.3rem"><span>Villa</span><span style="font-weight:700;font-family:'JetBrains Mono',monospace">42%</span></div><div style="height:7px;background:var(--light);border-radius:4px"><div style="width:42%;height:100%;background:var(--navy);border-radius:4px"></div></div></div>
-          <div><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:.3rem"><span data-rw="Apartimanı" data-en="Apartment">Apartimanı</span><span style="font-weight:700;font-family:'JetBrains Mono',monospace">35%</span></div><div style="height:7px;background:var(--light);border-radius:4px"><div style="width:35%;height:100%;background:var(--blue);border-radius:4px"></div></div></div>
-          <div><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:.3rem"><span data-rw="Ubutaka" data-en="Land">Ubutaka</span><span style="font-weight:700;font-family:'JetBrains Mono',monospace">15%</span></div><div style="height:7px;background:var(--light);border-radius:4px"><div style="width:15%;height:100%;background:var(--green);border-radius:4px"></div></div></div>
-          <div><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:.3rem"><span data-rw="Inyubako" data-en="Commercial">Inyubako</span><span style="font-weight:700;font-family:'JetBrains Mono',monospace">8%</span></div><div style="height:7px;background:var(--light);border-radius:4px"><div style="width:8%;height:100%;background:var(--gold);border-radius:4px"></div></div></div>
+        <div class="ai-rec-hdr"><div class="ai-rec-dot"></div><div class="ai-rec-title" data-rw="UTURERE DUFITE IMITUNGO MYINSHI" data-en="TOP DISTRICTS BY LISTING COUNT">TOP DISTRICTS BY LISTING COUNT</div></div>
+        <div id="an-top-districts">
+          <div class="ai-rec-item"><div class="ai-rec-item-t" data-rw="Turimo gutegura ibipimo..." data-en="Loading...">Loading...</div></div>
         </div>
       </div>
     </div>
@@ -9169,7 +9095,7 @@ function kmTrack(name, params) {
   try {
     var p = Object.assign({ platform:'web', lang:curLang||'rw' }, params||{});
     if(typeof gtag    !=='undefined') gtag('event', name, p);
-    if(typeof posthog !=='undefined') posthog.capture(name, p);
+    if(typeof posthog !=='undefined' && typeof posthog.capture==='function') posthog.capture(name, p);
   } catch(e){}
 }
 // ── GLOBAL ERROR HANDLER
@@ -9177,7 +9103,7 @@ window.onerror = function(msg, src, line, col, err) {
   try {
     if(typeof Sentry  !=='undefined') Sentry.captureException(err||new Error(msg));
     if(typeof gtag    !=='undefined') gtag('event','exception',{description:msg,fatal:false});
-    if(typeof posthog !=='undefined') posthog.capture('js_error',{message:msg,source:src,lineno:line});
+    if(typeof posthog !=='undefined' && typeof posthog.capture==='function') posthog.capture('js_error',{message:msg,source:src,lineno:line});
   } catch(e){}
 };
 window.onunhandledrejection = function(evt) {
@@ -9185,7 +9111,7 @@ window.onunhandledrejection = function(evt) {
   try {
     if(typeof Sentry  !=='undefined') Sentry.captureException(evt.reason||new Error(msg));
     if(typeof gtag    !=='undefined') gtag('event','exception',{description:msg,fatal:false});
-    if(typeof posthog !=='undefined') posthog.capture('promise_error',{message:msg});
+    if(typeof posthog !=='undefined' && typeof posthog.capture==='function') posthog.capture('promise_error',{message:msg});
   } catch(e){}
 };
 // ── GLOBAL getElementById SHORTCUT
@@ -9251,7 +9177,7 @@ function saveUser(user) {
   updateNavForUser(user);
   try {
     if(user && user.uid) {
-      if(typeof posthog !=='undefined') posthog.identify(user.uid,{email:user.email,name:user.name,role:user.role,provider:user.provider});
+      if(typeof posthog !=='undefined' && typeof posthog.identify==='function') posthog.identify(user.uid,{email:user.email,name:user.name,role:user.role,provider:user.provider});
       if(typeof Sentry  !=='undefined') Sentry.setUser({id:user.uid,email:user.email,username:user.name});
     }
   } catch(e){}
@@ -9321,48 +9247,6 @@ function updateNavForUser(user) {
       }
     }
   }
-}
-
-function loadAgentDashboard() {
-  if (!currentUser) return;
-  var e = function(id){ return document.getElementById(id); };
-
-  // Personalize welcome
-  var wn = e('dash-welcome-name');
-  if (wn) wn.textContent = (curLang==='rw' ? 'Murakaza neza, ' : 'Welcome back, ') + (currentUser.name||'Agent') + '!';
-
-  var props = [], deals = [], leads = [], agents = [];
-  try { props  = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(err){}
-  try { deals  = JSON.parse(localStorage.getItem('km_deals')||'[]');      } catch(err){}
-  try { leads  = JSON.parse(localStorage.getItem('km_leads')||'[]');      } catch(err){}
-  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]');     } catch(err){}
-
-  var myProps    = props.filter(function(p){ return p.ownerEmail === currentUser.email; });
-  var approved   = myProps.filter(function(p){ return p.status === 'Approved'; });
-  var myLeads    = leads.filter(function(l){ return currentUser.agentId && l.assignedAgent === currentUser.agentId; });
-  var myDeals    = deals.filter(function(d){ return currentUser.agentId && d.agentId === currentUser.agentId; });
-  var salesClosed = myDeals.filter(function(d){ return d.status === 'Completed'; }).length;
-
-  var myAgent = agents.find(function(a){ return a.id === currentUser.agentId; });
-  var commission = myAgent ? (myAgent.commissionTotal || 0) : 0;
-  var commDisp = commission >= 1000000 ? (commission/1000000).toFixed(1)+'M'
-               : commission >= 1000    ? Math.round(commission/1000)+'K'
-               : String(commission);
-
-  if(e('dash-kpi-listings'))   e('dash-kpi-listings').textContent   = approved.length;
-  if(e('dash-kpi-sales'))      e('dash-kpi-sales').textContent      = salesClosed;
-  if(e('dash-kpi-commission')) e('dash-kpi-commission').textContent = commDisp || '0';
-  if(e('dash-kpi-leads'))      e('dash-kpi-leads').textContent      = myLeads.length;
-  if(e('dash-sidebar-listings')) e('dash-sidebar-listings').textContent = approved.length;
-
-  renderDashboardListings(approved);
-
-  // Upcoming visits
-  var bookings = [];
-  try { bookings = JSON.parse(localStorage.getItem('km_bookings')||'[]'); } catch(err){}
-  var myBookings = bookings.filter(function(b){ return b.agentEmail === currentUser.email; });
-  myBookings.sort(function(a,b){ return (a.date||'') < (b.date||'') ? -1 : 1; });
-  renderDashboardBookings(myBookings);
 }
 
 function renderDashboardBookings(bookings) {
@@ -10216,7 +10100,7 @@ function go(name) {
   // GA4 page tracking
   if (typeof gtag !== 'undefined') {
     gtag('event', 'page_view', { page_title: titles[name], page_path: '/' + name });
-    if(typeof posthog !=='undefined') posthog.capture('$pageview',{$current_url:'/'+name,page_title:titles[name]});
+    if(typeof posthog !=='undefined' && typeof posthog.capture==='function') posthog.capture('$pageview',{$current_url:'/'+name,page_title:titles[name]});
   }
 
   // Animate KPIs when entering analytics or dashboard
@@ -11008,6 +10892,94 @@ function openMyProps() {
   }).join('');
 }
 
+// ── Public Market Analytics — computed live from real approved listings,
+// never fabricated. Replaces a previous version of this page that showed
+// static hardcoded numbers (including an internal pitch-deck revenue
+// forecast) to anonymous public visitors.
+function loadPublicMarketAnalytics() {
+  var props = getApprovedProps();
+  var n = props.length;
+  var noData = curLang === 'rw' ? 'Nta bipimo bihagije' : 'Not enough data yet';
+
+  var elListings = document.getElementById('an-kpi-listings');
+  if (elListings) elListings.textContent = n;
+
+  var elAvgPrice = document.getElementById('an-kpi-avgprice');
+  if (elAvgPrice) {
+    var avgPrice = n ? Math.round(props.reduce(function(s,p){ return s + (Number(p.price)||0); }, 0) / n) : 0;
+    elAvgPrice.textContent = avgPrice ? fmtRWF(avgPrice) : noData;
+  }
+
+  var priced = props.filter(function(p){ return Number(p.price) > 0 && Number(p.size) > 0; });
+  var elPpm2 = document.getElementById('an-kpi-ppm2');
+  if (elPpm2) {
+    var avgPpm2 = priced.length ? Math.round(priced.reduce(function(s,p){ return s + (p.price/p.size); }, 0) / priced.length) : 0;
+    elPpm2.textContent = avgPpm2 ? avgPpm2.toLocaleString() + ' RWF' : noData;
+  }
+
+  var districtSet = {};
+  props.forEach(function(p){ if (p.district) districtSet[p.district] = true; });
+  var elDistricts = document.getElementById('an-kpi-districts');
+  if (elDistricts) elDistricts.textContent = Object.keys(districtSet).length || 0;
+
+  // Price/m² by district — only districts with real priced+sized listings
+  var byDistrict = {};
+  priced.forEach(function(p){
+    if (!p.district) return;
+    (byDistrict[p.district] = byDistrict[p.district] || []).push(p.price / p.size);
+  });
+  var districtRows = Object.keys(byDistrict).map(function(d){
+    var arr = byDistrict[d];
+    return { district: d, avg: Math.round(arr.reduce(function(a,b){ return a+b; }, 0) / arr.length) };
+  }).sort(function(a,b){ return b.avg - a.avg; }).slice(0, 8);
+  var districtEl = document.getElementById('an-district-compare');
+  if (districtEl) {
+    if (!districtRows.length) {
+      districtEl.innerHTML = '<div class="empty-state" style="padding:1rem 0">' + (curLang==='rw' ? 'Nta bipimo bihagije kugira ngo tugereranye uturere.' : 'Not enough listings yet to compare districts.') + '</div>';
+    } else {
+      var maxAvg = districtRows[0].avg || 1;
+      districtEl.innerHTML = districtRows.map(function(r){
+        var pct = Math.round(r.avg / maxAvg * 100);
+        return '<div class="pc-row"><span class="pc-lbl">' + escapeHtml(r.district) + '</span><div class="pc-track"><div class="pc-fill" style="width:' + pct + '%"></div></div><span class="pc-val">' + Math.round(r.avg/1000) + 'K</span></div>';
+      }).join('');
+    }
+  }
+
+  // Property type distribution — real counts
+  var byType = {};
+  props.forEach(function(p){ var ty = p.type || (curLang==='rw'?'Ibindi':'Other'); byType[ty] = (byType[ty]||0) + 1; });
+  var typeEl = document.getElementById('an-type-dist');
+  if (typeEl) {
+    var typeKeys = Object.keys(byType);
+    if (!typeKeys.length) {
+      typeEl.innerHTML = '<div class="empty-state" style="padding:1rem 0">' + (curLang==='rw' ? 'Nta mitungo ihagije.' : 'Not enough listings yet.') + '</div>';
+    } else {
+      var colors = ['var(--navy)','var(--blue)','var(--gold)','#16A34A','#7C3AED','#DC2626'];
+      typeEl.innerHTML = typeKeys.map(function(ty, i){
+        var pct = Math.round(byType[ty] / n * 100);
+        return '<div><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:.3rem"><span>' + escapeHtml(ty) + '</span><span style="font-weight:700;font-family:\'JetBrains Mono\',monospace">' + pct + '%</span></div><div style="height:7px;background:var(--light);border-radius:4px"><div style="width:' + pct + '%;height:100%;background:' + colors[i % colors.length] + ';border-radius:4px"></div></div></div>';
+      }).join('');
+    }
+  }
+
+  // Top districts by real listing count — an honest signal, not a fabricated AI "score"
+  var countByDistrict = {};
+  props.forEach(function(p){ if (p.district) countByDistrict[p.district] = (countByDistrict[p.district]||0) + 1; });
+  var topDistricts = Object.keys(countByDistrict).map(function(d){ return { district: d, count: countByDistrict[d] }; })
+    .sort(function(a,b){ return b.count - a.count; }).slice(0, 3);
+  var insightEl = document.getElementById('an-top-districts');
+  if (insightEl) {
+    if (!topDistricts.length) {
+      insightEl.innerHTML = '<div class="ai-rec-item"><div class="ai-rec-item-t">' + (curLang==='rw' ? 'Nta bipimo bihagije kugeza ubu.' : 'Not enough listing data yet.') + '</div></div>';
+    } else {
+      insightEl.innerHTML = topDistricts.map(function(d){
+        return '<div class="ai-rec-item"><div class="ai-rec-item-t">' + escapeHtml(d.district) + '</div>'
+          + '<div class="ai-rec-item-s">' + d.count + ' ' + (curLang==='rw' ? 'imitungo yanditswe' : 'active listings') + '</div></div>';
+      }).join('');
+    }
+  }
+}
+
 // Load approved properties whenever listings page is shown
 var origGo = go;
 go = function(page) {
@@ -11016,6 +10988,8 @@ go = function(page) {
     /* Skip reset + reload when applyAndSearch is driving the navigation */
     if (!_myListingsMode && !window._filtersActive) { _listPage = 1; _listFiltered = null; }
     if (!window._filtersActive) setTimeout(loadApprovedProperties, 100);
+  } else if (page === 'analytics') {
+    setTimeout(loadPublicMarketAnalytics, 100);
   }
 };
 
@@ -14933,7 +14907,7 @@ function _handleNotifClick(collection, relatedId) {
       if (relatedId) setTimeout(function() { if (typeof openTaskDetail === 'function') openTaskDetail(relatedId); }, 400);
     }, 500);
   } else if (collection === 'services') {
-    go('verifications');
+    go('verification');
     setTimeout(function() { if (relatedId && typeof openVerificationDetail === 'function') openVerificationDetail(relatedId); }, 600);
   } else if (collection === 'referrals') {
     openReferralPanel();
@@ -21429,7 +21403,7 @@ function generateDealInvoice(dealId, deal, dealValue) {
       var desc = (deal.dealType === 'rent' ? 'Rental' : 'Sale') + ' — ' + (deal.propertyTitle || deal.propTitle || 'Property');
       return db.collection('invoices').add({
         id: '', invoiceNo: '', type: 'deal', dealId: dealId,
-        billedTo: deal.clientName || deal.clientId || '', clientEmail: '', clientAddress: '',
+        billedTo: deal.clientName || deal.clientId || '', clientId: deal.clientId || '', clientEmail: '', clientAddress: '',
         lineItems: [{ description: desc, qty: 1, unitPrice: subtotal, lineTotal: subtotal }],
         subtotal: subtotal, vatAmount: vatAmount, totalAmount: totalAmount,
         dueDate: '', notes: 'Auto-generated on deal closure', paidAt: null, pdfUrl: null,
@@ -23943,8 +23917,8 @@ var DISTRICT_OPTIONS = [
   'Gakenke','Gicumbi','Burera','Gatsibo','Rusizi','Nyamasheke'
 ];
 
-// ── Format RWF ──────────────────────────────────────
-function fmtRWF(n) {
+// ── Format RWF (compact, prefix style — Sites/Land module) ──
+function fmtRWFCompact(n) {
   if (!n) return 'RWF —';
   if (n >= 1000000) return 'RWF ' + (n/1000000).toFixed(1) + 'M';
   if (n >= 1000) return 'RWF ' + Math.round(n/1000) + 'K';
@@ -24012,7 +23986,7 @@ function renderSitesGrid(sites) {
       : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.3rem;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff"><div style="font-size:2rem">🏗️</div><div style="font-size:.72rem">Site Plan</div></div>';
     var priceRw = s.pricePerSqmMin && s.pricePerSqmMax
       ? 'RWF ' + (s.pricePerSqmMin/1000).toFixed(0) + 'K–' + (s.pricePerSqmMax/1000).toFixed(0) + 'K/m²'
-      : (s.totalValueRWF ? fmtRWF(s.totalValueRWF) + ' total' : 'Price on request');
+      : (s.totalValueRWF ? fmtRWFCompact(s.totalValueRWF) + ' total' : 'Price on request');
     return '<div class="site-card" onclick="loadSitePlan(\'' + s.id + '\')">' +
       '<div class="site-card-img">' + imgHtml +
         '<div class="site-card-status-badge">' + avail + ' <span data-rw="Ibihari" data-en="Available">Available</span></div>' +
@@ -24171,8 +24145,8 @@ function openPlotDetail(plotId) {
       '<span class="plot-popup-status ' + (statusCls[p.status] || 'available') + '">' + (statusLabel[p.status] || p.status) + '</span>' +
       '<div style="margin-bottom:.8rem"></div>' +
       '<div class="plot-popup-row"><span data-rw="Ubuso" data-en="Size">Size</span><span>' + (p.size || '—') + ' m²</span></div>' +
-      '<div class="plot-popup-row"><span data-rw="Igiciro" data-en="Price">Price</span><span>' + fmtRWF(p.price) + '</span></div>' +
-      (p.pricePerSqm ? '<div class="plot-popup-row"><span>Per m²</span><span>' + fmtRWF(p.pricePerSqm) + '</span></div>' : '') +
+      '<div class="plot-popup-row"><span data-rw="Igiciro" data-en="Price">Price</span><span>' + fmtRWFCompact(p.price) + '</span></div>' +
+      (p.pricePerSqm ? '<div class="plot-popup-row"><span>Per m²</span><span>' + fmtRWFCompact(p.pricePerSqm) + '</span></div>' : '') +
       (p.isCorner   ? '<div class="plot-popup-row"><span>Corner Plot</span><span>✅</span></div>' : '') +
       (p.facesRoad  ? '<div class="plot-popup-row"><span>Road Facing</span><span>✅</span></div>' : '') +
       (p.notes      ? '<div style="font-size:.75rem;color:var(--muted);margin-top:.4rem">' + p.notes + '</div>' : '') +
@@ -24209,7 +24183,7 @@ function openReservePlot(plotId) {
     var priceEl = document.getElementById('reserve-plot-price');
     var idEl    = document.getElementById('reserve-plot-id');
     if (sumEl)   sumEl.textContent  = p.plotLabel || ('Plot ' + p.plotNumber);
-    if (priceEl) priceEl.textContent = fmtRWF(p.price);
+    if (priceEl) priceEl.textContent = fmtRWFCompact(p.price);
     if (idEl)    idEl.value = plotId;
     var m = document.getElementById('reserve-plot-modal');
     if (m) m.style.display = 'flex';
@@ -24536,7 +24510,7 @@ function renderPlotPreview() {
   var msg  = document.getElementById('plot-count-msg');
   if (list) list.innerHTML = _pendingPlots.map(function(p, i) {
     return '<div style="display:flex;align-items:center;justify-content:space-between;padding:.4rem .6rem;background:var(--light);border-radius:7px;font-size:.78rem">' +
-      '<span><strong>Plot ' + p.plotNumber + '</strong> — ' + p.size + 'm² — ' + fmtRWF(p.price) +
+      '<span><strong>Plot ' + p.plotNumber + '</strong> — ' + p.size + 'm² — ' + fmtRWFCompact(p.price) +
         (p.isCorner ? ' 📐' : '') + (p.facesRoad ? ' 🛣️' : '') + '</span>' +
       '<button onclick="_pendingPlots.splice(' + i + ',1);renderPlotPreview()" style="background:none;border:none;color:var(--error);cursor:pointer;font-size:.9rem">✕</button>' +
     '</div>';
@@ -25695,7 +25669,7 @@ function loadLiveHomeStats() {
     }).catch(function(){});
 
   db.collection('users').where('isActive', '==', true).get().then(function(snap) {
-    if (elClients && snap.size > 5) elClients.textContent = snap.size + '+';
+    if (elClients && snap.size > 0) elClients.textContent = snap.size + '+';
   }).catch(function(){});
 
   db.collection('users').where('role', 'in', ['agent', 'Agent']).get().then(function(snap) {
@@ -28734,7 +28708,7 @@ function openSearchFromHeroCard() {
       .then(function(s) {
         var n = s.size;
         var el = document.getElementById('hero-stat-clients');
-        if (el && n > 10) el.textContent = n + '+';
+        if (el && n > 0) el.textContent = n + '+';
       }).catch(function(){});
   }
 
