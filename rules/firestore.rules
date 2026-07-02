@@ -143,7 +143,8 @@ service cloud.firestore {
 
     match /invoices/{id} {
       allow read:   if isAdminOrStaff()
-                    || (isAuth() && resource.data.billedTo == request.auth.uid);
+                    || (isAuth() && resource.data.billedTo == request.auth.uid)
+                    || (isAuth() && resource.data.clientId == request.auth.uid);
       allow create: if isAuth() && hasStandardFields();
       allow update: if isAdminOrStaff();
       allow delete: if false;
