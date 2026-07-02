@@ -5370,6 +5370,7 @@ html,body{overscroll-behavior-x:none}
     <button class="off-tab" id="otab-btn-attendance" onclick="switchOfficeTab('attendance')" data-rw="Igihe Cyo Kuja" data-en="Attendance">Attendance</button>
     <button class="off-tab" id="otab-btn-leave" onclick="switchOfficeTab('leave')" data-rw="Congo" data-en="Leave">Leave</button>
     <button class="off-tab" id="otab-btn-schedule" onclick="switchOfficeTab('schedule')" data-rw="Gahunda" data-en="Schedule">Schedule</button>
+    <button class="off-tab" id="otab-btn-channel" onclick="switchOfficeTab('channel')" data-rw="Itumanaho ry'Itsinda" data-en="Team Channel">Team Channel</button>
   </div>
 
   <!-- TASKS PANE -->
@@ -5455,6 +5456,24 @@ html,body{overscroll-behavior-x:none}
       <h3 style="margin:0;font-size:.95rem;color:var(--navy)" data-rw="Gahunda ya Iki Cyumweru" data-en="This Week Schedule">This Week Schedule</h3>
     </div>
     <div id="off-schedule-grid"></div>
+  </div>
+
+  <!-- TEAM CHANNEL PANE — real internal team communication, replacing
+       the WhatsApp-group workaround the master context flags as a goal -->
+  <div class="off-pane" id="otab-channel" style="display:none">
+    <div style="display:flex;gap:.5rem;margin-bottom:.75rem">
+      <select id="off-channel-select" onchange="loadTeamChannel()" class="off-filter">
+        <option value="general">📢 General</option>
+        <option value="sales">💼 Sales</option>
+        <option value="operations">⚙️ Operations</option>
+        <option value="announcements">📣 Announcements</option>
+      </select>
+    </div>
+    <div id="off-channel-messages" style="display:flex;flex-direction:column;gap:.6rem;max-height:420px;overflow-y:auto;margin-bottom:.75rem;padding:.5rem;background:var(--light);border-radius:10px;min-height:120px"></div>
+    <div style="display:flex;gap:.5rem">
+      <input type="text" id="off-channel-input" placeholder="Andika ubutumwa ku itsinda... / Post to the team..." style="flex:1;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem" onkeypress="if(event.key==='Enter')postToTeamChannel()">
+      <button class="btn btn-navy btn-sm" onclick="postToTeamChannel()" data-rw="Ohereza" data-en="Post">Post</button>
+    </div>
   </div>
 </div>
 
@@ -17934,7 +17953,7 @@ function loadOfficeStats() {
 }
 
 function switchOfficeTab(tab) {
-  ['tasks','attendance','leave','schedule'].forEach(function(t) {
+  ['tasks','attendance','leave','schedule','channel'].forEach(function(t) {
     var btn  = g('otab-btn-' + t);
     var pane = g('otab-' + t);
     if (btn)  btn.classList.toggle('active', t === tab);
@@ -17944,6 +17963,63 @@ function switchOfficeTab(tab) {
   else if (tab === 'attendance') loadAttendance();
   else if (tab === 'leave')      loadLeaves();
   else if (tab === 'schedule')   loadSchedule();
+  else if (tab === 'channel')    loadTeamChannel();
+}
+
+// ── TEAM CHANNEL ── Real internal group communication, reusing the
+// existing `messages` collection (already used for 1:1 client<->agent
+// chat) with a `channel` field instead of `participants` — one shared
+// data model instead of a duplicate messaging feature.
+var _channelUnsub = null;
+function loadTeamChannel() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var channel = (g('off-channel-select')||{}).value || 'general';
+  var list = g('off-channel-messages');
+  if (!list) return;
+  list.innerHTML = '<div class="off-loading">' + (curLang==='rw'?'Gutegura...':'Loading...') + '</div>';
+  if (_channelUnsub) { _channelUnsub(); _channelUnsub = null; }
+  _channelUnsub = db.collection('messages').where('channel','==',channel).where('isActive','==',true)
+    .orderBy('createdAt','desc').limit(50)
+    .onSnapshot(function(snap) {
+      var msgs = [];
+      snap.forEach(function(d) { msgs.push(d.data()); });
+      msgs.reverse();
+      if (!msgs.length) { list.innerHTML = '<div class="off-empty">' + (curLang==='rw'?'Nta butumwa burahari muri iyi channel.':'No messages in this channel yet.') + '</div>'; return; }
+      list.innerHTML = msgs.map(function(m) {
+        var dt = m.createdAt && m.createdAt.toDate ? m.createdAt.toDate().toLocaleString() : '';
+        var isMine = m.fromId === currentUser.uid;
+        return '<div style="background:' + (isMine ? 'var(--navy)' : '#fff') + ';color:' + (isMine ? '#fff' : 'var(--dark)') + ';border-radius:10px;padding:.6rem .8rem;max-width:80%;' + (isMine ? 'align-self:flex-end' : 'align-self:flex-start') + '">' +
+          '<div style="font-size:.72rem;font-weight:700;' + (isMine ? 'color:rgba(255,255,255,.8)' : 'color:var(--navy)') + '">' + escapeHtml(m.fromName||'') + '</div>' +
+          '<div style="font-size:.85rem;margin-top:.15rem">' + escapeHtml(m.content||'') + '</div>' +
+          '<div style="font-size:.65rem;margin-top:.2rem;' + (isMine ? 'color:rgba(255,255,255,.6)' : 'color:var(--muted)') + '">' + dt + '</div>' +
+        '</div>';
+      }).join('');
+      list.scrollTop = list.scrollHeight;
+    }, function(e) { console.error('[Office] loadTeamChannel', e); list.innerHTML = '<div class="off-empty">Error loading channel</div>'; });
+}
+
+function postToTeamChannel() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var input = g('off-channel-input');
+  var content = input ? input.value.trim() : '';
+  if (!content) return;
+  var channel = (g('off-channel-select')||{}).value || 'general';
+  var ref = db.collection('messages').doc();
+  ref.set({
+    id: ref.id, channel: channel, fromId: currentUser.uid,
+    fromName: currentUser.displayName || currentUser.name || currentUser.email || 'User',
+    content: content, read: true,
+    status: 'sent', isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: currentUser.uid, updatedBy: currentUser.uid
+  }).then(function() {
+    if (input) input.value = '';
+    logAudit('team_channel.posted', 'messages', ref.id, null, { channel: channel });
+  }).catch(function(e) {
+    showToast(curLang==='rw'?'Habaye ikosa':'Error posting message', 'error');
+    console.error('[Office] postToTeamChannel', e);
+  });
 }
 
 /* ── TASKS ── */

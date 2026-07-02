@@ -749,6 +749,22 @@ Triggers to automate server-side:
 }
 ```
 
+#### `investments` (Investor Portal — added to support real investment tracking)
+```javascript
+{
+  // Standard fields (7)
+  id, createdAt, updatedAt, createdBy, updatedBy, status, isActive,
+  // status: 'pledged'|'confirmed'|'exited'
+  investorId:    string,    // ref → users
+  investorName:  string,
+  propertyId:    string,    // ref → properties (must have isInvestmentOpportunity: true)
+  propertyTitle: string,
+  amountInvested:number,    // RWF
+  sharePercent:  number,    // % of investmentDetails.totalRaiseTarget
+  expectedROI:   number,    // % per year, from the property's investmentDetails.targetROI
+}
+```
+
 ### Firebase Storage Structure
 ```
 /images/
@@ -1045,13 +1061,13 @@ Document version history
 Role-based access control per document
 ```
 
-### Phase 7 — Partner Portal (Full) 🔴
+### Phase 7 — Partner Portal (Full) 🟡
 ```
-Individual dashboards per partner type
-Request management + acceptance
-Rapport upload system
-Rating + review collection
-Payment + invoice management
+✅ Individual partner dashboards (public directory: browse/register/rate)
+✅ Request management + acceptance (real assignedToId link to partner account)
+✅ Report upload system (partner-facing "My Assigned Jobs" submission)
+✅ Rating + review collection
+✅ Payment + invoice management (auto-generated payable invoice on job completion)
 ```
 
 ### Phase 8 — Financing Hub 🔴
@@ -1062,58 +1078,83 @@ Bank matching algorithm
 Loan status tracker (client view)
 ```
 
-### Phase 9 — Customer Portal (Full) 🔴
+### Phase 9 — Customer Portal (Full) 🟡
 ```
-Complete deal journey tracker
-Document vault access
-Mortgage status
-Viewing history
-Agent communication hub
-```
-
-### Phase 10 — Office Management 🔴
-```
-Task management system
-GPS attendance tracking
-Internal approval workflows
-Team communication (replace WhatsApp groups)
-Performance review system
+✅ Complete deal journey tracker
+✅ Document vault access (client-selector fix: staff-uploaded documents
+   now correctly reach the actual client's vault, not the uploader's)
+✅ Viewing history
+🔴 Mortgage status (not yet surfaced inside the portal)
+🔴 Agent communication hub (a generic 1:1 inbox exists elsewhere, not
+   embedded as a deal-scoped feature in this portal)
 ```
 
-### Phase 11 — HR System 🔴
+### Phase 10 — Office Management 🟡
 ```
-Employee records + contracts
-Leave request + approval
-Payroll (RSSB + PAYE compliant)
-PDF payslip auto-generation
-Performance tracking
-```
-
-### Phase 12 — Accounting & Finance 🔴
-```
-Invoice auto-generation
-Expense management
-P&L reports (monthly auto)
-Cashflow tracker
-RRA-compliant tax reports
+✅ Task management system
+✅ GPS attendance tracking
+✅ Internal approval workflows (leave approval)
+✅ Team communication (real Team Channel — general/sales/operations/
+   announcements — replacing the WhatsApp-group workaround)
+🔴 Formal performance review system for office/task performance
+   specifically (see Phase 11 — a review system now exists, scoped to HR)
 ```
 
-### Phase 13 — Executive Dashboard 🔴
+### Phase 11 — HR System 🟡
 ```
-Real-time CEO KPIs
-Revenue vs target
-Pipeline value
-Geographic heatmap
-AI-powered 3-scenario forecasts
+✅ Employee records + contracts (hireDate/contractType/contractEndDate
+   on the Staff Directory profile)
+✅ Leave request + approval
+✅ Payroll (RSSB + PAYE compliant — 2-bracket PAYE model)
+✅ PDF payslip auto-generation (real jsPDF-generated file, uploaded to
+   Firebase Storage, payslipUrl now actually populated)
+✅ Performance tracking (real manager-submitted reviews + existing
+   derived task/attendance metrics)
 ```
 
-### Phase 14 — Business Intelligence 🔴
+### Phase 12 — Accounting & Finance 🟡
 ```
-ROI per zone/type/agent
-Market price trends
-Buyer profile analysis
-Custom report builder
-Data export (CSV/PDF)
+✅ Invoice auto-generation (on deal closure, via autoCalculateCommission())
+✅ Expense management (with a real approve/reject workflow)
+✅ P&L reports (monthly auto)
+✅ Cashflow tracker (cumulative running balance by month)
+🔴 RRA-compliant tax reports — out of scope until real Rwanda Revenue
+   Authority format specifications are available; not fabricated
+```
+
+### Phase 13 — Executive Dashboard 🟡
+```
+✅ Real-time CEO KPIs
+✅ Revenue vs target
+✅ Pipeline value
+✅ Geographic view (real per-district deal-count activity grid, in the
+   BI Insights tab — not a true geographic map; no map library was
+   already loaded and adding one for a single panel wasn't justified)
+✅ 3-scenario forecasts (conservative/likely/optimistic growth-rate
+   models — explicitly not claimed as AI/ML, matching the platform's
+   existing honest framing of this feature)
+```
+
+### Phase 14 — Business Intelligence 🟡
+```
+✅ ROI per zone/type/agent (real % vs listed price from closed deals —
+   an honest, computed proxy metric, not a guaranteed-return claim)
+✅ Market price trends
+✅ Buyer profile analysis
+🔴 Custom report builder — not built; the new Insights tab and CSV
+   export cover the concrete reporting need, a full ad-hoc report
+   builder UI is a larger, separate feature
+✅ Data export (CSV — real client-side export; PDF export deferred,
+   would reuse the jsPDF dependency added for payslips)
+```
+
+### Investor Portal — 🟡 (new; previously a role label with zero implementation)
+```
+✅ Investment opportunity listings (properties an admin explicitly flags)
+✅ Real ROI calculator (user-supplied assumptions, not a fabricated return)
+✅ Portfolio dashboard scoped to the logged-in investor's own uid
+🔴 Land banking / off-plan investment tracking — not built; would need
+   its own data model beyond the core investments collection added here
 ```
 
 ### Phase 15 — National Expansion 🔴
@@ -1392,6 +1433,6 @@ All production examples, documentation, metadata, SEO, branding, and generated c
 
 *KOMISIYONERI ConnectPro Services Ltd — Kigali, Rwanda*
 *K-REOS Master Context v1.0 — June 2026*
-*Modules: 28 | Collections: 21 | Roles: 8 | Phases: 15*
+*Modules: 28 | Collections: 27 (21 originally documented + messages, plots, sites, site_enquiries, reviews, investments) | Roles: 8 | Phases: 15*
 *CONFIDENTIAL — Internal Engineering Use Only*
 *GitHub: /docs/KOMISIYONERI_MASTER_CONTEXT.md*
