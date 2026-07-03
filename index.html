@@ -1546,6 +1546,29 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   .trust-vline { display: none; }
 }
 
+/* ── ECOSYSTEM PILLARS — the core "not just listings" signal, first thing
+   after the headline. Horizontally scrollable on mobile (avoids vertical
+   bloat), wraps into a flexible grid once there's room on larger screens. ── */
+.hero-eco-lbl { font-size: .68rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: .6rem; }
+.hero-ecosystem-grid {
+  display: flex; gap: .55rem; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  padding: .15rem .15rem .9rem; margin: 0 -0.15rem 1.3rem;
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+.hero-ecosystem-grid::-webkit-scrollbar { display: none; }
+.eco-pillar {
+  display: flex; align-items: center; gap: .5rem; flex: 0 0 auto;
+  background: rgba(255,255,255,.08); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,.16); border-radius: 13px;
+  padding: .62rem .95rem; cursor: pointer; transition: var(--tr); white-space: nowrap;
+}
+.eco-pillar:hover, .eco-pillar:focus-visible { background: rgba(255,190,0,.15); border-color: rgba(255,190,0,.45); transform: translateY(-2px); outline: none; }
+.eco-pillar svg { width: 17px; height: 17px; stroke: #FFBE00; fill: none; stroke-width: 2; flex-shrink: 0; }
+.eco-pillar span { font-size: .78rem; font-weight: 700; color: #fff; }
+@media(min-width: 980px) {
+  .hero-ecosystem-grid { flex-wrap: wrap; overflow-x: visible; max-width: 700px; }
+}
+
 /* Hero CTA buttons — bigger, bolder */
 .hero-btns { display: flex; flex-wrap: wrap; gap: .85rem; align-items: center; }
 .hero-btns .btn-gold {
@@ -2272,7 +2295,7 @@ html,body{overscroll-behavior-x:none}
     <div class="sm-tabs">
       <button class="sm-tab active" onclick="setSmTab(this)" data-rw="Kugura" data-en="Buy">Kugura</button>
       <button class="sm-tab" onclick="setSmTab(this)" data-rw="Kugurisha" data-en="Sell">Kugurisha</button>
-      <button class="sm-tab" onclick="setSmTab(this)" data-rw="Gukodesha" data-en="Gukodesha">Gukodesha</button>
+      <button class="sm-tab" onclick="setSmTab(this)" data-rw="Gukodesha" data-en="Rent">Gukodesha</button>
     </div>
 
     <div class="sm-body">
@@ -2871,7 +2894,7 @@ html,body{overscroll-behavior-x:none}
   </div>
   <div class="stb-filters">
     <button class="stb-fc on" onclick="openSearch({tab:'buy'})" data-rw="Kugura" data-en="Buy">Kugura</button>
-    <button class="stb-fc" onclick="openSearch({tab:'rent'})" data-rw="Gukodesha" data-en="Gukodesha">Gukodesha</button>
+    <button class="stb-fc" onclick="openSearch({tab:'rent'})" data-rw="Gukodesha" data-en="Rent">Gukodesha</button>
     <button class="stb-fc" onclick="openSearch({district:'Kigali'})" data-rw="Kigali" data-en="Kigali">Kigali</button>
     <button class="stb-fc" onclick="openSearch({type:'Villa'})" data-rw="Villa" data-en="Villa">Villa</button>
     <button class="stb-fc" onclick="openSearch({type:'Apartimanı'})" data-rw="Apartimanı" data-en="Apartment">Apartimanı</button>
@@ -2909,43 +2932,86 @@ html,body{overscroll-behavior-x:none}
     <div class="hero-grid-overlay"></div>
     <div class="hero-inner">
       <div>
-        <div class="hero-pill"><div class="h-pulse"></div><span data-rw="🇷🇼 KOMISIYONERI — Platform N°1 y'Imitungo mu Rwanda" data-en="🇷🇼 KOMISIYONERI — Rwanda's #1 Property Platform">🇷🇼 KOMISIYONERI — Platform N°1 y'Imitungo mu Rwanda</span></div>
-        <h1><span data-rw="Shakisha, Gura, Kodesha" data-en="Find, Buy, Sell">Shakisha, Gura, Kodesha</span><br><em data-rw="Inzu mu Rwanda 🇷🇼" data-en="&amp; Rent Houses in Rwanda 🇷🇼">Inzu mu Rwanda 🇷🇼</em></h1>
-        <p class="hero-sub" data-rw="KOMISIYONERI — Platform N°1 ikoresha AI. Shakisha, suzuma, ugurishe cyangwa ugure inzu mu Rwanda yose — byoroshye, bwihuse, bwizewe." data-en="KOMISIYONERI — Rwanda's #1 AI-powered real estate platform. Search, verify, buy or rent property across Rwanda — easy, fast, trusted.">KOMISIYONERI — Platform N°1 ikoresha AI. Shakisha, suzuma, ugurishe cyangwa ugure inzu mu Rwanda yose — byoroshye, bwihuse, bwizewe.</p>
+        <div class="hero-pill"><div class="h-pulse"></div><span data-rw="🇷🇼 KOMISIYONERI — Ikoranabuhanga Ryuzuye ry'Imitungo" data-en="🇷🇼 KOMISIYONERI — Rwanda's Real Estate Operator Ecosystem">🇷🇼 KOMISIYONERI — Ikoranabuhanga Ryuzuye ry'Imitungo</span></div>
+        <h1><span data-rw="Urubuga Rwuzuye" data-en="Rwanda's Complete">Urubuga Rwuzuye</span><br><em data-rw="rw'Imitungo mu Rwanda 🇷🇼" data-en="Real Estate Ecosystem 🇷🇼">rw'Imitungo mu Rwanda 🇷🇼</em></h1>
+        <p class="hero-sub" data-rw="Urubuga rumwe kuri byose by'imitungo — kugura, kugurisha, gukodesha, kubona inguzanyo, no gusinya amasezerano, hamwe n'abakomisiyoneri, abavoka, abapima, n'amabanki byemewe mu Rwanda hose." data-en="One platform for the entire property journey — buy, sell, rent, finance, and close, backed by verified agents, lawyers, surveyors, and banks across Rwanda.">Urubuga rumwe kuri byose by'imitungo — kugura, kugurisha, gukodesha, kubona inguzanyo, no gusinya amasezerano, hamwe n'abakomisiyoneri, abavoka, abapima, n'amabanki byemewe mu Rwanda hose.</p>
+
+        <!-- ECOSYSTEM PILLARS — the redesign's core: every major service, not just search, visible within the first viewport -->
+        <div class="hero-eco-lbl" data-rw="Ibyo Dukora" data-en="What You Can Do Here">What You Can Do Here</div>
+        <div class="hero-ecosystem-grid">
+          <div class="eco-pillar" onclick="openSearch({tab:'buy'})" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openSearch({tab:'buy'})">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>
+            <span data-rw="Kugura" data-en="Buy Property">Buy Property</span>
+          </div>
+          <div class="eco-pillar" onclick="openAddProperty()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openAddProperty()">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41L13.42 20.58a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7" cy="7" r="1.5"/></svg>
+            <span data-rw="Kugurisha" data-en="Sell Property">Sell Property</span>
+          </div>
+          <div class="eco-pillar" onclick="openSearch({tab:'rent'})" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openSearch({tab:'rent'})">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            <span data-rw="Gukodesha" data-en="Rent Property">Rent Property</span>
+          </div>
+          <div class="eco-pillar" onclick="go('agents')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('agents')">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span data-rw="Abakomisiyoneri Bemewe" data-en="Verified Agents">Verified Agents</span>
+          </div>
+          <div class="eco-pillar" onclick="openMortgageCalc()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openMortgageCalc()">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            <span data-rw="Inguzanyo n'Imari" data-en="Mortgage &amp; Financing">Mortgage &amp; Financing</span>
+          </div>
+          <div class="eco-pillar" onclick="go('partners')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('partners')">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <span data-rw="Abavoka na Noteri" data-en="Lawyers &amp; Notaries">Lawyers &amp; Notaries</span>
+          </div>
+          <div class="eco-pillar" onclick="go('partners')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('partners')">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            <span data-rw="Abapima n'Abakwiye Igiciro" data-en="Surveyors &amp; Valuers">Surveyors &amp; Valuers</span>
+          </div>
+          <div class="eco-pillar" onclick="go('partners')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('partners')">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+            <span data-rw="Ubwubatsi na Serivisi" data-en="Construction &amp; Services">Construction &amp; Services</span>
+          </div>
+          <div class="eco-pillar" onclick="go('auth')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('auth')">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+            <span data-rw="Gucunga Amasoko" data-en="Deal Management">Deal Management</span>
+          </div>
+          <div class="eco-pillar" onclick="go('investors')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('investors')">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            <span data-rw="Gushora Imari" data-en="Invest">Invest</span>
+          </div>
+        </div>
 
         <!-- TRUST BAR — real, verifiable claims only (no invented headcounts or ratings) -->
         <div class="hero-trust">
           <div class="trust-badge">
             <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span data-rw="Imitungo Yose Igenzurwa" data-en="Every Listing Verified">Imitungo Yose Igenzurwa</span>
+            <span data-rw="Imitungo Yose Igenzurwa" data-en="Every Listing Verified">Every Listing Verified</span>
           </div>
           <div class="trust-vline"></div>
           <div class="trust-badge">
             <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span data-rw="Agents Bemewe na KOMISIYONERI" data-en="Agents Vetted by KOMISIYONERI">Agents Bemewe na KOMISIYONERI</span>
+            <span data-rw="Abakomisiyoneri n'Abahuza Bemewe" data-en="Verified Agents &amp; Partners">Verified Agents &amp; Partners</span>
+          </div>
+          <div class="trust-vline"></div>
+          <div class="trust-badge">
+            <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            <span data-rw="Ubufasha bwa NOHERI AI" data-en="AI-Powered Assistance">AI-Powered Assistance</span>
+          </div>
+          <div class="trust-vline"></div>
+          <div class="trust-badge">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+            <span data-rw="Akarere 30 Yose" data-en="Nationwide — 30 Districts">Nationwide — 30 Districts</span>
           </div>
         </div>
 
-        <!-- ECOSYSTEM STRIP — signals the full operator ecosystem (not just a listings search) within the first viewport -->
-        <div class="hero-audiences" style="display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .9rem;margin-top:.9rem;margin-bottom:.2rem">
-          <span style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.55)" data-rw="Kuri:" data-en="Built for:">Built for:</span>
-          <span onclick="go('auth')" role="link" tabindex="0" onkeydown="if(event.key==='Enter')go('auth')" style="cursor:pointer;font-size:.8rem;font-weight:700;color:var(--gold)" data-rw="Nyir'Imitungo" data-en="Property Owners">Property Owners</span>
-          <span style="color:rgba(255,255,255,.3)">·</span>
-          <span onclick="go('auth')" role="link" tabindex="0" onkeydown="if(event.key==='Enter')go('auth')" style="cursor:pointer;font-size:.8rem;font-weight:700;color:var(--gold)" data-rw="Abakomisiyoneri" data-en="Agents">Agents</span>
-          <span style="color:rgba(255,255,255,.3)">·</span>
-          <span onclick="go('investors')" role="link" tabindex="0" onkeydown="if(event.key==='Enter')go('investors')" style="cursor:pointer;font-size:.8rem;font-weight:700;color:var(--gold)" data-rw="Abashoramari" data-en="Investors">Investors</span>
-          <span style="color:rgba(255,255,255,.3)">·</span>
-          <span onclick="go('partners')" role="link" tabindex="0" onkeydown="if(event.key==='Enter')go('partners')" style="cursor:pointer;font-size:.8rem;font-weight:700;color:var(--gold)" data-rw="Abahuza" data-en="Partners">Partners</span>
-        </div>
-
         <div class="hero-btns">
-          <button class="btn btn-gold btn-lg" onclick="openSearch()">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <span data-rw="Shakisha Imitungo" data-en="Search Properties">Shakisha Imitungo</span>
+          <button class="btn btn-gold btn-lg" onclick="toggleChat()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            <span data-rw="Ganira na NOHERI AI" data-en="Chat with NOHERI AI">Chat with NOHERI AI</span>
           </button>
-          <button class="btn btn-ghost btn-lg" onclick="window.open('https://wa.me/250783177254?text=Muraho!%20Nshaka%20agent%20w%27imitungo.','_blank')">
+          <button class="btn btn-ghost btn-lg" onclick="window.open('https://wa.me/250783177254?text=Muraho!%20Nshaka%20ubufasha%20kuri%20KOMISIYONERI.','_blank')">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-            <span data-rw="Saba Agent — WhatsApp" data-en="Get Agent — WhatsApp">Saba Agent — WhatsApp</span>
+            <span data-rw="Vugana n'Itsinda Ryacu — WhatsApp" data-en="Talk to Our Team — WhatsApp">Talk to Our Team — WhatsApp</span>
           </button>
         </div>
 
@@ -8928,6 +8994,26 @@ window.onunhandledrejection = function(evt) {
 // and are unaffected by this global (JS scoping resolves the nearest
 // enclosing declaration first).
 function g(id) { return document.getElementById(id); }
+
+// Documented in KOMISIYONERI_MASTER_CONTEXT.md's "Global JavaScript Handles"
+// section as always available, but — like g() above — no global definition
+// existed anywhere: 48 call sites across Branches/Invoices/Expenses/Staff
+// Profile/Payslips/Tasks/the Mortgage Calculator threw ReferenceError the
+// instant they ran, so none of those modals could ever open or close.
+function openModal(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('open');
+  if (!document.querySelector('.modal-wrap.open')) {
+    document.body.style.overflow = '';
+  }
+}
 
 // ── TOAST
 let toastTimer;
