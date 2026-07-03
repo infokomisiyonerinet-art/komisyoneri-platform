@@ -11435,6 +11435,19 @@ function initFirebase() {
           }
         });
       }
+      // Pick up a Google sign-in that finished via signInWithRedirect() —
+      // used on mobile instead of signInWithPopup() because popup-based
+      // OAuth is unreliable on mobile browsers (storage-partitioning breaks
+      // the popup-to-opener handoff even when the domain config is correct).
+      if (!window._googleRedirectChecked) {
+        window._googleRedirectChecked = true;
+        firebaseAuth.getRedirectResult().then(function(result) {
+          if (result && result.user) completeGoogleSignIn(result.user);
+        }).catch(function(error) {
+          console.error('Google redirect sign-in error:', error && error.message);
+          showToast(curLang==='rw' ? 'Google sign-in yanze. Gerageza nanone.' : 'Google sign-in failed. Please try again.');
+        });
+      }
       return true;
     }
   } catch(e) {
@@ -11499,30 +11512,44 @@ function finishGoogleLogin(user, fbUid) {
   setTimeout(function() { go('home'); }, 800);
 }
 
+function completeGoogleSignIn(fbUser) {
+  var user = {
+    name: fbUser.displayName || 'User',
+    email: fbUser.email || '',
+    phone: fbUser.phoneNumber || '',
+    role: 'Buyer',
+    avatar: fbUser.photoURL || '',
+    provider: 'google',
+    uid: fbUser.uid,
+    date: new Date().toISOString()
+  };
+  finishGoogleLogin(user, fbUser.uid);
+  kmTrack('login',{method:'google'});
+  showToast('Murakaza neza ' + user.name + '! (Google) 🎉');
+  setTimeout(function() { go('home'); }, 800);
+}
+
 function handleGoogleSignInClick() {
   if (!initFirebase() || !firebaseAuth || typeof firebase.auth.GoogleAuthProvider === 'undefined') {
     showToast(curLang==='rw' ? 'Google Sign-In ntiboneka ubu. Gerageza nanone.' : 'Google Sign-In is unavailable right now. Please try again.');
     return;
   }
   var provider = new firebase.auth.GoogleAuthProvider();
+  // Popup-based OAuth is unreliable on mobile browsers (third-party
+  // storage-partitioning frequently breaks the popup-to-opener handoff even
+  // when the domain is correctly authorized) — use a full-page redirect on
+  // mobile instead; the result is picked up by getRedirectResult() in
+  // initFirebase() once the browser navigates back.
+  var isMobileUA = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  if (isMobileUA) {
+    firebaseAuth.signInWithRedirect(provider).catch(function(error) {
+      console.error('Google redirect sign-in error:', error && error.message);
+      showToast(curLang==='rw' ? 'Google sign-in yanze. Gerageza nanone.' : 'Google sign-in failed. Please try again.');
+    });
+    return;
+  }
   firebaseAuth.signInWithPopup(provider)
-    .then(function(result) {
-      var fbUser = result.user;
-      var user = {
-        name: fbUser.displayName || 'User',
-        email: fbUser.email || '',
-        phone: fbUser.phoneNumber || '',
-        role: 'Buyer',
-        avatar: fbUser.photoURL || '',
-        provider: 'google',
-        uid: fbUser.uid,
-        date: new Date().toISOString()
-      };
-      finishGoogleLogin(user, fbUser.uid);
-      kmTrack('login',{method:'google'});
-      showToast('Murakaza neza ' + user.name + '! (Google) 🎉');
-      setTimeout(function() { go('home'); }, 800);
-    })
+    .then(function(result) { completeGoogleSignIn(result.user); })
     .catch(function(error) {
       console.error('Google sign-in error:', error && error.message);
       if (error && (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request')) return;
