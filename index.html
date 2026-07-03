@@ -536,9 +536,10 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .why-item h4{font-size:.95rem;font-weight:700;margin-bottom:.3rem;color:var(--dark)}
 .why-item p{font-size:.83rem;color:var(--muted);line-height:1.6}
 
-/* PROFESSIONAL NETWORK (real partner categories, not logos) */
+/* MORE SERVICES (real partner/service categories — each one clickable) */
 .network-strip{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin-top:2rem}
-.network-chip{display:flex;align-items:center;gap:.55rem;padding:.75rem 1.3rem;border-radius:100px;border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;color:var(--dark)}
+.network-chip{display:flex;align-items:center;gap:.55rem;padding:.75rem 1.3rem;border-radius:100px;border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;color:var(--dark);cursor:pointer;transition:var(--tr)}
+.network-chip:hover,.network-chip:focus-visible{border-color:var(--gold);background:#FFFBF0;transform:translateY(-2px);outline:none}
 .network-chip svg{width:18px;height:18px;fill:none;stroke:var(--navy);stroke-width:1.9}
 
 /* CREDIBILITY STRIP */
@@ -569,16 +570,6 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .step h4{font-size:.96rem;font-weight:700;margin-bottom:.48rem}
 .step p{font-size:.81rem;color:var(--muted);line-height:1.68}
 
-/* QUICK ACTIONS — above-the-fold journey strip (Buy/Rent already covered by
-   the hero search card; this covers the other primary journeys so no visitor
-   has to hunt through menus to find them) */
-.qa-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;max-width:1240px;margin:0 auto;padding:1.8rem 4% 0}
-.qa-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:.5rem;padding:1.3rem 1rem;min-height:44px;border-radius:var(--r);border:1.5px solid var(--border);background:#fff;cursor:pointer;transition:var(--tr)}
-.qa-card:hover{border-color:var(--gold);box-shadow:var(--sh);transform:translateY(-2px)}
-.qa-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(13,59,140,.08)}
-.qa-icon svg{width:22px;height:22px;fill:none;stroke:var(--navy);stroke-width:1.8}
-.qa-label{font-weight:700;font-size:.85rem;color:var(--dark)}
-.qa-sub{font-size:.72rem;color:var(--muted);line-height:1.4}
 
 /* ROLES */
 .roles{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:2.6rem}
@@ -1072,7 +1063,6 @@ footer{background:var(--dark);color:rgba(255,255,255,.5);padding:3.8rem 4% calc(
   .steps{grid-template-columns:1fr 1fr}
   .steps::before{display:none}
   .f-grid{grid-template-columns:1fr 1fr}
-  .qa-strip{grid-template-columns:1fr 1fr}
   .roles{grid-template-columns:1fr}
   .det-layout{grid-template-columns:1fr}
   .an-kpis{grid-template-columns:1fr 1fr}
@@ -1102,7 +1092,7 @@ footer{background:var(--dark);color:rgba(255,255,255,.5);padding:3.8rem 4% calc(
   .logo-text span{font-size:.5rem;letter-spacing:.12em}
 
   .s-card{margin:0 3%;margin-top:-30px;padding:1.3rem}
-  .p-grid,.f-grid,.qa-strip,.why-grid{grid-template-columns:1fr}
+  .p-grid,.f-grid,.why-grid{grid-template-columns:1fr}
   .kpis{grid-template-columns:1fr 1fr}
   .an-kpis{grid-template-columns:1fr 1fr}
   .topnav-links{display:none}
@@ -1546,27 +1536,20 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   .trust-vline { display: none; }
 }
 
-/* ── ECOSYSTEM PILLARS — the core "not just listings" signal, first thing
-   after the headline. Horizontally scrollable on mobile (avoids vertical
-   bloat), wraps into a flexible grid once there's room on larger screens. ── */
-.hero-eco-lbl { font-size: .68rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: .6rem; }
-.hero-ecosystem-grid {
-  display: flex; gap: .55rem; overflow-x: auto; -webkit-overflow-scrolling: touch;
-  padding: .15rem .15rem .9rem; margin: 0 -0.15rem 1.3rem;
-  scrollbar-width: none; -ms-overflow-style: none;
+/* ── FOUR PRIMARY ACTIONS — the only decision a first-time visitor needs to
+   make. Bigger and fewer than the pillar-grid this replaces, on purpose. ── */
+.hero-actions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .7rem; margin: 1.6rem 0 1.6rem; max-width: 480px; }
+.hero-action-card {
+  display: flex; align-items: center; gap: .65rem;
+  background: rgba(255,255,255,.09); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(255,255,255,.18); border-radius: 14px;
+  padding: 1rem 1.05rem; cursor: pointer; transition: var(--tr);
 }
-.hero-ecosystem-grid::-webkit-scrollbar { display: none; }
-.eco-pillar {
-  display: flex; align-items: center; gap: .5rem; flex: 0 0 auto;
-  background: rgba(255,255,255,.08); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,.16); border-radius: 13px;
-  padding: .62rem .95rem; cursor: pointer; transition: var(--tr); white-space: nowrap;
-}
-.eco-pillar:hover, .eco-pillar:focus-visible { background: rgba(255,190,0,.15); border-color: rgba(255,190,0,.45); transform: translateY(-2px); outline: none; }
-.eco-pillar svg { width: 17px; height: 17px; stroke: #FFBE00; fill: none; stroke-width: 2; flex-shrink: 0; }
-.eco-pillar span { font-size: .78rem; font-weight: 700; color: #fff; }
-@media(min-width: 980px) {
-  .hero-ecosystem-grid { flex-wrap: wrap; overflow-x: visible; max-width: 700px; }
+.hero-action-card:hover, .hero-action-card:focus-visible { background: rgba(255,190,0,.16); border-color: rgba(255,190,0,.5); transform: translateY(-3px); outline: none; }
+.hac-emoji { font-size: 1.5rem; flex-shrink: 0; line-height: 1; }
+.hero-action-card span { font-size: .92rem; font-weight: 700; color: #fff; }
+@media(min-width: 640px) {
+  .hero-actions-grid { grid-template-columns: repeat(4, 1fr); max-width: 640px; }
 }
 
 /* Hero CTA buttons — bigger, bolder */
@@ -2932,56 +2915,31 @@ html,body{overscroll-behavior-x:none}
     <div class="hero-grid-overlay"></div>
     <div class="hero-inner">
       <div>
-        <div class="hero-pill"><div class="h-pulse"></div><span data-rw="🇷🇼 KOMISIYONERI — Ikoranabuhanga Ryuzuye ry'Imitungo" data-en="🇷🇼 KOMISIYONERI — Rwanda's Real Estate Operator Ecosystem">🇷🇼 KOMISIYONERI — Ikoranabuhanga Ryuzuye ry'Imitungo</span></div>
-        <h1><span data-rw="Urubuga Rwuzuye" data-en="Rwanda's Complete">Urubuga Rwuzuye</span><br><em data-rw="rw'Imitungo mu Rwanda 🇷🇼" data-en="Real Estate Ecosystem 🇷🇼">rw'Imitungo mu Rwanda 🇷🇼</em></h1>
-        <p class="hero-sub" data-rw="Urubuga rumwe kuri byose by'imitungo — kugura, kugurisha, gukodesha, kubona inguzanyo, no gusinya amasezerano, hamwe n'abakomisiyoneri, abavoka, abapima, n'amabanki byemewe mu Rwanda hose." data-en="One platform for the entire property journey — buy, sell, rent, finance, and close, backed by verified agents, lawyers, surveyors, and banks across Rwanda.">Urubuga rumwe kuri byose by'imitungo — kugura, kugurisha, gukodesha, kubona inguzanyo, no gusinya amasezerano, hamwe n'abakomisiyoneri, abavoka, abapima, n'amabanki byemewe mu Rwanda hose.</p>
+        <div class="hero-pill"><div class="h-pulse"></div><span data-rw="🇷🇼 KOMISIYONERI — Ikigo Cyuzuye cy'Imitungo" data-en="🇷🇼 KOMISIYONERI — Rwanda's Real Estate One-Stop Center">🇷🇼 KOMISIYONERI — Ikigo Cyuzuye cy'Imitungo</span></div>
+        <h1><span data-rw="Ikigo Nyamwuga" data-en="Rwanda's Real Estate">Ikigo Nyamwuga</span><br><em data-rw="cy'Imitungo mu Rwanda 🇷🇼" data-en="One-Stop Center 🇷🇼">cy'Imitungo mu Rwanda 🇷🇼</em></h1>
+        <p class="hero-sub" data-rw="Gura, Kugurisha, Gukodesha, Kubona Inguzanyo no Gucunga Imitungo hamwe n'inzobere zizewe — byose ahantu hamwe." data-en="Buy, Sell, Rent, Finance and Manage Property with trusted professionals — all in one place.">Gura, Kugurisha, Gukodesha, Kubona Inguzanyo no Gucunga Imitungo hamwe n'inzobere zizewe — byose ahantu hamwe.</p>
 
-        <!-- ECOSYSTEM PILLARS — the redesign's core: every major service, not just search, visible within the first viewport -->
-        <div class="hero-eco-lbl" data-rw="Ibyo Dukora" data-en="What You Can Do Here">What You Can Do Here</div>
-        <div class="hero-ecosystem-grid">
-          <div class="eco-pillar" onclick="openSearch({tab:'buy'})" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openSearch({tab:'buy'})">
-            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>
+        <!-- FOUR PRIMARY ACTIONS — the only decision a first-time visitor needs to make -->
+        <div class="hero-actions-grid">
+          <div class="hero-action-card" onclick="openSearch({tab:'buy'})" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openSearch({tab:'buy'})">
+            <span class="hac-emoji">🏠</span>
             <span data-rw="Kugura" data-en="Buy Property">Buy Property</span>
           </div>
-          <div class="eco-pillar" onclick="openAddProperty()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openAddProperty()">
-            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41L13.42 20.58a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7" cy="7" r="1.5"/></svg>
+          <div class="hero-action-card" onclick="openAddProperty()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openAddProperty()">
+            <span class="hac-emoji">💰</span>
             <span data-rw="Kugurisha" data-en="Sell Property">Sell Property</span>
           </div>
-          <div class="eco-pillar" onclick="openSearch({tab:'rent'})" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openSearch({tab:'rent'})">
-            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          <div class="hero-action-card" onclick="openSearch({tab:'rent'})" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openSearch({tab:'rent'})">
+            <span class="hac-emoji">🏢</span>
             <span data-rw="Gukodesha" data-en="Rent Property">Rent Property</span>
           </div>
-          <div class="eco-pillar" onclick="go('agents')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('agents')">
-            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <span data-rw="Abakomisiyoneri Bemewe" data-en="Verified Agents">Verified Agents</span>
-          </div>
-          <div class="eco-pillar" onclick="openMortgageCalc()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openMortgageCalc()">
-            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-            <span data-rw="Inguzanyo n'Imari" data-en="Mortgage &amp; Financing">Mortgage &amp; Financing</span>
-          </div>
-          <div class="eco-pillar" onclick="go('partners')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('partners')">
-            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-            <span data-rw="Abavoka na Noteri" data-en="Lawyers &amp; Notaries">Lawyers &amp; Notaries</span>
-          </div>
-          <div class="eco-pillar" onclick="go('partners')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('partners')">
-            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-            <span data-rw="Abapima n'Abakwiye Igiciro" data-en="Surveyors &amp; Valuers">Surveyors &amp; Valuers</span>
-          </div>
-          <div class="eco-pillar" onclick="go('partners')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('partners')">
-            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-            <span data-rw="Ubwubatsi na Serivisi" data-en="Construction &amp; Services">Construction &amp; Services</span>
-          </div>
-          <div class="eco-pillar" onclick="go('auth')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('auth')">
-            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
-            <span data-rw="Gucunga Amasoko" data-en="Deal Management">Deal Management</span>
-          </div>
-          <div class="eco-pillar" onclick="go('investors')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('investors')">
-            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-            <span data-rw="Gushora Imari" data-en="Invest">Invest</span>
+          <div class="hero-action-card" onclick="openLead()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openLead()">
+            <span class="hac-emoji">👤</span>
+            <span data-rw="Saba Agent" data-en="Find an Agent">Find an Agent</span>
           </div>
         </div>
 
-        <!-- TRUST BAR — real, verifiable claims only (no invented headcounts or ratings) -->
+        <!-- TRUST BAR — kept minimal on purpose; real, verifiable claims only -->
         <div class="hero-trust">
           <div class="trust-badge">
             <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -2990,59 +2948,20 @@ html,body{overscroll-behavior-x:none}
           <div class="trust-vline"></div>
           <div class="trust-badge">
             <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span data-rw="Abakomisiyoneri n'Abahuza Bemewe" data-en="Verified Agents &amp; Partners">Verified Agents &amp; Partners</span>
-          </div>
-          <div class="trust-vline"></div>
-          <div class="trust-badge">
-            <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-            <span data-rw="Ubufasha bwa NOHERI AI" data-en="AI-Powered Assistance">AI-Powered Assistance</span>
-          </div>
-          <div class="trust-vline"></div>
-          <div class="trust-badge">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
-            <span data-rw="Akarere 30 Yose" data-en="Nationwide — 30 Districts">Nationwide — 30 Districts</span>
+            <span data-rw="Abakomisiyoneri Bemewe" data-en="Verified Agents">Verified Agents</span>
           </div>
         </div>
 
+        <!-- ONE dominant primary action + one secondary — no competing buttons -->
         <div class="hero-btns">
           <button class="btn btn-gold btn-lg" onclick="toggleChat()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            <span data-rw="Ganira na NOHERI AI" data-en="Chat with NOHERI AI">Chat with NOHERI AI</span>
+            <span data-rw="Tangira Urugendo Rwawe" data-en="Start Your Journey">Start Your Journey</span>
           </button>
           <button class="btn btn-ghost btn-lg" onclick="window.open('https://wa.me/250783177254?text=Muraho!%20Nshaka%20ubufasha%20kuri%20KOMISIYONERI.','_blank')">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
             <span data-rw="Vugana n'Itsinda Ryacu — WhatsApp" data-en="Talk to Our Team — WhatsApp">Talk to Our Team — WhatsApp</span>
           </button>
-        </div>
-
-        <!-- Quick filter chips -->
-        <div class="hero-chips">
-          <button class="hero-chip" onclick="openSearch({type:'Villa',district:'Kigali'})" data-rw="🏡 Villa Kigali" data-en="🏡 Villa Kigali">🏡 Villa Kigali</button>
-          <button class="hero-chip" onclick="openSearch({tab:'rent'})" data-rw="🔑 Gukodesha" data-en="🔑 Rent">🔑 Gukodesha</button>
-          <button class="hero-chip" onclick="openSearch({type:'Ubutaka'})" data-rw="🌱 Ubutaka" data-en="🌱 Land">🌱 Ubutaka</button>
-          <button class="hero-chip" onclick="openSearch({district:'Musanze'})" data-rw="🏔️ Musanze" data-en="🏔️ Musanze">🏔️ Musanze</button>
-          <button class="hero-chip" onclick="openSearch({type:'Apartimanı'})" data-rw="🏢 Apartimanı" data-en="🏢 Apartment">🏢 Apartimanı</button>
-        </div>
-
-        <!-- Quick search bar — single text input -->
-        <div class="qs-wrap" style="margin-top:2rem">
-          <div class="hero-search-bar" style="margin-top:0;max-width:100%;cursor:default;padding:.38rem .38rem .38rem 1rem">
-            <div class="hsb-inner">
-              <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:var(--blue);stroke-width:2;flex-shrink:0;margin-right:.5rem"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              <input id="qs-input" type="search" class="qs-input-field" autocomplete="off"
-                placeholder="Shakisha: Villa, Kigali, 3 beds, 80M..."
-                data-rw="Shakisha: Villa, Kigali, 3 beds, 80M..."
-                data-en="Search: Villa, Kigali, 3 beds, 80M..."
-                oninput="ksHandleInput()" onfocus="ksHandleInput()"
-                onclick="event.stopPropagation()"
-                style="flex:1;font-size:.9rem">
-              <button class="hsb-btn" onclick="qs_search()">
-                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                <span data-rw="Shakisha" data-en="Search">Shakisha</span>
-              </button>
-            </div>
-          </div>
-          <div id="qs-suggestions" class="qs-suggestions" style="display:none"></div>
         </div>
 
         <div class="hero-stats">
@@ -3055,29 +2974,40 @@ html,body{overscroll-behavior-x:none}
     </div>
   </section>
 
-  <!-- QUICK ACTIONS — every major journey, one click away, no menu-hunting -->
-  <div class="qa-strip">
-    <div class="qa-card" onclick="openAddProperty()" role="button" tabindex="0">
-      <div class="qa-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
-      <div class="qa-label" data-rw="Andika Imitungo Yawe" data-en="List My Property">Andika Imitungo Yawe</div>
-      <div class="qa-sub" data-rw="Ubuntu, mu minota" data-en="Free, takes minutes">Ubuntu, mu minota</div>
+  <!-- MORE SERVICES — everything beyond the 4 primary actions, one section down, not competing with the Hero -->
+  <section class="section section-light">
+    <div class="wrap" style="text-align:center">
+      <div class="eyebrow tag-green" data-rw="Izindi Serivisi" data-en="More Services">Izindi Serivisi</div>
+      <h2 class="h2" style="margin-top:.35rem" data-rw="Izindi Serivisi" data-en="More Services">More Services</h2>
+      <p style="font-size:.92rem;color:var(--muted);margin:.5rem auto 0;max-width:560px" data-rw="Buri gikorwa cy'imitungo gishobora gukenera inzobere zisimburana — dufite umuyoboro w'abahuza bemewe muri buri category." data-en="Every property transaction may need specialist help — we maintain a network of verified partners across these categories.">Every property transaction may need specialist help — we maintain a network of verified partners across these categories.</p>
+      <div class="network-strip">
+        <div class="network-chip" onclick="openMortgage()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openMortgage()">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg><span data-rw="Inguzanyo n'Imari" data-en="Mortgage &amp; Financing">Mortgage &amp; Financing</span>
+        </div>
+        <div class="network-chip" onclick="go('partners')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('partners')">
+          <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span data-rw="Abavoka na Noteri" data-en="Lawyers &amp; Notaries">Lawyers &amp; Notaries</span>
+        </div>
+        <div class="network-chip" onclick="go('partners')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('partners')">
+          <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg><span data-rw="Abapima n'Abakwiye Igiciro" data-en="Surveyors &amp; Valuers">Surveyors &amp; Valuers</span>
+        </div>
+        <div class="network-chip" onclick="go('partners')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('partners')">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg><span data-rw="Ubwubatsi" data-en="Construction Services">Construction Services</span>
+        </div>
+        <div class="network-chip" onclick="go('investors')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('investors')">
+          <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span data-rw="Amahirwe yo Gushora Imari" data-en="Investment Opportunities">Investment Opportunities</span>
+        </div>
+        <div class="network-chip" onclick="openAfterSaleRequest()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openAfterSaleRequest()">
+          <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg><span data-rw="Imicungire y'Imitungo" data-en="Property Management">Property Management</span>
+        </div>
+        <div class="network-chip" onclick="go('auth')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('auth')">
+          <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg><span data-rw="Gukurikirana Amasoko" data-en="Deal Tracking">Deal Tracking</span>
+        </div>
+      </div>
+      <div class="cred-strip">
+        <span><strong>KOMISIYONERI ConnectPro Services Ltd</strong> — <span data-rw="Kigali, Rwanda, kuva 2024" data-en="Kigali, Rwanda, since 2024">Kigali, Rwanda, since 2024</span></span>
+      </div>
     </div>
-    <div class="qa-card" onclick="openLead()" role="button" tabindex="0">
-      <div class="qa-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
-      <div class="qa-label" data-rw="Saba Agent Wawe" data-en="Find an Agent">Saba Agent Wawe</div>
-      <div class="qa-sub" data-rw="Asubiza mu masaa 2" data-en="Responds in 2 hours">Asubiza mu masaa 2</div>
-    </div>
-    <div class="qa-card" onclick="openMortgage()" role="button" tabindex="0">
-      <div class="qa-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
-      <div class="qa-label" data-rw="Bara Inguzanyo" data-en="Mortgage Calculator">Bara Inguzanyo</div>
-      <div class="qa-sub" data-rw="Menya icyo wishyura buri kwezi" data-en="See your monthly payment">Menya icyo wishyura buri kwezi</div>
-    </div>
-    <div class="qa-card" onclick="go('sites')" role="button" tabindex="0">
-      <div class="qa-icon"><svg viewBox="0 0 24 24"><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg></div>
-      <div class="qa-label" data-rw="Shoramari mu Mitungo" data-en="Investment Opportunities">Shoramari mu Mitungo</div>
-      <div class="qa-sub" data-rw="Sitey nshya n'ubutaka" data-en="New sites and land">Sitey nshya n'ubutaka</div>
-    </div>
-  </div>
+  </section>
 
   <!-- FEATURED LISTINGS -->
   <section class="section">
@@ -3240,23 +3170,6 @@ html,body{overscroll-behavior-x:none}
     </div>
   </section>
 
-  <!-- PROFESSIONAL NETWORK -->
-  <section class="section section-light">
-    <div class="wrap" style="text-align:center">
-      <div class="eyebrow tag-green" data-rw="Abafatanyabikorwa Bacu" data-en="Our Professional Network">Abafatanyabikorwa Bacu</div>
-      <h2 class="h2" style="margin-top:.35rem" data-rw="Duhuza n'Inzobere Zemewe" data-en="Connected to Verified Professionals">Duhuza n'Inzobere Zemewe</h2>
-      <p style="font-size:.92rem;color:var(--muted);margin:.5rem auto 0;max-width:560px" data-rw="Buri gikorwa cy'imitungo gishobora gukenera inzobere zisimburana — dufite umuyoboro w'abahuza bemewe muri buri category." data-en="Every property transaction may need specialist help — we maintain a network of verified partners across these categories.">Every property transaction may need specialist help — we maintain a network of verified partners across these categories.</p>
-      <div class="network-strip">
-        <div class="network-chip"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg><span data-rw="Abapima Ubutaka" data-en="Surveyors">Abapima Ubutaka</span></div>
-        <div class="network-chip"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span data-rw="Noteri" data-en="Notaries">Noteri</span></div>
-        <div class="network-chip"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg><span data-rw="Amabanki / Inguzanyo" data-en="Banks / Mortgage">Amabanki / Inguzanyo</span></div>
-        <div class="network-chip"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span data-rw="Abavoka" data-en="Lawyers">Abavoka</span></div>
-      </div>
-      <div class="cred-strip">
-        <span><strong>KOMISIYONERI ConnectPro Services Ltd</strong> — <span data-rw="Kigali, Rwanda, kuva 2024" data-en="Kigali, Rwanda, since 2024">Kigali, Rwanda, since 2024</span></span>
-      </div>
-    </div>
-  </section>
 
   <!-- FAQ -->
   <section class="section">
