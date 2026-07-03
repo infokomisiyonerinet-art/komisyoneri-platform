@@ -9005,6 +9005,70 @@ function loadSavedUser() {
     }
   } catch(e){}
 }
+// Show the last-known session instantly from the local cache (avoids a
+// flash of logged-out nav state while the async Firestore restore below
+// resolves). Was defined but never called anywhere, so page refreshes
+// always rendered as logged-out until — if ever — a later async check
+// caught up.
+loadSavedUser();
+
+// Rebuilds currentUser from a still-valid Firebase Auth session (e.g. after
+// a page refresh). Provider-agnostic — Google, email/password, and phone
+// sign-ins all land here via the same onAuthStateChanged event, wired up
+// unconditionally on every page load (see the Firebase config script),
+// not just reactively from a login button click. Creates the users/{uid}
+// Firestore doc if it doesn't exist yet (with all 7 standard fields, so it
+// passes the users/{uid} security rule's hasStandardFields() check),
+// otherwise merges the existing profile in — never overwrites a real
+// profile with placeholder data.
+function restoreUserSession(fbUser) {
+  if (!fbUser || !fbUser.uid) return;
+  if (currentUser && currentUser.uid === fbUser.uid) return; // already restored, avoid redundant reads
+  if (typeof db === 'undefined') return;
+  var providerId = (fbUser.providerData[0] && fbUser.providerData[0].providerId) || '';
+  var provider = providerId === 'google.com' ? 'google' : (providerId === 'phone' ? 'phone' : 'email');
+  db.collection('users').doc(fbUser.uid).get().then(function(doc) {
+    var user;
+    if (doc.exists) {
+      var fsData = doc.data();
+      user = {
+        uid: fbUser.uid,
+        name: fsData.displayName || fbUser.displayName || 'User',
+        email: fsData.email || fbUser.email || '',
+        phone: fsData.phone || fbUser.phoneNumber || '',
+        role: fsData.role || 'client',
+        photo: fsData.photoURL || fbUser.photoURL || '',
+        agentId: fsData.agentId || '',
+        location: fsData.location || '',
+        preference: fsData.preference || '',
+        provider: provider,
+        date: (fsData.createdAt && fsData.createdAt.toDate) ? fsData.createdAt.toDate().toISOString() : new Date().toISOString()
+      };
+    } else {
+      user = {
+        uid: fbUser.uid,
+        name: fbUser.displayName || 'User',
+        email: fbUser.email || '',
+        phone: fbUser.phoneNumber || '',
+        role: 'client',
+        photo: fbUser.photoURL || '',
+        provider: provider,
+        date: new Date().toISOString()
+      };
+      db.collection('users').doc(fbUser.uid).set({
+        id: fbUser.uid, uid: fbUser.uid, displayName: user.name, email: user.email,
+        phone: user.phone, role: 'client', isActive: true, status: 'active',
+        photoURL: user.photo || '',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: fbUser.uid, updatedBy: fbUser.uid
+      }, { merge: true }).catch(function(e){ console.error('[Auth] create user doc failed:', e.message); });
+    }
+    saveUser(user);
+  }).catch(function(e) {
+    console.error('[Auth] restoreUserSession failed:', e.message);
+  });
+}
 
 function updateNavForUser(user) {
   var adminBtn = document.getElementById('nav-admin-btn');
@@ -9224,12 +9288,11 @@ function onProfilePhotoChange(input) {
 }
 
 function logoutUser() {
-  try { localStorage.removeItem('km_current'); } catch(e){}
-  currentUser = null;
-  updateNavForUser(null);
-  closeProfile();
-  showToast(curLang==='rw'?'Wasohowe neza! Murabeho!':'Logged out successfully!');
-  go('home');
+  // Delegates to handleLogout() (defined later in the file) so the profile
+  // modal's logout button also ends the real Firebase session — previously
+  // this only cleared local state, leaving Firebase signed in and causing
+  // the user to be silently logged back in on the next page load.
+  handleLogout();
 }
 
 var _editPropId = null;
@@ -9585,7 +9648,7 @@ async function handleLogin() {
       email: fb.email,
       role: profile.role || 'client',
       phone: profile.phone || '',
-      avatar: fb.photoURL || profile.avatar || '',
+      photo: fb.photoURL || profile.photo || '',
       provider: 'email',
       emailVerified: fb.emailVerified
     };
@@ -11487,7 +11550,7 @@ function finishGoogleLogin(user, fbUid) {
         var fsData = doc.data();
         if (fsData.role) user.role = fsData.role;
         db.collection('users').doc(fbUid).update({
-          displayName: user.name, photoURL: user.avatar || '',
+          displayName: user.name, photoURL: user.photo || '',
           updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: fbUid
         }).catch(function(){});
       } else {
@@ -11495,7 +11558,7 @@ function finishGoogleLogin(user, fbUid) {
         db.collection('users').doc(fbUid).set({
           id: fbUid, uid: fbUid, displayName: user.name, email: user.email,
           phone: '', role: 'client', isActive: true, status: 'active',
-          photoURL: user.avatar || '',
+          photoURL: user.photo || '',
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
           createdBy: fbUid, updatedBy: fbUid
@@ -11517,8 +11580,8 @@ function completeGoogleSignIn(fbUser) {
     name: fbUser.displayName || 'User',
     email: fbUser.email || '',
     phone: fbUser.phoneNumber || '',
-    role: 'Buyer',
-    avatar: fbUser.photoURL || '',
+    role: 'client',
+    photo: fbUser.photoURL || '',
     provider: 'google',
     uid: fbUser.uid,
     date: new Date().toISOString()
@@ -14266,6 +14329,22 @@ go = function(page) {
   // browser has multiple tabs open or persistence isn't supported).
   db.enablePersistence({ synchronizeTabs: true }).catch(function(err) {
     console.warn('[Firestore] persistence not enabled:', err.code);
+  });
+
+  // ── AUTH SESSION RESTORE ──────────────────────────────────
+  // Runs unconditionally on every page load (unlike initFirebase(), which is
+  // only invoked reactively from login button handlers) so an already
+  // signed-in Firebase session is correctly restored into currentUser after
+  // a refresh, for every provider (Google, phone, email).
+  firebaseAuth = firebase.auth();
+  firebaseAuth.onAuthStateChanged(function(fbUser) {
+    if (fbUser) {
+      restoreUserSession(fbUser);
+    } else if (currentUser) {
+      currentUser = null;
+      try { localStorage.removeItem('km_current'); } catch(e) {}
+      updateNavForUser(null);
+    }
   });
 
   console.log('[KOMISIYONERI] Firebase yahuye na project:', firebase.app().options.projectId);
