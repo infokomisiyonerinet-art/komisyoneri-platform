@@ -11498,19 +11498,10 @@ function initFirebase() {
           }
         });
       }
-      // Pick up a Google sign-in that finished via signInWithRedirect() —
-      // used on mobile instead of signInWithPopup() because popup-based
-      // OAuth is unreliable on mobile browsers (storage-partitioning breaks
-      // the popup-to-opener handoff even when the domain config is correct).
-      if (!window._googleRedirectChecked) {
-        window._googleRedirectChecked = true;
-        firebaseAuth.getRedirectResult().then(function(result) {
-          if (result && result.user) completeGoogleSignIn(result.user);
-        }).catch(function(error) {
-          console.error('Google redirect sign-in error:', error && error.message);
-          showToast(curLang==='rw' ? 'Google sign-in yanze. Gerageza nanone.' : 'Google sign-in failed. Please try again.');
-        });
-      }
+      // Redirect-result pickup for mobile Google sign-in lives in the
+      // unconditional bootstrap (Firebase config script) so it also runs on
+      // the very page load that follows the OAuth round trip, not just when
+      // a login button is clicked again — see window._googleRedirectChecked.
       return true;
     }
   } catch(e) {
@@ -11531,64 +11522,14 @@ function initGoogleSignIn() {
   container.innerHTML = '<button class="soc-btn" onclick="handleGoogleSignInClick()" style="width:100%;justify-content:center"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z" fill="#4285f4"/></svg> <span data-rw="Injira na Google" data-en="Continue with Google">Injira na Google</span></button>';
 }
 
-function finishGoogleLogin(user, fbUid) {
-  var users = [];
-  try { users = JSON.parse(localStorage.getItem('km_users') || '[]'); } catch(e){}
-  var existing = users.find(function(u) { return u.email === user.email; });
-  if (!existing) {
-    users.push(user);
-    try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
-  } else {
-    /* Preserve existing role from localStorage if assigned */
-    if (existing.role && existing.role !== 'Buyer') user.role = existing.role;
-    user.phone = existing.phone || user.phone;
-  }
-  /* Sync role from Firestore and upsert user doc */
-  if (fbUid && typeof db !== 'undefined') {
-    db.collection('users').doc(fbUid).get().then(function(doc) {
-      if (doc.exists) {
-        var fsData = doc.data();
-        if (fsData.role) user.role = fsData.role;
-        db.collection('users').doc(fbUid).update({
-          displayName: user.name, photoURL: user.photo || '',
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: fbUid
-        }).catch(function(){});
-      } else {
-        user.uid = fbUid;
-        db.collection('users').doc(fbUid).set({
-          id: fbUid, uid: fbUid, displayName: user.name, email: user.email,
-          phone: '', role: 'client', isActive: true, status: 'active',
-          photoURL: user.photo || '',
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          createdBy: fbUid, updatedBy: fbUid
-        }, { merge: true }).catch(function(){});
-        user.role = 'client';
-      }
-      saveUser(user);
-    }).catch(function(){ saveUser(user); });
-    return;
-  }
-  saveUser(user);
-  kmTrack('login',{method:'google'});
-  showToast('Murakaza neza ' + user.name + '! (Google) 🎉');
-  setTimeout(function() { go('home'); }, 800);
-}
-
+// Profile creation/restoration for the signed-in Firebase user is handled by
+// restoreUserSession() via the app-wide onAuthStateChanged listener (fires
+// for popup and redirect sign-ins alike), so this only needs to cover the
+// post-sign-in UX — analytics, welcome toast, navigation — rather than also
+// racing its own separate Firestore read/write for the same event.
 function completeGoogleSignIn(fbUser) {
-  var user = {
-    name: fbUser.displayName || 'User',
-    email: fbUser.email || '',
-    phone: fbUser.phoneNumber || '',
-    role: 'client',
-    photo: fbUser.photoURL || '',
-    provider: 'google',
-    uid: fbUser.uid,
-    date: new Date().toISOString()
-  };
-  finishGoogleLogin(user, fbUser.uid);
   kmTrack('login',{method:'google'});
-  showToast('Murakaza neza ' + user.name + '! (Google) 🎉');
+  showToast('Murakaza neza ' + (fbUser.displayName || 'User') + '! (Google) 🎉');
   setTimeout(function() { go('home'); }, 800);
 }
 
@@ -14346,6 +14287,24 @@ go = function(page) {
       updateNavForUser(null);
     }
   });
+
+  // Pick up a Google sign-in that finished via signInWithRedirect() — used on
+  // mobile instead of signInWithPopup() because popup-based OAuth is
+  // unreliable on mobile browsers. Runs unconditionally here (not gated
+  // behind a login button click) so the welcome toast + navigation fire on
+  // the very page load the browser lands on after the OAuth round trip,
+  // instead of the user seeing a silent/blank return and re-attempting sign-in.
+  // Profile creation itself is handled by restoreUserSession() above, via the
+  // same onAuthStateChanged event.
+  if (!window._googleRedirectChecked) {
+    window._googleRedirectChecked = true;
+    firebaseAuth.getRedirectResult().then(function(result) {
+      if (result && result.user) completeGoogleSignIn(result.user);
+    }).catch(function(error) {
+      console.error('Google redirect sign-in error:', error && error.message);
+      showToast(curLang==='rw' ? 'Google sign-in yanze. Gerageza nanone.' : 'Google sign-in failed. Please try again.');
+    });
+  }
 
   console.log('[KOMISIYONERI] Firebase yahuye na project:', firebase.app().options.projectId);
 
