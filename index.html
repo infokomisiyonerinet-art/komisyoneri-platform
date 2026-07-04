@@ -11847,9 +11847,42 @@ var _pendingGoogleCredentialEmail = null;
 function _handleGoogleAuthError(error) {
   var code = error && error.code || '';
   console.error('[AUTH] Google sign-in FAILED — code:', code, 'message:', error && error.message);
+  // auth/internal-error's own .message is frequently just "An internal
+  // error has occurred" with the actual diagnostic detail (a raw error from
+  // the Identity Platform backend) embedded in other own-properties of the
+  // error object (customData, serverResponse, etc. depending on SDK
+  // version) that a plain console.error(...) print doesn't show. Dump the
+  // full object so nothing gets lost.
+  try {
+    console.error('[AUTH] Google sign-in FAILED — full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error || {})));
+  } catch (e) { console.error('[AUTH] Google sign-in FAILED — error object could not be stringified:', error); }
 
   if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
     return; // user-initiated cancel — not a real error, no toast needed
+  }
+
+  if (code === 'auth/internal-error') {
+    // Firebase's generic wrapper for "the Identity Platform backend
+    // returned something the SDK couldn't parse into a specific code."
+    // For Google sign-in specifically (while email/password keeps working
+    // fine against the same project), this is almost always one of:
+    //   1. The Google OAuth 2.0 Web Client tied to this Firebase project
+    //      (Firebase Console > Authentication > Sign-in method > Google >
+    //      Web SDK configuration) has a missing/rotated/deleted client
+    //      secret, or was deleted in Google Cloud Console directly.
+    //   2. The OAuth consent screen is in a bad state (e.g. unverified app
+    //      blocked, or required scopes were removed).
+    //   3. The project's API key has an API restriction that excludes the
+    //      "Identity Toolkit API" or "Token Service API" — this would also
+    //      break email/password, so check this only if email/password ALSO
+    //      starts failing.
+    // None of this is reachable or fixable from client-side code; it must
+    // be checked in Firebase Console / Google Cloud Console directly.
+    console.error('[AUTH] auth/internal-error — check Firebase Console > Authentication > Sign-in method > Google (Web SDK configuration: client ID/secret) and Google Cloud Console > APIs & Services > Credentials for the associated OAuth 2.0 Web Client');
+    showToast(curLang==='rw'
+      ? '⚠️ Google Sign-In ifite ikibazo cy\'ubuyobozi (auth/internal-error). Menyesha ubuyobozi bwa KOMISIYONERI — Ntabwo ari ikibazo cya interineti yawe.'
+      : '⚠️ Google Sign-In has a configuration problem on our end (auth/internal-error) — this is not something retrying will fix. Please contact KOMISIYONERI support.', 'error');
+    return;
   }
 
   if (code === 'auth/account-exists-with-different-credential') {
