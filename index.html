@@ -8977,6 +8977,16 @@ document.querySelectorAll('.rt').forEach(btn => {
 var currentUser = null;
 var _pendingAction = null;
 
+// Default to "open" immediately rather than leaving window._listingsOpen
+// undefined (falsy) until applyPlatformFlags() runs on DOMContentLoaded —
+// that gate lives in openAddProperty(), and anything that can call it
+// earlier than DOMContentLoaded (e.g. _restorePropDraftIfAny(), triggered
+// from the synchronous loadSavedUser() a few lines below) would otherwise
+// be incorrectly blocked with "New listings are currently paused" every
+// single time. applyPlatformFlags() still overrides this from the real
+// stored flag once the page finishes loading.
+window._listingsOpen = true;
+
 // Can this user submit/manage property listings? Accepts registered agents
 // AND property owners (role stored lowercase per the canonical schema — see
 // handleRegister()) — matches the already-deployed Firestore rule, which
@@ -8999,6 +9009,25 @@ function saveUser(user) {
       if(typeof Sentry  !=='undefined') Sentry.setUser({id:user.uid,email:user.email,username:user.name});
     }
   } catch(e){}
+  // First time a user becomes available after this page load (whether from
+  // the instant localStorage restore or the async Firestore session
+  // restore), check for an interrupted Add Property draft — see
+  // _savePropDraft()/_restorePropDraftIfAny() for why this exists. Deferred
+  // via setTimeout(0): saveUser() can run this early (from loadSavedUser(),
+  // called synchronously a few lines below, long before the rest of this
+  // very large script has finished executing), but restoring a draft calls
+  // openAddProperty(), which touches PropImageUploader — a `var` populated
+  // by an IIFE much further down this same script. Being a `var` (unlike a
+  // hoisted function declaration), it stays undefined until that line
+  // actually runs, so calling into it too early throws — silently, since
+  // it's swallowed by loadSavedUser()'s own try/catch — aborting the
+  // restore right after the modal opens but before anything is filled in.
+  if (!window._propDraftChecked) {
+    window._propDraftChecked = true;
+    setTimeout(function() {
+      if (typeof _restorePropDraftIfAny === 'function') _restorePropDraftIfAny();
+    }, 0);
+  }
 }
 
 function loadSavedUser() {
@@ -9017,6 +9046,17 @@ function loadSavedUser() {
         }
       } catch(e2){}
       updateNavForUser(currentUser);
+      // Check for an interrupted Add Property draft as soon as we have a
+      // usable session — don't wait on the slower async Firestore restore
+      // below when this synchronous localStorage restore already gives us
+      // everything _restorePropDraftIfAny() needs. Deferred (see saveUser()
+      // above for why: PropImageUploader isn't initialized yet this early).
+      if (!window._propDraftChecked) {
+        window._propDraftChecked = true;
+        setTimeout(function() {
+          if (typeof _restorePropDraftIfAny === 'function') _restorePropDraftIfAny();
+        }, 0);
+      }
     }
   } catch(e){}
 }
@@ -9414,6 +9454,78 @@ function closeAddProperty() {
   var lbl = document.getElementById('submit-prop-label');
   if (lbl) lbl.textContent = curLang==='rw' ? 'Ohereza Imitungo' : 'Submit Property';
   PropImageUploader.reset();
+  try { sessionStorage.removeItem('km_prop_draft'); } catch(e) {}
+}
+
+// ── Add Property draft persistence ──────────────────────────────────────
+// Android's system photo/gallery picker (opened from PropImageUploader.pick())
+// runs as a separate Activity. On many Android devices/WebView builds the
+// browser reclaims the page's process while that picker is on screen —
+// especially for this app, which is an installed standalone PWA
+// (manifest.json: display:"standalone") — so returning from the picker
+// triggers a full fresh load of start_url ("/"). That lands the user on the
+// homepage with every bit of in-memory JS state gone: the open modal, the
+// wizard step, the typed fields, and any not-yet-uploaded photos. This is
+// NOT something a JS bug fix can prevent (it's the OS reclaiming memory
+// around a native Activity we don't control), so instead we snapshot the
+// in-progress draft to sessionStorage right before handing off to the OS
+// picker (see PropImageUploader.pick()) and restore it once the page comes
+// back up, rather than silently discarding the user's work.
+function _savePropDraft() {
+  try {
+    var g = function(id) { var el = document.getElementById(id); return el ? el.value : ''; };
+    var c = function(id) { var el = document.getElementById(id); return !!(el && el.checked); };
+    var draft = {
+      editId: _editPropId || null,
+      step: window._currentPropStep || 3,
+      fields: {
+        type:g('prop-type'), service:g('prop-service'), district:g('prop-district'), sector:g('prop-sector'),
+        price:g('prop-price'), beds:g('prop-beds'), baths:g('prop-baths'), size:g('prop-size'), desc:g('prop-desc'),
+        contact:g('prop-contact'), title:g('prop-title'), year:g('prop-year'), deed:g('prop-deed'),
+        floors:g('prop-floors'), parking:g('prop-parking'),
+        docLuc:g('prop-doc-luc'), docId:g('prop-doc-id'), docPermit:g('prop-doc-permit'),
+        lat:g('prop-lat'), lng:g('prop-lng'), video:g('prop-video'), tour3d:g('prop-tour3d')
+      },
+      amenities: ['garden','pool','garage','solar','fibre','security','generator'].filter(function(a) { return c('am-'+a); }),
+      existingImages: PropImageUploader.getUploadedUrls()
+    };
+    sessionStorage.setItem('km_prop_draft', JSON.stringify(draft));
+  } catch(e) {}
+}
+
+function _restorePropDraftIfAny() {
+  var raw;
+  try { raw = sessionStorage.getItem('km_prop_draft'); } catch(e) { raw = null; }
+  if (!raw) return;
+  try { sessionStorage.removeItem('km_prop_draft'); } catch(e) {}
+  if (!currentUser) return; // not signed back in yet — nothing safe to restore into
+  var draft;
+  try { draft = JSON.parse(raw); } catch(e) { return; }
+  if (!draft) return;
+
+  if (draft.editId) {
+    var props = []; try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+    var match = null;
+    for (var i=0; i<props.length; i++) { if (String(props[i].id) === String(draft.editId)) { match = props[i]; break; } }
+    if (match) openEditProperty(match); else openAddProperty();
+  } else {
+    openAddProperty();
+  }
+
+  var s = function(id, val) { var el = document.getElementById(id); if (el && val) el.value = val; };
+  var f = draft.fields || {};
+  s('prop-type', f.type); s('prop-service', f.service); s('prop-district', f.district); s('prop-sector', f.sector);
+  s('prop-price', f.price); s('prop-beds', f.beds); s('prop-baths', f.baths); s('prop-size', f.size); s('prop-desc', f.desc);
+  s('prop-contact', f.contact); s('prop-title', f.title); s('prop-year', f.year); s('prop-deed', f.deed);
+  s('prop-floors', f.floors); s('prop-parking', f.parking);
+  s('prop-doc-luc', f.docLuc); s('prop-doc-id', f.docId); s('prop-doc-permit', f.docPermit);
+  s('prop-lat', f.lat); s('prop-lng', f.lng); s('prop-video', f.video); s('prop-tour3d', f.tour3d);
+  (draft.amenities || []).forEach(function(a) { var el = document.getElementById('am-'+a); if (el) el.checked = true; });
+  if (draft.existingImages && draft.existingImages.length) PropImageUploader.loadExisting(draft.existingImages);
+  propStep(draft.step || 3);
+  showToast(curLang==='rw'
+    ? '📱 Porogaramu yagarutse hejuru (bisanzwe kuri Android nyuma yo gufungura amafoto) — twagarutse ku byo watangiye kwandika. Ongera ushyiremo amafoto wari ugiye gushyiraho.'
+    : "📱 The app restarted (common on Android after opening the photo picker) — we restored your in-progress listing. Please re-add the photo(s) you were about to upload.", 'warn');
 }
 
 // ══════════════════════════════════════════════════════════════════════
@@ -9597,8 +9709,20 @@ var PropImageUploader = (function() {
   }
 
   function pick() {
+    // Android's system photo picker runs as a separate Activity; on many
+    // devices/WebView versions this causes the browser to reclaim the page's
+    // process for memory while the picker is open, so the app reloads fresh
+    // (landing on the homepage, all in-memory JS state gone) the moment the
+    // user returns with their selection. Snapshot the in-progress listing
+    // right before handing off to the OS so _restorePropDraftIfAny() can put
+    // the user right back where they were instead of losing everything.
+    if (typeof _savePropDraft === 'function') _savePropDraft();
     var input = document.getElementById('img-uploader-input');
     if (input) input.click();
+  }
+
+  function getUploadedUrls() {
+    return items.filter(function(it) { return it.status === 'done' && it.url; }).map(function(it) { return it.url; });
   }
 
   function mount(containerId) {
@@ -9655,7 +9779,8 @@ var PropImageUploader = (function() {
 
   return {
     mount: mount, reset: reset, loadExisting: loadExisting, hasAtLeastOne: hasAtLeastOne,
-    uploadAll: uploadAll, pick: pick, remove: remove, move: move, setCover: setCover
+    uploadAll: uploadAll, pick: pick, remove: remove, move: move, setCover: setCover,
+    getUploadedUrls: getUploadedUrls
   };
 })();
 
@@ -11874,6 +11999,7 @@ var PROP_STEP_LABELS = {
   3: { rw: 'Intambwe 3/3 — Amafoto', en: 'Step 3/3 — Photos' }
 };
 function propStep(step) {
+  window._currentPropStep = step;
   [1,2,3].forEach(function(s) {
     var form = document.getElementById('prop-form-' + s);
     var bar = document.getElementById('pstep' + s);
@@ -13032,10 +13158,17 @@ function checkUrlHash() {
 
 window.addEventListener('load', checkUrlHash);
 
-// SPA back-button: restore page when browser navigates back/forward
+// SPA back-button: restore page when browser navigates back/forward.
+// Only act on popstate events that carry OUR own {page:...} state (every
+// entry we push via go() has one, including the very first entry via
+// replaceState below) — do NOT default to 'home' for a state-less event.
+// Some Android WebViews fire a synthetic popstate when a native picker
+// (e.g. the photo/gallery chooser opened from an <input type=file>) closes;
+// forcing a home navigation on that made the whole SPA jump to the
+// homepage mid-upload even when the picker itself behaved normally.
 window.addEventListener('popstate', function(event) {
-  var page = (event.state && event.state.page) ? event.state.page : 'home';
-  go(page);
+  if (!event.state || !event.state.page) return;
+  go(event.state.page);
 });
 
 // SPA initial load: read the clean path (public pages) or hash (everything
