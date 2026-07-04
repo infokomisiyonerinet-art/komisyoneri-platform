@@ -9549,6 +9549,8 @@ var PropImageUploader = (function() {
   var MAX_DIMENSION = 1920;
   var JPEG_QUALITY = 0.82;
   var MAX_FILE_BYTES = 10 * 1024 * 1024;
+  var COMPRESS_TIMEOUT_MS = 8000;
+  var UPLOAD_TIMEOUT_MS = 45000;
   var items = []; // {uid,file,previewUrl,url,status:'ready'|'uploading'|'done'|'error',progress,isExisting}
   var containerEl = null;
   var seq = 0;
@@ -9562,25 +9564,48 @@ var PropImageUploader = (function() {
 
   function compressImage(file) {
     return new Promise(function(resolve) {
-      if (!file.type || file.type.indexOf('image/') !== 0 || typeof document === 'undefined') { resolve(file); return; }
-      var img = new Image();
+      var settled = false;
+      var finish = function(result) { if (settled) return; settled = true; resolve(result); };
+      if (!file.type || file.type.indexOf('image/') !== 0 || typeof document === 'undefined') { finish(file); return; }
       var objUrl = URL.createObjectURL(file);
+      // Guarantee forward progress no matter what: on some Android devices
+      // (typically low-memory ones decoding a large camera photo — exactly
+      // the multi-MB files this uploader receives), the Image never fires
+      // EITHER onload or onerror, and canvas operations can throw for
+      // reasons specific to a given WebView build. Either failure mode used
+      // to leave this promise permanently pending with nothing to catch it,
+      // silently stalling the entire upload at 0% forever with no error
+      // shown. Any failure here now falls back to uploading the original,
+      // uncompressed file rather than blocking the upload.
+      var timer = setTimeout(function() {
+        try { URL.revokeObjectURL(objUrl); } catch(e) {}
+        finish(file);
+      }, COMPRESS_TIMEOUT_MS);
+      var img = new Image();
       img.onload = function() {
-        URL.revokeObjectURL(objUrl);
-        var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
-        if (!w || !h) { resolve(file); return; }
-        var scale = Math.min(1, MAX_DIMENSION / Math.max(w, h));
-        var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
-        var canvas = document.createElement('canvas');
-        canvas.width = cw; canvas.height = ch;
-        var ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, cw, ch);
-        canvas.toBlob(function(blob) {
-          if (!blob || blob.size >= file.size) { resolve(file); return; }
-          resolve(new File([blob], renameToJpeg(file.name), { type: 'image/jpeg' }));
-        }, 'image/jpeg', JPEG_QUALITY);
+        try {
+          URL.revokeObjectURL(objUrl);
+          var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+          if (!w || !h) { clearTimeout(timer); finish(file); return; }
+          var scale = Math.min(1, MAX_DIMENSION / Math.max(w, h));
+          var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+          var canvas = document.createElement('canvas');
+          canvas.width = cw; canvas.height = ch;
+          var ctx = canvas.getContext('2d');
+          if (!ctx || typeof canvas.toBlob !== 'function') { clearTimeout(timer); finish(file); return; }
+          ctx.drawImage(img, 0, 0, cw, ch);
+          canvas.toBlob(function(blob) {
+            clearTimeout(timer);
+            if (!blob || blob.size >= file.size) { finish(file); return; }
+            finish(new File([blob], renameToJpeg(file.name), { type: 'image/jpeg' }));
+          }, 'image/jpeg', JPEG_QUALITY);
+        } catch (e) {
+          console.error('[Upload] compressImage: canvas processing failed, uploading original file instead:', e.message);
+          clearTimeout(timer);
+          finish(file);
+        }
       };
-      img.onerror = function() { URL.revokeObjectURL(objUrl); resolve(file); };
+      img.onerror = function() { clearTimeout(timer); try { URL.revokeObjectURL(objUrl); } catch(e) {} finish(file); };
       img.src = objUrl;
     });
   }
@@ -9761,22 +9786,48 @@ var PropImageUploader = (function() {
       render();
       return compressImage(it.file).then(function(finalFile) {
         return new Promise(function(resolve, reject) {
-          if (typeof storage === 'undefined' || !storage) { reject(new Error('Storage unavailable')); return; }
+          if (typeof storage === 'undefined' || !storage) { it.status = 'error'; render(); reject(new Error('Storage unavailable')); return; }
           var safeName = (finalFile.name || 'photo.jpg').replace(/[^a-zA-Z0-9_.-]/g, '_');
           var ref = storage.ref(pathPrefix + '/' + Date.now() + '_' + idx + '_' + safeName);
           var task = ref.put(finalFile);
+          var settled = false;
+          // Guard against a Storage upload that never fires ANY
+          // state_changed event — no progress, no error, no completion —
+          // which previously left the submit button spinning forever with
+          // no way to tell the user anything had gone wrong.
+          var watchdog = setTimeout(function() {
+            if (settled) return;
+            settled = true;
+            try { task.cancel(); } catch(e) {}
+            console.error('[Upload] uploadAll: task for ' + ref.fullPath + ' produced no state_changed event within ' + UPLOAD_TIMEOUT_MS + 'ms — treating as failed');
+            it.status = 'error';
+            render();
+            reject(new Error('Upload timed out — no response from Firebase Storage'));
+          }, UPLOAD_TIMEOUT_MS);
           task.on('state_changed', function(snap) {
+            if (settled) return;
             it.progress = snap.totalBytes ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100) : 0;
             updateProgressDom(it.uid, it.progress);
           }, function(err) {
+            if (settled) return;
+            settled = true;
+            clearTimeout(watchdog);
+            console.error('[Upload] uploadAll: task FAILED — code:', err.code || '', 'message:', err.message);
             it.status = 'error';
             render();
             reject(err);
           }, function() {
+            if (settled) return;
+            settled = true;
+            clearTimeout(watchdog);
             task.snapshot.ref.getDownloadURL().then(function(url) {
               it.status = 'done'; it.progress = 100; it.url = url;
               resolve(url);
-            }).catch(reject);
+            }).catch(function(e) {
+              console.error('[Upload] uploadAll: getDownloadURL FAILED —', e.code || '', e.message);
+              it.status = 'error'; render();
+              reject(e);
+            });
           });
         });
       });
@@ -25895,7 +25946,11 @@ function submitProperty() {
     if (!_sb) return;
     _sb.disabled = busy;
     _sb.classList.toggle('btn-loading', busy);
-    if (_sl && busy) _sl.innerHTML = '<span class="btn-spinner"></span>' + (curLang==='rw'?'Kopiwa...':'Uploading...');
+    if (_sl) {
+      _sl.innerHTML = busy
+        ? '<span class="btn-spinner"></span>' + (curLang==='rw'?'Kopiwa...':'Uploading...')
+        : (curLang==='rw' ? (_editPropId ? 'Bika Impinduka' : 'Ohereza Imitungo') : (_editPropId ? 'Save Changes' : 'Submit Property'));
+    }
   };
   var showUploadError = function(err) {
     console.error('Property photo upload failed:', err);
