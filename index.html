@@ -2268,7 +2268,8 @@ html,body{overscroll-behavior-x:none}
 .img-uploader-progress{position:absolute;inset:0;background:rgba(13,59,140,.6);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.3rem;color:#fff;font-size:.68rem;font-weight:700}
 .img-uploader-bar{width:70%;height:4px;background:rgba(255,255,255,.35);border-radius:2px;overflow:hidden}
 .img-uploader-bar-fill{height:100%;background:#fff;width:0%;transition:width .15s linear}
-.img-uploader-error{position:absolute;inset:0;background:rgba(220,38,38,.75);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem}
+.img-uploader-error{position:absolute;inset:0;background:rgba(220,38,38,.75);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;color:#fff;font-size:1.2rem;text-align:center;padding:.3rem}
+.img-uploader-error-code{font-size:.55rem;font-weight:700;line-height:1.2;word-break:break-all;opacity:.95}
 .img-uploader-add-more{border:1.5px dashed var(--border);border-radius:10px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);flex-direction:column;gap:.2rem;font-size:.62rem;font-weight:700;background:#fff}
 .img-uploader-add-more:hover{border-color:var(--navy);color:var(--navy)}
 .img-uploader-count{font-size:.71rem;color:var(--muted);text-align:right}
@@ -9617,7 +9618,9 @@ var PropImageUploader = (function() {
       if (it.status === 'uploading') {
         overlay = '<div class="img-uploader-progress"><div class="img-uploader-bar"><div class="img-uploader-bar-fill" style="width:' + (it.progress||0) + '%"></div></div><span>' + Math.round(it.progress||0) + '%</span></div>';
       } else if (it.status === 'error') {
-        overlay = '<div class="img-uploader-error" title="Upload failed">⚠️</div>';
+        overlay = '<div class="img-uploader-error" title="' + (it.errorCode || 'Upload failed') + '">⚠️'
+          + (it.errorCode ? '<span class="img-uploader-error-code">' + it.errorCode + '</span>' : '')
+          + '</div>';
       }
       var coverBadge = idx === 0 ? '<span class="img-uploader-cover-badge">' + t('IYA MBERE','COVER') + '</span>' : '';
       var setCoverBtn = idx !== 0 ? '<button type="button" class="img-uploader-set-cover" onclick="PropImageUploader.setCover(\'' + it.uid + '\')">' + t('Shyira ku isonga','Set as cover') + '</button>' : '';
@@ -9786,7 +9789,11 @@ var PropImageUploader = (function() {
       render();
       return compressImage(it.file).then(function(finalFile) {
         return new Promise(function(resolve, reject) {
-          if (typeof storage === 'undefined' || !storage) { it.status = 'error'; render(); reject(new Error('Storage unavailable')); return; }
+          if (typeof storage === 'undefined' || !storage) {
+            it.status = 'error'; it.errorCode = 'storage-unavailable'; render();
+            var unavailErr = new Error('Storage unavailable'); unavailErr.code = 'storage-unavailable';
+            reject(unavailErr); return;
+          }
           var safeName = (finalFile.name || 'photo.jpg').replace(/[^a-zA-Z0-9_.-]/g, '_');
           var ref = storage.ref(pathPrefix + '/' + Date.now() + '_' + idx + '_' + safeName);
           var task = ref.put(finalFile);
@@ -9801,8 +9808,10 @@ var PropImageUploader = (function() {
             try { task.cancel(); } catch(e) {}
             console.error('[Upload] uploadAll: task for ' + ref.fullPath + ' produced no state_changed event within ' + UPLOAD_TIMEOUT_MS + 'ms — treating as failed');
             it.status = 'error';
+            it.errorCode = 'timeout';
             render();
-            reject(new Error('Upload timed out — no response from Firebase Storage'));
+            var timeoutErr = new Error('Upload timed out — no response from Firebase Storage'); timeoutErr.code = 'timeout';
+            reject(timeoutErr);
           }, UPLOAD_TIMEOUT_MS);
           task.on('state_changed', function(snap) {
             if (settled) return;
@@ -9814,6 +9823,7 @@ var PropImageUploader = (function() {
             clearTimeout(watchdog);
             console.error('[Upload] uploadAll: task FAILED — code:', err.code || '', 'message:', err.message);
             it.status = 'error';
+            it.errorCode = err.code || 'unknown-error';
             render();
             reject(err);
           }, function() {
@@ -9825,7 +9835,7 @@ var PropImageUploader = (function() {
               resolve(url);
             }).catch(function(e) {
               console.error('[Upload] uploadAll: getDownloadURL FAILED —', e.code || '', e.message);
-              it.status = 'error'; render();
+              it.status = 'error'; it.errorCode = e.code || 'download-url-failed'; render();
               reject(e);
             });
           });
@@ -26053,11 +26063,17 @@ function submitProperty() {
     }
   };
   var showUploadError = function(err) {
-    console.error('Property photo upload failed:', err);
+    console.error('[Upload] Property photo upload failed — code:', err && err.code, 'message:', err && err.message);
     setBusy(false);
+    // Include the raw Firebase error code inline (not just in devtools) so a
+    // screenshot of the toast is enough to diagnose the real cause — e.g.
+    // storage/unauthorized (rules reject the write) vs a genuine timeout —
+    // instead of every failure looking identical and blaming "your internet"
+    // regardless of the actual cause.
+    var codeSuffix = (err && err.code) ? ' [' + err.code + ']' : '';
     showToast(curLang==='rw'
-      ? '⚠️ Amafoto ntabwo yoherejwe neza. Reba interineti yawe ugerageze nanone.'
-      : '⚠️ Photo upload failed. Check your connection and try again.', 'error');
+      ? '⚠️ Amafoto ntabwo yoherejwe neza' + codeSuffix + '. Reba interineti yawe ugerageze nanone.'
+      : '⚠️ Photo upload failed' + codeSuffix + '. Check your connection and try again.', 'error');
   };
 
   /* ── EDIT MODE ── */
