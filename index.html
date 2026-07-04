@@ -9897,6 +9897,18 @@ async function handleLogin() {
     var result = await firebaseAuth.signInWithEmailAndPassword(email, pass);
     var fb = result.user;
     console.log('[AUTH] handleLogin: signInWithEmailAndPassword succeeded, uid=' + fb.uid + ' emailVerified=' + fb.emailVerified);
+    // Finish linking a Google credential that a previous Google sign-in
+    // attempt couldn't use directly because this email already had this
+    // password account (see _handleGoogleAuthError's account-exists branch)
+    // — now that they've proven ownership via password, link Google to the
+    // same account so either method works from here on.
+    if (_pendingGoogleCredential && _pendingGoogleCredentialEmail === email) {
+      var credToLink = _pendingGoogleCredential;
+      _pendingGoogleCredential = null; _pendingGoogleCredentialEmail = null;
+      fb.linkWithCredential(credToLink)
+        .then(function(){ console.log('[AUTH] handleLogin: linked pending Google credential to uid=' + fb.uid); })
+        .catch(function(e){ console.warn('[AUTH] handleLogin: linkWithCredential failed —', e.code || '', e.message); });
+    }
     var profile = {};
     try {
       var users = JSON.parse(localStorage.getItem('km_users')||'[]');
@@ -11809,6 +11821,105 @@ function completeGoogleSignIn(fbUser) {
   setTimeout(function() { go('home'); }, 800);
 }
 
+// Holds a Google credential that couldn't be signed in directly because the
+// email already has an account under a different provider (see
+// _handleGoogleAuthError's 'auth/account-exists-with-different-credential'
+// branch) — handleLogin() consumes this after a matching successful
+// email/password sign-in to link the two, so the user only has to prove
+// ownership of the existing account once and can use either method after.
+var _pendingGoogleCredential = null;
+var _pendingGoogleCredentialEmail = null;
+
+// Central error handler for every Google sign-in entry point (signInWithRedirect,
+// signInWithPopup, getRedirectResult) — replaces one generic "try again" toast
+// that was shown for every possible failure with per-error-code handling, since
+// several of these codes are NOT fixed by retrying the same action again.
+function _handleGoogleAuthError(error) {
+  var code = error && error.code || '';
+  console.error('[AUTH] Google sign-in FAILED — code:', code, 'message:', error && error.message);
+
+  if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+    return; // user-initiated cancel — not a real error, no toast needed
+  }
+
+  if (code === 'auth/account-exists-with-different-credential') {
+    // The single most common cause of "Google sign-in fails right after
+    // returning from Google" when email/password sign-in works fine: this
+    // Google email already has an account created via email/password (or
+    // another provider), and Firebase's default "one account per email"
+    // setting refuses to silently create a second account for it. Retrying
+    // Google sign-in again will NEVER succeed here — the fix is to sign in
+    // with the existing method once and link Google to that same account.
+    var email = error.email || (error.customData && error.customData.email) || '';
+    var cred = error.credential ||
+      (firebase.auth.GoogleAuthProvider.credentialFromError && firebase.auth.GoogleAuthProvider.credentialFromError(error));
+    _pendingGoogleCredential = cred || null;
+    _pendingGoogleCredentialEmail = email || null;
+    var fallback = function() {
+      showToast(curLang==='rw'
+        ? '🔒 Iyi meyili isanzwe ifite konti ikoresha uburyo bundi bwo kwinjira.'
+        : '🔒 This email already has an account using a different sign-in method.', 'warn');
+    };
+    if (email && firebaseAuth && typeof firebaseAuth.fetchSignInMethodsForEmail === 'function') {
+      firebaseAuth.fetchSignInMethodsForEmail(email).then(function(methods) {
+        console.log('[AUTH] account-exists-with-different-credential: existing methods for ' + email + ' =', methods);
+        if (methods.indexOf('password') > -1) {
+          var emailEl = document.getElementById('login-email');
+          if (emailEl) emailEl.value = email;
+          // getRedirectResult() resolves right on page load, around the same
+          // moment the app's own DOMContentLoaded handler calls go('home') —
+          // racing a plain go('auth') here risks the default navigation
+          // running after this one and silently bouncing the user back off
+          // the auth page right as we're trying to put them on it. Wait for
+          // the 'load' event (fires strictly after DOMContentLoaded) so this
+          // one always wins.
+          var goToAuthForLinking = function() { go('auth'); };
+          if (document.readyState === 'complete') goToAuthForLinking();
+          else window.addEventListener('load', goToAuthForLinking, { once: true });
+          showToast(curLang==='rw'
+            ? '🔒 Konti ya ' + email + ' isanzweho ikoresha ijambo banga. Injira hano, hanyuma Google izahuzwa na konti yawe.'
+            : '🔒 An account for ' + email + ' already exists with a password. Sign in below and we\'ll link Google to it automatically.', 'warn');
+        } else {
+          fallback();
+        }
+      }).catch(fallback);
+    } else {
+      fallback();
+    }
+    return;
+  }
+
+  if (code === 'auth/unauthorized-domain') {
+    // Thrown when the current origin isn't in Firebase Console → Authentication
+    // → Settings → Authorized domains. No amount of retrying fixes this from
+    // the client — it's a console configuration change only an admin can make.
+    console.error('[AUTH] auth/unauthorized-domain — add ' + window.location.hostname + ' to Firebase Console > Authentication > Settings > Authorized domains');
+    showToast(curLang==='rw'
+      ? '⚠️ Iyi urubuga ntirwemerewe gukoresha Google Sign-In. Menyesha ubuyobozi bwa KOMISIYONERI.'
+      : '⚠️ This site isn\'t authorized for Google Sign-In yet. Please contact KOMISIYONERI support.', 'error');
+    return;
+  }
+
+  if (code === 'auth/network-request-failed') {
+    showToast(curLang==='rw' ? '📶 Ntibyashobotse kwinjira—reba interineti yawe.' : '📶 Couldn\'t reach Google — check your connection.', 'error');
+    return;
+  }
+
+  if (code === 'auth/operation-not-allowed') {
+    // The Google provider is disabled in Firebase Console → Authentication →
+    // Sign-in method. Also not something retrying fixes.
+    console.error('[AUTH] auth/operation-not-allowed — Google provider is disabled in Firebase Console > Authentication > Sign-in method');
+    showToast(curLang==='rw'
+      ? '⚠️ Google Sign-In ntikirakorwa kuri iyi platform. Menyesha ubuyobozi.'
+      : '⚠️ Google Sign-In isn\'t enabled for this app yet. Please contact support.', 'error');
+    return;
+  }
+
+  showToast(curLang==='rw'
+    ? 'Google sign-in yanze (' + (code || 'unknown') + '). Gerageza nanone.'
+    : 'Google sign-in failed (' + (code || 'unknown') + '). Please try again.', 'error');
+}
+
 function handleGoogleSignInClick() {
   console.log('[AUTH] handleGoogleSignInClick() — user tapped "Continue with Google"');
   if (!initFirebase() || !firebaseAuth || typeof firebase.auth.GoogleAuthProvider === 'undefined') {
@@ -11825,20 +11936,12 @@ function handleGoogleSignInClick() {
   var isMobileUA = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   console.log('[AUTH] handleGoogleSignInClick: isMobileUA=' + isMobileUA + ' — using ' + (isMobileUA ? 'signInWithRedirect' : 'signInWithPopup'));
   if (isMobileUA) {
-    firebaseAuth.signInWithRedirect(provider).catch(function(error) {
-      console.error('[AUTH] signInWithRedirect FAILED — code:', error && error.code, 'message:', error && error.message);
-      showToast(curLang==='rw' ? 'Google sign-in yanze. Gerageza nanone.' : 'Google sign-in failed. Please try again.');
-    });
+    firebaseAuth.signInWithRedirect(provider).catch(_handleGoogleAuthError);
     return;
   }
   firebaseAuth.signInWithPopup(provider)
     .then(function(result) { console.log('[AUTH] signInWithPopup resolved for uid=' + result.user.uid); completeGoogleSignIn(result.user); })
-    .catch(function(error) {
-      console.error('[AUTH] signInWithPopup FAILED — code:', error && error.code, 'message:', error && error.message);
-      console.error('Google sign-in error:', error && error.message);
-      if (error && (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request')) return;
-      showToast(curLang==='rw' ? 'Google sign-in yanze. Gerageza nanone.' : 'Google sign-in failed. Please try again.');
-    });
+    .catch(_handleGoogleAuthError);
 }
 
 // === PHONE OTP AUTH ===
@@ -14571,10 +14674,7 @@ go = function(page) {
     firebaseAuth.getRedirectResult().then(function(result) {
       console.log('[AUTH] getRedirectResult() resolved. user=', result && result.user ? result.user.uid : null);
       if (result && result.user) completeGoogleSignIn(result.user);
-    }).catch(function(error) {
-      console.error('[AUTH] getRedirectResult() FAILED — code:', error && error.code, 'message:', error && error.message);
-      showToast(curLang==='rw' ? 'Google sign-in yanze. Gerageza nanone.' : 'Google sign-in failed. Please try again.');
-    });
+    }).catch(_handleGoogleAuthError);
   }
 
   console.log('[KOMISIYONERI] Firebase yahuye na project:', firebase.app().options.projectId);
