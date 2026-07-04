@@ -1,0 +1,28 @@
+[
+  {
+    "origin": [
+      "https://komisiyoneri.co.rw",
+      "https://www.komisiyoneri.co.rw",
+      "https://komisyoneri-platform-nu.vercel.app",
+      "https://komisyoneri-platform.vercel.app",
+      "http://localhost:8944",
+      "http://localhost:3000",
+      "http://127.0.0.1:8944"
+    ],
+    "method": ["GET", "PUT", "POST", "HEAD", "DELETE"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": [
+      "Content-Type",
+      "Content-Length",
+      "Content-Disposition",
+      "Authorization",
+      "X-Goog-Upload-Protocol",
+      "X-Goog-Upload-Command",
+      "X-Goog-Upload-URL",
+      "X-Goog-Upload-Status",
+      "X-Goog-Upload-Size-Received",
+      "X-Goog-Upload-Header-Content-Length",
+      "X-Goog-Upload-Header-Content-Type"
+    ]
+  }
+]
