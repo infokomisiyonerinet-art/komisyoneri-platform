@@ -1008,8 +1008,29 @@ const COMMISSION_SPLIT = {
 ✅ Google OAuth config updated
 ✅ Canonical URLs fixed (Vercel URL)
 ✅ Mobile CSS improvements (320px–414px)
-🔄 Google OAuth origin_mismatch (Google Cloud Console — pending)
-🔄 Firebase Security Rules (Firestore — pending)
+🔄 Google OAuth origin_mismatch (Google Cloud Console — STILL PENDING as of
+   2026-07-04; confirmed root cause of the "Google Sign-In has never worked"
+   report — reproduces as auth/internal-error client-side because Firebase's
+   SDK has no specific code for Google's origin_mismatch response and falls
+   back to the generic wrapper. Requires an operator with Google Cloud
+   Console access to open APIs & Services > Credentials, find the OAuth 2.0
+   Web Client Firebase's Google provider uses, and add every production/
+   preview origin — https://komisiyoneri.co.rw, the Vercel domains, and
+   https://komisyoneri-platform-prod.firebaseapp.com — to "Authorized
+   JavaScript origins". No code change can fix this; see PR history on
+   claude/vercel-404-root-route-qrw92o for the full investigation.)
+✅ Firebase Security Rules (Firestore) — rules/firestore.rules and
+   rules/storage.rules now exist and are referenced from firebase.json;
+   verified in-repo against every read/write path the app performs. NOT yet
+   confirmed deployed to the live project — an operator should run
+   `firebase deploy --only firestore:rules,storage` (or equivalent) and
+   confirm via Firebase Console > Firestore/Storage > Rules that the
+   deployed version matches this repo, since a deploy step outside this
+   repo's code cannot be verified from here.
+🔄 Firebase Storage CORS (gsutil — pending) — property image uploads never
+   completing is most likely a Storage bucket CORS gap for the custom
+   domain; rules/storage-cors.json is a ready-to-apply config an operator
+   needs to run via `gsutil cors set rules/storage-cors.json gs://<bucket>`.
 🔄 PWA icons (pending)
 ```
 
