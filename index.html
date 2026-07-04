@@ -11844,21 +11844,36 @@ var _pendingGoogleCredentialEmail = null;
 // signInWithPopup, getRedirectResult) — replaces one generic "try again" toast
 // that was shown for every possible failure with per-error-code handling, since
 // several of these codes are NOT fixed by retrying the same action again.
-function _handleGoogleAuthError(error) {
+function _handleGoogleAuthError(error, source) {
   var code = error && error.code || '';
-  console.error('[AUTH] Google sign-in FAILED — code:', code, 'message:', error && error.message);
-  // auth/internal-error's own .message is frequently just "An internal
-  // error has occurred" with the actual diagnostic detail (a raw error from
-  // the Identity Platform backend) embedded in other own-properties of the
-  // error object (customData, serverResponse, etc. depending on SDK
-  // version) that a plain console.error(...) print doesn't show. Dump the
-  // full object so nothing gets lost.
+  var src = source || 'unknown-entry-point';
+  // Print every field of the raw FirebaseError individually and in full —
+  // never summarized, truncated, or replaced by our own interpretation.
+  // .code and .message are real properties on FirebaseError; .customData
+  // (newer SDKs) and .credential (only present on
+  // account-exists-with-different-credential) are printed only when
+  // present so this doesn't log "undefined" noise for every other code.
+  console.error('[AUTH] ===== Google sign-in FAILED (source: ' + src + ') =====');
+  console.error('[AUTH] error.code      =', code || '(none)');
+  console.error('[AUTH] error.message   =', (error && error.message) || '(none)');
+  console.error('[AUTH] error.customData =', error && error.customData !== undefined ? error.customData : '(none)');
+  console.error('[AUTH] error.credential =', error && error.credential !== undefined ? error.credential : '(none)');
+  console.error('[AUTH] error.stack     =', (error && error.stack) || '(no stack trace available)');
+  // Full object dump as well, in case the SDK attached anything else
+  // (e.g. .serverResponse on older SDK versions) not covered above.
   try {
-    console.error('[AUTH] Google sign-in FAILED — full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error || {})));
-  } catch (e) { console.error('[AUTH] Google sign-in FAILED — error object could not be stringified:', error); }
+    console.error('[AUTH] full error object (all own properties):', JSON.stringify(error, Object.getOwnPropertyNames(error || {})));
+  } catch (e) { console.error('[AUTH] error object could not be JSON-stringified (circular?):', error); }
+  console.error('[AUTH] ===============================================');
+
+  // Firebase's own message, verbatim — never hidden or swapped out for our
+  // own wording. Every toast branch below appends this alongside whatever
+  // specific guidance we can add; it never replaces it.
+  var rawDetail = (code ? '[' + code + '] ' : '') + ((error && error.message) || '');
 
   if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
-    return; // user-initiated cancel — not a real error, no toast needed
+    console.log('[AUTH] (user-initiated cancel — not shown as an error toast, but the raw error above is still fully logged)');
+    return;
   }
 
   if (code === 'auth/internal-error') {
@@ -11880,8 +11895,8 @@ function _handleGoogleAuthError(error) {
     // be checked in Firebase Console / Google Cloud Console directly.
     console.error('[AUTH] auth/internal-error — check Firebase Console > Authentication > Sign-in method > Google (Web SDK configuration: client ID/secret) and Google Cloud Console > APIs & Services > Credentials for the associated OAuth 2.0 Web Client');
     showToast(curLang==='rw'
-      ? '⚠️ Google Sign-In ifite ikibazo cy\'ubuyobozi (auth/internal-error). Menyesha ubuyobozi bwa KOMISIYONERI — Ntabwo ari ikibazo cya interineti yawe.'
-      : '⚠️ Google Sign-In has a configuration problem on our end (auth/internal-error) — this is not something retrying will fix. Please contact KOMISIYONERI support.', 'error');
+      ? '⚠️ Google Sign-In ifite ikibazo cy\'ubuyobozi — Ntabwo ari ikibazo cya interineti yawe. (' + rawDetail + ')'
+      : '⚠️ Google Sign-In has a configuration problem on our end — this is not something retrying will fix. (' + rawDetail + ')', 'error');
     return;
   }
 
@@ -11900,8 +11915,8 @@ function _handleGoogleAuthError(error) {
     _pendingGoogleCredentialEmail = email || null;
     var fallback = function() {
       showToast(curLang==='rw'
-        ? '🔒 Iyi meyili isanzwe ifite konti ikoresha uburyo bundi bwo kwinjira.'
-        : '🔒 This email already has an account using a different sign-in method.', 'warn');
+        ? '🔒 Iyi meyili isanzwe ifite konti ikoresha uburyo bundi bwo kwinjira. (' + rawDetail + ')'
+        : '🔒 This email already has an account using a different sign-in method. (' + rawDetail + ')', 'warn');
     };
     if (email && firebaseAuth && typeof firebaseAuth.fetchSignInMethodsForEmail === 'function') {
       firebaseAuth.fetchSignInMethodsForEmail(email).then(function(methods) {
@@ -11938,13 +11953,13 @@ function _handleGoogleAuthError(error) {
     // the client — it's a console configuration change only an admin can make.
     console.error('[AUTH] auth/unauthorized-domain — add ' + window.location.hostname + ' to Firebase Console > Authentication > Settings > Authorized domains');
     showToast(curLang==='rw'
-      ? '⚠️ Iyi urubuga ntirwemerewe gukoresha Google Sign-In. Menyesha ubuyobozi bwa KOMISIYONERI.'
-      : '⚠️ This site isn\'t authorized for Google Sign-In yet. Please contact KOMISIYONERI support.', 'error');
+      ? '⚠️ Iyi urubuga ntirwemerewe gukoresha Google Sign-In. (' + rawDetail + ')'
+      : '⚠️ This site isn\'t authorized for Google Sign-In yet. (' + rawDetail + ')', 'error');
     return;
   }
 
   if (code === 'auth/network-request-failed') {
-    showToast(curLang==='rw' ? '📶 Ntibyashobotse kwinjira—reba interineti yawe.' : '📶 Couldn\'t reach Google — check your connection.', 'error');
+    showToast(curLang==='rw' ? '📶 Ntibyashobotse kwinjira—reba interineti yawe. (' + rawDetail + ')' : '📶 Couldn\'t reach Google — check your connection. (' + rawDetail + ')', 'error');
     return;
   }
 
@@ -11953,14 +11968,14 @@ function _handleGoogleAuthError(error) {
     // Sign-in method. Also not something retrying fixes.
     console.error('[AUTH] auth/operation-not-allowed — Google provider is disabled in Firebase Console > Authentication > Sign-in method');
     showToast(curLang==='rw'
-      ? '⚠️ Google Sign-In ntikirakorwa kuri iyi platform. Menyesha ubuyobozi.'
-      : '⚠️ Google Sign-In isn\'t enabled for this app yet. Please contact support.', 'error');
+      ? '⚠️ Google Sign-In ntikirakorwa kuri iyi platform. (' + rawDetail + ')'
+      : '⚠️ Google Sign-In isn\'t enabled for this app yet. (' + rawDetail + ')', 'error');
     return;
   }
 
   showToast(curLang==='rw'
-    ? 'Google sign-in yanze (' + (code || 'unknown') + '). Gerageza nanone.'
-    : 'Google sign-in failed (' + (code || 'unknown') + '). Please try again.', 'error');
+    ? 'Google sign-in yanze. (' + rawDetail + ')'
+    : 'Google sign-in failed. (' + rawDetail + ')', 'error');
 }
 
 function handleGoogleSignInClick() {
@@ -11979,12 +11994,12 @@ function handleGoogleSignInClick() {
   var isMobileUA = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   console.log('[AUTH] handleGoogleSignInClick: isMobileUA=' + isMobileUA + ' — using ' + (isMobileUA ? 'signInWithRedirect' : 'signInWithPopup'));
   if (isMobileUA) {
-    firebaseAuth.signInWithRedirect(provider).catch(_handleGoogleAuthError);
+    firebaseAuth.signInWithRedirect(provider).catch(function(error) { _handleGoogleAuthError(error, 'signInWithRedirect'); });
     return;
   }
   firebaseAuth.signInWithPopup(provider)
     .then(function(result) { console.log('[AUTH] signInWithPopup resolved for uid=' + result.user.uid); completeGoogleSignIn(result.user); })
-    .catch(_handleGoogleAuthError);
+    .catch(function(error) { _handleGoogleAuthError(error, 'signInWithPopup'); });
 }
 
 // === PHONE OTP AUTH ===
@@ -14717,7 +14732,7 @@ go = function(page) {
     firebaseAuth.getRedirectResult().then(function(result) {
       console.log('[AUTH] getRedirectResult() resolved. user=', result && result.user ? result.user.uid : null);
       if (result && result.user) completeGoogleSignIn(result.user);
-    }).catch(_handleGoogleAuthError);
+    }).catch(function(error) { _handleGoogleAuthError(error, 'getRedirectResult'); });
   }
 
   console.log('[KOMISIYONERI] Firebase yahuye na project:', firebase.app().options.projectId);
