@@ -2245,6 +2245,37 @@ html,body{overscroll-behavior-x:none}
   .site-card-img{height:130px}
   .site-plan-img{max-height:55vw}
 }
+
+/* ═══ Property Image Uploader — drag&drop, previews, cover, reorder ═══ */
+.img-uploader{display:flex;flex-direction:column;gap:.7rem}
+.img-uploader-drop{border:2px dashed var(--border);border-radius:12px;padding:1.4rem 1rem;text-align:center;cursor:pointer;transition:var(--tr);background:var(--light)}
+.img-uploader-drop:hover,.img-uploader-drop.dragover{border-color:var(--navy);background:#eef3fc}
+.img-uploader-drop svg{stroke:var(--muted)}
+.img-uploader-drop.dragover svg{stroke:var(--navy)}
+.img-uploader-drop-title{font-weight:700;font-size:.86rem;color:var(--navy);margin-top:.5rem}
+.img-uploader-drop-sub{font-size:.71rem;color:var(--muted);margin-top:.2rem}
+.img-uploader-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:.6rem}
+.img-uploader-item{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:1/1;background:var(--light);border:1.5px solid var(--border)}
+.img-uploader-item img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.img-uploader-item.dragging{opacity:.4}
+.img-uploader-cover-badge{position:absolute;top:4px;left:4px;background:var(--gold);color:#1a1300;font-size:.58rem;font-weight:800;padding:2px 6px;border-radius:5px;letter-spacing:.02em}
+.img-uploader-item-actions{position:absolute;top:4px;right:4px;display:flex;gap:3px}
+.img-uploader-btn{width:22px;height:22px;border-radius:50%;background:rgba(15,27,53,.72);color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.68rem;padding:0}
+.img-uploader-btn:hover{background:var(--navy)}
+.img-uploader-move-row{position:absolute;bottom:4px;left:4px;right:4px;display:flex;justify-content:space-between}
+.img-uploader-set-cover{position:absolute;top:28px;left:4px;right:4px;background:rgba(15,27,53,.78);color:#fff;border:none;border-radius:6px;font-size:.6rem;font-weight:700;padding:3px 2px;cursor:pointer;opacity:0;transition:var(--tr)}
+.img-uploader-item:hover .img-uploader-set-cover,.img-uploader-item:focus-within .img-uploader-set-cover{opacity:1}
+.img-uploader-progress{position:absolute;inset:0;background:rgba(13,59,140,.6);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.3rem;color:#fff;font-size:.68rem;font-weight:700}
+.img-uploader-bar{width:70%;height:4px;background:rgba(255,255,255,.35);border-radius:2px;overflow:hidden}
+.img-uploader-bar-fill{height:100%;background:#fff;width:0%;transition:width .15s linear}
+.img-uploader-error{position:absolute;inset:0;background:rgba(220,38,38,.75);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem}
+.img-uploader-add-more{border:1.5px dashed var(--border);border-radius:10px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);flex-direction:column;gap:.2rem;font-size:.62rem;font-weight:700;background:#fff}
+.img-uploader-add-more:hover{border-color:var(--navy);color:var(--navy)}
+.img-uploader-count{font-size:.71rem;color:var(--muted);text-align:right}
+@media(max-width:480px){
+  .img-uploader-grid{grid-template-columns:repeat(3,1fr)}
+  .img-uploader-drop{padding:1.1rem .8rem}
+}
 </style>
   <link rel="preload" as="image" href="/images/logo.png">
 </head>
@@ -2829,34 +2860,18 @@ html,body{overscroll-behavior-x:none}
       </div>
     </div>
     <div id="prop-form-3" style="display:none;flex-direction:column;gap:.8rem;padding:.5rem 0">
-      <!-- Media Upload — Admin vs User -->
-      <div id="admin-media-section" style="display:none;flex-direction:column;gap:.8rem">
+      <!-- Admin-only supplemental links — video/3D tour embeds, not image hosting -->
+      <div id="prop-admin-extra" style="display:none;flex-direction:column;gap:.8rem">
         <div style="background:#e8f0fb;border-radius:8px;padding:.7rem;font-size:.78rem;color:var(--navy);font-weight:600">
-          🔐 Admin Mode — YouTube URL + Image URLs
+          🔐 <span data-rw="Admin — Video/Virtual Tour (Ntibisabwa)" data-en="Admin — Video/Virtual Tour (Optional)">Admin — Video/Virtual Tour (Optional)</span>
         </div>
         <div class="field"><label>🎥 YouTube Video URL</label><input type="url" id="prop-video" placeholder="https://youtube.com/watch?v=..."></div>
         <div class="field"><label>🌐 Virtual Tour 3D URL (Ntibisabwa)</label><input type="url" id="prop-tour3d" placeholder="Matterport, Kuula, YouTube 360° link..."></div>
-        <div class="field"><label>🖼️ Ifoto 1 (URL)</label><input type="url" id="prop-img1" placeholder="https://i.ibb.co/xxxxx/inzu.jpg"></div>
-        <div class="field"><label>🖼️ Ifoto 2 (Ntibisabwa)</label><input type="url" id="prop-img2" placeholder="https://i.ibb.co/xxxxx/imbere.jpg"></div>
-        <div class="field"><label>🖼️ Ifoto 3 (Ntibisabwa)</label><input type="url" id="prop-img3" placeholder="https://i.ibb.co/xxxxx/igikari.jpg"></div>
       </div>
-      <div id="user-media-section" style="display:flex;flex-direction:column;gap:.8rem">
-        <div style="background:var(--light);border-radius:8px;padding:.7rem;font-size:.78rem;color:var(--muted)">
-          📸 Shyiramo amafoto y'imitungo (JPEG, PNG — max 5MB buri ifoto)
-        </div>
-        <div class="field"><label for="prop-file1">📸 Ifoto ya 1 (Ngombwa)</label>
-          <input type="file" id="prop-file1" accept="image/*" style="width:100%;padding:.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
-        </div>
-        <div class="field"><label for="prop-file2">📸 Ifoto ya 2 (Ntibisabwa)</label>
-          <input type="file" id="prop-file2" accept="image/*" style="width:100%;padding:.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
-        </div>
-        <div class="field"><label for="prop-file3">📸 Ifoto ya 3 (Ntibisabwa)</label>
-          <input type="file" id="prop-file3" accept="image/*" style="width:100%;padding:.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
-        </div>
-        <div style="font-size:.75rem;color:var(--muted);background:var(--light);border-radius:8px;padding:.6rem">
-          💡 Amafoto azabikwa kuri imgbb.com ubuntu. Uzabona URL nyuma yo kuranga.
-        </div>
+      <div style="background:var(--light);border-radius:8px;padding:.7rem;font-size:.78rem;color:var(--muted)">
+        📸 <span data-rw="Shyiramo amafoto y'imitungo — koresha kamera cyangwa uhitemo muri gallery. Ifoto ya mbere niyo igaragara nk'iy'ibanze (cover)." data-en="Add property photos — use your camera or pick from your gallery. The first photo is used as the cover image.">Add property photos — use your camera or pick from your gallery. The first photo is used as the cover image.</span>
       </div>
+      <div id="prop-image-uploader" class="img-uploader"></div>
       <button class="btn btn-sm" style="border:1.5px solid var(--border);justify-content:center;margin-bottom:.2rem" onclick="propStep(2)">← <span data-rw="Subira" data-en="Back">Back</span></button>
       <button id="submit-prop-btn" class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="submitProperty()">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
@@ -9342,11 +9357,19 @@ function openEditProperty(prop) {
   var ams = ['garden','pool','garage','solar','fibre','security','generator'];
   ams.forEach(function(a) { c('am-'+a, prop.amenities && prop.amenities.indexOf(a) !== -1); });
 
-  // Show user media section (file re-upload optional)
-  var userSec = document.getElementById('user-media-section');
-  var adminSec = document.getElementById('admin-media-section');
-  if (userSec) userSec.style.display = 'flex';
-  if (adminSec) adminSec.style.display = 'none';
+  // Pre-populate the image uploader with the listing's existing photos —
+  // editable/reorderable/deletable just like a new submission, rather than
+  // being frozen and untouchable while everything else is editable.
+  PropImageUploader.mount('prop-image-uploader');
+  PropImageUploader.loadExisting(
+    Array.isArray(prop.images) && prop.images.length ? prop.images : [prop.img1, prop.img2, prop.img3].filter(Boolean)
+  );
+  var adminExtra = document.getElementById('prop-admin-extra');
+  if (adminExtra) adminExtra.style.display = 'none';
+}
+
+function _isPropAdmin(u) {
+  return !!u && (u.email === 'info.komisiyoneri.net@gmail.com' || u.role === 'Admin' || u.role === 'admin' || u.role === 'super_admin');
 }
 
 function openAddProperty() {
@@ -9372,6 +9395,14 @@ function openAddProperty() {
   propStep(1);
   var c = document.getElementById('prop-contact');
   if(c && currentUser.phone) c.value = currentUser.phone;
+
+  PropImageUploader.reset();
+  PropImageUploader.mount('prop-image-uploader');
+  var isAdmin = _isPropAdmin(currentUser);
+  var adminExtra = document.getElementById('prop-admin-extra');
+  if (adminExtra) adminExtra.style.display = isAdmin ? 'flex' : 'none';
+  var invSection = document.getElementById('prop-investment-section');
+  if (invSection) invSection.style.display = isAdmin ? 'flex' : 'none';
 }
 
 function closeAddProperty() {
@@ -9382,207 +9413,251 @@ function closeAddProperty() {
   if (title) { title.setAttribute('data-rw','+ Andika Imitungo Nshya'); title.textContent = curLang==='rw'?'+ Andika Imitungo Nshya':'+ Add New Property'; }
   var lbl = document.getElementById('submit-prop-label');
   if (lbl) lbl.textContent = curLang==='rw' ? 'Ohereza Imitungo' : 'Submit Property';
+  PropImageUploader.reset();
 }
 
-function submitProperty() {
-  var g = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
+// ══════════════════════════════════════════════════════════════════════
+// PROPERTY IMAGE UPLOADER
+// Airbnb/Property24-style multi-image uploader: drag-and-drop (desktop) +
+// native gallery/camera picker (mobile), client-side compression before
+// upload, real Firebase Storage progress, cover selection, delete and
+// reorder. Only the resulting Storage download URLs are ever saved to the
+// database — no external image-hosting URL is ever typed by a user.
+// submitProperty() (defined further below) is the sole consumer.
+// ══════════════════════════════════════════════════════════════════════
+var PropImageUploader = (function() {
+  var MAX_IMAGES = 15;
+  var MAX_DIMENSION = 1920;
+  var JPEG_QUALITY = 0.82;
+  var MAX_FILE_BYTES = 10 * 1024 * 1024;
+  var items = []; // {uid,file,previewUrl,url,status:'ready'|'uploading'|'done'|'error',progress,isExisting}
+  var containerEl = null;
+  var seq = 0;
 
-  // Check login
-  if(!currentUser) {
-    showToast(curLang==='rw' ? 'Injira mbere yo gushyiraho imitungo!' : 'Please login first!', 'warn');
-    closeAddProperty();
-    go('auth');
-    return;
+  function uid() { return 'pimg_' + (++seq) + '_' + Date.now(); }
+  function t(rw, en) { return (typeof curLang !== 'undefined' && curLang === 'rw') ? rw : en; }
+
+  function renameToJpeg(name) {
+    return (name || 'photo').replace(/\.[^.]+$/, '') + '.jpg';
   }
 
-  if (!canListProperty(currentUser)) {
-    showToast(curLang==='rw'
-      ? '🔒 Injira nk\'umutunzi w\'inzu cyangwa Agent kugira ngo wohereze imitungo.'
-      : '🔒 Register as a property owner or agent to submit a listing.', 'warn');
-    return;
+  function compressImage(file) {
+    return new Promise(function(resolve) {
+      if (!file.type || file.type.indexOf('image/') !== 0 || typeof document === 'undefined') { resolve(file); return; }
+      var img = new Image();
+      var objUrl = URL.createObjectURL(file);
+      img.onload = function() {
+        URL.revokeObjectURL(objUrl);
+        var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+        if (!w || !h) { resolve(file); return; }
+        var scale = Math.min(1, MAX_DIMENSION / Math.max(w, h));
+        var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+        var canvas = document.createElement('canvas');
+        canvas.width = cw; canvas.height = ch;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, cw, ch);
+        canvas.toBlob(function(blob) {
+          if (!blob || blob.size >= file.size) { resolve(file); return; }
+          resolve(new File([blob], renameToJpeg(file.name), { type: 'image/jpeg' }));
+        }, 'image/jpeg', JPEG_QUALITY);
+      };
+      img.onerror = function() { URL.revokeObjectURL(objUrl); resolve(file); };
+      img.src = objUrl;
+    });
   }
 
-  // === EDIT MODE: update existing Pending property in-place ===
-  if (_editPropId) {
-    var editId = _editPropId;
-    var props = [];
-    try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-    var idx = -1;
-    for (var i=0; i<props.length; i++) { if (String(props[i].id) === String(editId)) { idx=i; break; } }
-    if (idx === -1) { showToast('Imitungo ntiboneka.'); closeAddProperty(); return; }
-    if (props[idx].status !== 'Pending') {
-      showToast(curLang==='rw' ? 'Imitungo yemejwe ntishobora guhindurwa.' : 'Only pending listings can be edited.', 'warn');
-      closeAddProperty(); return;
+  function render() {
+    if (!containerEl) return;
+    var gridHtml = items.map(function(it, idx) {
+      var overlay = '';
+      if (it.status === 'uploading') {
+        overlay = '<div class="img-uploader-progress"><div class="img-uploader-bar"><div class="img-uploader-bar-fill" style="width:' + (it.progress||0) + '%"></div></div><span>' + Math.round(it.progress||0) + '%</span></div>';
+      } else if (it.status === 'error') {
+        overlay = '<div class="img-uploader-error" title="Upload failed">⚠️</div>';
+      }
+      var coverBadge = idx === 0 ? '<span class="img-uploader-cover-badge">' + t('IYA MBERE','COVER') + '</span>' : '';
+      var setCoverBtn = idx !== 0 ? '<button type="button" class="img-uploader-set-cover" onclick="PropImageUploader.setCover(\'' + it.uid + '\')">' + t('Shyira ku isonga','Set as cover') + '</button>' : '';
+      var moveLeft = idx > 0 ? '<button type="button" class="img-uploader-btn" aria-label="Move left" onclick="PropImageUploader.move(\'' + it.uid + '\',-1)">◀</button>' : '<span></span>';
+      var moveRight = idx < items.length - 1 ? '<button type="button" class="img-uploader-btn" aria-label="Move right" onclick="PropImageUploader.move(\'' + it.uid + '\',1)">▶</button>' : '<span></span>';
+      return '<div class="img-uploader-item" draggable="true" data-uid="' + it.uid + '">'
+        + '<img src="' + it.previewUrl + '" alt="Property photo ' + (idx+1) + '">'
+        + coverBadge
+        + '<div class="img-uploader-item-actions"><button type="button" class="img-uploader-btn" aria-label="Remove photo" onclick="PropImageUploader.remove(\'' + it.uid + '\')">✕</button></div>'
+        + '<div class="img-uploader-move-row">' + moveLeft + moveRight + '</div>'
+        + setCoverBtn
+        + overlay
+        + '</div>';
+    }).join('');
+
+    var addMoreHtml = items.length && items.length < MAX_IMAGES
+      ? '<div class="img-uploader-add-more" onclick="PropImageUploader.pick()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span>' + t('Ongeraho','Add more') + '</span></div>'
+      : '';
+
+    containerEl.innerHTML =
+        '<div class="img-uploader-drop" id="img-uploader-drop" role="button" tabindex="0" onclick="PropImageUploader.pick()" onkeydown="if(event.key===\'Enter\')PropImageUploader.pick()">'
+      +   '<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>'
+      +   '<div class="img-uploader-drop-title">' + t('Kanda cyangwa ukurure amafoto hano', 'Click or drag photos here') + '</div>'
+      +   '<div class="img-uploader-drop-sub">' + t('Cyangwa fata muri gallery/kamera kuri telefoni — JPEG/PNG, max 10MB/ifoto', 'Or pick from your phone gallery/camera — JPEG/PNG, up to 10MB each') + '</div>'
+      + '</div>'
+      + (items.length ? '<div class="img-uploader-grid">' + gridHtml + addMoreHtml + '</div>' : '')
+      + (items.length ? '<div class="img-uploader-count">' + items.length + '/' + MAX_IMAGES + ' ' + t('amafoto','photos') + ' — ' + t('ifoto ya mbere ni cover','first photo is the cover') + '</div>' : '')
+      + '<input type="file" id="img-uploader-input" accept="image/*" multiple style="display:none">';
+
+    var input = document.getElementById('img-uploader-input');
+    if (input) input.addEventListener('change', function(e) { handleFiles(e.target.files); e.target.value = ''; });
+
+    var drop = document.getElementById('img-uploader-drop');
+    if (drop) {
+      drop.addEventListener('dragover', function(e) { e.preventDefault(); drop.classList.add('dragover'); });
+      drop.addEventListener('dragleave', function() { drop.classList.remove('dragover'); });
+      drop.addEventListener('drop', function(e) {
+        e.preventDefault(); drop.classList.remove('dragover');
+        if (e.dataTransfer && e.dataTransfer.files) handleFiles(e.dataTransfer.files);
+      });
     }
-    // Merge new field values into the existing property, keeping system fields unchanged
-    var updated = props[idx];
-    updated.type     = g('prop-type')    || updated.type;
-    updated.service  = g('prop-service') || updated.service;
-    updated.district = g('prop-district')|| updated.district;
-    updated.sector   = g('prop-sector');
-    updated.price    = g('prop-price')   || updated.price;
-    updated.beds     = g('prop-beds');
-    updated.baths    = g('prop-baths');
-    updated.size     = g('prop-size');
-    updated.desc     = g('prop-desc');
-    updated.contact  = g('prop-contact') || updated.contact;
-    updated.phone    = g('prop-contact') || updated.phone;
-    updated.title    = g('prop-title') || (updated.type + (updated.district ? ' — '+updated.district : ''));
-    updated.yearBuilt= g('prop-year');
-    updated.titleDeed= g('prop-deed');
-    updated.floors   = g('prop-floors');
-    updated.parking  = g('prop-parking');
-    updated.amenities= ['garden','pool','garage','solar','fibre','security','generator'].filter(function(a){ var el=document.getElementById('am-'+a); return el&&el.checked; });
-    updated.docLuc   = g('prop-doc-luc');
-    updated.docId    = g('prop-doc-id');
-    updated.docPermit= g('prop-doc-permit');
-    updated.latitude = g('prop-lat') ? parseFloat(g('prop-lat')) : (updated.latitude || null);
-    updated.longitude= g('prop-lng') ? parseFloat(g('prop-lng')) : (updated.longitude || null);
-    props[idx] = updated;
-    try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
-    closeAddProperty();
-    showToast(curLang==='rw' ? '✅ Imitungo yahinduwe! Irasabwa kwemezwa.' : '✅ Listing updated! Awaiting approval.');
-    return;
+
+    // Desktop drag-to-reorder between existing thumbnails
+    var dragSrcUid = null;
+    containerEl.querySelectorAll('.img-uploader-item').forEach(function(node) {
+      node.addEventListener('dragstart', function() { dragSrcUid = node.getAttribute('data-uid'); node.classList.add('dragging'); });
+      node.addEventListener('dragend', function() { node.classList.remove('dragging'); });
+      node.addEventListener('dragover', function(e) { e.preventDefault(); });
+      node.addEventListener('drop', function(e) {
+        e.preventDefault();
+        var targetUid = node.getAttribute('data-uid');
+        if (dragSrcUid && targetUid && dragSrcUid !== targetUid) reorderTo(dragSrcUid, targetUid);
+      });
+    });
   }
 
-  if(!g('prop-price')) { showToast(curLang==='rw'?'Shyira igiciro!':'Enter price!', 'error'); return; }
-  if(!g('prop-type')) { showToast('Hitamo ubwoko!'); return; }
-  if(!g('prop-district')) { showToast('Hitamo akarere!'); return; }
+  function updateProgressDom(id, pct) {
+    if (!containerEl) return;
+    var item = containerEl.querySelector('.img-uploader-item[data-uid="' + id + '"]');
+    if (!item) return;
+    var fill = item.querySelector('.img-uploader-bar-fill');
+    var label = item.querySelector('.img-uploader-progress span');
+    if (fill) fill.style.width = pct + '%';
+    if (label) label.textContent = pct + '%';
+  }
 
-  if(isAdmin) {
-    // === ADMIN: YouTube + URL images, auto-approved ===
-    var videoUrl = convertYouTubeURL(g('prop-video'));
-    var props = [];
-    try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-    var newProp = {
-      id: Date.now(),
-      type: g('prop-type'), service: g('prop-service'), district: g('prop-district'),
-      sector: g('prop-sector'), price: g('prop-price'), beds: g('prop-beds'),
-      baths: g('prop-baths'), size: g('prop-size'), desc: g('prop-desc'),
-      contact: g('prop-contact') || '+250 783 177 254',
-      img1: g('prop-img1'), img2: g('prop-img2'), img3: g('prop-img3'),
-      video: videoUrl, tour3dUrl: g('prop-tour3d'),
-      title:     g('prop-title') || (g('prop-type') + (g('prop-district') ? ' — ' + g('prop-district') : '')),
-      phone:     g('prop-contact') || '+250 783 177 254',
-      yearBuilt: g('prop-year'),
-      titleDeed: g('prop-deed'),
-      floors:    g('prop-floors'),
-      parking:   g('prop-parking'),
-      amenities: ['garden','pool','garage','solar','fibre','security','generator'].filter(function(a){ var el=document.getElementById('am-'+a); return el&&el.checked; }),
-      docLuc:    g('prop-doc-luc'),
-      docId:     g('prop-doc-id'),
-      docPermit: g('prop-doc-permit'),
-      latitude:  g('prop-lat')  ? parseFloat(g('prop-lat'))  : null,
-      longitude: g('prop-lng')  ? parseFloat(g('prop-lng'))  : null,
-      owner: 'KOMISIYONERI', ownerEmail: currentUser.email,
-      verified: true, rating: 5.0, reviews: 0,
-      date: new Date().toISOString(), status: 'Approved'
-    };
-    props.push(newProp);
-    try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
-    closeAddProperty();
-    loadApprovedProperties();
-    showToast('✅ Imitungo yashyizweho kandi yemejwe!');
-
-  } else {
-    // === USER: File upload to Firebase Storage, pending review ===
-    var file1El = document.getElementById('prop-file1');
-    var file2El = document.getElementById('prop-file2');
-    var file3El = document.getElementById('prop-file3');
-    var hasFile = file1El && file1El.files && file1El.files[0];
-
-    if(!hasFile) {
-      showToast(curLang==='rw' ? 'Shyiramo nibura ifoto imwe!' : 'Upload at least one photo!', 'error');
+  function handleFiles(fileList) {
+    var files = Array.prototype.slice.call(fileList || []).filter(function(f) { return f && f.type && f.type.indexOf('image/') === 0; });
+    if (!files.length) return;
+    var room = MAX_IMAGES - items.length;
+    if (room <= 0) {
+      showToast(t('Wagejeje ku mubare ntarengwa w\'amafoto (' + MAX_IMAGES + ').', 'You\'ve reached the max of ' + MAX_IMAGES + ' photos.'), 'warn');
       return;
     }
+    if (files.length > room) {
+      showToast(t('Byemewe ni amafoto ' + room + ' gusa asigaye.', 'Only ' + room + ' more photo(s) can be added.'), 'warn');
+      files = files.slice(0, room);
+    }
+    files.forEach(function(file) {
+      if (file.size > MAX_FILE_BYTES) {
+        showToast(t('Ifoto irenze 10MB: ', 'Photo exceeds 10MB: ') + file.name, 'warn');
+        return;
+      }
+      items.push({ uid: uid(), file: file, previewUrl: URL.createObjectURL(file), url: null, status: 'ready', progress: 0, isExisting: false });
+    });
+    render();
+  }
 
-    showToast(curLang==='rw' ? 'Amafoto arakopiwa...' : 'Uploading photos...');
-    var _sbtn = document.getElementById('submit-prop-btn');
-    var _slbl = document.getElementById('submit-prop-label');
-    if(_sbtn){ _sbtn.disabled=true; _sbtn.classList.add('btn-loading');
-      if(_slbl) _slbl.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Kopiwa...':'Uploading...'); }
+  function remove(id) {
+    var idx = items.findIndex(function(it) { return it.uid === id; });
+    if (idx === -1) return;
+    if (items[idx].previewUrl && !items[idx].isExisting) { try { URL.revokeObjectURL(items[idx].previewUrl); } catch(e){} }
+    items.splice(idx, 1);
+    render();
+  }
 
-    var propId = Date.now();
-    var fileList = [file1El, file2El, file3El].filter(function(f){ return f && f.files && f.files[0]; });
-    var propData = {
-      id: propId,
-      type: g('prop-type'), service: g('prop-service'), district: g('prop-district'),
-      sector: g('prop-sector'), price: g('prop-price'), beds: g('prop-beds'),
-      baths: g('prop-baths'), size: g('prop-size'), desc: g('prop-desc'),
-      contact: g('prop-contact') || currentUser.phone || '+250 783 177 254',
-      img1: '', img2: '', img3: '',
-      video: '', tour3dUrl: '',
-      title:     g('prop-title') || (g('prop-type') + (g('prop-district') ? ' — ' + g('prop-district') : '')),
-      phone:     g('prop-contact') || currentUser.phone || '+250 783 177 254',
-      yearBuilt: g('prop-year'),
-      titleDeed: g('prop-deed'),
-      floors:    g('prop-floors'),
-      parking:   g('prop-parking'),
-      amenities: ['garden','pool','garage','solar','fibre','security','generator'].filter(function(a){ var el=document.getElementById('am-'+a); return el&&el.checked; }),
-      docLuc:    g('prop-doc-luc'),
-      docId:     g('prop-doc-id'),
-      docPermit: g('prop-doc-permit'),
-      latitude:  g('prop-lat')  ? parseFloat(g('prop-lat'))  : null,
-      longitude: g('prop-lng')  ? parseFloat(g('prop-lng'))  : null,
-      owner: currentUser.name, ownerEmail: currentUser.email,
-      date: new Date().toISOString(), status: 'Pending'
-    };
+  function move(id, dir) {
+    var idx = items.findIndex(function(it) { return it.uid === id; });
+    if (idx === -1) return;
+    var newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= items.length) return;
+    var tmp = items[idx]; items[idx] = items[newIdx]; items[newIdx] = tmp;
+    render();
+  }
 
-    // Try Firebase Storage upload; fall back to base64 if unavailable
-    if(typeof storage !== 'undefined' && storage) {
-      var uploadPromises = fileList.map(function(f, i) {
-        var file = f.files[0];
-        var ref = storage.ref('properties/' + propId + '/img' + (i + 1) + '_' + file.name);
-        return ref.put(file).then(function() { return ref.getDownloadURL(); }).then(function(url) {
-          propData['img' + (i + 1)] = url;
+  function setCover(id) {
+    var idx = items.findIndex(function(it) { return it.uid === id; });
+    if (idx <= 0) return;
+    var moved = items.splice(idx, 1)[0];
+    items.unshift(moved);
+    render();
+  }
+
+  function reorderTo(srcUid, targetUid) {
+    var srcIdx = items.findIndex(function(it) { return it.uid === srcUid; });
+    var targetIdx = items.findIndex(function(it) { return it.uid === targetUid; });
+    if (srcIdx === -1 || targetIdx === -1) return;
+    var moved = items.splice(srcIdx, 1)[0];
+    items.splice(targetIdx, 0, moved);
+    render();
+  }
+
+  function pick() {
+    var input = document.getElementById('img-uploader-input');
+    if (input) input.click();
+  }
+
+  function mount(containerId) {
+    containerEl = document.getElementById(containerId);
+    render();
+  }
+
+  function reset() {
+    items.forEach(function(it) { if (it.previewUrl && !it.isExisting) { try { URL.revokeObjectURL(it.previewUrl); } catch(e){} } });
+    items = [];
+    render();
+  }
+
+  function loadExisting(urls) {
+    reset();
+    (urls || []).filter(Boolean).forEach(function(url) {
+      items.push({ uid: uid(), file: null, previewUrl: url, url: url, status: 'done', progress: 100, isExisting: true });
+    });
+    render();
+  }
+
+  function hasAtLeastOne() { return items.length > 0; }
+
+  function uploadAll(pathPrefix) {
+    var tasks = items.map(function(it, idx) {
+      if (it.isExisting && it.url) return Promise.resolve(it.url);
+      if (!it.file) return Promise.resolve(null);
+      it.status = 'uploading'; it.progress = 0;
+      render();
+      return compressImage(it.file).then(function(finalFile) {
+        return new Promise(function(resolve, reject) {
+          if (typeof storage === 'undefined' || !storage) { reject(new Error('Storage unavailable')); return; }
+          var safeName = (finalFile.name || 'photo.jpg').replace(/[^a-zA-Z0-9_.-]/g, '_');
+          var ref = storage.ref(pathPrefix + '/' + Date.now() + '_' + idx + '_' + safeName);
+          var task = ref.put(finalFile);
+          task.on('state_changed', function(snap) {
+            it.progress = snap.totalBytes ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100) : 0;
+            updateProgressDom(it.uid, it.progress);
+          }, function(err) {
+            it.status = 'error';
+            render();
+            reject(err);
+          }, function() {
+            task.snapshot.ref.getDownloadURL().then(function(url) {
+              it.status = 'done'; it.progress = 100; it.url = url;
+              resolve(url);
+            }).catch(reject);
+          });
         });
       });
-      Promise.all(uploadPromises)
-        .then(function() {
-          var props = [];
-          try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-          props.push(propData);
-          try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
-          var sbtn2=document.getElementById('submit-prop-btn'),slbl2=document.getElementById('submit-prop-label');
-          if(sbtn2){ sbtn2.disabled=false; sbtn2.classList.remove('btn-loading'); if(slbl2) slbl2.textContent=(curLang==='rw'?'Ohereza Imitungo':'Submit Property'); }
-          closeAddProperty();
-          showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Tuzayisuzuma mu masaa 24 tukumenyeshe niba yemejwe.' : "✅ Property submitted! We'll review it within 24 hours and notify you once it's approved.");
-        })
-        .catch(function(err) {
-          console.error('Storage upload failed, falling back to base64:', err);
-          _submitPropertyBase64(fileList, propData);
-        });
-    } else {
-      _submitPropertyBase64(fileList, propData);
-    }
+    });
+    return Promise.all(tasks).then(function(urls) { return urls.filter(Boolean); });
   }
-}
 
-function _submitPropertyBase64(fileList, propData) {
-  var images = [];
-  var done = 0;
-  fileList.forEach(function(f, i) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      images[i] = e.target.result;
-      done++;
-      if(done === fileList.length) {
-        propData.img1 = images[0] || '';
-        propData.img2 = images[1] || '';
-        propData.img3 = images[2] || '';
-        var props = [];
-        try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-        props.push(propData);
-        try { localStorage.setItem('km_properties', JSON.stringify(props)); } catch(e){}
-        var sbtn3=document.getElementById('submit-prop-btn'),slbl3=document.getElementById('submit-prop-label');
-        if(sbtn3){ sbtn3.disabled=false; sbtn3.classList.remove('btn-loading'); if(slbl3) slbl3.textContent=(curLang==='rw'?'Ohereza Imitungo':'Submit Property'); }
-        closeAddProperty();
-        showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Tuzayisuzuma mu masaa 24 tukumenyeshe niba yemejwe.' : "✅ Property submitted! We'll review it within 24 hours and notify you once it's approved.");
-      }
-    };
-    reader.readAsDataURL(f.files[0]);
-  });
-}
+  return {
+    mount: mount, reset: reset, loadExisting: loadExisting, hasAtLeastOne: hasAtLeastOne,
+    uploadAll: uploadAll, pick: pick, remove: remove, move: move, setCover: setCover
+  };
+})();
 
 function handleForgotPassword() {
   var emailEl = document.getElementById('login-email');
@@ -12389,29 +12464,12 @@ img1: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80',
 }
 
 // === ADMIN ADD PROPERTY (with YouTube) ===
+// openAddProperty() itself now detects admin (_isPropAdmin) and shows the
+// admin-only video/tour fields + investment section, and mounts the shared
+// image uploader for everyone — no separate media section to toggle here.
 function openAdminAddProp() {
-  // Show admin media section, hide user section
-  var adminMedia = document.getElementById('admin-media-section');
-  var userMedia = document.getElementById('user-media-section');
-  if(adminMedia) adminMedia.style.display = 'flex';
-  if(userMedia) userMedia.style.display = 'none';
   openAddProperty();
 }
-
-// Override openAddProperty to show correct media section
-var _origOpenAddProp = openAddProperty;
-openAddProperty = function() {
-  _origOpenAddProp();
-  var isAdmin = currentUser && currentUser.email === 'info.komisiyoneri.net@gmail.com';
-  var adminMedia = document.getElementById('admin-media-section');
-  var userMedia = document.getElementById('user-media-section');
-  if(adminMedia) adminMedia.style.display = isAdmin ? 'flex' : 'none';
-  if(userMedia) userMedia.style.display = isAdmin ? 'none' : 'flex';
-  var canFlagInvestment = currentUser &&
-    (isAdmin || ['admin','staff','super_admin','Admin'].indexOf(currentUser.role) > -1);
-  var invSection = document.getElementById('prop-investment-section');
-  if (invSection) invSection.style.display = canFlagInvestment ? 'flex' : 'none';
-};
 
 // === FILE UPLOAD HANDLER (for regular users) ===
 function convertFileToBase64(file, callback) {
@@ -12443,19 +12501,23 @@ if (document.readyState !== 'loading') loadDemoListings();
 
 
 // === ADMIN ADD PROPERTY DIRECT (from admin panel) ===
+// Opens the modal directly (bypassing the agent/owner canListProperty gate
+// in openAddProperty, since reaching this button already implies admin
+// access via the admin panel), but still needs its own uploader/section setup.
 function openAdminAddPropDirect() {
   closeAdmin();
   setTimeout(function() {
     var m = document.getElementById('add-prop-modal');
-    if(m) m.style.display = 'flex';
-    // Show admin section, hide user section
-    var adminSec = document.getElementById('admin-media-section');
-    var userSec = document.getElementById('user-media-section');
-    if(adminSec) adminSec.style.display = 'flex';
-    if(userSec) userSec.style.display = 'none';
-    // Pre-fill contact
+    if (m) m.style.display = 'flex';
+    propStep(1);
+    PropImageUploader.reset();
+    PropImageUploader.mount('prop-image-uploader');
+    var adminExtra = document.getElementById('prop-admin-extra');
+    if (adminExtra) adminExtra.style.display = 'flex';
+    var invSection = document.getElementById('prop-investment-section');
+    if (invSection) invSection.style.display = 'flex';
     var c = document.getElementById('prop-contact');
-    if(c) c.value = '+250 783 177 254';
+    if (c) c.value = '+250 783 177 254';
   }, 200);
 }
 
@@ -12472,19 +12534,6 @@ function convertYouTubeURL(url) {
   if(url.includes('youtube.com/embed/')) return url;
   return url;
 }
-
-// Show correct media section when add property modal opens
-var _origOpenAdd = openAddProperty;
-openAddProperty = function() {
-  _origOpenAdd();
-  setTimeout(function() {
-    var isAdmin = currentUser && currentUser.email === 'info.komisiyoneri.net@gmail.com';
-    var adminSec = document.getElementById('admin-media-section');
-    var userSec = document.getElementById('user-media-section');
-    if(adminSec) adminSec.style.display = isAdmin ? 'flex' : 'none';
-    if(userSec) userSec.style.display = isAdmin ? 'none' : 'flex';
-  }, 100);
-};
 
 
 // === OPEN PROPERTY DETAIL PAGE ===
@@ -25567,9 +25616,10 @@ function loadLiveHomeStats() {
 /* Convert localStorage propData format to Firestore schema and write doc */
 function _savePropToFirestoreFS(propData, status, userId, isVerified) {
   if (typeof db === 'undefined') return Promise.resolve(null);
-  var imgs = [propData.img1, propData.img2, propData.img3].filter(function(u) {
-    return u && u.length < 2000; /* skip base64 blobs — too large for Firestore */
-  });
+  var imgs = (Array.isArray(propData.images) && propData.images.length
+    ? propData.images
+    : [propData.img1, propData.img2, propData.img3]
+  ).filter(function(u) { return u && u.length < 2000; }); /* skip any accidental base64 blob — too large for Firestore */
   var fsDoc = {
     id:          '',
     title:       propData.title       || '',
@@ -25626,36 +25676,29 @@ function _savePropToFirestoreFS(propData, status, userId, isVerified) {
   });
 }
 
-/* Finish agent submit: save to localStorage + reset button + toast */
-function _agentSubmitFinish(pd) {
+/* Shared finish step for both admin (auto-approved) and agent (pending)
+   submissions: persist to localStorage cache, reset the submit button,
+   close the modal, and show the appropriate toast. */
+function _propSubmitFinish(pd, isApproved) {
   var ps = []; try { ps = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
   ps.push(pd);
   try { localStorage.setItem('km_properties', JSON.stringify(ps)); } catch(e){}
   var sb = document.getElementById('submit-prop-btn'), sl = document.getElementById('submit-prop-label');
   if (sb) { sb.disabled = false; sb.classList.remove('btn-loading'); if (sl) sl.textContent = (curLang==='rw'?'Ohereza Imitungo':'Submit Property'); }
   closeAddProperty();
-  showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Tuzayisuzuma mu masaa 24 tukumenyeshe niba yemejwe.' : "✅ Property submitted! We'll review it within 24 hours and notify you once it's approved.");
+  if (isApproved) {
+    invalidatePropsCache();
+    loadApprovedProperties();
+    showToast('✅ Imitungo yashyizweho kandi yemejwe!');
+  } else {
+    showToast(curLang==='rw' ? '✅ Imitungo yoherejwe! Tuzayisuzuma mu masaa 24 tukumenyeshe niba yemejwe.' : "✅ Property submitted! We'll review it within 24 hours and notify you once it's approved.");
+  }
 }
 
-/* Base64 fallback that accepts a callback instead of always saving directly */
-function _submitPropertyBase64Compat(fileList, propData, callback) {
-  var images = [], done = 0;
-  fileList.forEach(function(f, i) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      images[i] = e.target.result; done++;
-      if (done === fileList.length) {
-        propData.img1 = images[0] || '';
-        propData.img2 = images[1] || '';
-        propData.img3 = images[2] || '';
-        callback();
-      }
-    };
-    reader.readAsDataURL(f.files[0]);
-  });
-}
-
-/* Override submitProperty — last declaration wins; adds Firestore writes */
+/* Override submitProperty — last declaration wins; adds Firestore writes.
+   Image handling (drag&drop/gallery upload, compression, Storage upload,
+   progress, cover + reorder) is entirely delegated to PropImageUploader —
+   only the resulting download URLs ever reach this function or Firestore. */
 function submitProperty() {
   var g = function(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
 
@@ -25663,17 +25706,33 @@ function submitProperty() {
     showToast(curLang==='rw' ? 'Injira mbere yo gushyiraho imitungo!' : 'Please login first!', 'warn');
     closeAddProperty(); go('auth'); return;
   }
-  var isAdmin = (
-    currentUser.email === 'info.komisiyoneri.net@gmail.com' ||
-    currentUser.role  === 'Admin' || currentUser.role === 'admin' ||
-    currentUser.role  === 'super_admin'
-  );
+  var isAdmin = _isPropAdmin(currentUser);
   if (!isAdmin && !canListProperty(currentUser)) {
     showToast(curLang==='rw'
       ? '🔒 Injira nk\'umutunzi w\'inzu cyangwa Agent kugira ngo wohereze imitungo.'
       : '🔒 Register as a property owner or agent to submit a listing.', 'warn');
     return;
   }
+  if (!PropImageUploader.hasAtLeastOne()) {
+    showToast(curLang==='rw' ? 'Shyiramo nibura ifoto imwe!' : 'Upload at least one photo!', 'error');
+    return;
+  }
+
+  var _sb = document.getElementById('submit-prop-btn');
+  var _sl = document.getElementById('submit-prop-label');
+  var setBusy = function(busy) {
+    if (!_sb) return;
+    _sb.disabled = busy;
+    _sb.classList.toggle('btn-loading', busy);
+    if (_sl && busy) _sl.innerHTML = '<span class="btn-spinner"></span>' + (curLang==='rw'?'Kopiwa...':'Uploading...');
+  };
+  var showUploadError = function(err) {
+    console.error('Property photo upload failed:', err);
+    setBusy(false);
+    showToast(curLang==='rw'
+      ? '⚠️ Amafoto ntabwo yoherejwe neza. Reba interineti yawe ugerageze nanone.'
+      : '⚠️ Photo upload failed. Check your connection and try again.', 'error');
+  };
 
   /* ── EDIT MODE ── */
   if (_editPropId) {
@@ -25686,33 +25745,38 @@ function submitProperty() {
       showToast(curLang==='rw'?'Imitungo yemejwe ntishobora guhindurwa.':'Only pending listings can be edited.','warn');
       closeAddProperty(); return;
     }
-    var u = eProps[ei];
-    u.type=g('prop-type')||u.type; u.service=g('prop-service')||u.service;
-    u.district=g('prop-district')||u.district; u.sector=g('prop-sector');
-    u.price=g('prop-price')||u.price; u.beds=g('prop-beds'); u.baths=g('prop-baths');
-    u.size=g('prop-size'); u.desc=g('prop-desc');
-    u.contact=g('prop-contact')||u.contact; u.phone=g('prop-contact')||u.phone;
-    u.title=g('prop-title')||(u.type+(u.district?' — '+u.district:''));
-    u.yearBuilt=g('prop-year'); u.titleDeed=g('prop-deed');
-    u.floors=g('prop-floors'); u.parking=g('prop-parking');
-    u.amenities=['garden','pool','garage','solar','fibre','security','generator'].filter(function(a){ var el=document.getElementById('am-'+a); return el&&el.checked; });
-    u.docLuc=g('prop-doc-luc'); u.docId=g('prop-doc-id'); u.docPermit=g('prop-doc-permit');
-    u.latitude=g('prop-lat')?parseFloat(g('prop-lat')):(u.latitude||null);
-    u.longitude=g('prop-lng')?parseFloat(g('prop-lng')):(u.longitude||null);
-    eProps[ei]=u;
-    try { localStorage.setItem('km_properties', JSON.stringify(eProps)); } catch(e){}
-    if (u._fsId && typeof db !== 'undefined') {
-      db.collection('properties').doc(u._fsId).update({
-        type:u.type, category:u.service==='Gukodesha'?'rent':'sale',
-        district:u.district, sector:u.sector||'', price:parseInt(u.price)||0,
-        bedrooms:parseInt(u.beds)||0, bathrooms:parseInt(u.baths)||0,
-        area:u.size||'', description:u.desc||'', title:u.title||'',
-        amenities:u.amenities||[],
-        updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
-      }).catch(function(){});
-    }
-    closeAddProperty();
-    showToast(curLang==='rw'?'✅ Imitungo yahinduwe! Irasabwa kwemezwa.':'✅ Listing updated! Awaiting approval.');
+    setBusy(true);
+    PropImageUploader.uploadAll('properties/' + editId).then(function(urls) {
+      var u = eProps[ei];
+      u.type=g('prop-type')||u.type; u.service=g('prop-service')||u.service;
+      u.district=g('prop-district')||u.district; u.sector=g('prop-sector');
+      u.price=g('prop-price')||u.price; u.beds=g('prop-beds'); u.baths=g('prop-baths');
+      u.size=g('prop-size'); u.desc=g('prop-desc');
+      u.contact=g('prop-contact')||u.contact; u.phone=g('prop-contact')||u.phone;
+      u.title=g('prop-title')||(u.type+(u.district?' — '+u.district:''));
+      u.yearBuilt=g('prop-year'); u.titleDeed=g('prop-deed');
+      u.floors=g('prop-floors'); u.parking=g('prop-parking');
+      u.amenities=['garden','pool','garage','solar','fibre','security','generator'].filter(function(a){ var el=document.getElementById('am-'+a); return el&&el.checked; });
+      u.docLuc=g('prop-doc-luc'); u.docId=g('prop-doc-id'); u.docPermit=g('prop-doc-permit');
+      u.latitude=g('prop-lat')?parseFloat(g('prop-lat')):(u.latitude||null);
+      u.longitude=g('prop-lng')?parseFloat(g('prop-lng')):(u.longitude||null);
+      u.images=urls; u.img1=urls[0]||''; u.img2=urls[1]||''; u.img3=urls[2]||'';
+      eProps[ei]=u;
+      try { localStorage.setItem('km_properties', JSON.stringify(eProps)); } catch(e){}
+      if (u._fsId && typeof db !== 'undefined') {
+        db.collection('properties').doc(u._fsId).update({
+          type:u.type, category:u.service==='Gukodesha'?'rent':'sale',
+          district:u.district, sector:u.sector||'', price:parseInt(u.price)||0,
+          bedrooms:parseInt(u.beds)||0, bathrooms:parseInt(u.baths)||0,
+          area:u.size||'', description:u.desc||'', title:u.title||'',
+          amenities:u.amenities||[], images:urls,
+          updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
+        }).catch(function(){});
+      }
+      setBusy(false);
+      closeAddProperty();
+      showToast(curLang==='rw'?'✅ Imitungo yahinduwe! Irasabwa kwemezwa.':'✅ Listing updated! Awaiting approval.');
+    }).catch(showUploadError);
     return;
   }
 
@@ -25720,61 +25784,15 @@ function submitProperty() {
   if (!g('prop-type'))  { showToast('Hitamo ubwoko!'); return; }
   if (!g('prop-district')) { showToast('Hitamo akarere!'); return; }
 
-  /* ── ADMIN PATH ── */
-  if (isAdmin) {
-    var videoUrl = convertYouTubeURL(g('prop-video'));
-    var newProp = {
-      id:Date.now(), type:g('prop-type'), service:g('prop-service'),
-      district:g('prop-district'), sector:g('prop-sector'), price:g('prop-price'),
-      beds:g('prop-beds'), baths:g('prop-baths'), size:g('prop-size'), desc:g('prop-desc'),
-      contact:g('prop-contact')||'+250 783 177 254',
-      img1:g('prop-img1'), img2:g('prop-img2'), img3:g('prop-img3'),
-      video:videoUrl, tour3dUrl:g('prop-tour3d'),
-      title:g('prop-title')||(g('prop-type')+(g('prop-district')?' — '+g('prop-district'):'')),
-      phone:g('prop-contact')||'+250 783 177 254',
-      yearBuilt:g('prop-year'), titleDeed:g('prop-deed'), floors:g('prop-floors'), parking:g('prop-parking'),
-      amenities:['garden','pool','garage','solar','fibre','security','generator'].filter(function(a){ var el=document.getElementById('am-'+a); return el&&el.checked; }),
-      docLuc:g('prop-doc-luc'), docId:g('prop-doc-id'), docPermit:g('prop-doc-permit'),
-      latitude:g('prop-lat')?parseFloat(g('prop-lat')):null,
-      longitude:g('prop-lng')?parseFloat(g('prop-lng')):null,
-      owner:'KOMISIYONERI', ownerEmail:currentUser.email,
-      verified:true, rating:5.0, reviews:0,
-      date:new Date().toISOString(), status:'Approved'
-    };
-    var _adminFinish = function(fsId) {
-      if (fsId) newProp._fsId = fsId;
-      var ps=[]; try{ps=JSON.parse(localStorage.getItem('km_properties')||'[]');}catch(e){}
-      ps.push(newProp); try{localStorage.setItem('km_properties',JSON.stringify(ps));}catch(e){}
-      invalidatePropsCache();
-      closeAddProperty(); loadApprovedProperties();
-      logAudit('property.created', 'properties', fsId||String(newProp.id), null, {title:newProp.title, status:'approved'});
-      showToast('✅ Imitungo yashyizweho kandi yemejwe!');
-    };
-    _savePropToFirestoreFS(newProp, 'approved', currentUser.uid, true)
-      .then(_adminFinish).catch(function(){ _adminFinish(null); });
-    return;
-  }
-
-  /* ── AGENT PATH ── */
-  var file1El=document.getElementById('prop-file1');
-  var file2El=document.getElementById('prop-file2');
-  var file3El=document.getElementById('prop-file3');
-  if (!(file1El && file1El.files && file1El.files[0])) {
-    showToast(curLang==='rw'?'Shyiramo nibura ifoto imwe!':'Upload at least one photo!','error'); return;
-  }
-  showToast(curLang==='rw'?'Amafoto arakopiwa...':'Uploading photos...');
-  var _sb=document.getElementById('submit-prop-btn');
-  var _sl=document.getElementById('submit-prop-label');
-  if(_sb){_sb.disabled=true;_sb.classList.add('btn-loading');if(_sl)_sl.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Kopiwa...':'Uploading...');}
-
-  var propId=Date.now();
-  var fileList=[file1El,file2El,file3El].filter(function(f){return f&&f.files&&f.files[0];});
-  var pd={
+  var propId = Date.now();
+  var pd = {
     id:propId, type:g('prop-type'), service:g('prop-service'),
     district:g('prop-district'), sector:g('prop-sector'), price:g('prop-price'),
     beds:g('prop-beds'), baths:g('prop-baths'), size:g('prop-size'), desc:g('prop-desc'),
     contact:g('prop-contact')||(currentUser.phone||'+250 783 177 254'),
-    img1:'', img2:'', img3:'', video:'', tour3dUrl:'',
+    images:[], img1:'', img2:'', img3:'',
+    video: isAdmin ? convertYouTubeURL(g('prop-video')) : '',
+    tour3dUrl: isAdmin ? g('prop-tour3d') : '',
     title:g('prop-title')||(g('prop-type')+(g('prop-district')?' — '+g('prop-district'):'')),
     phone:g('prop-contact')||(currentUser.phone||'+250 783 177 254'),
     yearBuilt:g('prop-year'), titleDeed:g('prop-deed'), floors:g('prop-floors'), parking:g('prop-parking'),
@@ -25782,31 +25800,26 @@ function submitProperty() {
     docLuc:g('prop-doc-luc'), docId:g('prop-doc-id'), docPermit:g('prop-doc-permit'),
     latitude:g('prop-lat')?parseFloat(g('prop-lat')):null,
     longitude:g('prop-lng')?parseFloat(g('prop-lng')):null,
-    owner:currentUser.name||currentUser.displayName||'', ownerEmail:currentUser.email,
-    date:new Date().toISOString(), status:'Pending'
+    owner: isAdmin ? 'KOMISIYONERI' : (currentUser.name||currentUser.displayName||''),
+    ownerEmail:currentUser.email,
+    verified: isAdmin, rating: isAdmin ? 5.0 : 0, reviews: 0,
+    date:new Date().toISOString(), status: isAdmin ? 'Approved' : 'Pending'
   };
 
-  var _doneUpload = function() {
-    _savePropToFirestoreFS(pd, 'pending', currentUser.uid, false).then(function(fsId) {
-      if (fsId) pd._fsId = fsId;
-      logAudit('property.submitted', 'properties', fsId||String(pd.id), null, {title:pd.title, status:'pending'});
-      _agentSubmitFinish(pd);
-    }).catch(function(){ _agentSubmitFinish(pd); });
-  };
-
-  if (typeof storage !== 'undefined' && storage) {
-    var ups = fileList.map(function(f,i) {
-      var file=f.files[0];
-      var ref=storage.ref('properties/'+propId+'/img'+(i+1)+'_'+file.name);
-      return ref.put(file).then(function(){return ref.getDownloadURL();}).then(function(url){pd['img'+(i+1)]=url;});
-    });
-    Promise.all(ups).then(_doneUpload).catch(function(err){
-      console.error('Storage upload failed, using base64:', err);
-      _submitPropertyBase64Compat(fileList, pd, _doneUpload);
-    });
-  } else {
-    _submitPropertyBase64Compat(fileList, pd, _doneUpload);
-  }
+  setBusy(true);
+  PropImageUploader.uploadAll('properties/' + propId).then(function(urls) {
+    pd.images = urls; pd.img1 = urls[0]||''; pd.img2 = urls[1]||''; pd.img3 = urls[2]||'';
+    // Firestore write failures degrade gracefully to the localStorage cache
+    // (matching prior behavior) — only a failed photo upload is a hard error,
+    // since without at least one image URL there is nothing valid to publish.
+    return _savePropToFirestoreFS(pd, isAdmin ? 'approved' : 'pending', currentUser.uid, isAdmin)
+      .then(function(fsId) {
+        if (fsId) pd._fsId = fsId;
+        logAudit(isAdmin ? 'property.created' : 'property.submitted', 'properties', fsId||String(pd.id), null, {title:pd.title, status:pd.status.toLowerCase()});
+        _propSubmitFinish(pd, isAdmin);
+      })
+      .catch(function() { _propSubmitFinish(pd, isAdmin); });
+  }).catch(showUploadError);
 }
 
 /* Admin panel globals */
