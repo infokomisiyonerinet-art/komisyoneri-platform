@@ -11866,6 +11866,32 @@ function _handleGoogleAuthError(error, source) {
   } catch (e) { console.error('[AUTH] error object could not be JSON-stringified (circular?):', error); }
   console.error('[AUTH] ===============================================');
 
+  // Correlate against the raw HTTP traffic captured by the network
+  // interceptor (installed before the Firebase SDK loads — see the
+  // <script> block right before firebase-app-compat.js). The SDK's error
+  // object is its own interpretation of a backend response; this shows
+  // the actual HTTP status/body Google's servers returned, so a code like
+  // auth/internal-error can be traced to the real underlying failure
+  // instead of guessed at. Deferred slightly because the network log's
+  // own response-body read is itself async and can resolve after the
+  // SDK's .catch() fires.
+  setTimeout(function() {
+    var windowMs = 8000;
+    var now = Date.now();
+    var recent = (window.__firebaseNetworkLog || []).filter(function(e) { return (now - e.loggedAt) < windowMs; });
+    if (recent.length) {
+      console.error('[AUTH] Correlated raw network activity (identitytoolkit/securetoken) within the last ' + windowMs + 'ms of this failure:');
+      recent.forEach(function(e) {
+        console.error('[AUTH]  → ' + e.method + ' ' + e.url);
+        console.error('[AUTH]    HTTP status   =', e.status);
+        console.error('[AUTH]    response body =', e.responseBody);
+        console.error('[AUTH]    firebase error payload =', e.firebaseError || '(none)');
+      });
+    } else {
+      console.error('[AUTH] No identitytoolkit/securetoken network activity found in the last ' + windowMs + 'ms — this error did not come from a readable HTTP response (client-side SDK/transport failure, or the request/response could not be captured).');
+    }
+  }, 150);
+
   // Firebase's own message, verbatim — never hidden or swapped out for our
   // own wording. Every toast branch below appends this alongside whatever
   // specific guidance we can add; it never replaces it.
@@ -14658,6 +14684,100 @@ go = function(page) {
   <div class="tour-room-bar" id="tour-room-bar"></div>
 </div>
 
+<script>
+// ═══════════════════════════════════════════════════════
+// Raw network capture for Firebase Auth's two backend hosts.
+// The Auth SDK's error objects (e.g. auth/internal-error) often collapse
+// a specific backend response into a generic code — the only way to see
+// what Google's servers actually returned is to read the HTTP response
+// itself. This must be installed BEFORE the SDK scripts below load, since
+// getRedirectResult() can fire a request to securetoken/identitytoolkit as
+// soon as the page loads (mobile OAuth redirect return).
+window.__firebaseNetworkLog = [];
+(function() {
+  var MAX_LOG = 30;
+  function isTrackedUrl(url) {
+    return typeof url === 'string' && (url.indexOf('identitytoolkit.googleapis.com') > -1 || url.indexOf('securetoken.googleapis.com') > -1);
+  }
+  function redactBody(bodyStr) {
+    if (typeof bodyStr !== 'string') return null;
+    try {
+      var obj = JSON.parse(bodyStr);
+      ['password', 'idToken', 'refreshToken', 'oauthIdToken', 'oauthAccessToken', 'oauthTokenSecret'].forEach(function(k) {
+        if (obj && obj[k] !== undefined) obj[k] = '<redacted>';
+      });
+      return JSON.stringify(obj);
+    } catch (e) {
+      return bodyStr;
+    }
+  }
+  function record(entry) {
+    entry.loggedAt = Date.now();
+    window.__firebaseNetworkLog.push(entry);
+    if (window.__firebaseNetworkLog.length > MAX_LOG) window.__firebaseNetworkLog.shift();
+    console.error('[FIREBASE-NET] ' + entry.method + ' ' + entry.url);
+    console.error('[FIREBASE-NET] HTTP status    =', entry.status);
+    console.error('[FIREBASE-NET] request body   =', entry.requestBody || '(none)');
+    console.error('[FIREBASE-NET] response body  =', entry.responseBody || '(none)');
+    console.error('[FIREBASE-NET] firebase error payload =', entry.firebaseError || '(none — response was not a Firebase error envelope)');
+    console.error('[FIREBASE-NET] request initiator stack =', entry.stack);
+  }
+  function extractFirebaseError(text) {
+    try {
+      var parsed = JSON.parse(text);
+      return (parsed && parsed.error) || null;
+    } catch (e) { return null; }
+  }
+
+  var origFetch = window.fetch;
+  if (typeof origFetch === 'function') {
+    window.fetch = function(input, init) {
+      var url = typeof input === 'string' ? input : ((input && input.url) || '');
+      if (!isTrackedUrl(url)) return origFetch.apply(this, arguments);
+      var method = (init && init.method) || (typeof input === 'object' && input && input.method) || 'GET';
+      var reqBody = (init && init.body) || null;
+      var stack = new Error('[FIREBASE-NET] fetch initiator').stack;
+      return origFetch.apply(this, arguments).then(function(res) {
+        res.clone().text().then(function(text) {
+          record({
+            method: method, url: url, status: res.status,
+            requestBody: redactBody(typeof reqBody === 'string' ? reqBody : null),
+            responseBody: text, firebaseError: extractFirebaseError(text), stack: stack
+          });
+        }).catch(function(e) {
+          record({ method: method, url: url, status: res.status, requestBody: redactBody(typeof reqBody === 'string' ? reqBody : null), responseBody: '(could not read response body: ' + e + ')', firebaseError: null, stack: stack });
+        });
+        return res;
+      }, function(err) {
+        record({ method: method, url: url, status: '(no HTTP response — request failed/blocked)', requestBody: redactBody(typeof reqBody === 'string' ? reqBody : null), responseBody: null, firebaseError: null, stack: stack, transportError: String(err) });
+        throw err;
+      });
+    };
+  }
+
+  var OrigXHR = window.XMLHttpRequest;
+  if (OrigXHR) {
+    var origOpen = OrigXHR.prototype.open;
+    var origSend = OrigXHR.prototype.send;
+    OrigXHR.prototype.open = function(method, url) {
+      this.__fbNetUrl = url;
+      this.__fbNetMethod = method;
+      return origOpen.apply(this, arguments);
+    };
+    OrigXHR.prototype.send = function(body) {
+      if (isTrackedUrl(this.__fbNetUrl)) {
+        var url = this.__fbNetUrl, method = this.__fbNetMethod, xhr = this;
+        var stack = new Error('[FIREBASE-NET] XHR initiator').stack;
+        xhr.addEventListener('loadend', function() {
+          var text = xhr.responseText;
+          record({ method: method, url: url, status: xhr.status, requestBody: redactBody(typeof body === 'string' ? body : null), responseBody: text, firebaseError: extractFirebaseError(text), stack: stack });
+        });
+      }
+      return origSend.apply(this, arguments);
+    };
+  }
+})();
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
