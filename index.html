@@ -9077,14 +9077,16 @@ loadSavedUser();
 // otherwise merges the existing profile in — never overwrites a real
 // profile with placeholder data.
 function restoreUserSession(fbUser) {
-  if (!fbUser || !fbUser.uid) return;
-  if (currentUser && currentUser.uid === fbUser.uid) return; // already restored, avoid redundant reads
-  if (typeof db === 'undefined') return;
+  console.log('[AUTH] restoreUserSession() called for uid=', fbUser && fbUser.uid);
+  if (!fbUser || !fbUser.uid) { console.log('[AUTH] restoreUserSession: no fbUser/uid, aborting'); return; }
+  if (currentUser && currentUser.uid === fbUser.uid) { console.log('[AUTH] restoreUserSession: currentUser already matches uid, skipping redundant read'); return; }
+  if (typeof db === 'undefined') { console.warn('[AUTH] restoreUserSession: Firestore (db) is undefined, aborting'); return; }
   var providerId = (fbUser.providerData[0] && fbUser.providerData[0].providerId) || '';
   var provider = providerId === 'google.com' ? 'google' : (providerId === 'phone' ? 'phone' : 'email');
   db.collection('users').doc(fbUser.uid).get().then(function(doc) {
     var user;
     if (doc.exists) {
+      console.log('[AUTH] restoreUserSession: users/' + fbUser.uid + ' doc exists — loading existing profile');
       var fsData = doc.data();
       user = {
         uid: fbUser.uid,
@@ -9100,6 +9102,7 @@ function restoreUserSession(fbUser) {
         date: (fsData.createdAt && fsData.createdAt.toDate) ? fsData.createdAt.toDate().toISOString() : new Date().toISOString()
       };
     } else {
+      console.log('[AUTH] restoreUserSession: users/' + fbUser.uid + ' doc does NOT exist — creating new profile (role=client)');
       user = {
         uid: fbUser.uid,
         name: fbUser.displayName || 'User',
@@ -9117,11 +9120,14 @@ function restoreUserSession(fbUser) {
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         createdBy: fbUser.uid, updatedBy: fbUser.uid
-      }, { merge: true }).catch(function(e){ console.error('[Auth] create user doc failed:', e.message); });
+      }, { merge: true })
+        .then(function(){ console.log('[AUTH] restoreUserSession: new users/' + fbUser.uid + ' doc created successfully'); })
+        .catch(function(e){ console.error('[AUTH] restoreUserSession: create user doc FAILED (likely a Firestore rules rejection):', e.code || '', e.message); });
     }
+    console.log('[AUTH] restoreUserSession: calling saveUser() with role=' + user.role + ' provider=' + user.provider);
     saveUser(user);
   }).catch(function(e) {
-    console.error('[Auth] restoreUserSession failed:', e.message);
+    console.error('[AUTH] restoreUserSession: users/' + fbUser.uid + ' GET failed (likely a Firestore rules rejection):', e.code || '', e.message);
   });
 }
 
@@ -9229,7 +9235,8 @@ function renderDashboardListings(props) {
 }
 
 function openProfile() {
-  if (!currentUser) { go('auth'); return; }
+  if (!currentUser) { console.log('[AUTH] openProfile: no currentUser — redirecting to auth'); go('auth'); return; }
+  console.log('[AUTH] openProfile: loading profile for uid=' + currentUser.uid + ' role=' + currentUser.role);
   var m = document.getElementById('profile-modal');
   if (!m) return;
   m.style.display = 'flex';
@@ -9834,9 +9841,11 @@ async function handleLogin() {
   if(btn){ btn.disabled=true; btn.classList.add('btn-loading'); }
   if(lbl) lbl.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Tegereza...':'Signing in...');
   try {
+    console.log('[AUTH] handleLogin: signing in with email/password for', email);
     if (!firebaseAuth) initFirebase();
     var result = await firebaseAuth.signInWithEmailAndPassword(email, pass);
     var fb = result.user;
+    console.log('[AUTH] handleLogin: signInWithEmailAndPassword succeeded, uid=' + fb.uid + ' emailVerified=' + fb.emailVerified);
     var profile = {};
     try {
       var users = JSON.parse(localStorage.getItem('km_users')||'[]');
@@ -9857,6 +9866,7 @@ async function handleLogin() {
       try {
         var fsDoc = await db.collection('users').doc(fb.uid).get();
         if (fsDoc.exists) {
+          console.log('[AUTH] handleLogin: users/' + fb.uid + ' doc exists, role=' + fsDoc.data().role);
           var fsData = fsDoc.data();
           if (fsData.role) user.role = fsData.role;
           if (fsData.displayName) user.name = fsData.displayName;
@@ -9872,16 +9882,20 @@ async function handleLogin() {
           } catch(e){}
         } else {
           /* First login — create Firestore user doc */
+          console.log('[AUTH] handleLogin: users/' + fb.uid + ' doc missing — creating one (role=' + user.role + ')');
           db.collection('users').doc(fb.uid).set({
             id: fb.uid, uid: fb.uid, displayName: user.name, email: user.email,
             phone: user.phone, role: user.role, isActive: true,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
             createdBy: fb.uid, updatedBy: fb.uid, status: 'active'
-          }, { merge: true }).catch(function(){});
+          }, { merge: true })
+            .then(function(){ console.log('[AUTH] handleLogin: users/' + fb.uid + ' doc created'); })
+            .catch(function(e){ console.error('[AUTH] handleLogin: create user doc FAILED (Firestore rules?):', e.code || '', e.message); });
         }
-      } catch(e){ console.warn('[Login] Firestore role sync failed:', e); }
+      } catch(e){ console.error('[AUTH] handleLogin: Firestore role sync FAILED (likely a rules rejection):', e.code || '', e.message); }
     }
+    console.log('[AUTH] handleLogin: calling saveUser() — final role=' + user.role);
     saveUser(user);
     kmTrack('login',{method:user.provider||'email'});
     showToast((curLang==='rw'?'Murakaza neza, ':'Welcome, ')+user.name+'! 🎉');
@@ -9889,6 +9903,7 @@ async function handleLogin() {
     if (pa === 'agent-reg') { go('home'); openAgentReg(); }
     else { go('home'); }
   } catch(err) {
+    console.error('[AUTH] handleLogin FAILED — code:', err.code, 'message:', err.message);
     var code = err.code || '';
     var msg  = curLang==='rw'?'Habaye ikosa, ongera ugerageze.':'Login failed, please try again.';
     if (code==='auth/user-not-found'||code==='auth/invalid-credential')
@@ -9932,9 +9947,11 @@ async function handleRegister() {
   if(lbl) lbl.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Tegereza...':'Creating account...');
 
   try {
+    console.log('[AUTH] handleRegister: creating account for', email);
     if (!firebaseAuth) initFirebase();
     var result = await firebaseAuth.createUserWithEmailAndPassword(email, pass);
     var fb = result.user;
+    console.log('[AUTH] handleRegister: createUserWithEmailAndPassword succeeded, uid=' + fb.uid);
     await fb.updateProfile({ displayName: name });
     try { await fb.sendEmailVerification(); } catch(e){}
     var locEl  = document.getElementById('reg-location');
@@ -9956,6 +9973,7 @@ async function handleRegister() {
     };
     /* Create canonical Firestore user document */
     if (typeof db !== 'undefined') {
+      console.log('[AUTH] handleRegister: creating users/' + fb.uid + ' doc, role=' + canonRole);
       db.collection('users').doc(fb.uid).set({
         id: fb.uid, uid: fb.uid, displayName: name, email: email,
         phone: phone, role: canonRole,
@@ -9964,7 +9982,9 @@ async function handleRegister() {
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         createdBy: fb.uid, updatedBy: fb.uid
-      }, { merge: true }).catch(function(){});
+      }, { merge: true })
+        .then(function(){ console.log('[AUTH] handleRegister: users/' + fb.uid + ' doc created successfully'); })
+        .catch(function(e){ console.error('[AUTH] handleRegister: create user doc FAILED (Firestore rules?):', e.code || '', e.message); });
     }
     var users = [];
     try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
@@ -9972,6 +9992,7 @@ async function handleRegister() {
       users.push(user);
       try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
     }
+    console.log('[AUTH] handleRegister: calling saveUser()');
     saveUser(user);
     kmTrack('sign_up',{method:'email',role:user.role});
     /* Notify admins via RTDB admin alert (non-blocking) */
@@ -9993,6 +10014,7 @@ async function handleRegister() {
     if (pa === 'agent-reg') { go('home'); openAgentReg(); }
     else { go('home'); }
   } catch(err) {
+    console.error('[AUTH] handleRegister FAILED — code:', err.code, 'message:', err.message);
     var code = err.code || '';
     var msg  = curLang==='rw'?'Habaye ikosa, ongera ugerageze.':'Registration failed, please try again.';
     if (code==='auth/email-already-in-use')
@@ -10084,7 +10106,9 @@ function animateKPIs() {
 // ── UNIFIED go() — page navigation + title + analytics
 function go(name) {
   if (name === 'dashboard') {
+    console.log('[AUTH] go(dashboard) protected-route check — currentUser=' + (currentUser ? currentUser.uid : null) + ' role=' + (currentUser && currentUser.role));
     if (!currentUser) {
+      console.log('[AUTH] go(dashboard): blocked — not logged in, redirecting to auth');
       showToast(curLang==='rw' ? 'Injira mbere!' : 'Please log in first!', 'warn');
       name = 'auth';
     } else if (currentUser.role === 'PendingAgent') {
@@ -11728,13 +11752,16 @@ function initGoogleSignIn() {
 // post-sign-in UX — analytics, welcome toast, navigation — rather than also
 // racing its own separate Firestore read/write for the same event.
 function completeGoogleSignIn(fbUser) {
+  console.log('[AUTH] completeGoogleSignIn() — Google sign-in confirmed for uid=' + fbUser.uid);
   kmTrack('login',{method:'google'});
   showToast('Murakaza neza ' + (fbUser.displayName || 'User') + '! (Google) 🎉');
   setTimeout(function() { go('home'); }, 800);
 }
 
 function handleGoogleSignInClick() {
+  console.log('[AUTH] handleGoogleSignInClick() — user tapped "Continue with Google"');
   if (!initFirebase() || !firebaseAuth || typeof firebase.auth.GoogleAuthProvider === 'undefined') {
+    console.error('[AUTH] handleGoogleSignInClick: Firebase/GoogleAuthProvider unavailable — aborting');
     showToast(curLang==='rw' ? 'Google Sign-In ntiboneka ubu. Gerageza nanone.' : 'Google Sign-In is unavailable right now. Please try again.');
     return;
   }
@@ -11745,16 +11772,18 @@ function handleGoogleSignInClick() {
   // mobile instead; the result is picked up by getRedirectResult() in
   // initFirebase() once the browser navigates back.
   var isMobileUA = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  console.log('[AUTH] handleGoogleSignInClick: isMobileUA=' + isMobileUA + ' — using ' + (isMobileUA ? 'signInWithRedirect' : 'signInWithPopup'));
   if (isMobileUA) {
     firebaseAuth.signInWithRedirect(provider).catch(function(error) {
-      console.error('Google redirect sign-in error:', error && error.message);
+      console.error('[AUTH] signInWithRedirect FAILED — code:', error && error.code, 'message:', error && error.message);
       showToast(curLang==='rw' ? 'Google sign-in yanze. Gerageza nanone.' : 'Google sign-in failed. Please try again.');
     });
     return;
   }
   firebaseAuth.signInWithPopup(provider)
-    .then(function(result) { completeGoogleSignIn(result.user); })
+    .then(function(result) { console.log('[AUTH] signInWithPopup resolved for uid=' + result.user.uid); completeGoogleSignIn(result.user); })
     .catch(function(error) {
+      console.error('[AUTH] signInWithPopup FAILED — code:', error && error.code, 'message:', error && error.message);
       console.error('Google sign-in error:', error && error.message);
       if (error && (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request')) return;
       showToast(curLang==='rw' ? 'Google sign-in yanze. Gerageza nanone.' : 'Google sign-in failed. Please try again.');
@@ -13443,12 +13472,17 @@ function updateHamburgerAuth() {
 }
 
 function handleLogout() {
+  console.log('[AUTH] handleLogout() — signing out uid=' + (currentUser && currentUser.uid));
   currentUser = null;
   try { localStorage.removeItem('km_current'); } catch(e) {}
   updateNavForUser(null);
   closeProfile();
   if(firebaseAuth) {
-    firebaseAuth.signOut().catch(function(e) { console.error('signOut error:', e); });
+    firebaseAuth.signOut()
+      .then(function(){ console.log('[AUTH] handleLogout: firebaseAuth.signOut() succeeded'); })
+      .catch(function(e) { console.error('[AUTH] handleLogout: signOut FAILED —', e.code || '', e.message); });
+  } else {
+    console.warn('[AUTH] handleLogout: firebaseAuth was not initialized — local session cleared but no real Firebase session existed to sign out of');
   }
   showToast(curLang==='rw' ? 'Wasohowe neza!' : 'Signed out successfully!');
   go('home');
@@ -14461,9 +14495,11 @@ go = function(page) {
   // a refresh, for every provider (Google, phone, email).
   firebaseAuth = firebase.auth();
   firebaseAuth.onAuthStateChanged(function(fbUser) {
+    console.log('[AUTH] bootstrap onAuthStateChanged fired. fbUser=', fbUser ? fbUser.uid : null);
     if (fbUser) {
       restoreUserSession(fbUser);
     } else if (currentUser) {
+      console.log('[AUTH] bootstrap onAuthStateChanged: no fbUser but currentUser was set (' + currentUser.uid + ') — clearing local session');
       currentUser = null;
       try { localStorage.removeItem('km_current'); } catch(e) {}
       updateNavForUser(null);
@@ -14480,10 +14516,12 @@ go = function(page) {
   // same onAuthStateChanged event.
   if (!window._googleRedirectChecked) {
     window._googleRedirectChecked = true;
+    console.log('[AUTH] checking getRedirectResult() for a completed mobile Google redirect...');
     firebaseAuth.getRedirectResult().then(function(result) {
+      console.log('[AUTH] getRedirectResult() resolved. user=', result && result.user ? result.user.uid : null);
       if (result && result.user) completeGoogleSignIn(result.user);
     }).catch(function(error) {
-      console.error('Google redirect sign-in error:', error && error.message);
+      console.error('[AUTH] getRedirectResult() FAILED — code:', error && error.code, 'message:', error && error.message);
       showToast(curLang==='rw' ? 'Google sign-in yanze. Gerageza nanone.' : 'Google sign-in failed. Please try again.');
     });
   }
