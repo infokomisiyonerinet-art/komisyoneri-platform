@@ -22322,148 +22322,13 @@ function calcCommissionAmount(dealType, dealValue) {
   return Math.round(dealValue * rate);
 }
 
-// ── Auto-calculate on deal closed_won ────────────────
-function autoCalculateCommission(dealId, deal) {
-  if (typeof db === 'undefined' || !dealId) return;
-  if (!deal) deal = {};
-  var dealType  = deal.dealType || 'sale';
-  var dealValue = deal.agreedPrice || deal.price || 0;
-  var rate      = (COMMISSION_RATES[dealType] && COMMISSION_RATES[dealType].default) || 0.04;
-  var total     = calcCommissionAmount(dealType, dealValue);
-  var agentShare   = Math.round(total * COMM_AGENT_SPLIT);
-  var companyShare = Math.round(total * COMM_COMPANY_SPLIT);
-  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
-
-  // Check if commission already exists for this deal
-  db.collection('commissions').where('dealId','==',dealId).where('isActive','==',true).get()
-    .then(function(snap) {
-      if (!snap.empty) {
-        showToast(curLang === 'rw' ? 'Komisiyoni isanzwe ihari kuri iyi deal' : 'Commission already exists for this deal', 'info');
-        return;
-      }
-      return db.collection('commissions').add({
-        id:           '',
-        dealId:       dealId,
-        agentId:      deal.agentId || uid,
-        agentName:    deal.agentName || '',
-        propertyId:   deal.propertyId || '',
-        propertyTitle:deal.propertyTitle || deal.propTitle || '',
-        clientName:   deal.clientName || '',
-        dealType:     dealType,
-        dealValue:    dealValue,
-        commissionRate:  rate,
-        totalCommission: total,
-        agentShare:      agentShare,
-        companyShare:    companyShare,
-        agentSplitPct:   COMM_AGENT_SPLIT,
-        companySplitPct: COMM_COMPANY_SPLIT,
-        approvedBy:   '',
-        approvedAt:   null,
-        paidAt:       null,
-        paymentRef:   '',
-        notes:        '',
-        status:       'pending',
-        isActive:     true,
-        createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
-        createdBy:    uid,
-        updatedBy:    uid
-      });
-    })
-    .then(function(ref) {
-      if (!ref) return;
-      ref.update({ id: ref.id });
-      logAudit('commission.calculated', 'commissions', ref.id, null, {
-        dealId: dealId, total: total, agentShare: agentShare, companyShare: companyShare
-      });
-      showToast(curLang === 'rw'
-        ? 'Komisiyoni yabarwe: ' + total.toLocaleString() + ' RWF'
-        : 'Commission calculated: ' + total.toLocaleString() + ' RWF', 'success');
-      /* Notify the agent that their commission has been recorded */
-      if (typeof notifyUser === 'function' && deal.agentId) {
-        notifyUser(deal.agentId,
-          curLang==='rw' ? '&#128176; Komisiyoni Yabitswe!' : '&#128176; Commission Recorded!',
-          (curLang==='rw'
-            ? 'Komisiyoni yawe: ' + agentShare.toLocaleString() + ' RWF (' + deal.clientName + ').'
-            : 'Commission of ' + agentShare.toLocaleString() + ' RWF recorded for ' + (deal.clientName || 'deal') + '.'),
-          'commission_calculated', 'commissions', ref.id);
-      }
-      var badge = document.getElementById('comm-sidebar-count');
-      if (badge) badge.textContent = parseInt(badge.textContent || 0) + 1;
-      /* Auto-generate the client invoice for this closed deal — real
-         Deal -> Commission -> Accounting integration, not a manual-only
-         step Accounting has to remember to do separately. */
-      generateDealInvoice(dealId, deal, dealValue);
-      /* Auto-qualify referral if client was referred */
-      if (deal.clientId && typeof db !== 'undefined') {
-        db.collection('referrals')
-          .where('referredUserId','==',deal.clientId)
-          .where('isActive','==',true)
-          .where('status','==','registered')
-          .limit(1).get()
-          .then(function(rSnap) {
-            if (rSnap.empty) return;
-            var rDoc = rSnap.docs[0];
-            var rData = rDoc.data();
-            return rDoc.ref.update({
-              status:      'qualified',
-              qualifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
-              dealId:      dealId,
-              updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
-              updatedBy:   uid
-            }).then(function() {
-              logAudit('referral.qualified', 'referrals', rDoc.id, { status:'registered' }, { status:'qualified', dealId: dealId });
-              if (typeof notifyUser === 'function' && rData.referrerId) {
-                notifyUser(rData.referrerId,
-                  curLang === 'rw' ? '&#127881; Itumizwa Ryawe Ryemejwe!' : '&#127881; Your Referral Qualified!',
-                  (curLang === 'rw'
-                    ? 'Umuntu watumije yashyize umugati warangiye. Uzahabwa inguzanyo vuba!'
-                    : 'Someone you referred just completed a deal! You will receive your referral reward soon.'),
-                  'referral_qualified', 'referrals', rDoc.id);
-              }
-            });
-          }).catch(function(e){ console.warn('[Referral] qualification check error:', e); });
-      }
-    })
-    .catch(function(err) { console.error('[Commission] auto-calc error:', err); });
-}
-
-// Auto-generate the client-facing invoice for a closed deal — previously
-// every invoice had to be created manually even when a deal had already
-// closed with a known price and client. Matches submitInvoice()'s exact
-// field shape (invoiceNo, billedTo, lineItems[].lineTotal, totalAmount)
-// so it shows up correctly in every existing P&L/BI/Exec calculation.
-function generateDealInvoice(dealId, deal, dealValue) {
-  if (typeof db === 'undefined' || !dealId || !dealValue) return;
-  db.collection('invoices').where('dealId','==',dealId).where('isActive','==',true).limit(1).get()
-    .then(function(snap) {
-      if (!snap.empty) return; // already invoiced for this deal
-      var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
-      var vat = typeof RWANDA_VAT === 'number' ? RWANDA_VAT : 0;
-      var subtotal = Number(dealValue) || 0;
-      var vatAmount = Math.round(subtotal * vat);
-      var totalAmount = subtotal + vatAmount;
-      var desc = (deal.dealType === 'rent' ? 'Rental' : 'Sale') + ' — ' + (deal.propertyTitle || deal.propTitle || 'Property');
-      return db.collection('invoices').add({
-        id: '', invoiceNo: '', type: 'deal', dealId: dealId,
-        billedTo: deal.clientName || deal.clientId || '', clientId: deal.clientId || '', clientEmail: '', clientAddress: '',
-        lineItems: [{ description: desc, qty: 1, unitPrice: subtotal, lineTotal: subtotal }],
-        subtotal: subtotal, vatAmount: vatAmount, totalAmount: totalAmount,
-        dueDate: '', notes: 'Auto-generated on deal closure', paidAt: null, pdfUrl: null,
-        status: 'sent', isActive: true,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        createdBy: uid, updatedBy: uid
-      });
-    })
-    .then(function(ref) {
-      if (!ref) return;
-      ref.update({ id: ref.id });
-      logAudit('invoice.deal_auto_generated', 'invoices', ref.id, null, { dealId: dealId, totalAmount: dealValue });
-      if (typeof loadAccountingStats === 'function') loadAccountingStats();
-    })
-    .catch(function(e) { console.error('[Accounting] generateDealInvoice', e); });
-}
+// Commission calculation + invoice generation + referral auto-qualify for
+// a deal reaching closed_won used to run here, client-side, triggered by
+// whichever UI action changed the deal's stage. That's now done exactly
+// once, server-side, by the onDealClosedWon Cloud Function
+// (functions/index.js) reacting to the same Firestore write — see that
+// file for the full cascade (kept behavior-identical, including the
+// pre-existing 60/40 split and VAT handling).
 
 // ── Load Commissions ──────────────────────────────────
 function loadCommissions() {
@@ -23233,9 +23098,10 @@ function advanceDealStage() {
             'deal_stage', 'deals', dealId);
         }
       }
-      if (nextKey === 'closed_won' && typeof autoCalculateCommission === 'function') {
-        setTimeout(function() { autoCalculateCommission(dealId, _ddCurrentDeal); }, 500);
-      }
+      // Commission + invoice + referral-qualify no longer run from here —
+      // the onDealClosedWon Cloud Function (functions/index.js) picks up
+      // this same pipelineStage write server-side, exactly once, whether
+      // it came from this function or from closeDealWon().
       if (_ddCurrentDeal) _ddCurrentDeal.pipelineStage = nextKey;
       for (var i = 0; i < _deals.length; i++) {
         if ((_deals[i]._docId || _deals[i].id) === dealId) { _deals[i].pipelineStage = nextKey; break; }
@@ -29508,9 +29374,10 @@ function closeDealWon() {
     _updateDealDetailButtons(_ddCurrentDeal);
     renderDealList();
     updateDealStats();
-    setTimeout(function() {
-      if (typeof autoCalculateCommission === 'function') autoCalculateCommission(dealId, _ddCurrentDeal);
-    }, 600);
+    // Commission + invoice + referral-qualify now run server-side — see
+    // the onDealClosedWon Cloud Function (functions/index.js), which picks
+    // up this same pipelineStage write exactly once, whether it came from
+    // here or from advanceDealStage().
   }).catch(function(err) {
     showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error closing deal', 'error');
     console.error('[Deal] Close won error:', err);
