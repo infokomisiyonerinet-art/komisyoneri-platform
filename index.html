@@ -13070,25 +13070,11 @@ function submitLead() {
     deadline: new Date(Date.now() + 2*60*60*1000).toISOString() // 2hrs deadline
   };
 
-  // Find agent in the zone
-  var agents = [];
-  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
-  var zoneAgents = agents.filter(function(a){ return a.zone === zone && a.status !== 'Suspended'; });
-
-  if(zoneAgents.length > 0) {
-    // Assign to agent with fewest leads (fairness)
-    zoneAgents.sort(function(a,b){ return (a.leads||[]).length - (b.leads||[]).length; });
-    lead.assignedAgent = zoneAgents[0].id;
-    lead.agentName  = zoneAgents[0].name;
-    lead.agentPhone = zoneAgents[0].phone;
-    lead.agentEmail = zoneAgents[0].email || '';
-
-    // Update agent leads
-    var agentIdx = agents.indexOf(zoneAgents[0]);
-    if(!agents[agentIdx].leads) agents[agentIdx].leads = [];
-    agents[agentIdx].leads.push(lead.id);
-    try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
-  }
+  // Agent assignment happens server-side now (nightlyFollowupReminderSweep's
+  // sibling trigger, onLeadCreated in functions/index.js) by real district +
+  // workload matching against the actual Firestore agent roster, instead of
+  // this legacy localStorage-only zone round-robin that could point agentId
+  // at an id with no corresponding Firestore user at all.
 
   // Save lead — localStorage backup
   var leads = [];
@@ -13134,37 +13120,9 @@ function submitLead() {
           logAudit('lead.created', 'leads', ref.id, null, { clientName: lead.clientName, zone: lead.zone, pipelineStage: 'new' });
         }
         if (typeof updateCrmSidebarBadge === 'function') updateCrmSidebarBadge();
-        /* In-app notification to assigned agent */
-        var _agId = lead.assignedAgent || '';
-        if (_agId && typeof notifyUser === 'function') {
-          notifyUser(_agId,
-            curLang === 'rw' ? 'Lead Nshya Yaguhaye!' : 'New Lead Assigned!',
-            (lead.clientName || 'Client') + (curLang === 'rw' ? ' asaba agent i ' : ' needs an agent in ') + (lead.zone || ''),
-            'lead_assigned', 'leads', ref.id);
-        }
-        /* Firestore-based agent lookup if no localStorage agent found */
-        if (!_agId && lead.zone && typeof db !== 'undefined') {
-          db.collection('users')
-            .where('role', '==', 'agent')
-            .where('isActive', '==', true)
-            .where('status', '==', 'active')
-            .limit(5)
-            .get()
-            .then(function(agSnap) {
-              if (agSnap.empty) return;
-              var firstAgent = agSnap.docs[0];
-              var agData = firstAgent.data();
-              var agUid  = firstAgent.id;
-              /* Update lead with Firestore agent */
-              ref.update({ agentId: agUid, agentName: agData.displayName || agData.email || '', updatedAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(function(){});
-              if (typeof notifyUser === 'function') {
-                notifyUser(agUid,
-                  curLang === 'rw' ? 'Lead Nshya Yaguhaye!' : 'New Lead Assigned!',
-                  (lead.clientName || 'Client') + (curLang === 'rw' ? ' asaba agent i ' : ' needs an agent in ') + (lead.zone || ''),
-                  'lead_assigned', 'leads', ref.id);
-              }
-            }).catch(function(){});
-        }
+        // Agent assignment + the agent's "new lead" notification are now
+        // handled by onLeadCreated (functions/index.js), which fires on
+        // this same write and picks the right agent by district/workload.
       }).catch(function(fsErr) { console.warn('[Lead] Firestore save failed:', fsErr); });
     }
   } catch(fsE) { console.warn('[Lead] Firestore error:', fsE); }
@@ -13173,37 +13131,15 @@ function submitLead() {
   closeLead();
   kmTrack('generate_lead',{zone:lead.zone||'',agent:lead.agentName||'',intent:lead.preference||''});
 
-  if(lead.agentName) {
-    showToast('✅ Lead yoherejwe! Agent ' + lead.agentName + ' azakuhamagara mu masaa 2.');
-    if (lead.agentEmail) {
-      kmSendEmail(_ejsTmplLead, {
-        to_email:    lead.agentEmail,
-        agent_name:  lead.agentName,
-        client_name: lead.clientName,
-        client_phone:lead.clientPhone,
-        zone:        zone,
-        budget_min:  lead.budgetMin,
-        budget_max:  lead.budgetMax,
-        action:      lead.action,
-        notes:       lead.notes,
-        lead_id:     lead.id
-      });
-    }
-    var agPhone = (lead.agentPhone || '250783177254').replace(/[^0-9]/g, '');
-    var agMsg = encodeURIComponent(
-      'LEAD NSHYA — Client: ' + lead.clientName +
-      ' — Tel: ' + lead.clientPhone +
-      ' — Zone: ' + zone
-    );
-    setTimeout(function(){ window.open('https://wa.me/' + agPhone + '?text=' + agMsg, '_blank'); }, 500);
-  } else {
-    showToast('✅ Lead yoherejwe! KOMISIYONERI izakuhuza na agent vuba.');
-    // Notify admin via WhatsApp
-    var msg = 'LEAD NSHYA - Zone:'+zone+' - Client:'+lead.clientName+' - Tel:'+lead.clientPhone;
-    setTimeout(function(){
-      window.open('https://wa.me/250783177254?text=' + encodeURIComponent(msg), '_blank');
-    }, 500);
-  }
+  // Agent assignment is now async (server-side, by onLeadCreated), so the
+  // client never knows the assigned agent's name/phone/email synchronously
+  // at submit time — show the generic "we'll match you" message and notify
+  // admin via WhatsApp, same as the original's no-match fallback path.
+  showToast('✅ Lead yoherejwe! KOMISIYONERI izakuhuza na agent vuba.');
+  var msg = 'LEAD NSHYA - Zone:'+zone+' - Client:'+lead.clientName+' - Tel:'+lead.clientPhone;
+  setTimeout(function(){
+    window.open('https://wa.me/250783177254?text=' + encodeURIComponent(msg), '_blank');
+  }, 500);
 }
 
 // === ADMIN LEAD DASHBOARD ===
