@@ -247,6 +247,13 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /departments/{id} {
+      allow read:   if isAuth();
+      allow create: if isAdminOrStaff() && hasStandardFields();
+      allow update: if isAdminOrStaff();
+      allow delete: if false;
+    }
+
     match /referrals/{id} {
       allow read:   if isAuth() && (resource.data.referrerId == request.auth.uid || isAdminOrStaff());
       allow create: if isAuth() && hasStandardFields();

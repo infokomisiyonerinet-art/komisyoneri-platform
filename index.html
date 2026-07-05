@@ -5788,6 +5788,7 @@ html,body{overscroll-behavior-x:none}
     <button class="off-tab active" id="hrtab-btn-staff" onclick="switchHRTab('staff')" data-rw="Abakozi" data-en="Staff Directory">Staff Directory</button>
     <button class="off-tab" id="hrtab-btn-payroll" onclick="switchHRTab('payroll')" data-rw="Mishahara" data-en="Payroll">Payroll</button>
     <button class="off-tab" id="hrtab-btn-performance" onclick="switchHRTab('performance')" data-rw="Imikorere" data-en="Performance">Performance</button>
+    <button class="off-tab" id="hrtab-btn-lifecycle" onclick="switchHRTab('lifecycle')" data-rw="Amashami n'Intangiriro" data-en="Departments & Lifecycle">Departments & Lifecycle</button>
   </div>
 
   <!-- STAFF DIRECTORY PANE -->
@@ -5842,6 +5843,38 @@ html,body{overscroll-behavior-x:none}
       </div>
     </div>
     <div id="hr-performance-list"></div>
+  </div>
+
+  <!-- DEPARTMENTS & LIFECYCLE PANE -->
+  <div class="off-pane" id="hrtab-lifecycle" style="display:none">
+    <div class="off-pane-hdr">
+      <div style="font-weight:700;color:var(--navy)" data-rw="Amashami" data-en="Departments">Departments</div>
+      <button class="btn btn-primary" onclick="openDeptCreate()" style="display:flex;align-items:center;gap:.4rem">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-rw="Ongera Ishami" data-en="New Department">New Department</span>
+      </button>
+    </div>
+    <div id="hr-dept-list" class="hr-staff-grid"></div>
+
+    <div style="font-weight:700;color:var(--navy);margin:1.5rem 0 .75rem" data-rw="Intangiriro n'Isohoka" data-en="Onboarding & Offboarding">Onboarding & Offboarding</div>
+    <div id="hr-lifecycle-list"></div>
+  </div>
+</div>
+
+<!-- Department create modal -->
+<div class="modal-wrap" role="dialog" aria-modal="true" id="dept-create-modal" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hdr">
+      <div class="modal-title" data-rw="Ishami Rishya" data-en="New Department">New Department</div>
+      <button class="modal-close" onclick="closeDeptCreate()">&times;</button>
+    </div>
+    <input type="hidden" id="dept-edit-id">
+    <div class="form-group"><label data-rw="Izina" data-en="Name">Name</label><input type="text" id="dept-name" class="form-control" placeholder="e.g. Sales"></div>
+    <div class="form-group"><label data-rw="Umuyobozi w'Ishami" data-en="Department Head">Department Head (optional)</label><select id="dept-head" class="form-control"><option value="">-- None --</option></select></div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" onclick="closeDeptCreate()" data-en="Cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDepartment()" data-en="Save">Save</button>
+    </div>
   </div>
 </div>
 
@@ -8490,7 +8523,7 @@ html,body{overscroll-behavior-x:none}
     <div class="fin-summary-card" style="margin-bottom:.75rem">
       <div class="fin-summary-row"><span data-rw="Imeyili" data-en="Email">Email</span><span id="sp-email"></span></div>
       <div class="fin-summary-row"><span data-rw="Telefoni" data-en="Phone">Phone</span><span id="sp-phone"></span></div>
-      <div class="fin-summary-row"><span data-rw="Ishami" data-en="Department">Department</span><span id="sp-dept"></span></div>
+      <div class="fin-summary-row"><span data-rw="Ishami" data-en="Department">Department</span><span><span id="sp-dept"></span> <a href="javascript:void(0)" id="sp-dept-assign-link" onclick="assignStaffDepartment(_spProfileId, (_hrStaff.find(function(x){return x.id===_spProfileId;})||{}).departmentId||'')" style="font-size:.75rem;color:var(--navy);text-decoration:underline;display:none" data-en="Change">Change</a></span></div>
       <div class="fin-summary-row"><span data-rw="Itariki yo Kwinjira" data-en="Joined">Joined</span><span id="sp-joined"></span></div>
       <div class="fin-summary-row"><span data-rw="Imiterere y'Konti" data-en="Account Status">Account Status</span><span id="sp-status"></span></div>
     </div>
@@ -18246,6 +18279,29 @@ var _hrStaffFilter = { role: '', q: '' };
 var _payrollList   = [];
 var _spProfileId   = null;
 var _psDetailId    = null;
+var _departments   = [];
+
+// Real staff-lifecycle checklist items, replacing "hiring/exit = flip a
+// role field" with an actual tracked list. Both are ordinary `tasks`
+// documents (checklistKind/checklistFor tag them as a lifecycle
+// checklist item rather than inventing a parallel collection) — this
+// reuses the existing tasks read/write rules and the Office Management
+// "My Tasks" view an assignee already sees, instead of a walled-off
+// feature only visible from this one HR tab.
+var ONBOARDING_CHECKLIST = [
+  'Complete your staff profile (phone, photo)',
+  'Review the KOMISIYONERI employee handbook',
+  'Set up your company email signature',
+  'Meet your department head and team',
+  'Acknowledge company policies and compliance requirements'
+];
+var OFFBOARDING_CHECKLIST = [
+  'Revoke system access and reset password',
+  'Collect any assigned company assets',
+  'Process final settlement and pending commissions/payroll',
+  'Conduct exit interview',
+  'Reassign or transfer ongoing tasks and clients'
+];
 
 var HR_ROLE_LABELS = {
   super_admin: 'Super Admin', admin: 'Admin', ceo: 'CEO',
@@ -18324,7 +18380,7 @@ function loadHRStats() {
 }
 
 function switchHRTab(tab) {
-  ['staff','payroll','performance'].forEach(function(t) {
+  ['staff','payroll','performance','lifecycle'].forEach(function(t) {
     var btn  = g('hrtab-btn-' + t);
     var pane = g('hrtab-' + t);
     if (btn)  btn.classList.toggle('active', t === tab);
@@ -18333,6 +18389,218 @@ function switchHRTab(tab) {
   if (tab === 'staff')       loadStaffDirectory();
   else if (tab === 'payroll')loadPayroll();
   else if (tab === 'performance') loadPerformance();
+  else if (tab === 'lifecycle') loadHRLifecycle();
+}
+
+/* ── DEPARTMENTS ── */
+function fetchDepartments(cb) {
+  if (typeof db === 'undefined') { if (cb) cb(); return; }
+  db.collection('departments').where('isActive','==',true).orderBy('createdAt','desc').get().then(function(snap) {
+    _departments = [];
+    snap.forEach(function(d) { var data = d.data(); data.id = d.id; _departments.push(data); });
+    if (cb) cb();
+  }).catch(function(err) {
+    console.warn('[Departments] fetch error:', err);
+    _departments = [];
+    if (cb) cb();
+  });
+}
+
+function renderDeptCards() {
+  var el = g('hr-dept-list');
+  if (!el) return;
+  if (_departments.length === 0) {
+    el.innerHTML = '<div class="exec-empty" style="padding:1.5rem" data-rw="Nta mashami yabonetse. Ongeraho irya mbere." data-en="No departments yet. Add your first one to get started.">No departments yet. Add your first one to get started.</div>';
+    if (typeof switchLang === 'function') switchLang(curLang);
+    return;
+  }
+  el.innerHTML = _departments.map(function(d) {
+    var head = d.headUserId ? (_hrStaff.find(function(u){ return u.id === d.headUserId; }) || {}).displayName : '';
+    return '<div class="hr-staff-card">'
+      + '<div style="font-weight:700;color:var(--navy)">' + escapeHtml(d.name || '') + '</div>'
+      + '<div style="font-size:.78rem;color:var(--muted);margin-top:.2rem">' + (head ? ('Head: ' + escapeHtml(head)) : 'No department head set') + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function openDeptCreate() {
+  g('dept-edit-id').value = '';
+  g('dept-name').value = '';
+  var headSel = g('dept-head');
+  if (headSel) {
+    headSel.innerHTML = '<option value="">-- None --</option>' + _hrStaff.map(function(u) {
+      return '<option value="' + u.id + '">' + escapeHtml(u.displayName || u.email || u.id) + '</option>';
+    }).join('');
+  }
+  openModal('dept-create-modal');
+}
+function closeDeptCreate() { closeModal('dept-create-modal'); }
+
+function saveDepartment() {
+  var cu = currentUser;
+  if (!cu) return;
+  var name = (g('dept-name').value || '').trim();
+  if (!name) { showToast(curLang === 'rw' ? 'Injiza izina ry\'ishami' : 'Department name is required', 'error'); return; }
+  var headUserId = (g('dept-head').value || '').trim();
+
+  var payload = {
+    name: name, headUserId: headUserId,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: cu.uid,
+    isActive: true, status: 'active'
+  };
+  var docRef = db.collection('departments').doc();
+  payload.id = docRef.id;
+  payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+  payload.createdBy = cu.uid;
+
+  docRef.set(payload).then(function() {
+    showToast(curLang === 'rw' ? 'Ishami ryabitswe!' : 'Department saved!', 'success');
+    logAudit('department_created', 'departments', payload.id, null, payload);
+    closeDeptCreate();
+    fetchDepartments(renderDeptCards);
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error saving department', 'error');
+    console.error('[Departments] save error:', err);
+  });
+}
+
+// Real assignment, mirroring openAssignBranch() — writes users.departmentId
+// so the Staff Profile modal's Department field (previously a dead field
+// nothing ever wrote to) reflects something real.
+function assignStaffDepartment(userId, currentDeptId) {
+  if (_departments.length === 0) { showToast(curLang==='rw' ? 'Nta mashami arabonetse' : 'No departments available', 'error'); return; }
+  var opts = '<option value="">-- Unassign --</option>' + _departments.map(function(d){ return '<option value="' + d.id + '"' + (d.id===currentDeptId?' selected':'') + '>' + escapeHtml(d.name) + '</option>'; }).join('');
+  var select = document.createElement('select');
+  select.innerHTML = opts;
+  select.style.cssText = 'width:100%;padding:.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;margin-bottom:.7rem';
+  var div = document.createElement('div');
+  div.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:14px;padding:1.2rem;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:9999;min-width:280px';
+  div.innerHTML = '<div style="font-weight:700;color:var(--navy);margin-bottom:.8rem" data-en="Assign to Department" data-rw="Gera ku Ishami">Assign to Department</div>';
+  div.appendChild(select);
+  var btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:.6rem;margin-top:.4rem';
+  var btnOk = document.createElement('button');
+  btnOk.className = 'btn btn-primary';
+  btnOk.style.flex = '1';
+  btnOk.textContent = 'Save';
+  btnOk.onclick = function() {
+    var newDept = select.value;
+    db.collection('users').doc(userId).update({
+      departmentId: newDept, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+    }).then(function() {
+      showToast(curLang==='rw' ? 'Umukozi yagenwe' : 'Staff assigned', 'success');
+      logAudit('staff_department_assigned', 'users', userId, { departmentId: currentDeptId }, { departmentId: newDept });
+      document.body.removeChild(div);
+      if (document.body.contains(overlay)) document.body.removeChild(overlay);
+      var u = _hrStaff.find(function(x){ return x.id === userId; });
+      if (u) u.departmentId = newDept;
+      if (_spProfileId === userId) openStaffProfile(userId);
+    }).catch(function(){ showToast('Error assigning', 'error'); });
+  };
+  var btnCancel = document.createElement('button');
+  btnCancel.className = 'btn btn-outline';
+  btnCancel.textContent = 'Cancel';
+  btnCancel.onclick = function() { document.body.removeChild(div); if (document.body.contains(overlay)) document.body.removeChild(overlay); };
+  btnRow.appendChild(btnOk); btnRow.appendChild(btnCancel);
+  div.appendChild(btnRow);
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9998';
+  overlay.onclick = function() { if (document.body.contains(div)) document.body.removeChild(div); document.body.removeChild(overlay); };
+  document.body.appendChild(overlay);
+  document.body.appendChild(div);
+}
+
+/* ── ONBOARDING / OFFBOARDING ── */
+// Auto-creates a batch of real, trackable tasks (not a status flip) for a
+// staff-lifecycle event. Each item is an ordinary tasks document — the new
+// hire/the acting admin sees it in Office Management's own task list —
+// tagged with checklistKind/checklistFor so this HR tab can also query
+// and group them.
+function createChecklistTasks(kind, staffUid, staffName, actingUid) {
+  if (typeof db === 'undefined') return;
+  var items = kind === 'onboarding' ? ONBOARDING_CHECKLIST : OFFBOARDING_CHECKLIST;
+  // Onboarding tasks go to the new hire themselves; offboarding tasks go
+  // to the acting admin, since the departing employee shouldn't be the
+  // one responsible for revoking their own access or handling their exit.
+  var assignee = kind === 'onboarding' ? staffUid : actingUid;
+  var dueInDays = kind === 'onboarding' ? 7 : 3;
+  var dueAt = firebase.firestore.Timestamp.fromDate(new Date(Date.now() + dueInDays * 86400000));
+  items.forEach(function(title) {
+    var ref = db.collection('tasks').doc();
+    ref.set({
+      id: ref.id, title: title, description: '', priority: kind === 'offboarding' ? 'high' : 'medium',
+      department: 'HR', assignedTo: assignee, assignedToName: '',
+      assignedBy: actingUid, dueAt: dueAt, status: 'todo', isActive: true, comments: [],
+      checklistKind: kind, checklistFor: staffUid, checklistForName: staffName,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(), createdBy: actingUid,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: actingUid
+    }).catch(function(err) { console.error('[Lifecycle] checklist task error:', err); });
+  });
+  logAudit(kind + '_checklist_created', 'users', staffUid, null, { kind: kind, itemCount: items.length });
+}
+
+function loadHRLifecycle() {
+  if (typeof db === 'undefined') return;
+  fetchDepartments(renderDeptCards);
+
+  var listEl = g('hr-lifecycle-list');
+  if (!listEl) return;
+  listEl.innerHTML = '<div class="exec-loading">Loading...</div>';
+
+  var onboardingQ = db.collection('tasks').where('checklistKind','==','onboarding').where('isActive','==',true).orderBy('createdAt','desc').limit(100).get();
+  var offboardingQ = db.collection('tasks').where('checklistKind','==','offboarding').where('isActive','==',true).orderBy('createdAt','desc').limit(100).get();
+
+  Promise.all([onboardingQ, offboardingQ]).then(function(results) {
+    var all = [];
+    results.forEach(function(snap) { snap.forEach(function(d) { var t = d.data(); t._docId = d.id; all.push(t); }); });
+
+    if (!all.length) {
+      listEl.innerHTML = '<div class="exec-empty" style="padding:1.5rem" data-rw="Nta ntangiriro cyangwa isohoka birimo gukorwa." data-en="No onboarding or offboarding in progress.">No onboarding or offboarding in progress.</div>';
+      if (typeof switchLang === 'function') switchLang(curLang);
+      return;
+    }
+
+    // Group by (checklistFor, checklistKind) so each person's onboarding
+    // and offboarding (if somehow both exist) render as separate cards.
+    var groups = {};
+    all.forEach(function(t) {
+      var key = t.checklistFor + '|' + t.checklistKind;
+      (groups[key] = groups[key] || { staffId: t.checklistFor, staffName: t.checklistForName, kind: t.checklistKind, items: [] }).items.push(t);
+    });
+
+    listEl.innerHTML = Object.keys(groups).map(function(key) {
+      var grp = groups[key];
+      var done = grp.items.filter(function(i) { return i.status === 'done'; }).length;
+      var total = grp.items.length;
+      var kindLabel = grp.kind === 'onboarding' ? 'Onboarding' : 'Offboarding';
+      var kindColor = grp.kind === 'onboarding' ? 'var(--success)' : 'var(--error)';
+      return '<div class="fin-summary-card" style="margin-bottom:.75rem">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">'
+        + '<div><strong>' + escapeHtml(grp.staffName || grp.staffId) + '</strong> '
+        + '<span style="font-size:.72rem;font-weight:700;color:' + kindColor + '">' + kindLabel + '</span></div>'
+        + '<span style="font-size:.8rem;color:var(--muted)">' + done + '/' + total + ' complete</span>'
+        + '</div>'
+        + grp.items.map(function(item) {
+            var checked = item.status === 'done';
+            return '<div class="fin-summary-row" style="cursor:pointer" onclick="toggleChecklistItem(\'' + item._docId + '\',' + (!checked) + ')">'
+              + '<span style="' + (checked ? 'text-decoration:line-through;color:var(--muted)' : '') + '">'
+              + (checked ? '&#9989; ' : '&#9744; ') + escapeHtml(item.title) + '</span>'
+              + '</div>';
+          }).join('')
+        + '</div>';
+    }).join('');
+  }).catch(function(err) {
+    console.error('[Lifecycle] load error:', err);
+    listEl.innerHTML = '<div class="exec-empty" style="padding:1.5rem">Error loading checklists</div>';
+  });
+}
+
+function toggleChecklistItem(taskId, markDone) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  db.collection('tasks').doc(taskId).update({
+    status: markDone ? 'done' : 'todo',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  }).then(function() { loadHRLifecycle(); }).catch(function(){ showToast('Error updating item', 'error'); });
 }
 
 /* ── STAFF DIRECTORY ── */
@@ -18398,7 +18666,22 @@ function openStaffProfile(uid) {
   g('sp-verified-badge').innerHTML = u.isVerified ? '<span class="hr-verified-chip">Verified</span>' : '';
   g('sp-email').textContent  = u.email || '—';
   g('sp-phone').textContent  = u.phone || '—';
-  g('sp-dept').textContent   = u.department || '—';
+  // u.department was a dead field — nothing in the codebase ever wrote
+  // it, so this always rendered "—". Real department assignment now
+  // lives on u.departmentId, resolved against the departments collection
+  // (see assignStaffDepartment(), which mirrors openAssignBranch()).
+  var deptName = '—';
+  if (u.departmentId) {
+    var dept = _departments.find(function(d) { return d.id === u.departmentId; });
+    deptName = dept ? dept.name : '—';
+  }
+  g('sp-dept').textContent = deptName;
+  if (_departments.length === 0) fetchDepartments(function() {
+    if (_spProfileId === uid && u.departmentId) {
+      var d2 = _departments.find(function(d) { return d.id === u.departmentId; });
+      if (d2) g('sp-dept').textContent = d2.name;
+    }
+  });
   var joined = u.createdAt ? new Date(u.createdAt.toDate ? u.createdAt.toDate() : u.createdAt).toLocaleDateString() : '—';
   g('sp-joined').textContent  = joined;
   var activeChip = u.isActive ? '<span style="color:var(--success)">Active</span>' : '<span style="color:var(--error)">Suspended</span>';
@@ -18429,6 +18712,8 @@ function openStaffProfile(uid) {
   var contractEditEl = g('sp-contract-edit'), contractViewEl = g('sp-contract-view');
   if (contractEditEl) contractEditEl.style.display = _isExecUser ? 'flex' : 'none';
   if (contractViewEl) contractViewEl.style.display = _isExecUser ? 'none' : 'flex';
+  var deptAssignLink = g('sp-dept-assign-link');
+  if (deptAssignLink) deptAssignLink.style.display = _isExecUser ? 'inline' : 'none';
   var adminSec = g('sp-admin-section');
   if (adminSec) {
     adminSec.style.display = _isExecUser ? '' : 'none';
@@ -18467,6 +18752,8 @@ function changeUserRole(uid) {
   var newRole = sel ? sel.value : '';
   if (!newRole) return;
   var adminUid = currentUser ? currentUser.uid : 'admin';
+  var existingUser = _hrStaff.find(function(x){ return x.id === uid; });
+  var wasStaffTier = ROLE_TIERS.STAFF.indexOf(((existingUser && existingUser.role) || '').toLowerCase()) > -1;
   db.collection('users').doc(uid).update({
     role:      newRole,
     status:    newRole === 'agent' ? 'active' : undefined,
@@ -18476,6 +18763,13 @@ function changeUserRole(uid) {
     logAudit('user.role.changed', 'users', uid, null, { newRole: newRole });
     var u = _hrStaff.find(function(x){ return x.id === uid; });
     if (u) { u.role = newRole; }
+    // First time this person becomes internal staff (not staff-tier
+    // before, staff-tier now) — create a real onboarding checklist
+    // instead of the promotion being just a silent role-field flip.
+    var isStaffTierNow = ROLE_TIERS.STAFF.indexOf(newRole.toLowerCase()) > -1;
+    if (isStaffTierNow && !wasStaffTier) {
+      createChecklistTasks('onboarding', uid, (u && (u.displayName || u.email)) || uid, adminUid);
+    }
     var chip = document.getElementById('sp-role-chip');
     if (chip) chip.textContent = HR_ROLE_LABELS[newRole] || newRole;
     if (typeof notifyUser === 'function') {
@@ -18536,6 +18830,7 @@ function toggleUserActive(uid) {
   if (!u) return;
   var newVal = u.isActive === false ? true : false;
   var adminUid = currentUser ? currentUser.uid : 'admin';
+  var wasStaffTier = ROLE_TIERS.STAFF.indexOf((u.role || '').toLowerCase()) > -1;
   db.collection('users').doc(uid).update({
     isActive:  newVal,
     status:    newVal ? 'active' : 'suspended',
@@ -18544,6 +18839,12 @@ function toggleUserActive(uid) {
   }).then(function() {
     u.isActive = newVal;
     logAudit(newVal ? 'user.activated' : 'user.suspended', 'users', uid, null, { isActive: newVal });
+    // Deactivating an internal-staff account creates a real offboarding
+    // checklist for the acting admin, instead of the exit being just a
+    // silent isActive flip.
+    if (!newVal && wasStaffTier) {
+      createChecklistTasks('offboarding', uid, u.displayName || u.email || uid, adminUid);
+    }
     var statusEl = document.getElementById('sp-status');
     if (statusEl) statusEl.innerHTML = newVal
       ? '<span style="color:var(--success)">Active</span>'
