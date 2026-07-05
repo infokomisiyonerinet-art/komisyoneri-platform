@@ -4133,16 +4133,20 @@ html,body{overscroll-behavior-x:none}
     </div>
     <!-- Sidebar -->
     <div>
-      <!-- AI Valuation -->
+      <!-- AI Valuation — computed live per property from comparable
+           district+type listings (see _updateAiValuation() inside
+           openPropDetail()). This used to be a static "118,500,000 RWF /
+           AI Score 92" shown identically on every property regardless of
+           its actual price, size, district, or type. -->
       <div class="ai-val">
-        <div class="ai-val-lbl" data-rw="AI Igaciro — KOMISIYONERI" data-en="AI Valuation — KOMISIYONERI">AI Igaciro — KOMISIYONERI</div>
-        <div class="ai-val-price">118,500,000 RWF</div>
-        <span class="delta d-up"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>+6.2% vs 12 months ago</span>
+        <div class="ai-val-lbl" data-rw="Igiciro cyo Kugereranya — KOMISIYONERI" data-en="Comparable Market Estimate — KOMISIYONERI">Igiciro cyo Kugereranya — KOMISIYONERI</div>
+        <div class="ai-val-price" id="det-ai-val-price">—</div>
+        <span class="delta" id="det-ai-val-delta" style="display:none"></span>
         <div class="ai-grid">
-          <div class="ai-g-item"><label data-rw="Agaciro/m²" data-en="Price/m²">Agaciro/m²</label><span>370K RWF</span></div>
-          <div class="ai-g-item"><label data-rw="ROI y'Ishoramari" data-en="Investment ROI">ROI</label><span style="color:var(--gold)">8.2%/yr</span></div>
-          <div class="ai-g-item"><label data-rw="Kodesha Yield" data-en="Kodesha Yield">Kodesha Yield</label><span>5.4%</span></div>
-          <div class="ai-g-item"><label data-rw="Score ya AI" data-en="AI Score">AI Score</label><span style="color:var(--gold)">92/100</span></div>
+          <div class="ai-g-item"><label data-rw="Agaciro/m²" data-en="Price/m²">Agaciro/m²</label><span id="det-ai-ppm2">—</span></div>
+          <div class="ai-g-item"><label data-rw="Impuzandengo y'Akarere/m²" data-en="Area Avg/m²">Impuzandengo y'Akarere/m²</label><span id="det-ai-comp-ppm2">—</span></div>
+          <div class="ai-g-item"><label data-rw="Ibigereranywa Bikoreshejwe" data-en="Comparables Used">Ibigereranywa Bikoreshejwe</label><span id="det-ai-comp-count">—</span></div>
+          <div class="ai-g-item"><label data-rw="Ukwizerwa kw'Amakuru" data-en="Data Confidence">Ukwizerwa kw'Amakuru</label><span id="det-ai-confidence">—</span></div>
         </div>
       </div>
       <!-- Agent Card — populated dynamically by openPropDetail() from the property's
@@ -4746,7 +4750,6 @@ html,body{overscroll-behavior-x:none}
       <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.4rem">
         <span data-rw="Dukoresha serivisi zikurikira zifite amakuru yawe:" data-en="We use the following services that may process your data:">Dukoresha serivisi zikurikira zifite amakuru yawe:</span><br><br>
         • <strong>Firebase (Google)</strong> — <span data-rw="imbuga yo kubika amakuru na konti" data-en="authentication and database hosting">imbuga yo kubika amakuru na konti</span><br>
-        • <strong>EmailJS</strong> — <span data-rw="kohereza email z'imenyesha" data-en="sending notification emails">kohereza email z'imenyesha</span><br>
         • <strong>Google Analytics</strong> — <span data-rw="isesengura ry'imikorere y'urubuga (amakuru atacyo buri wese)" data-en="anonymous site usage analytics">isesengura ry'imikorere y'urubuga (amakuru atavuga uwo ari we)</span><br>
         • <strong>Google Maps</strong> — <span data-rw="kwerekana aho imitungo iri" data-en="showing property locations">kwerekana aho imitungo iri</span>
       </p>
@@ -11867,18 +11870,6 @@ function submitBooking() {
   closeBooking();
   kmTrack('booking_request',{property_id:String(bk.propId||''),district:bk.district||'',date:bk.date||''});
   showToast('Gahunda yashyizweho! Agent azakuhamagara kuri '+phone.value+'. ✅');
-  if (bk.agentEmail) {
-    kmSendEmail(_ejsTmplBooking, {
-      to_email:     bk.agentEmail,
-      prop_title:   bk.propTitle  || '',
-      visitor_name: bk.name,
-      visitor_phone:bk.phone,
-      visit_date:   bk.date,
-      visit_time:   bk.time,
-      note:         bk.note,
-      booking_id:   bk.id
-    });
-  }
 }
 
 // === MESSAGE OWNER SYSTEM ===
@@ -13556,9 +13547,10 @@ function openPropDetail(propId) {
   (function _trackPropView(pid, isDemo) {
     if (!window._viewedProps) window._viewedProps = {};
     var vcEl = document.getElementById('det-view-count');
-    var aiBadge = document.getElementById('det-top-ai-badge');
     var tdBadge = document.getElementById('det-top-3d-badge');
-    if (aiBadge) aiBadge.style.display = prop.aiValued ? '' : 'none';
+    // "AI Valued" badge visibility is set inside _updateAiValuation() below,
+    // based on whether a real estimate was actually computable for this
+    // property — not the aiValued field, which nothing ever wrote to.
     if (tdBadge) tdBadge.style.display = prop.tour3dUrl ? '' : 'none';
 
     if (isDemo || typeof db === 'undefined') {
@@ -13793,6 +13785,87 @@ function openPropDetail(propId) {
         luEl.textContent = '—';
       }
     }
+
+    // AI Valuation panel — a real comparable-listings estimate, not a
+    // static number. Used to be an identical "118,500,000 RWF / AI Score
+    // 92" shown on every property regardless of its actual price, size,
+    // district, or type. Compares this property's price/m² against other
+    // approved listings of the same type in the same district — the same
+    // comparable-listings approach already used by loadPublicMarketAnalytics()
+    // and loadSimilarProperties(), just applied per-property instead of
+    // platform-wide.
+    (function _updateAiValuation(cp) {
+      var priceEl = document.getElementById('det-ai-val-price');
+      if (!priceEl) return;
+      var deltaEl     = document.getElementById('det-ai-val-delta');
+      var ppm2El      = document.getElementById('det-ai-ppm2');
+      var compPpm2El  = document.getElementById('det-ai-comp-ppm2');
+      var compCountEl = document.getElementById('det-ai-comp-count');
+      var confEl      = document.getElementById('det-ai-confidence');
+      var badgeEl     = document.getElementById('det-top-ai-badge');
+
+      var price = Number(cp.price) || 0;
+      var size  = Number(cp.size) || 0;
+
+      if (badgeEl) badgeEl.style.display = (price && size) ? '' : 'none';
+
+      if (!price || !size) {
+        priceEl.textContent = curLang === 'rw' ? 'Amakuru ntahagije' : 'Not enough data';
+        if (deltaEl) deltaEl.style.display = 'none';
+        if (ppm2El) ppm2El.textContent = '—';
+        if (compPpm2El) compPpm2El.textContent = '—';
+        if (compCountEl) compCountEl.textContent = '0';
+        if (confEl) confEl.textContent = '—';
+        return;
+      }
+
+      var thisPpm2 = price / size;
+      if (ppm2El) ppm2El.textContent = Math.round(thisPpm2).toLocaleString() + ' RWF';
+
+      var comps = getApprovedProps().filter(function(c) {
+        return String(c.id) !== String(cp.id) && c.district === cp.district && c.type === cp.type
+          && Number(c.price) > 0 && Number(c.size) > 0;
+      });
+      if (compCountEl) compCountEl.textContent = comps.length;
+
+      if (!comps.length) {
+        priceEl.textContent = curLang === 'rw' ? 'Nta bigereranywa bihari' : 'No comparables yet';
+        if (deltaEl) deltaEl.style.display = 'none';
+        if (compPpm2El) compPpm2El.textContent = '—';
+        if (confEl) confEl.textContent = curLang === 'rw' ? 'Hasi' : 'Low';
+        return;
+      }
+
+      var compPpm2 = comps.reduce(function(s, c) { return s + (c.price / c.size); }, 0) / comps.length;
+      if (compPpm2El) compPpm2El.textContent = Math.round(compPpm2).toLocaleString() + ' RWF';
+
+      var estimate = Math.round(compPpm2 * size);
+      priceEl.textContent = estimate.toLocaleString() + ' RWF';
+
+      var deltaPct = Math.round(((price - estimate) / estimate) * 1000) / 10;
+      if (deltaEl) {
+        deltaEl.style.display = '';
+        var isPremium = deltaPct > 0;
+        deltaEl.className = 'delta ' + (isPremium ? 'd-dn' : 'd-up');
+        var arrow = isPremium
+          ? '<svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>'
+          : '<svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>';
+        var label = curLang === 'rw'
+          ? (isPremium ? ' hejuru y\'igiciro cyo kugereranya' : ' munsi y\'igiciro cyo kugereranya')
+          : (isPremium ? ' above comparable estimate' : ' below comparable estimate');
+        deltaEl.innerHTML = arrow + '<span>' + (isPremium ? '+' : '-') + Math.abs(deltaPct) + '%' + label + '</span>';
+      }
+
+      if (confEl) {
+        var conf = comps.length >= 6 ? 'high' : comps.length >= 3 ? 'medium' : 'low';
+        var confLabels = {
+          high:   curLang === 'rw' ? 'Hejuru' : 'High',
+          medium: curLang === 'rw' ? 'Hagati' : 'Medium',
+          low:    curLang === 'rw' ? 'Hasi'   : 'Low'
+        };
+        confEl.textContent = confLabels[conf];
+      }
+    })(prop);
 
     // Agent identity — real lookup by the property's agentId; never claim "verified"
     // without checking the agent's actual role (set only after real admin approval).
@@ -14691,7 +14764,6 @@ function renderAdminPlatform() {
     group('💬 Communication',
       liveRow('WhatsApp Links', 'Property cards + detail page → admin number') +
       liveRow('Lead Capture', 'Zone auto-assignment with agent WhatsApp notify') +
-      liveRow('Email Notifications', 'EmailJS — leads, bookings, approvals') +
       liveRow('AI Chat', 'Claude-powered property assistant')
     ) +
 
@@ -14936,12 +15008,6 @@ function adminAgentApprove(idx) {
     renderAdminAgents();
     var a = agents[idx];
     if(a.phone) window.open('https://wa.me/'+a.phone.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent('Muraho '+a.name+'! KOMISIYONERI irashimishijwe kukemeza iyandikishe ryawe nka agent. Witeguye guhabwa leads. Urakoze!'), '_blank');
-    if(a.email) {
-      kmSendEmail(_ejsTmplApproval, {
-        to_email:   a.email,
-        agent_name: a.name || ''
-      });
-    }
   }
 }
 
@@ -15375,7 +15441,6 @@ window.__firebaseNetworkLog = [];
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <script>
   // ═══════════════════════════════════════════════════════
@@ -15454,19 +15519,12 @@ window.__firebaseNetworkLog = [];
     try { firebase.analytics(); } catch(e) {}
   });
 
-  // ── EmailJS config — replace placeholders in your EmailJS dashboard ──
-  var _ejsKey          = 'YOUR_EMAILJS_PUBLIC_KEY';
-  var _ejsSvc          = 'service_komisiyoneri';
-  var _ejsTmplLead     = 'tmpl_lead';
-  var _ejsTmplApproval = 'tmpl_approval';
-  var _ejsTmplBooking  = 'tmpl_booking';
-
-  function kmSendEmail(templateId, params) {
-    if (!_ejsKey || _ejsKey === 'YOUR_EMAILJS_PUBLIC_KEY') return;
-    if (typeof emailjs === 'undefined') return;
-    emailjs.send(_ejsSvc, templateId, params, _ejsKey)
-      .catch(function(err){ console.warn('[EmailJS]', err); });
-  }
+  // Email notifications (EmailJS) were removed here — the integration was
+  // wired to real trigger points (booking, agent approval) but shipped
+  // with a placeholder public key that was never replaced with a real
+  // one, so every send silently no-opped. Rather than leave code that
+  // looks functional but isn't, it's removed until a real EmailJS (or
+  // other provider) account is configured.
 </script>
 
 <script>
