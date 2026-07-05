@@ -9556,6 +9556,37 @@ var PropImageUploader = (function() {
   var containerEl = null;
   var seq = 0;
 
+  // Correlates an upload failure/timeout against the raw firebasestorage.googleapis.com
+  // traffic captured by the network interceptor (installed near the top of the
+  // Firebase bootstrap block, before the Storage SDK loads). A watchdog firing
+  // with NO matching network entry at all means the request never reached the
+  // network (e.g. blocked before it could even start); an entry with status 0
+  // means the browser blocked/dropped the request after sending it (the
+  // signature of a CORS failure); an entry with a real HTTP status (403, etc.)
+  // means Storage Security Rules or another server-side check rejected it.
+  // sinceTimestamp must be captured at the moment ref.put() was called, not
+  // at failure time — a timeout can fire up to UPLOAD_TIMEOUT_MS (45s) after
+  // the network request was made and logged, so a short trailing window off
+  // "now" would miss it entirely.
+  function _dumpStorageNetworkEvidence(refFullPath, sinceTimestamp) {
+    setTimeout(function() {
+      var matching = (window.__firebaseNetworkLog || []).filter(function(e) {
+        return e.loggedAt >= sinceTimestamp && e.url && e.url.indexOf('firebasestorage.googleapis.com') > -1;
+      });
+      if (matching.length) {
+        console.error('[Upload] Correlated raw network activity (firebasestorage.googleapis.com) for ' + refFullPath + ':');
+        matching.forEach(function(e) {
+          console.error('[Upload]  → ' + e.method + ' ' + e.url);
+          console.error('[Upload]    HTTP status   =', e.status, (e.status === 0 ? '(0 = browser blocked/dropped the request — check CORS)' : ''));
+          console.error('[Upload]    response body =', e.responseBody);
+          console.error('[Upload]    transport error =', e.transportError || '(none)');
+        });
+      } else {
+        console.error('[Upload] No firebasestorage.googleapis.com network activity found for ' + refFullPath + ' since the upload started — the request never reached the network layer at all (client-side hang, e.g. in compression or before ref.put() was even called).');
+      }
+    }, 150);
+  }
+
   function uid() { return 'pimg_' + (++seq) + '_' + Date.now(); }
   function t(rw, en) { return (typeof curLang !== 'undefined' && curLang === 'rw') ? rw : en; }
 
@@ -9796,6 +9827,7 @@ var PropImageUploader = (function() {
           }
           var safeName = (finalFile.name || 'photo.jpg').replace(/[^a-zA-Z0-9_.-]/g, '_');
           var ref = storage.ref(pathPrefix + '/' + Date.now() + '_' + idx + '_' + safeName);
+          var uploadStartedAt = Date.now();
           var task = ref.put(finalFile);
           var settled = false;
           // Guard against a Storage upload that never fires ANY
@@ -9807,6 +9839,7 @@ var PropImageUploader = (function() {
             settled = true;
             try { task.cancel(); } catch(e) {}
             console.error('[Upload] uploadAll: task for ' + ref.fullPath + ' produced no state_changed event within ' + UPLOAD_TIMEOUT_MS + 'ms — treating as failed');
+            _dumpStorageNetworkEvidence(ref.fullPath, uploadStartedAt);
             it.status = 'error';
             it.errorCode = 'timeout';
             render();
@@ -9822,6 +9855,7 @@ var PropImageUploader = (function() {
             settled = true;
             clearTimeout(watchdog);
             console.error('[Upload] uploadAll: task FAILED — code:', err.code || '', 'message:', err.message);
+            _dumpStorageNetworkEvidence(ref.fullPath, uploadStartedAt);
             it.status = 'error';
             it.errorCode = err.code || 'unknown-error';
             render();
@@ -14697,7 +14731,11 @@ window.__firebaseNetworkLog = [];
 (function() {
   var MAX_LOG = 30;
   function isTrackedUrl(url) {
-    return typeof url === 'string' && (url.indexOf('identitytoolkit.googleapis.com') > -1 || url.indexOf('securetoken.googleapis.com') > -1);
+    return typeof url === 'string' && (
+      url.indexOf('identitytoolkit.googleapis.com') > -1 ||
+      url.indexOf('securetoken.googleapis.com') > -1 ||
+      url.indexOf('firebasestorage.googleapis.com') > -1
+    );
   }
   function redactBody(bodyStr) {
     if (typeof bodyStr !== 'string') return null;
@@ -14711,8 +14749,13 @@ window.__firebaseNetworkLog = [];
       return bodyStr;
     }
   }
+  function truncate(str) {
+    if (typeof str !== 'string' || str.length <= 4000) return str;
+    return str.slice(0, 4000) + '... (truncated, ' + str.length + ' chars total)';
+  }
   function record(entry) {
     entry.loggedAt = Date.now();
+    entry.responseBody = truncate(entry.responseBody);
     window.__firebaseNetworkLog.push(entry);
     if (window.__firebaseNetworkLog.length > MAX_LOG) window.__firebaseNetworkLog.shift();
     console.error('[FIREBASE-NET] ' + entry.method + ' ' + entry.url);
