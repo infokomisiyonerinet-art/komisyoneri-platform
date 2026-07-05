@@ -23618,36 +23618,14 @@ function loadCRM() {
     renderCrmLeads();
     updateCrmStats();
     updateCrmSidebarBadge();
-    _checkLeadFollowupNotifications(_crmLeads);
+    // Follow-up reminders no longer fire from here — they only ever ran
+    // when someone happened to have the CRM page open, over whichever
+    // leads that viewer's own query returned. A nightlyFollowupReminderSweep
+    // Cloud Function (functions/index.js) now checks every active lead
+    // once a day regardless of whether any browser tab is open.
   }).catch(function(err) {
     console.warn('[CRM] Firestore query failed, using fallback:', err);
     _loadCrmFallback();
-  });
-}
-
-function _checkLeadFollowupNotifications(leads) {
-  if (!currentUser || typeof notifyUser !== 'function') return;
-  var isAdmin = ['admin','super_admin','staff','ceo'].indexOf(currentUser.role) > -1;
-  var today = new Date(); today.setHours(0,0,0,0);
-  var todayKey = today.toISOString().slice(0,10);
-  leads.forEach(function(l) {
-    if (!l.nextFollowUp) return;
-    if (l.pipelineStage === 'closed_won' || l.pipelineStage === 'closed_lost') return;
-    var target = l.agentId || '';
-    if (!target) return;
-    if (!isAdmin && target !== currentUser.uid) return;
-    var fuDate = l.nextFollowUp.toDate ? l.nextFollowUp.toDate() : new Date(l.nextFollowUp);
-    fuDate.setHours(0,0,0,0);
-    var isDueToday = fuDate.getTime() === today.getTime();
-    var isOverdue  = fuDate < today;
-    if (!isDueToday && !isOverdue) return;
-    var notifKey = 'km_funotif_' + (l._docId || l.id) + '_' + todayKey;
-    try { if (localStorage.getItem(notifKey)) return; localStorage.setItem(notifKey, '1'); } catch(e) {}
-    var clientN = l.clientName || 'Client';
-    var title   = isOverdue ? 'Follow-up Overdue' : 'Follow-up Due Today';
-    var body    = (curLang === 'rw' ? 'Subira kuri ' : 'Follow up with ') + clientN
-      + (isOverdue ? (curLang === 'rw' ? ' — Yarengeje!' : ' — Overdue!') : (curLang === 'rw' ? ' uyu munsi.' : ' today.'));
-    notifyUser(target, title, body, 'lead_followup', 'leads', l._docId || l.id || '');
   });
 }
 
