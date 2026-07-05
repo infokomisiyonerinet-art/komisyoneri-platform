@@ -19741,7 +19741,13 @@ function loadCustDocs(uid) {
   db.collection('documents').where('clientId','==',uid).where('isActive','==',true)
     .orderBy('createdAt','desc').limit(50)
     .get().then(function(snap) {
-      _custDocs = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+      // accessRoles lets staff file a document under a client's clientId
+      // (e.g. an internal verification note) without it appearing in that
+      // client's own portal — only show docs the uploader marked 'client'-
+      // visible. Docs with no accessRoles field at all (pre-dating this
+      // check, or the contract-generator path) default to visible.
+      _custDocs = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+        .filter(function(d) { return !d.accessRoles || d.accessRoles.indexOf('client') > -1; });
       if(g('cst-docs')) g('cst-docs').textContent = _custDocs.length;
       if(_custTab === 'docs') renderCustDocs();
     }).catch(function(e) { console.error('loadCustDocs', e); });
@@ -21280,7 +21286,16 @@ function loadDocuments() {
 
   query.get().then(function(snap) {
     _documents = [];
-    snap.forEach(function(doc) { var d = doc.data(); d._docId = doc.id; _documents.push(d); });
+    snap.forEach(function(doc) {
+      var d = doc.data(); d._docId = doc.id;
+      // Staff/admin still see every document regardless of accessRoles —
+      // the field scopes what a client sees in their own document list,
+      // not what staff can administer. Docs with no accessRoles field at
+      // all default to visible, matching the pre-accessRoles behavior.
+      if (isAdmin || !d.accessRoles || d.accessRoles.indexOf('client') > -1) {
+        _documents.push(d);
+      }
+    });
     renderDocumentList();
     updateDocumentStats();
   }).catch(function(err) {
