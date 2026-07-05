@@ -424,3 +424,118 @@ exports.nightlyFollowupReminderSweep = onSchedule({
 
   logger.info('Nightly follow-up sweep complete', { checked: snap.size, sent });
 });
+
+/**
+ * Lead auto-assignment — replaces manual triage with a district- and
+ * workload-aware pick, and replaces the old naive fallback that lived in
+ * index.html's submitLead(): if the client-side (localStorage-only,
+ * disconnected-from-Firestore) zone round-robin found no match, it just
+ * grabbed "the first of up to 5 active agents" with no district or
+ * workload logic at all. That client-side fallback has been removed in
+ * the same change that adds this trigger, since a race between the two
+ * writing agentId would otherwise be possible.
+ *
+ * Fires on every new lead, from all five places index.html creates one.
+ * Skips leads that already have an agentId — several of those creation
+ * paths inherit agentId from the property being enquired about, and the
+ * manual "Add Lead" form lets staff pick an agent explicitly; both of
+ * those are intentional assignments this trigger must not override.
+ *
+ * Agents have no district/zone field of their own in Firestore — the only
+ * real territory model in this codebase is at the branch level
+ * (branches.district / branches.districtsCovered, with agents linked via
+ * users.branchId). So district matching here is: find active branches
+ * covering the lead's district, take the active agents linked to those
+ * branches, and pick the one with the fewest currently-active leads
+ * (leads.where(agentId==X, isActive==true).count(), the same signal
+ * already used for agent-performance leaderboards elsewhere in the app).
+ * If the lead has no district, or no branch covers it, or no agent is
+ * linked to a matching branch, this falls back to picking the
+ * lowest-workload agent company-wide — never leaves a lead unassigned
+ * just because the district lookup didn't resolve to anyone.
+ *
+ * Deliberately reads all active agents (and, when needed, all active
+ * branches) in full rather than adding new composite indexes: both
+ * collections are small (a company's staff roster and physical office
+ * list), and district values are free-text elsewhere in the app, so
+ * matching them in-memory with a normalized (trim + lowercase) compare
+ * avoids exact-match casing bugs a Firestore `where` clause would hit.
+ */
+exports.onLeadCreated = onDocumentCreated({ document: 'leads/{leadId}', region: REGION }, async (event) => {
+  const data = event.data.data() || {};
+  if (data.agentId) return; // already assigned — inherited from a property, or picked manually
+
+  const db = getFirestore();
+  const leadId = event.params.leadId;
+  const district = (data.district || data.zone || '').trim();
+
+  const agentsSnap = await db.collection('users')
+    .where('role', '==', 'agent')
+    .where('isActive', '==', true)
+    .get();
+  const activeAgents = agentsSnap.docs.filter((d) => d.data().status === 'active');
+  if (activeAgents.length === 0) {
+    logger.warn('No active agents available to auto-assign lead', { leadId });
+    return;
+  }
+
+  let candidates = activeAgents;
+  let method = 'workload_only';
+
+  if (district) {
+    const norm = (s) => (s || '').trim().toLowerCase();
+    const branchesSnap = await db.collection('branches').where('isActive', '==', true).get();
+    const matchingBranchIds = new Set();
+    branchesSnap.forEach((b) => {
+      const bd = b.data();
+      const covered = Array.isArray(bd.districtsCovered) ? bd.districtsCovered : [];
+      if (norm(bd.district) === norm(district) || covered.some((c) => norm(c) === norm(district))) {
+        matchingBranchIds.add(b.id);
+      }
+    });
+    if (matchingBranchIds.size > 0) {
+      const districtAgents = activeAgents.filter((a) => matchingBranchIds.has(a.data().branchId));
+      if (districtAgents.length > 0) {
+        candidates = districtAgents;
+        method = 'district_workload';
+      }
+    }
+  }
+
+  const withWorkload = await Promise.all(candidates.map(async (a) => {
+    const countSnap = await db.collection('leads')
+      .where('agentId', '==', a.id)
+      .where('isActive', '==', true)
+      .count().get();
+    return { id: a.id, data: a.data(), leadCount: countSnap.data().count };
+  }));
+  withWorkload.sort((x, y) => x.leadCount - y.leadCount);
+  const chosen = withWorkload[0];
+  const agentName = chosen.data.displayName || chosen.data.email || '';
+
+  // Re-check inside a transaction: a manual assignment or a duplicate/
+  // retried trigger invocation could have set agentId in between the
+  // reads above and this write.
+  const leadRef = db.collection('leads').doc(leadId);
+  const didAssign = await db.runTransaction(async (tx) => {
+    const fresh = await tx.get(leadRef);
+    if (!fresh.exists || fresh.data().agentId) return false;
+    tx.update(leadRef, {
+      agentId: chosen.id,
+      agentName: agentName,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: 'system'
+    });
+    return true;
+  });
+  if (!didAssign) return;
+
+  await notifyUser(db, chosen.id, 'New Lead Assigned',
+    'You have a new lead: ' + (data.clientName || 'Client') + (district ? ' — ' + district : ''),
+    'lead_assigned', 'leads', leadId, 'system');
+
+  await logAudit(db, 'lead.auto_assigned', 'leads', leadId,
+    { agentId: '' }, { agentId: chosen.id, agentName: agentName, method: method }, 'system');
+
+  logger.info('Lead auto-assigned', { leadId, agentId: chosen.id, method, candidateCount: candidates.length });
+});
