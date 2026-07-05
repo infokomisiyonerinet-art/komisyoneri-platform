@@ -111,12 +111,20 @@ service cloud.firestore {
     }
 
     match /documents/{id} {
+      // accessRoles (checked at upload, e.g. by submitDocumentUpload() in
+      // index.html) lets staff file a document under a client's clientId
+      // without it being visible in that client's own portal — a client
+      // may only read/update their own document if 'client' is one of the
+      // marked accessRoles. Docs with no accessRoles field at all default
+      // to visible, matching this rule's own pre-accessRoles behavior.
       allow read:   if isAdminOrStaff()
-                    || (isAuth() && resource.data.clientId == request.auth.uid)
+                    || (isAuth() && resource.data.clientId == request.auth.uid
+                        && 'client' in resource.data.get('accessRoles', ['client']))
                     || (isAuth() && resource.data.agentId  == request.auth.uid);
       allow create: if isAuth() && hasStandardFields();
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.clientId == request.auth.uid)
+                    || (isAuth() && resource.data.clientId == request.auth.uid
+                        && 'client' in resource.data.get('accessRoles', ['client']))
                     || (isAuth() && resource.data.agentId  == request.auth.uid);
       allow delete: if false;
     }
