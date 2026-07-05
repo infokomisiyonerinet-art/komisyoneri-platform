@@ -25,8 +25,14 @@ service cloud.firestore {
       return isAuth() && getRole() != null && getRole().lower() == r.lower();
     }
     function isAdminOrStaff() {
+      // Includes 'ceo': the client UI has always treated ceo as
+      // admin-equivalent in ~20 places (approve/reject actions, HR admin
+      // controls, exec/BI dashboards), but this rule previously didn't —
+      // so a ceo account clicking those buttons got a silent write
+      // rejection. Aligning the two: a CEO shouldn't have less write
+      // capability than regular staff.
       return isAuth() && getRole() != null &&
-        getRole().lower() in ['admin', 'super_admin', 'staff'];
+        getRole().lower() in ['admin', 'super_admin', 'staff', 'ceo'];
     }
     function isInternalTeam() {
       return isAuth() && getRole() != null &&
