@@ -201,7 +201,7 @@ if(typeof Sentry!=='undefined'&&_sentryDsn.indexOf('YOUR_')!==0){Sentry.init({ds
   /* Semantic states */
   --error:#dc2626;    --error-bg:#fee2e2;  --error-dark:#991b1b;
   --warn:#f59e0b;     --warn-bg:#fffbeb;   --warn-dark:#92400e;
-  --success-bg:#f0fdf4;
+  --success:#16A34A;  --success-bg:#f0fdf4;
   /* Third-party */
   --whatsapp:#25D366; --whatsapp-hover:#1da851;
   /* Radius scale */
@@ -2276,6 +2276,523 @@ html,body{overscroll-behavior-x:none}
 @media(max-width:480px){
   .img-uploader-grid{grid-template-columns:repeat(3,1fr)}
   .img-uploader-drop{padding:1.1rem .8rem}
+}
+
+/* ══════════════════════════════════════════════════════════════
+   OPS SUITE — shared design system for CRM/Deals/Commissions/
+   Verification/Documents/Financing/Partners/Office/HR/Accounting/
+   Exec/BI/Branches. These pages previously had zero CSS despite
+   fully-built markup/JS — every class below was referenced but
+   undefined until now.
+══════════════════════════════════════════════════════════════ */
+
+/* ── form field wrapper (used in nearly every modal across the suite) ── */
+.vr-field{display:flex;flex-direction:column;gap:.32rem;margin-bottom:.15rem}
+.vr-field label{font-size:.69rem;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.vr-field input,.vr-field select,.vr-field textarea{border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.55rem .7rem;font-family:inherit;font-size:.85rem;color:var(--dark);background:#fff;transition:var(--tr)}
+.vr-field input:focus,.vr-field select:focus,.vr-field textarea:focus{outline:none;border-color:var(--blue)}
+
+/* ── tab bar (Office/HR/Accounting/Exec/BI/Branches) ── */
+.off-tabs-nav{display:flex;gap:.3rem;overflow-x:auto;border-bottom:2px solid var(--border);margin-bottom:1rem;padding-bottom:0}
+.off-tab{background:transparent;border:none;padding:.6rem 1rem;font-size:.8rem;font-weight:700;color:var(--muted);white-space:nowrap;border-bottom:2.5px solid transparent;margin-bottom:-2px;transition:var(--tr)}
+.off-tab:hover{color:var(--navy)}
+.off-tab.active{color:var(--navy);border-bottom-color:var(--navy)}
+.off-pane{padding-top:.2rem}
+.off-pane-hdr{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem}
+.off-pane-filters{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.off-filter,.off-search{border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.5rem .7rem;font-family:inherit;font-size:.8rem;color:var(--dark);background:#fff}
+.off-search{flex:1;min-width:160px}
+.off-filter:focus,.off-search:focus{outline:none;border-color:var(--blue)}
+
+/* ── loading / empty states (used everywhere) ── */
+.off-loading,.exec-loading{padding:1.5rem;text-align:center;color:var(--muted);font-size:.82rem;font-style:italic}
+.off-empty,.exec-empty,.crm-empty{padding:2.2rem 1rem;text-align:center;color:var(--muted)}
+.crm-empty-icon{font-size:2rem;margin-bottom:.4rem;opacity:.7}
+.crm-empty-title{font-size:.88rem;font-weight:700;color:var(--dark)}
+.crm-empty-sub{font-size:.76rem;color:var(--muted);margin-top:.25rem}
+
+/* ── generic status chip (Office tasks/leave) ── */
+.off-status-chip,.off-priority-badge{display:inline-block;padding:.2rem .6rem;border-radius:var(--r-full);color:#fff;font-size:.68rem;font-weight:700;text-transform:capitalize;white-space:nowrap}
+
+/* ── key/value summary card (Financing/HR/Office detail modals) ── */
+.fin-summary-card{background:var(--light);border-radius:var(--r-sm);padding:.85rem;display:flex;flex-direction:column;gap:.5rem;font-size:.83rem}
+.fin-summary-row{display:flex;justify-content:space-between;gap:.6rem}
+.fin-summary-row span:first-child{color:var(--muted)}
+.fin-summary-row strong{color:var(--dark);font-weight:700;text-align:right}
+
+/* ── panel wrapper (Exec/BI/Branches primary container) ── */
+.exec-panel{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);box-shadow:var(--sh);padding:1rem;margin-bottom:1rem}
+.exec-panel-hdr{font-size:.86rem;font-weight:700;color:var(--navy);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.exec-two-col,.bi-two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:820px){.exec-two-col,.bi-two-col{grid-template-columns:1fr}}
+.exec-scroll{overflow-x:auto}
+
+/* ── KPI/summary strip family — same visual language across all 5 variants ── */
+.exec-kpi-strip,.bi-summary-strip,.br-kpi-strip,.crm-stats,.hr-stats,.ac-stats,.off-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.7rem;margin-bottom:1rem}
+.exec-kpi-card,.bi-sum-card,.br-kpi,.crm-stat,.hr-stat-card,.ac-stat-card,.off-stat-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.75rem .9rem;display:flex;flex-direction:column;gap:.2rem;border-top:3px solid var(--navy)}
+.exec-kpi-val,.bi-sum-val,.br-kpi-val,.crm-stat-v,.hr-stat-val,.ac-stat-val,.off-stat-val{font-size:1.35rem;font-weight:800;color:var(--dark);line-height:1.1}
+.exec-kpi-lbl,.bi-sum-lbl,.br-kpi-lbl,.crm-stat-l,.hr-stat-lbl,.ac-stat-lbl,.off-stat-lbl{font-size:.7rem;color:var(--muted);font-weight:600}
+/* per-instance accent variants */
+.exec-kpi-rev,.ac-stat-card.ac-revenue,.ac-rep-kpi.ac-revenue{border-top-color:var(--green)}
+.exec-kpi-deals,.exec-kpi-comm{border-top-color:var(--gold)}
+.exec-kpi-props,.exec-kpi-leads{border-top-color:var(--blue)}
+.exec-kpi-agents{border-top-color:#7C3AED}
+.ac-stat-card.ac-outstanding,.ac-rep-kpi.ac-expenses-kpi,.ac-stat-card.ac-expenses{border-top-color:var(--warn)}
+.ac-stat-card.ac-net{border-top-color:var(--navy)}
+.ac-rep-kpi.ac-net-neg{border-top-color:var(--error)}
+.ac-rep-kpi.ac-net-neg .ac-rep-kpi-val{color:var(--error)}
+.ac-rep-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.7rem;margin-bottom:1rem}
+.ac-rep-kpi{background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.75rem .9rem;display:flex;flex-direction:column;gap:.2rem;border-top:3px solid var(--navy)}
+.ac-rep-kpi-val{font-size:1.35rem;font-weight:800;color:var(--dark)}
+.ac-rep-kpi-lbl{font-size:.7rem;color:var(--muted);font-weight:600}
+
+/* ── horizontal bar chart (the universal chart primitive — ~8 reuse sites) ── */
+.bi-hbar-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.55rem}
+.bi-hbar-lbl{flex:0 0 auto;min-width:100px;max-width:140px;font-size:.78rem;color:var(--dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bi-hbar-wrap{flex:1;height:14px;background:var(--light);border-radius:var(--r-full);overflow:hidden}
+.bi-hbar-fill{height:100%;border-radius:inherit;transition:width .4s ease}
+.bi-hbar-navy{background:var(--navy)}
+.bi-hbar-gold{background:var(--gold)}
+.bi-hbar-blue{background:var(--blue)}
+.bi-hbar-val{flex:0 0 auto;min-width:40px;text-align:right;font-size:.78rem;font-weight:700;color:var(--dark)}
+
+/* ── vertical monthly bar chart (Exec revenue / BI listings+leads / Accounting) ── */
+.ac-chart-wrap{margin-bottom:1rem}
+.ac-chart-title{font-size:.82rem;font-weight:700;color:var(--navy);margin-bottom:.6rem}
+.ac-bars{display:flex;align-items:flex-end;gap:.3rem;height:120px}
+.ac-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:.35rem;height:100%;justify-content:flex-end}
+.ac-bar-pair{display:flex;align-items:flex-end;gap:2px}
+.ac-bar{width:10px;border-radius:3px 3px 0 0;background:var(--navy);transition:height .3s ease}
+.ac-bar-rev{background:var(--navy)}
+.ac-bar-exp{background:var(--gold)}
+.ac-bar-lbl{font-size:.62rem;color:var(--muted);font-weight:600}
+.ac-chart-legend{display:flex;align-items:center;gap:.3rem;margin-top:.6rem;font-size:.72rem;color:var(--muted)}
+.ac-leg-rev,.ac-leg-exp{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.ac-leg-rev{background:var(--navy)}
+.ac-leg-exp{background:var(--gold)}
+
+/* ── data tables (Exec/BI benchmark, targets, price, invoice line items) ── */
+.exec-perf-table,.bi-price-table,.bi-targets-table,.ac-li-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.exec-perf-table th,.bi-price-table th,.bi-targets-table th,.ac-li-table th{text-align:left;background:var(--light);color:var(--muted);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:.55rem .7rem;border-bottom:1px solid var(--border)}
+.exec-perf-table td,.bi-price-table td,.bi-targets-table td,.ac-li-table td{padding:.55rem .7rem;border-bottom:1px solid var(--border);color:var(--dark)}
+.exec-perf-table tr:last-child td,.bi-price-table tr:last-child td,.bi-targets-table tr:last-child td,.ac-li-table tr:last-child td{border-bottom:none}
+.bi-pct-badge{font-weight:700;padding:.1rem .5rem;border-radius:var(--r-full);background:rgba(0,0,0,.04)}
+
+/* ── chip / pill family (statuses, types, roles) ── */
+.comm-status-badge,.verif-type-chip,.fin-loan-type-chip,.fin-status-badge,.partner-type-chip,.hr-role-chip,.br-status-chip,.br-dist-chip,.crm-stage-badge,.deal-badge,.crm-days-chip,.hr-verified-chip{display:inline-flex;align-items:center;gap:.25rem;padding:.2rem .6rem;border-radius:var(--r-full);font-size:.7rem;font-weight:700;white-space:nowrap}
+.comm-status-badge,.fin-status-badge{border:1px solid transparent}
+.verif-type-chip,.fin-loan-type-chip,.partner-type-chip{background:var(--light);color:var(--navy)}
+.hr-role-chip{background:var(--light);color:var(--muted);text-transform:capitalize}
+.hr-verified-chip{background:var(--success-bg);color:var(--success)}
+.br-dist-chip{background:var(--light);color:var(--muted);font-size:.65rem;padding:.15rem .5rem}
+.br-dist-chip-lg{font-size:.75rem;padding:.25rem .7rem}
+.crm-stage-badge,.deal-badge{color:#fff}
+.crm-days-chip{background:var(--light);color:var(--muted);font-size:.62rem;padding:.1rem .4rem}
+.crm-days-chip.overdue{background:var(--error-bg);color:var(--error)}
+.partner-badge{display:inline-block;padding:.2rem .6rem;border-radius:var(--r-full);font-size:.68rem;font-weight:700}
+.partner-badge.verified{background:var(--success-bg);color:var(--success)}
+.partner-badge.pending{background:var(--warn-bg);color:var(--warn-dark)}
+
+/* ── quick action buttons (Deals/Commissions/Verification cards) ── */
+.crm-act-btn{display:inline-flex;align-items:center;gap:.25rem;padding:.32rem .65rem;border-radius:var(--r-sm);font-size:.7rem;font-weight:700;background:var(--light);color:var(--navy);border:none}
+.crm-act-btn:hover{background:var(--border)}
+.crm-act-btn-call{background:rgba(22,163,74,.1);color:var(--success)}
+.crm-act-btn-wa{background:rgba(37,211,102,.12);color:#1da851}
+.crm-card-actions{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border)}
+
+/* ── progress stepper (Verification/Financing pipeline trackers) ── */
+.verif-steps,.fin-stepper{display:flex;align-items:flex-start;margin-bottom:1rem}
+.verif-step,.fin-step{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;text-align:center}
+.verif-step-dot,.fin-step-dot{width:26px;height:26px;border-radius:50%;background:#fff;border:2.5px solid var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;z-index:1}
+.verif-step.done .verif-step-dot,.fin-step.done .fin-step-dot{background:var(--success);border-color:var(--success);color:#fff}
+.verif-step.current .verif-step-dot,.fin-step.active .fin-step-dot{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 0 0 4px rgba(13,59,140,.15)}
+.verif-step-lbl,.fin-step-lbl{font-size:.62rem;color:var(--muted);margin-top:.35rem;text-transform:capitalize}
+.verif-step.done .verif-step-lbl,.verif-step.current .verif-step-lbl,.fin-step.done .fin-step-lbl,.fin-step.active .fin-step-lbl{color:var(--dark);font-weight:700}
+.verif-step-line,.fin-step-line{position:absolute;top:13px;left:50%;width:100%;height:2px;background:var(--border);z-index:0}
+.verif-step.done + .verif-step-line,.fin-step.done + .fin-step-line{background:var(--success)}
+
+/* ── progress bars / amortization bars (Deals milestones, Financing calc) ── */
+.deal-progress-wrap{display:flex;align-items:center;gap:.5rem;margin-top:.5rem}
+.deal-progress-track{flex:1;height:6px;background:var(--light);border-radius:var(--r-full);overflow:hidden}
+.deal-progress-fill{height:100%;background:var(--green);border-radius:inherit;transition:width .3s ease}
+.deal-progress-label{font-size:.68rem;color:var(--muted);white-space:nowrap}
+.calc-amort-bar{display:flex;height:14px;border-radius:var(--r-full);overflow:hidden;background:var(--light)}
+.calc-amort-principal{background:var(--navy)}
+.calc-amort-interest{background:var(--gold)}
+
+/* ── avatars ── */
+.partner-avatar,.hr-staff-avatar,.hr-profile-avatar{border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0}
+.partner-avatar,.hr-staff-avatar{width:42px;height:42px;font-size:1rem}
+.hr-profile-avatar{width:56px;height:56px;font-size:1.3rem}
+
+/* ── star ratings ── */
+.partner-stars,.partner-stars-sm{display:inline-flex;align-items:center;gap:1px;color:var(--border)}
+.partner-stars{font-size:.95rem}
+.partner-stars-sm{font-size:.75rem}
+.star{color:var(--border)}
+.star.filled{color:var(--gold)}
+.star.half{color:var(--gold);opacity:.5}
+.star.empty{color:var(--border)}
+.rp-star.active{opacity:1!important}
+
+/* ══════════════════════════════════════════════════════════════
+   CRM / DEALS / COMMISSIONS / VERIFICATION
+══════════════════════════════════════════════════════════════ */
+.crm-wrap{padding:1.4rem 4% 3rem;max-width:1240px;margin:0 auto}
+.crm-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:1rem}
+.crm-view-toggle{display:inline-flex;border:1.5px solid var(--border);border-radius:var(--r-sm);overflow:hidden}
+.crm-vbtn{background:#fff;border:none;padding:.45rem .9rem;font-size:.76rem;font-weight:700;color:var(--muted)}
+.crm-vbtn.active{background:var(--navy);color:#fff}
+.crm-filters{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.9rem}
+.crm-filters select,.crm-filters input{border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.5rem .7rem;font-family:inherit;font-size:.8rem}
+.crm-filters input{flex:1;min-width:160px}
+.crm-list{display:flex;flex-direction:column;gap:.6rem}
+.crm-priority-filters{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.7rem}
+.crm-pf-label{font-size:.72rem;font-weight:700;color:var(--muted)}
+.crm-pchip{background:var(--light);border:1.5px solid transparent;border-radius:var(--r-full);padding:.28rem .7rem;font-size:.72rem;font-weight:700;color:var(--muted)}
+.crm-pchip.active,.crm-pchip-all.active{background:var(--navy);color:#fff}
+.crm-pchip-hot.active{background:var(--error);color:#fff}
+.crm-pchip-warm.active{background:var(--warn);color:#fff}
+.crm-pchip-cold.active{background:var(--blue);color:#fff}
+
+/* card family: crm-card / deal-card / verif-card / doc-card / fin-card */
+.crm-card,.deal-card,.verif-card,.doc-card,.fin-card{background:#fff;border:1.5px solid var(--border);border-left:4px solid var(--navy);border-radius:var(--r-sm);padding:.85rem 1rem;box-shadow:var(--sh-sm);cursor:pointer;transition:var(--tr)}
+.crm-card:hover,.deal-card:hover,.verif-card:hover,.doc-card:hover,.fin-card:hover{box-shadow:var(--sh)}
+.crm-card.crm-overdue,.crm-card.crm-due-today,.deal-card.crm-overdue{border-left-color:var(--error)}
+.crm-card-header,.deal-card-header,.verif-card-header,.doc-card-header,.fin-card-head{display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap}
+.crm-card-name,.deal-card-title,.doc-card-name,.fin-card-name{font-weight:700;color:var(--dark);font-size:.9rem;display:flex;align-items:center;gap:.4rem}
+.crm-card-meta,.deal-card-meta,.fin-card-body{display:flex;gap:.9rem;flex-wrap:wrap;font-size:.75rem;color:var(--muted);margin-top:.4rem}
+.deal-price{font-size:1.1rem;font-weight:800;color:var(--navy);margin-top:.3rem}
+.crm-days-chip{margin-left:.4rem}
+
+/* kanban board */
+.crm-kanban{display:flex;gap:.8rem;overflow-x:auto;padding-bottom:.6rem}
+.crm-col{min-width:220px;background:var(--light);border-radius:var(--r-sm);padding:.6rem}
+.crm-col-hdr{display:flex;justify-content:space-between;align-items:center;padding-bottom:.5rem;margin-bottom:.5rem;border-top:3px solid var(--navy);padding-top:.4rem}
+.crm-col-name{font-size:.76rem;font-weight:700;color:var(--dark)}
+.crm-col-count{font-size:.68rem;color:var(--muted);background:#fff;border-radius:var(--r-full);padding:.1rem .5rem}
+.crm-kcard{background:#fff;border-radius:var(--r-sm);padding:.6rem;margin-bottom:.5rem;box-shadow:var(--sh-sm);cursor:pointer}
+.crm-kcard-name{font-size:.8rem;font-weight:700}
+.crm-kcard-meta{font-size:.7rem;color:var(--muted);margin-top:.25rem}
+.crm-kcard-footer{margin-top:.4rem;display:flex;justify-content:space-between;align-items:center}
+
+/* deal stat variants (legacy naming, same visual as crm-stat) */
+.deal-stat-total,.deal-stat-active,.deal-stat-won,.deal-stat-value{background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.75rem .9rem}
+
+/* commission breakdown / offer timeline / milestones */
+.comm-amount-block{background:var(--light);border-radius:var(--r-sm);padding:.85rem;display:flex;flex-direction:column;gap:.5rem}
+.comm-amount-row{display:flex;justify-content:space-between;font-size:.82rem;color:var(--dark)}
+.comm-amount-row.comm-total-row{border-top:1.5px solid var(--border);padding-top:.5rem;font-weight:800;font-size:.92rem;color:var(--navy)}
+.deal-comm-bar{display:flex;border-radius:var(--r-sm);overflow:hidden;height:44px;margin:.6rem 0}
+.deal-comm-segment{display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:.72rem}
+.deal-comm-segment-lbl{font-weight:700}
+.deal-comm-segment-val{font-size:.68rem;opacity:.9}
+.offer-timeline{display:flex;flex-direction:column;gap:.6rem}
+.offer-entry{background:var(--light);border-radius:var(--r-sm);padding:.6rem .8rem;border-left:3px solid var(--muted)}
+.offer-entry.client{border-left-color:var(--blue)}
+.offer-entry.agent{border-left-color:var(--navy)}
+.offer-entry.offer-accepted{border-left-color:var(--success);background:var(--success-bg)}
+.offer-entry.offer-rejected{border-left-color:var(--error);background:var(--error-bg)}
+.offer-amount{font-weight:800;color:var(--dark)}
+.offer-meta{font-size:.7rem;color:var(--muted);margin-top:.15rem}
+.milestone-list{display:flex;flex-direction:column;gap:.5rem}
+.milestone-item{display:flex;align-items:center;gap:.6rem;font-size:.82rem}
+.milestone-item.done{color:var(--muted);text-decoration:line-through}
+.mi-toggle{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);background:#fff;color:#fff;font-size:.7rem;flex-shrink:0}
+.milestone-item.done .mi-toggle{background:var(--success);border-color:var(--success)}
+
+/* payslip document (Commissions) */
+.payslip{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:1.4rem;max-width:520px;margin:0 auto}
+.payslip-header{text-align:center;border-bottom:2px solid var(--navy);padding-bottom:.8rem;margin-bottom:.8rem}
+.payslip-logo{font-size:1.3rem;font-weight:800;color:var(--navy);font-family:'Cormorant Garamond',serif}
+.payslip-company{font-size:.72rem;color:var(--muted);margin-top:.15rem}
+.payslip-title{font-size:.85rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-top:.5rem;color:var(--dark)}
+.payslip-section-lbl{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:.8rem 0 .4rem}
+.payslip-row{display:flex;justify-content:space-between;font-size:.82rem;padding:.25rem 0}
+.payslip-row-total{border-top:1.5px solid var(--border);margin-top:.3rem;padding-top:.5rem;font-weight:800;color:var(--navy)}
+.payslip-row-agent{background:var(--success-bg);color:var(--success);font-weight:700;padding:.35rem .5rem;border-radius:var(--r-xs)}
+
+/* verification stepper wrapper already covered above */
+
+/* ══════════════════════════════════════════════════════════════
+   DOCUMENTS — contract/letterhead document layout
+══════════════════════════════════════════════════════════════ */
+.contract-preview{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:1.5rem;box-shadow:var(--sh)}
+.contract-doc{font-family:'DM Sans',sans-serif;color:var(--dark)}
+.contract-header{text-align:center;border-bottom:2px solid var(--navy);padding-bottom:1rem;margin-bottom:1.2rem}
+.contract-logo{font-size:1.5rem;font-weight:800;color:var(--navy);font-family:'Cormorant Garamond',serif}
+.contract-company{font-size:.75rem;color:var(--muted);margin-top:.2rem}
+.contract-title{font-size:1.1rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-top:.8rem}
+.contract-title-rw{font-size:.8rem;font-style:italic;color:var(--muted);margin-top:.15rem}
+.contract-date{font-size:.82rem;margin-bottom:.8rem}
+.contract-body{font-size:.85rem;line-height:1.7;margin-bottom:.8rem}
+.contract-parties{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0;padding:.9rem;background:var(--light);border-radius:var(--r-sm)}
+.contract-party{display:flex;flex-direction:column;gap:.2rem}
+.contract-party-role{font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.contract-party-name{font-size:.95rem;font-weight:700;color:var(--dark)}
+.contract-clauses{margin:1.2rem 0}
+.contract-clause{font-size:.83rem;line-height:1.7;margin-bottom:.9rem;padding-bottom:.9rem;border-bottom:1px solid var(--border)}
+.contract-clause:last-child{border-bottom:none}
+.contract-signatures{display:flex;justify-content:space-between;gap:1rem;margin-top:2rem;flex-wrap:wrap}
+.contract-sig-block{flex:1;min-width:140px;text-align:center}
+.contract-sig-line{border-bottom:1.5px solid var(--dark);height:36px;margin-bottom:.4rem}
+.contract-sig-role{font-size:.7rem;color:var(--muted);margin-top:.15rem}
+.contract-footer{text-align:center;font-size:.7rem;color:var(--muted);margin-top:1.5rem;padding-top:.8rem;border-top:1px solid var(--border)}
+@media print{.contract-preview{border:none;box-shadow:none}}
+
+/* ══════════════════════════════════════════════════════════════
+   FINANCING — calculator, loan cards, application stepper
+══════════════════════════════════════════════════════════════ */
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:.8rem}
+@media(max-width:520px){.calc-grid{grid-template-columns:1fr}}
+.calc-result-primary{text-align:center;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1.5px solid var(--border)}
+.calc-monthly-lbl{font-size:.75rem;color:var(--muted);font-weight:600}
+.calc-monthly-val{font-size:2rem;font-weight:800;color:var(--navy);margin-top:.2rem}
+.calc-result-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.calc-result-item{display:flex;justify-content:space-between;font-size:.8rem}
+.calc-result-item strong{color:var(--dark)}
+.fin-commission-bar{background:var(--warn-bg);border-radius:var(--r-sm);padding:.7rem .85rem;margin-top:.75rem;border-left:3px solid var(--gold)}
+
+/* ══════════════════════════════════════════════════════════════
+   PARTNERS
+══════════════════════════════════════════════════════════════ */
+.partner-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:1rem;box-shadow:var(--sh-sm);cursor:pointer;transition:var(--tr)}
+.partner-card:hover{box-shadow:var(--sh);transform:translateY(-2px)}
+.partner-card-head{display:flex;gap:.7rem;align-items:center;margin-bottom:.7rem}
+.partner-card-info{display:flex;flex-direction:column;gap:.25rem;flex:1;min-width:0}
+.partner-card-name{font-weight:700;font-size:.9rem;color:var(--dark)}
+.partner-card-meta{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding-top:.6rem;border-top:1px solid var(--border)}
+.partner-districts{font-size:.72rem;color:var(--muted)}
+.partner-review{padding:.5rem 0;border-bottom:1px solid var(--border)}
+.partner-review:last-child{border-bottom:none}
+.partner-review-head{display:flex;justify-content:space-between;align-items:center}
+
+/* ══════════════════════════════════════════════════════════════
+   OFFICE
+══════════════════════════════════════════════════════════════ */
+.off-task-card,.off-leave-card{background:#fff;border:1.5px solid var(--border);border-left:3px solid var(--navy);border-radius:var(--r-sm);padding:.75rem .9rem;margin-bottom:.55rem;cursor:pointer;transition:var(--tr)}
+.off-task-card:hover,.off-leave-card:hover{box-shadow:var(--sh-sm)}
+.off-task-card.overdue{border-left-color:var(--error)}
+.off-task-top,.off-leave-top{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.off-task-priority-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.off-task-title{font-weight:700;font-size:.85rem;color:var(--dark);flex:1}
+.off-task-meta{display:flex;gap:.8rem;flex-wrap:wrap;font-size:.72rem;color:var(--muted);margin-top:.35rem}
+.off-task-desc{font-size:.78rem;color:var(--muted);margin-top:.3rem}
+.off-today-card{background:linear-gradient(135deg,var(--navy),var(--blue));border-radius:var(--r);padding:1rem;color:#fff;margin-bottom:1rem}
+.off-today-label{font-size:.72rem;font-weight:700;opacity:.85;text-transform:uppercase;letter-spacing:.06em}
+.off-today-row{display:flex;align-items:center;margin-top:.6rem}
+.off-today-block{flex:1;text-align:center}
+.off-today-time{font-size:1.3rem;font-weight:800}
+.off-today-sub{font-size:.68rem;opacity:.8;margin-top:.15rem}
+.off-today-sep{width:1px;height:36px;background:rgba(255,255,255,.3)}
+.off-att-table{display:flex;flex-direction:column;font-size:.8rem}
+.off-att-head{display:grid;grid-template-columns:repeat(5,1fr);font-weight:700;color:var(--muted);font-size:.68rem;text-transform:uppercase;padding:.5rem 0;border-bottom:1.5px solid var(--border)}
+.off-att-row{display:grid;grid-template-columns:repeat(5,1fr);padding:.6rem 0;border-bottom:1px solid var(--border);align-items:center}
+.off-leave-balance{display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+.off-lb-item{flex:1;min-width:100px;background:var(--light);border-radius:var(--r-sm);padding:.7rem;text-align:center}
+.off-lb-val{display:block;font-size:1.2rem;font-weight:800;color:var(--navy)}
+.off-lb-lbl{display:block;font-size:.68rem;color:var(--muted);margin-top:.15rem}
+.off-leave-dates{font-size:.78rem;color:var(--dark);margin-top:.3rem}
+.off-leave-days{color:var(--muted);font-size:.72rem;margin-left:.3rem}
+.off-leave-reason{font-size:.76rem;color:var(--muted);margin-top:.2rem}
+.off-week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.5rem}
+@media(max-width:760px){.off-week-grid{grid-template-columns:repeat(2,1fr)}}
+.off-week-day{background:var(--light);border-radius:var(--r-sm);padding:.5rem;min-height:120px}
+.off-week-day.today{background:rgba(13,59,140,.08);border:1.5px solid var(--navy)}
+.off-week-day-hdr{display:flex;justify-content:space-between;font-size:.72rem;font-weight:700;margin-bottom:.4rem}
+.off-week-dayname{color:var(--dark)}
+.off-week-date{color:var(--muted)}
+.off-week-task-item{background:#fff;border-left:3px solid var(--navy);border-radius:var(--r-xs);padding:.3rem .45rem;font-size:.68rem;margin-bottom:.3rem;cursor:pointer}
+.off-week-empty{font-size:.7rem;color:var(--muted);text-align:center;padding:.5rem 0}
+.off-comment{padding:.5rem 0;border-bottom:1px solid var(--border)}
+.off-comment-author{font-weight:700;font-size:.78rem;color:var(--dark)}
+.off-comment-time{font-size:.68rem;color:var(--muted);margin-left:.4rem}
+.off-comment-text{font-size:.8rem;color:var(--dark);margin-top:.2rem}
+.ci-status{padding:.7rem;border-radius:var(--r-sm);font-size:.85rem;text-align:center}
+.ci-status.ci-in{background:var(--success-bg);color:var(--success)}
+.ci-status.ci-out{background:var(--light);color:var(--muted)}
+.ci-done-msg{padding:.7rem;border-radius:var(--r-sm);background:var(--light);color:var(--muted);text-align:center;font-size:.85rem}
+
+/* ══════════════════════════════════════════════════════════════
+   HR
+══════════════════════════════════════════════════════════════ */
+.hr-staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.8rem}
+.hr-staff-card{display:flex;gap:.7rem;align-items:center;background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.85rem;cursor:pointer;transition:var(--tr)}
+.hr-staff-card:hover{box-shadow:var(--sh-sm)}
+.hr-staff-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:.15rem}
+.hr-staff-name{font-weight:700;font-size:.85rem;color:var(--dark)}
+.hr-staff-email,.hr-staff-phone{font-size:.72rem;color:var(--muted)}
+.hr-payroll-summary{display:flex;gap:1rem;flex-wrap:wrap;background:var(--light);border-radius:var(--r-sm);padding:.8rem;margin-bottom:1rem}
+.hr-ps-item{flex:1;min-width:100px}
+.hr-ps-label{display:block;font-size:.68rem;color:var(--muted)}
+.hr-ps-val{display:block;font-size:1.05rem;font-weight:800;color:var(--navy)}
+.hr-payroll-row{display:flex;justify-content:space-between;align-items:center;padding:.7rem .9rem;background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);margin-bottom:.5rem;cursor:pointer}
+.hr-pr-name{font-weight:700;font-size:.84rem}
+.hr-pr-role{font-size:.7rem;color:var(--muted)}
+.hr-pr-right{text-align:right}
+.hr-pr-amount{font-weight:800;color:var(--navy);font-size:.92rem}
+.hr-perf-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.9rem;margin-bottom:.7rem}
+.hr-perf-head{display:flex;gap:.6rem;align-items:center;margin-bottom:.7rem}
+.hr-perf-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;text-align:center}
+.hr-pm-val{display:block;font-weight:800;font-size:1rem;color:var(--dark)}
+.hr-pm-lbl{display:block;font-size:.62rem;color:var(--muted);margin-top:.1rem}
+.hr-profile-head{display:flex;gap:.8rem;align-items:center;margin-bottom:1rem}
+.hr-profile-name{font-weight:800;font-size:1rem;color:var(--dark)}
+.hr-calc-preview{background:var(--light);border-radius:var(--r-sm);padding:.85rem;display:flex;flex-direction:column;gap:.35rem}
+.hr-calc-row{display:flex;justify-content:space-between;font-size:.82rem}
+.hr-calc-row.deduction{color:var(--error)}
+.hr-calc-row.total{border-top:1.5px solid var(--border);padding-top:.4rem;font-weight:700}
+.hr-calc-row.bonus-row{color:var(--success)}
+.hr-calc-row.grand{border-top:2px solid var(--navy);padding-top:.5rem;font-weight:800;font-size:.95rem;color:var(--navy)}
+.hr-payslip-header{text-align:center;border-bottom:2px solid var(--navy);padding-bottom:.7rem;margin-bottom:.8rem}
+.hr-payslip-company{font-weight:800;color:var(--navy);font-size:1.05rem}
+.hr-payslip-period{font-size:.78rem;color:var(--muted);margin-top:.2rem}
+.hr-payslip-section-title{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:.9rem 0 .4rem}
+
+/* ══════════════════════════════════════════════════════════════
+   ACCOUNTING
+══════════════════════════════════════════════════════════════ */
+.ac-invoice-card,.ac-expense-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.85rem;margin-bottom:.55rem}
+.ac-invoice-card{cursor:pointer;transition:var(--tr)}
+.ac-invoice-card:hover{box-shadow:var(--sh-sm)}
+.ac-inv-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem}
+.ac-inv-no{font-weight:700;font-size:.85rem;color:var(--dark)}
+.ac-inv-client{font-size:.75rem;color:var(--muted);margin-top:.15rem}
+.ac-inv-amount{font-weight:800;color:var(--navy);font-size:.95rem}
+.ac-inv-status{display:inline-block;color:#fff;padding:.15rem .55rem;border-radius:var(--r-full);font-size:.65rem;font-weight:700;margin-top:.3rem}
+.ac-inv-card-foot{display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted);margin-top:.6rem;padding-top:.5rem;border-top:1px solid var(--border)}
+.ac-exp-cat-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.ac-exp-desc{font-weight:700;font-size:.83rem;color:var(--dark)}
+.ac-exp-cat-chip{display:inline-block;padding:.12rem .5rem;border-radius:var(--r-full);font-size:.65rem;font-weight:700}
+.ac-exp-amount{font-weight:800;color:var(--dark);font-size:.9rem}
+.ac-monthly-table{display:flex;flex-direction:column;font-size:.78rem;margin-top:.8rem}
+.ac-mt-head{display:flex;font-weight:700;color:var(--muted);font-size:.66rem;text-transform:uppercase;padding:.4rem 0;border-bottom:1.5px solid var(--border)}
+.ac-mt-row{display:flex;padding:.4rem 0;border-bottom:1px solid var(--border)}
+.ac-mt-head span,.ac-mt-row span{flex:1;text-align:right}
+.ac-mt-head span:first-child,.ac-mt-row span:first-child{text-align:left}
+.ac-invoice-totals{background:var(--light);border-radius:var(--r-sm);padding:.8rem;margin-top:.8rem}
+.ac-total-row{display:flex;justify-content:space-between;font-size:.83rem;padding:.2rem 0}
+.ac-total-row.ac-grand-total{border-top:1.5px solid var(--border);margin-top:.3rem;padding-top:.5rem;font-weight:800;font-size:.95rem;color:var(--navy)}
+.ic-line-row{display:flex;gap:.5rem;align-items:center;margin-bottom:.5rem}
+.ic-remove-btn{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--error);font-size:1rem;line-height:1;flex-shrink:0}
+.ic-remove-btn:hover{background:var(--error-bg)}
+.ac-inv-header{text-align:center;border-bottom:2px solid var(--navy);padding-bottom:.8rem;margin-bottom:.9rem}
+.ac-inv-company{font-weight:800;color:var(--navy);font-size:1.05rem}
+.ac-inv-bizcol{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.ac-inv-section-lbl{font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.3rem}
+.ac-inv-status-badge{display:inline-block;background:var(--light);color:var(--navy);padding:.2rem .6rem;border-radius:var(--r-full);font-size:.68rem;font-weight:700}
+
+/* ══════════════════════════════════════════════════════════════
+   EXEC — Executive Dashboard
+══════════════════════════════════════════════════════════════ */
+.page-hdr{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:1.2rem}
+.exec-alert-item{display:flex;align-items:center;gap:.55rem;padding:.6rem .7rem;border-radius:var(--r-sm);margin-bottom:.4rem;font-size:.8rem}
+.exec-alert-warn{background:var(--warn-bg);color:var(--warn-dark)}
+.exec-alert-info{background:var(--light);color:var(--dark)}
+.exec-alert-icon{flex-shrink:0}
+.exec-activity-row{display:flex;justify-content:space-between;gap:.6rem;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.78rem}
+.exec-act-time{color:var(--muted);flex-shrink:0}
+.exec-health-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.6rem}
+.exec-health-card{background:var(--light);border-radius:var(--r-sm);padding:.6rem;text-align:center}
+.exec-health-dot{width:10px;height:10px;border-radius:50%;margin:0 auto .35rem;background:var(--muted)}
+.exec-health-dot.exec-health-loading{background:var(--muted);animation:pulse 1.4s ease-in-out infinite}
+.exec-health-dot.exec-health-ok{background:var(--success)}
+.exec-health-dot.exec-health-err{background:var(--error)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.exec-health-lbl{font-size:.66rem;color:var(--dark);font-weight:600}
+.exec-health-count{font-size:.7rem;color:var(--muted);margin-top:.15rem}
+.exec-funnel-wrap{display:flex;flex-direction:column;gap:.4rem}
+.exec-funnel-row{display:flex;align-items:center;gap:.6rem}
+.exec-funnel-lbl{flex:0 0 120px;font-size:.74rem;color:var(--dark)}
+.exec-funnel-bar-wrap{flex:1;height:18px;background:var(--light);border-radius:var(--r-sm);overflow:hidden}
+.exec-funnel-bar{height:100%;background:var(--blue);transition:width .4s ease}
+.exec-funnel-bar.exec-funnel-won{background:var(--success)}
+.exec-funnel-bar.exec-funnel-lost{background:var(--error)}
+.exec-funnel-count{flex:0 0 34px;text-align:right;font-size:.76rem;font-weight:700}
+.exec-conv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem}
+.exec-conv-kpi{text-align:center;background:var(--light);border-radius:var(--r-sm);padding:.7rem}
+.exec-conv-val{display:block;font-size:1.2rem;font-weight:800;color:var(--dark)}
+.exec-conv-lbl{display:block;font-size:.68rem;color:var(--muted);margin-top:.15rem}
+.exec-dv-row{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.82rem}
+.exec-dv-val{font-weight:700;color:var(--navy)}
+.exec-ring-wrap{text-align:center;padding:1rem}
+.exec-ring-val{font-size:2.2rem;font-weight:800}
+.exec-ring-lbl{font-size:.78rem;color:var(--dark);margin-top:.3rem}
+.exec-ring-sub{font-size:.68rem;color:var(--muted);margin-top:.1rem}
+
+/* ══════════════════════════════════════════════════════════════
+   BI — Business Intelligence
+══════════════════════════════════════════════════════════════ */
+.bi-donut-wrap{display:flex;flex-direction:column;gap:.45rem}
+.bi-donut-row{display:flex;align-items:center;gap:.5rem}
+.bi-donut-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;display:inline-block}
+.bi-donut-lbl{flex:1;font-size:.8rem;color:var(--dark)}
+.bi-donut-pct{font-weight:800;font-size:.82rem;color:var(--dark)}
+.bi-donut-cnt{font-size:.7rem;color:var(--muted)}
+.bi-src-row{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.65rem}
+.bi-src-info{display:flex;align-items:center;gap:.5rem}
+.bi-src-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;display:inline-block}
+.bi-src-lbl{font-size:.78rem;color:var(--dark)}
+.bi-src-cnt{margin-left:auto;font-size:.7rem;color:var(--muted)}
+.bi-src-bar{height:8px;background:var(--light);border-radius:3px;overflow:hidden;width:100%}
+.bi-budget-grid{display:flex;align-items:flex-end;justify-content:space-around;height:140px;gap:.4rem}
+.bi-budget-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.bi-budget-bar-wrap{position:relative;height:120px;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.bi-budget-bar{width:70%;background:var(--gold);border-radius:4px 4px 0 0;transition:height .3s ease}
+.bi-budget-lbl{font-size:.62rem;color:var(--muted);margin-top:.35rem;text-align:center}
+.bi-budget-cnt{font-size:.68rem;font-weight:700;color:var(--dark)}
+.bi-forecast-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem}
+.bi-forecast-month{flex:0 0 32px;font-size:.7rem;color:var(--muted)}
+.bi-forecast-bar-wrap{flex:1;height:12px;background:var(--light);border-radius:var(--r-sm);overflow:hidden}
+.bi-forecast-bar{height:100%;transition:width .4s ease}
+.bi-forecast-val{flex:0 0 auto;min-width:70px;text-align:right;font-size:.72rem;font-weight:700}
+.bi-pipeline-summary{display:flex;gap:1rem;flex-wrap:wrap}
+.bi-pipe-kpi{flex:1;min-width:100px;text-align:center;background:var(--light);border-radius:var(--r-sm);padding:.8rem}
+.bi-pipe-val{display:block;font-size:1.2rem;font-weight:800;color:var(--navy)}
+.bi-pipe-lbl{display:block;font-size:.68rem;color:var(--muted);margin-top:.2rem}
+
+/* ══════════════════════════════════════════════════════════════
+   BRANCHES
+══════════════════════════════════════════════════════════════ */
+.br-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1rem}
+.br-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:1rem;cursor:pointer;transition:var(--tr)}
+.br-card:hover{box-shadow:var(--sh);transform:translateY(-2px)}
+.br-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem}
+.br-card-name{font-weight:700;font-size:.92rem;color:var(--dark)}
+.br-card-code{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--muted);margin-top:.15rem}
+.br-card-district{display:flex;align-items:center;gap:.3rem;font-size:.78rem;color:var(--muted);margin-top:.5rem}
+.br-card-district svg{width:13px;height:13px;flex-shrink:0}
+.br-card-addr{font-size:.72rem;color:var(--muted);margin-top:.2rem}
+.br-card-foot{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-top:.7rem;padding-top:.6rem;border-top:1px solid var(--border);flex-wrap:wrap}
+.br-card-stat{font-size:.74rem;color:var(--muted)}
+.br-card-stat span{font-weight:700;color:var(--navy)}
+.br-card-dist-chips{display:flex;gap:.3rem;flex-wrap:wrap}
+.br-coverage-summary{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.br-cov-stat{font-size:.85rem;color:var(--dark)}
+.br-district-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.5rem}
+.br-district-cell{padding:.6rem;border-radius:var(--r-sm);text-align:center;position:relative}
+.br-district-covered{background:var(--success-bg);color:var(--success)}
+.br-district-uncovered{background:var(--light);color:var(--muted)}
+.br-district-name{font-size:.74rem;font-weight:600;display:block}
+.br-district-indicator{font-size:.7rem;color:var(--success);margin-top:.2rem;display:block}
+.br-detail-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem}
+.br-detail-info{display:flex;align-items:center;gap:.5rem}
+.br-detail-code{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--dark)}
+.br-detail-grid{display:flex;flex-direction:column}
+.br-detail-row{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.83rem}
+.br-detail-lbl{font-size:.69rem;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.br-detail-val{color:var(--dark)}
+.br-detail-section{font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin:1rem 0 .5rem;letter-spacing:.05em}
+.br-detail-chips{display:flex;gap:.4rem;flex-wrap:wrap}
+.br-live-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem}
+.br-live-kpi{text-align:center;background:var(--light);border-radius:var(--r-sm);padding:.7rem .4rem}
+.br-live-val{display:block;font-size:1.1rem;font-weight:800;color:var(--navy)}
+.br-live-lbl{display:block;font-size:.64rem;color:var(--muted);margin-top:.15rem}
+
+@media(max-width:600px){
+  .exec-conv-grid,.hr-perf-metrics,.br-live-stats,.ac-inv-bizcol,.contract-parties{grid-template-columns:repeat(2,1fr)}
+  .off-att-head,.off-att-row{grid-template-columns:repeat(3,1fr);font-size:.7rem}
+  .off-att-head span:nth-child(4),.off-att-row span:nth-child(4),.off-att-head span:nth-child(5),.off-att-row span:nth-child(5){display:none}
 }
 </style>
   <link rel="preload" as="image" href="/images/logo.png">
