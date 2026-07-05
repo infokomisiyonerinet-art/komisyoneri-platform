@@ -263,6 +263,17 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /assets/{id} {
+      // Internal equipment registry — admin/staff only, no public or
+      // self-service read (unlike staff_reviews, no employee-facing "my
+      // assets" view exists yet, so there's no need for the staffId-style
+      // list-safe carve-out).
+      allow read:   if isAdminOrStaff();
+      allow create: if isAdminOrStaff() && hasStandardFields();
+      allow update: if isAdminOrStaff();
+      allow delete: if false;
+    }
+
     match /branches/{id} {
       allow read:   if isAuth();
       allow create: if isAdminOrStaff() && hasStandardFields();

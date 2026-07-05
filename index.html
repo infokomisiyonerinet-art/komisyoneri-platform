@@ -5827,6 +5827,7 @@ html,body{overscroll-behavior-x:none}
     <button class="off-tab" id="hrtab-btn-performance" onclick="switchHRTab('performance')" data-rw="Imikorere" data-en="Performance">Performance</button>
     <button class="off-tab" id="hrtab-btn-lifecycle" onclick="switchHRTab('lifecycle')" data-rw="Amashami n'Intangiriro" data-en="Departments & Lifecycle">Departments & Lifecycle</button>
     <button class="off-tab" id="hrtab-btn-recruitment" onclick="switchHRTab('recruitment')" data-rw="Gushaka Abakozi" data-en="Recruitment">Recruitment</button>
+    <button class="off-tab" id="hrtab-btn-assets" onclick="switchHRTab('assets')" data-rw="Ibikoresho" data-en="Assets">Assets</button>
   </div>
 
   <!-- STAFF DIRECTORY PANE -->
@@ -5909,6 +5910,18 @@ html,body{overscroll-behavior-x:none}
     </div>
     <div id="hr-jobpostings-list" class="hr-staff-grid"></div>
   </div>
+
+  <!-- ASSETS PANE -->
+  <div class="off-pane" id="hrtab-assets" style="display:none">
+    <div class="off-pane-hdr">
+      <div style="font-weight:700;color:var(--navy)" data-rw="Ibikoresho by'Ikigo" data-en="Company Assets">Company Assets</div>
+      <button class="btn btn-primary" onclick="openAssetCreate()" style="display:flex;align-items:center;gap:.4rem">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-rw="Ikikoresho Gishya" data-en="New Asset">New Asset</span>
+      </button>
+    </div>
+    <div id="hr-assets-list" class="hr-staff-grid"></div>
+  </div>
 </div>
 
 <!-- Job posting create modal -->
@@ -5970,6 +5983,53 @@ html,body{overscroll-behavior-x:none}
     <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
       <button class="btn btn-outline" onclick="closeDeptCreate()" data-en="Cancel">Cancel</button>
       <button class="btn btn-primary" onclick="saveDepartment()" data-en="Save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Asset create/edit modal -->
+<div class="modal-wrap" role="dialog" aria-modal="true" id="asset-create-modal" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="asset-modal-title" data-rw="Ikikoresho Gishya" data-en="New Asset">New Asset</div>
+      <button class="modal-close" onclick="closeAssetCreate()">&times;</button>
+    </div>
+    <input type="hidden" id="asset-edit-id">
+    <div class="form-group"><label data-rw="Izina" data-en="Name">Name</label><input type="text" id="asset-name" class="form-control" placeholder="e.g. Dell Latitude 5420"></div>
+    <div class="form-group">
+      <label data-rw="Ubwoko" data-en="Category">Category</label>
+      <select id="asset-category" class="form-control">
+        <option value="laptop">Laptop</option>
+        <option value="phone">Phone</option>
+        <option value="vehicle">Vehicle</option>
+        <option value="furniture">Furniture</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="form-group"><label data-rw="Numero y'Ikikoresho" data-en="Serial Number">Serial Number (optional)</label><input type="text" id="asset-serial" class="form-control" placeholder="e.g. SN-00123"></div>
+    <div class="form-group"><label data-rw="Ibisobanuro" data-en="Notes">Notes (optional)</label><textarea id="asset-notes" class="form-control" rows="2"></textarea></div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" onclick="closeAssetCreate()" data-en="Cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAsset()" data-en="Save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Asset assign modal -->
+<div class="modal-wrap" role="dialog" aria-modal="true" id="asset-assign-modal" style="display:none">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-hdr">
+      <div class="modal-title"><span data-rw="Ihagarikwa: " data-en="Assign: "></span><span id="asset-assign-name">Asset</span></div>
+      <button class="modal-close" onclick="closeAssetAssign()">&times;</button>
+    </div>
+    <input type="hidden" id="asset-assign-id">
+    <div class="form-group">
+      <label data-rw="Hitamo Umukozi" data-en="Assign To">Assign To</label>
+      <select id="asset-assign-staff" class="form-control"><option value="">-- Select staff member --</option></select>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" onclick="closeAssetAssign()" data-en="Cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="assignAsset()" data-en="Assign">Assign</button>
     </div>
   </div>
 </div>
@@ -18615,7 +18675,7 @@ function loadHRStats() {
 }
 
 function switchHRTab(tab) {
-  ['staff','payroll','performance','lifecycle','recruitment'].forEach(function(t) {
+  ['staff','payroll','performance','lifecycle','recruitment','assets'].forEach(function(t) {
     var btn  = g('hrtab-btn-' + t);
     var pane = g('hrtab-' + t);
     if (btn)  btn.classList.toggle('active', t === tab);
@@ -18626,6 +18686,7 @@ function switchHRTab(tab) {
   else if (tab === 'performance') loadPerformance();
   else if (tab === 'lifecycle') loadHRLifecycle();
   else if (tab === 'recruitment') loadJobPostings();
+  else if (tab === 'assets') loadAssets();
 }
 
 /* ── DEPARTMENTS ── */
@@ -19023,6 +19084,150 @@ function moveApplicationStage(appId, newStage) {
         'job_application_stage', 'job_applications', appId);
     }
   }).catch(function() { showToast('Error updating stage', 'error'); loadJobApplications(_jppCurrentPostingId); });
+}
+
+/* ── ASSETS ── */
+// Company equipment registry — previously the only trace of this concept
+// was a static offboarding checklist label ("Collect any assigned company
+// assets") with no actual record behind it. Mirrors the departments CRUD
+// pattern: a simple create/edit modal plus a list, with a separate small
+// modal for assigning/reassigning to a staff member.
+var _assets = [];
+var ASSET_CATEGORY_LABELS = { laptop: 'Laptop', phone: 'Phone', vehicle: 'Vehicle', furniture: 'Furniture', other: 'Other' };
+
+function loadAssets() {
+  if (typeof db === 'undefined') return;
+  var el = g('hr-assets-list');
+  if (el) el.innerHTML = '<div class="off-loading">Loading assets...</div>';
+  db.collection('assets').where('isActive','==',true).orderBy('createdAt','desc').limit(200).get().then(function(snap) {
+    _assets = [];
+    snap.forEach(function(d) { var data = d.data(); data.id = d.id; _assets.push(data); });
+    renderAssetCards();
+  }).catch(function(e) { if (el) el.innerHTML = '<div class="off-empty">Error loading assets.</div>'; console.error('[HR] loadAssets', e); });
+}
+
+function renderAssetCards() {
+  var el = g('hr-assets-list');
+  if (!el) return;
+  if (!_assets.length) { el.innerHTML = '<div class="off-empty" data-rw="Nta bikoresho birahari" data-en="No assets registered yet">No assets registered yet</div>'; return; }
+  el.innerHTML = _assets.map(function(a) {
+    var statusColor = a.status === 'assigned' ? 'var(--success)' : a.status === 'retired' ? 'var(--muted)' : a.status === 'maintenance' ? 'var(--gold)' : 'var(--blue)';
+    return '<div class="hr-dept-card">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+      + '<div>'
+      + '<div style="font-weight:700">' + escapeHtml(a.name||'') + '</div>'
+      + '<div style="font-size:.72rem;color:var(--muted)">' + (ASSET_CATEGORY_LABELS[a.category]||a.category||'—') + (a.serialNumber ? ' &middot; ' + escapeHtml(a.serialNumber) : '') + '</div>'
+      + '</div>'
+      + '<span class="chip" style="background:' + statusColor + ';color:#fff;font-size:.68rem">' + (a.status||'available') + '</span>'
+      + '</div>'
+      + '<div style="font-size:.78rem;margin-top:.5rem;color:var(--muted)">'
+      + (a.assignedToName ? ('Assigned to: <strong style="color:var(--navy)">' + escapeHtml(a.assignedToName) + '</strong>') : 'Unassigned')
+      + '</div>'
+      + '<div style="display:flex;gap:.4rem;margin-top:.6rem;flex-wrap:wrap">'
+      + (a.status === 'assigned'
+          ? '<button class="btn btn-sm btn-outline" onclick="unassignAsset(\'' + a.id + '\')" data-en="Unassign">Unassign</button>'
+          : (a.status !== 'retired' ? '<button class="btn btn-sm btn-outline" onclick="openAssetAssign(\'' + a.id + '\',\'' + escapeHtml(a.name||'') + '\')" data-en="Assign">Assign</button>' : ''))
+      + '<button class="btn btn-sm btn-ghost" onclick="openAssetCreate(\'' + a.id + '\')" data-en="Edit">Edit</button>'
+      + (a.status !== 'retired' ? '<button class="btn btn-sm btn-ghost" onclick="retireAsset(\'' + a.id + '\')" data-en="Retire">Retire</button>' : '')
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function openAssetCreate(id) {
+  var a = id ? _assets.find(function(x) { return x.id === id; }) : null;
+  g('asset-edit-id').value = id || '';
+  g('asset-name').value = a ? (a.name||'') : '';
+  g('asset-category').value = a ? (a.category||'laptop') : 'laptop';
+  g('asset-serial').value = a ? (a.serialNumber||'') : '';
+  g('asset-notes').value = a ? (a.notes||'') : '';
+  g('asset-modal-title').textContent = a ? 'Edit Asset' : 'New Asset';
+  openModal('asset-create-modal');
+}
+function closeAssetCreate() { closeModal('asset-create-modal'); }
+
+function saveAsset() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var id = g('asset-edit-id').value;
+  var name = (g('asset-name').value || '').trim();
+  if (!name) { showToast(curLang==='rw'?'Andika izina':'Enter a name', 'error'); return; }
+  var payload = {
+    name: name, category: g('asset-category').value, serialNumber: (g('asset-serial').value||'').trim(),
+    notes: (g('asset-notes').value||'').trim(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  };
+  var isEdit = !!id;
+  var docRef = isEdit ? db.collection('assets').doc(id) : db.collection('assets').doc();
+  var write = isEdit ? docRef.update(payload) : docRef.set(Object.assign({
+    id: docRef.id, status: 'available', assignedToUserId: null, assignedToName: null,
+    isActive: true, createdAt: firebase.firestore.FieldValue.serverTimestamp(), createdBy: currentUser.uid
+  }, payload));
+  write.then(function() {
+    logAudit(isEdit ? 'asset_updated' : 'asset_created', 'assets', docRef.id, null, payload);
+    showToast(curLang==='rw'?'Byabitswe!':'Asset saved!', 'success');
+    closeAssetCreate();
+    loadAssets();
+  }).catch(function(e) { showToast('Error saving asset', 'error'); console.error('[HR] saveAsset', e); });
+}
+
+function openAssetAssign(assetId, assetName) {
+  g('asset-assign-id').value = assetId;
+  g('asset-assign-name').textContent = assetName;
+  var sel = g('asset-assign-staff');
+  sel.innerHTML = '<option value="">-- Select staff member --</option>' + _hrStaff.map(function(u) {
+    return '<option value="' + u.id + '">' + escapeHtml(u.displayName||u.email||u.id) + '</option>';
+  }).join('');
+  openModal('asset-assign-modal');
+}
+function closeAssetAssign() { closeModal('asset-assign-modal'); }
+
+function assignAsset() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var assetId = g('asset-assign-id').value;
+  var staffId = g('asset-assign-staff').value;
+  if (!staffId) { showToast(curLang==='rw'?'Hitamo umukozi':'Select a staff member', 'error'); return; }
+  var staff = _hrStaff.find(function(u) { return u.id === staffId; });
+  var staffName = staff ? (staff.displayName||staff.email||staffId) : staffId;
+  db.collection('assets').doc(assetId).update({
+    status: 'assigned', assignedToUserId: staffId, assignedToName: staffName,
+    assignedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  }).then(function() {
+    logAudit('asset_assigned', 'assets', assetId, null, { assignedToUserId: staffId });
+    if (typeof notifyUser === 'function') {
+      notifyUser(staffId, curLang==='rw' ? 'Ikikoresho Gishya' : 'Asset Assigned',
+        curLang==='rw' ? 'Wahawe ikikoresho cy\'ikigo.' : 'A company asset has been assigned to you.',
+        'asset_assigned', 'assets', assetId);
+    }
+    showToast(curLang==='rw'?'Byahagaritswe!':'Asset assigned!', 'success');
+    closeAssetAssign();
+    loadAssets();
+  }).catch(function(e) { showToast('Error assigning asset', 'error'); console.error('[HR] assignAsset', e); });
+}
+
+function unassignAsset(assetId) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  db.collection('assets').doc(assetId).update({
+    status: 'available', assignedToUserId: null, assignedToName: null, assignedAt: null,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  }).then(function() {
+    logAudit('asset_unassigned', 'assets', assetId, null, {});
+    showToast(curLang==='rw'?'Byabitswe!':'Asset unassigned', 'success');
+    loadAssets();
+  }).catch(function() { showToast('Error unassigning asset', 'error'); });
+}
+
+function retireAsset(assetId) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  if (!confirm(curLang==='rw'?'Uzi neza ko ushaka gusiba iki kikoresho?':'Retire this asset? It will be marked out of service.')) return;
+  db.collection('assets').doc(assetId).update({
+    status: 'retired', assignedToUserId: null, assignedToName: null,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  }).then(function() {
+    logAudit('asset_retired', 'assets', assetId, null, {});
+    showToast(curLang==='rw'?'Byabitswe!':'Asset retired', 'success');
+    loadAssets();
+  }).catch(function() { showToast('Error retiring asset', 'error'); });
 }
 
 /* ── STAFF DIRECTORY ── */
