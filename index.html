@@ -26950,13 +26950,9 @@ function _fsAdminApprove(idx) {
         updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
         updatedBy:currentUser.uid
       }).then(function() {
-        logAudit('property.approved','properties',docId,{status:'pending'},{status:'approved'});
-        if (typeof notifyUser === 'function' && prop.agentId) {
-          notifyUser(prop.agentId,
-            '&#9989; Imitungo Yemejwe! / Property Approved!',
-            escapeHtml(prop.title || prop.titleEN || 'Imitungo') + (curLang === 'rw' ? ' yemejwe kandi igaragara muri Listings.' : ' has been approved and is now live.'),
-            'property_approved', 'properties', docId);
-        }
+        // Audit log + agent notification now happen server-side, in the
+        // onPropertyStatusChanged Cloud Function reacting to this same
+        // status write — see functions/index.js.
         showToast('✅ Imitungo yemejwe! Igaragara muri Listings.');
         invalidatePropsCache();
         loadApprovedProperties();
@@ -26990,13 +26986,9 @@ function _fsAdminReject(idx) {
     db.collection('properties').doc(fsId).update({
       status:'rejected', updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
     }).then(function() {
-      logAudit('property.rejected','properties',fsId,{status:'pending'},{status:'rejected'});
-      if (typeof notifyUser === 'function' && prop.agentId) {
-        notifyUser(prop.agentId,
-          '&#10060; Imitungo Ntiyemejwe / Property Not Approved',
-          escapeHtml(prop.title || prop.titleEN || 'Imitungo') + (curLang === 'rw' ? ' ntiyemejwe. Twandikire kugira ngo tugufashe.' : ' was not approved. Please contact admin for more details.'),
-          'system', 'properties', fsId);
-      }
+      // Audit log + agent notification now happen server-side, in the
+      // onPropertyStatusChanged Cloud Function reacting to this same
+      // status write — see functions/index.js.
     }).catch(function(){});
   }
   var ls=[]; try{ls=JSON.parse(localStorage.getItem('km_properties')||'[]');}catch(e){}
