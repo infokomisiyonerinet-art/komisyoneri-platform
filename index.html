@@ -7541,6 +7541,11 @@ html,body{overscroll-behavior-x:none}
           <button class="btn btn-navy btn-sm" onclick="saveReportUrl()"><span data-rw="Bika" data-en="Save">Save</span></button>
         </div>
       </div>
+      <!-- Requester: rate the partner who actually did this specific job —
+           only shown once it's completed and hasn't been rated yet. -->
+      <div id="vd-rate-section" style="display:none;padding-top:.75rem;border-top:1px solid var(--border)">
+        <button class="btn btn-gold btn-sm" id="vd-rate-btn" onclick="openRatePartner('', '')"><span data-rw="Tanga Amanota kuri Uyu Murimo" data-en="Rate This Job">Rate This Job</span></button>
+      </div>
     </div>
   </div>
 </div>
@@ -8182,6 +8187,19 @@ html,body{overscroll-behavior-x:none}
         <div style="font-size:.75rem;color:var(--muted);margin-bottom:.15rem" data-rw="Komisiyoni ya Referral (0.75%)" data-en="Referral Commission (0.75%)">Referral Commission (0.75%)</div>
         <div style="font-size:1rem;font-weight:700;color:var(--gold)" id="ld-commission-val">—</div>
       </div>
+      <!-- Admin: match a real, onboarded bank partner — distinct from the
+           applicant's stated bankPreference above, which is just a
+           free-text/enum preference, not an actual assignment. -->
+      <div id="ld-bank-match" style="display:none;flex-direction:column;gap:.5rem;padding-top:.75rem;border-top:1px solid var(--border);margin-top:.75rem">
+        <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.08em" data-rw="HITAMO BANKI" data-en="MATCH BANK">MATCH BANK</div>
+        <div style="display:flex;gap:.5rem">
+          <select id="ld-assign-bank" style="flex:1;padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem" aria-label="Match a verified bank partner">
+            <option value="" data-rw="-- Hitamo banki yemewe --" data-en="-- Select a verified bank --">-- Select a verified bank --</option>
+          </select>
+          <button class="btn btn-navy btn-sm" onclick="assignLoanBank()"><span data-rw="Hitamo" data-en="Match">Match</span></button>
+        </div>
+        <div id="ld-bank-matched-row" style="display:none;font-size:.8rem;color:var(--muted)"><span data-rw="Byahawe:" data-en="Matched to:">Matched to:</span> <strong id="ld-bank-matched-name">—</strong></div>
+      </div>
       <div id="ld-actions" style="display:flex;gap:.5rem;flex-wrap:wrap;padding-top:.85rem;border-top:1px solid var(--border);margin-top:.75rem"></div>
     </div>
   </div>
@@ -8258,6 +8276,23 @@ html,body{overscroll-behavior-x:none}
         <div class="fin-summary-row"><span data-rw="Itariki Washakaga" data-en="Preferred Date">Preferred Date</span><strong id="asd-pref-date">—</strong></div>
         <div class="fin-summary-row"><span data-rw="Uhabwa" data-en="Assigned To">Assigned To</span><strong id="asd-assigned">—</strong></div>
         <div class="fin-summary-row" id="asd-notes-row" style="display:none"><span data-rw="Amanotisi ya Admin" data-en="Admin Notes">Admin Notes</span><span id="asd-admin-notes" style="max-width:60%;text-align:right;font-size:.8rem;font-style:italic;color:var(--dark)">—</span></div>
+      </div>
+      <!-- Admin: assign a real, verified partner — the "Partner assigned /
+           Pending assignment" line above used to have no way to ever
+           become true; nothing set assignedTo for an after-sale request. -->
+      <div id="asd-partner-assign" style="display:none;flex-direction:column;gap:.5rem;padding-top:.75rem;border-top:1px solid var(--border)">
+        <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.08em" data-rw="HITAMO UMUNYAMURYANGO" data-en="ASSIGN PARTNER">ASSIGN PARTNER</div>
+        <div style="display:flex;gap:.5rem">
+          <select id="asd-assign-partner" style="flex:1;padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem" aria-label="Assign a verified partner">
+            <option value="" data-rw="-- Hitamo umunyamuryango --" data-en="-- Select a verified partner --">-- Select a verified partner --</option>
+          </select>
+          <button class="btn btn-navy btn-sm" onclick="assignAfterSalePartner()"><span data-rw="Ha" data-en="Assign">Assign</span></button>
+        </div>
+      </div>
+      <!-- Requester: rate the partner who did this specific job — shown
+           once completed and not yet rated. -->
+      <div id="asd-rate-section" style="display:none;padding-top:.75rem;border-top:1px solid var(--border)">
+        <button class="btn btn-gold btn-sm" id="asd-rate-btn" onclick="openRatePartner('', '')"><span data-rw="Tanga Amanota kuri Uyu Murimo" data-en="Rate This Job">Rate This Job</span></button>
       </div>
       <div id="asd-actions" style="display:flex;gap:.5rem;flex-wrap:wrap;padding-top:.75rem;border-top:1px solid var(--border)"></div>
     </div>
@@ -19822,9 +19857,17 @@ function loadCustViewings(uid) {
 }
 
 function loadCustAfterSale(uid) {
-  db.collection('services').where('requestedBy','==',uid).where('serviceType','==','after_sale').where('isActive','==',true)
-    .orderBy('createdAt','desc').limit(50)
-    .get().then(function(snap) {
+  // Staff/admin get the full company-wide queue instead of just their own
+  // requests — otherwise there was no way to ever reach another client's
+  // after-sale request to assign a partner to it; this tab was the only
+  // place these requests are listed at all.
+  var isAdm = isAdminOrStaff(currentUser);
+  var query = isAdm
+    ? db.collection('services').where('serviceType','==','after_sale').where('isActive','==',true)
+        .orderBy('createdAt','desc').limit(200)
+    : db.collection('services').where('requestedBy','==',uid).where('serviceType','==','after_sale').where('isActive','==',true)
+        .orderBy('createdAt','desc').limit(50);
+  query.get().then(function(snap) {
       _custAfterSale = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
       if(g('cst-aftersale')) g('cst-aftersale').textContent = _custAfterSale.length;
       if(_custTab === 'aftersale') renderCustAfterSale();
@@ -20014,7 +20057,8 @@ function submitAfterSaleRequest() {
     id: ref.id, serviceType: 'after_sale', serviceSubtype: stype,
     propertyRef: propRef, description: description, preferredDate: prefDate,
     priority: priority, adminNotes: '',
-    requestedBy: cu.uid, assignedTo: '',
+    requestedBy: cu.uid, requestedByName: (cu.displayName || cu.name || cu.email || ''),
+    assignedTo: '', assignedToId: '',
     scheduledAt: null, quotedPrice: 0, agreedPrice: 0, reportUrl: '',
     status: 'submitted', isActive: true,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -20051,20 +20095,35 @@ function openAfterSaleDetail(id) {
   }
 
   var cu = currentUser;
-  if(g('asd-requestor'))   g('asd-requestor').textContent   = cu ? (cu.displayName || cu.email) : 'You';
+  // requestedByName (falling back to the raw uid) — not the current
+  // viewer's own name, which was wrong as soon as staff/admin could view
+  // another client's request (see loadCustAfterSale()'s admin branch).
+  if(g('asd-requestor'))   g('asd-requestor').textContent   = s.requestedByName || s.requestedBy || '—';
   if(g('asd-prop-ref'))    g('asd-prop-ref').textContent    = s.propertyRef || '—';
   if(g('asd-description')) g('asd-description').textContent = s.description || '—';
   if(g('asd-priority'))    g('asd-priority').textContent    = (s.priority || 'normal').toUpperCase();
   if(g('asd-pref-date'))   g('asd-pref-date').textContent   = s.preferredDate || '—';
-  if(g('asd-assigned'))    g('asd-assigned').textContent    = s.assignedTo ? 'Partner assigned' : 'Pending assignment';
+  if(g('asd-assigned'))    g('asd-assigned').textContent    = s.assignedTo || 'Pending assignment';
 
   var nr = g('asd-notes-row');
   if (nr) nr.style.display = s.adminNotes ? '' : 'none';
   if(g('asd-admin-notes')) g('asd-admin-notes').textContent = s.adminNotes || '';
 
+  var isAdm = isAdminOrStaff(cu);
+  var assignEl = g('asd-partner-assign');
+  var canAssignPartner = isAdm && s.status !== 'completed' && s.status !== 'cancelled';
+  if (assignEl) assignEl.style.display = canAssignPartner ? 'flex' : 'none';
+  if (canAssignPartner) populateAfterSalePartnerSelect(s.assignedToId || '');
+
+  var rateEl = g('asd-rate-section');
+  var canRate = !isAdm && s.status === 'completed' && s.partnerId && !s.serviceRated
+    && (!cu || s.requestedBy === cu.uid);
+  if (rateEl) rateEl.style.display = canRate ? '' : 'none';
+  var rateBtn = g('asd-rate-btn');
+  if (rateBtn) rateBtn.setAttribute('onclick', "openRatePartner('" + (s.partnerId || '') + "','" + id + "')");
+
   var actEl = g('asd-actions');
   if (actEl) {
-    var isAdm = isAdminOrStaff(cu);
     var html  = '';
     if (isAdm) {
       if (s.status === 'submitted') {
@@ -20105,6 +20164,75 @@ function updateAfterSaleStatus(newStatus) {
     closeAfterSaleDetail();
     loadCustAfterSale(cu.uid);
   }).catch(function(e) { showToast('Error: ' + e.message, 'error'); });
+}
+
+// Real partner assignment — mirrors populateAssignPartnerSelect()/
+// assignServicePartner() in the Verification Center. Unlike Verification,
+// after-sale work spans categories (maintenance, renovation, moving,
+// insurance, property management) with no matching PARTNER_TYPES filter,
+// so any verified partner is offered — same as how an admin manually
+// judges fit for Verification's own assignments today.
+function populateAfterSalePartnerSelect(selectedUserId) {
+  var sel = document.getElementById('asd-assign-partner');
+  if (!sel || typeof db === 'undefined') return;
+  sel.innerHTML = '<option value="">-- Select a verified partner --</option>';
+  db.collection('partners').where('isActive','==',true).where('status','==','verified')
+    .limit(200).get().then(function(snap) {
+      snap.forEach(function(doc) {
+        var p = doc.data();
+        if (!p.userId) return;
+        var opt = document.createElement('option');
+        opt.value = p.userId;
+        opt.setAttribute('data-name', p.companyName || p.userId);
+        opt.setAttribute('data-partner-doc-id', doc.id);
+        opt.textContent = (p.companyName || 'Partner') + (PARTNER_TYPES[p.type] ? ' — ' + PARTNER_TYPES[p.type].label : '');
+        if (p.userId === selectedUserId) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }).catch(function(e) { console.error('[AfterSale] populateAfterSalePartnerSelect', e); });
+}
+
+function assignAfterSalePartner() {
+  var id = _asdCurrentId;
+  var sel = document.getElementById('asd-assign-partner');
+  var partnerUserId = sel ? sel.value : '';
+  var partnerName = sel && sel.selectedIndex > 0 ? (sel.options[sel.selectedIndex].getAttribute('data-name') || sel.options[sel.selectedIndex].textContent) : '';
+  var partnerDocId = sel && sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].getAttribute('data-partner-doc-id') : '';
+  if (!id || !partnerUserId) { showToast(curLang === 'rw' ? 'Hitamo umunyamuryango!' : 'Select a partner!', 'error'); return; }
+  if (typeof db === 'undefined') return;
+  var cu = currentUser;
+  if (!cu) return;
+
+  db.collection('services').doc(id).update({
+    assignedTo: partnerName, assignedToId: partnerUserId, partnerId: partnerDocId || '',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: cu.uid
+  }).then(function() {
+    logAudit('aftersale_assigned', 'services', id, { assignedTo: '' }, { assignedTo: partnerName, assignedToId: partnerUserId });
+    showToast(curLang === 'rw' ? 'Byahawe ' + partnerName : 'Assigned to ' + partnerName, 'success');
+
+    var s = _custAfterSale.find(function(x) { return x.id === id; });
+    if (s && s.requestedBy && typeof notifyUser === 'function') {
+      notifyUser(s.requestedBy,
+        curLang === 'rw' ? '&#128295; Serivisi Yahawe Umunyamuryango' : '&#128295; Service Assigned',
+        curLang === 'rw'
+          ? 'Ikibazo cyawe cyahawe ' + escapeHtml(partnerName) + '.'
+          : 'Your service request has been assigned to ' + escapeHtml(partnerName) + '.',
+        'aftersale_assigned', 'services', id);
+    }
+    if (typeof notifyUser === 'function') {
+      notifyUser(partnerUserId,
+        curLang === 'rw' ? '&#128188; Akazi Gashya Gahawe' : '&#128188; New Job Assigned',
+        curLang === 'rw'
+          ? 'Wahawe akazi gashya kuri KOMISIYONERI.'
+          : 'You have been assigned a new job on KOMISIYONERI.',
+        'partner_job_assigned', 'services', id);
+    }
+    if (s) { s.assignedTo = partnerName; s.assignedToId = partnerUserId; s.partnerId = partnerDocId || ''; }
+    openAfterSaleDetail(id);
+  }).catch(function(e) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error assigning', 'error');
+    console.error('[AfterSale] assignAfterSalePartner error:', e);
+  });
 }
 
 /* ── Sidebar badge ── */
@@ -20551,6 +20679,17 @@ function openLoanDetail(id) {
     if(g('ld-commission-val')) g('ld-commission-val').textContent = app.commissionAmount ? fmtRwf(app.commissionAmount) : '—';
   }
 
+  var bankMatchEl = g('ld-bank-match');
+  var isAdmFin = isAdminOrStaff(currentUser);
+  var canMatchBank = isAdmFin && ['submitted','under_review','docs_requested'].indexOf(app.status) > -1;
+  if (bankMatchEl) bankMatchEl.style.display = canMatchBank ? 'flex' : 'none';
+  var matchedRow = g('ld-bank-matched-row');
+  if (matchedRow) {
+    matchedRow.style.display = app.assignedBank ? '' : 'none';
+    if (g('ld-bank-matched-name')) g('ld-bank-matched-name').textContent = app.assignedBank || '—';
+  }
+  if (canMatchBank) populateAssignBankSelect(app.assignedBankId || '');
+
   buildLdActions(app);
   openModal('loan-detail-modal');
   if (typeof switchLang === 'function') switchLang(curLang);
@@ -20621,6 +20760,75 @@ function updateLoanStatus(newStatus) {
   }).catch(function(e) { showToast('Error: ' + e.message, 'error'); });
 }
 
+// Real bank matching — mirrors populateAssignPartnerSelect()/
+// assignServicePartner() in the Verification Center, the one part of the
+// service marketplace that already does this correctly. Only banks
+// (partners.type=='bank') that are verified and active are offered, and
+// the value stored is the bank partner's real account uid, not a
+// free-text name — this used to be an assignedBank field that nothing
+// ever wrote to, so "get matched with banks" never actually happened;
+// applicants only ever stated a bankPreference themselves.
+function populateAssignBankSelect(selectedUserId) {
+  var sel = document.getElementById('ld-assign-bank');
+  if (!sel || typeof db === 'undefined') return;
+  sel.innerHTML = '<option value="">-- Select a verified bank --</option>';
+  db.collection('partners').where('isActive','==',true).where('status','==','verified').where('type','==','bank')
+    .limit(200).get().then(function(snap) {
+      snap.forEach(function(doc) {
+        var p = doc.data();
+        if (!p.userId) return; // can't assign a bank with no linked account
+        var opt = document.createElement('option');
+        opt.value = p.userId;
+        opt.setAttribute('data-name', p.companyName || p.userId);
+        opt.textContent = p.companyName || 'Bank';
+        if (p.userId === selectedUserId) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }).catch(function(e) { console.error('[Financing] populateAssignBankSelect', e); });
+}
+
+function assignLoanBank() {
+  var id = _finCurrentId;
+  var sel = document.getElementById('ld-assign-bank');
+  var bankUserId = sel ? sel.value : '';
+  var bankName = sel && sel.selectedIndex > 0 ? (sel.options[sel.selectedIndex].getAttribute('data-name') || sel.options[sel.selectedIndex].textContent) : '';
+  if (!id || !bankUserId) { showToast(curLang === 'rw' ? 'Hitamo banki!' : 'Select a bank!', 'error'); return; }
+  if (typeof db === 'undefined') return;
+  var cu = currentUser;
+  if (!cu) { showToast('Login required', 'error'); return; }
+
+  db.collection('services').doc(id).update({
+    assignedBank: bankName, assignedBankId: bankUserId,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: cu.uid
+  }).then(function() {
+    logAudit('loan_bank_matched', 'services', id, { assignedBank: '' }, { assignedBank: bankName, assignedBankId: bankUserId });
+    showToast(curLang === 'rw' ? 'Byahawe ' + bankName : 'Matched to ' + bankName, 'success');
+
+    var app = _financing.find(function(a) { return a.id === id; });
+    if (app && app.requestedBy && typeof notifyUser === 'function') {
+      notifyUser(app.requestedBy,
+        curLang === 'rw' ? '&#127974; Wahuzwa na Banki' : '&#127974; Matched with a Bank',
+        curLang === 'rw'
+          ? 'Ubusabe bwawe bw\'inguzanyo bwahuzwa na ' + escapeHtml(bankName) + '.'
+          : 'Your loan application has been matched with ' + escapeHtml(bankName) + '.',
+        'loan_bank_matched', 'services', id);
+    }
+    if (typeof notifyUser === 'function') {
+      notifyUser(bankUserId,
+        curLang === 'rw' ? '&#128188; Ubusabe Bushya bw\'Inguzanyo' : '&#128188; New Loan Referral',
+        curLang === 'rw'
+          ? 'Wahawe ubusabe bushya bw\'inguzanyo kuri KOMISIYONERI.'
+          : 'You have a new loan application referral on KOMISIYONERI.',
+        'loan_bank_matched', 'services', id);
+    }
+    if (app) { app.assignedBank = bankName; app.assignedBankId = bankUserId; }
+    openLoanDetail(id);
+  }).catch(function(e) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error matching bank', 'error');
+    console.error('[Financing] assignLoanBank error:', e);
+  });
+}
+
 /* ── Sidebar badge ── */
 document.addEventListener('DOMContentLoaded', function() {
   setTimeout(function() {
@@ -20643,6 +20851,7 @@ document.addEventListener('DOMContentLoaded', function() {
 var _partners = [];
 var _partnerFilter = { type: 'all', district: 'all', q: '' };
 var _rpCurrentPartnerId = null;
+var _rpCurrentServiceId = '';
 var _rpStarVal = 0;
 
 var PARTNER_TYPES = {
@@ -20821,6 +21030,7 @@ function openPartnerDetail(id) {
   var p = _partners.find(function(x){ return x.id === id; });
   if (!p) return;
   _rpCurrentPartnerId = id;
+  _rpCurrentServiceId = '';
 
   var typeInfo = PARTNER_TYPES[p.partnerType] || { label: p.partnerType };
   var initials = ((p.companyName||p.displayName||'P')[0]).toUpperCase();
@@ -20882,8 +21092,9 @@ function loadPartnerReviews(partnerId) {
 }
 
 /* ── Rate Partner ── */
-function openRatePartner(id) {
+function openRatePartner(id, serviceId) {
   _rpCurrentPartnerId = id;
+  _rpCurrentServiceId = serviceId || '';
   _rpStarVal = 0;
   var textarea = g('rp-review');
   if (textarea) textarea.value = '';
@@ -20912,9 +21123,10 @@ function submitPartnerRating() {
   var partner = _partners.find(function(x){ return x.id === partnerId; });
   if (!partner) return;
 
+  var serviceId = _rpCurrentServiceId || '';
   var revRef = db.collection('reviews').doc();
   var revDoc = {
-    id: revRef.id, partnerId: partnerId, reviewerId: cu.uid,
+    id: revRef.id, partnerId: partnerId, serviceId: serviceId, reviewerId: cu.uid,
     reviewerName: cu.displayName || cu.email || 'User',
     rating: _rpStarVal, comment: comment,
     status: 'active', isActive: true,
@@ -20934,6 +21146,14 @@ function submitPartnerRating() {
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedBy: cu.uid
   });
+  // Stamp the specific job as rated so its own detail view can hide the
+  // "Rate This Job" prompt afterward — cheaper than a live reviews query
+  // on every modal open, since the service doc is already loaded locally.
+  if (serviceId) {
+    batch.update(db.collection('services').doc(serviceId), {
+      serviceRated: true, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: cu.uid
+    });
+  }
 
   batch.commit().then(function() {
     logAudit('partner_rated', 'reviews', revRef.id, null, revDoc);
@@ -20941,6 +21161,17 @@ function submitPartnerRating() {
     closeRatePartner();
     closePartnerDetail();
     loadPartners();
+    if (serviceId) {
+      var svcArrays = [_verifications, _custAfterSale, _financing];
+      svcArrays.forEach(function(arr) {
+        if (!arr) return;
+        var svc = arr.find(function(x) { return (x._docId || x.id) === serviceId; });
+        if (svc) svc.serviceRated = true;
+      });
+      closeVerificationDetail();
+      closeAfterSaleDetail();
+      closeLoanDetail();
+    }
   }).catch(function(e) { showToast('Error: ' + e.message, 'error'); });
 }
 
@@ -21333,10 +21564,19 @@ function loadDocuments() {
   if (typeof db === 'undefined') return;
 
   var isAdmin = isAdminOrStaff(currentUser);
+  // An agent's own documents are scoped by agentId, not clientId — before
+  // documents.agentId was ever written at creation, this branch always
+  // returned zero results for an agent regardless of what accessRoles
+  // said, since clientId never matches an agent's own uid.
+  var isAgent = currentUser && (currentUser.role || '').toLowerCase() === 'agent';
+  var myRole = isAgent ? 'agent' : 'client';
 
   var query;
   if (isAdmin) {
     query = db.collection('documents').where('isActive','==',true).orderBy('createdAt','desc').limit(200);
+  } else if (isAgent) {
+    query = db.collection('documents').where('isActive','==',true)
+              .where('agentId','==',currentUser.uid).orderBy('createdAt','desc').limit(200);
   } else if (typeof currentUser !== 'undefined' && currentUser) {
     query = db.collection('documents').where('isActive','==',true)
               .where('clientId','==',currentUser.uid).orderBy('createdAt','desc').limit(200);
@@ -21347,10 +21587,11 @@ function loadDocuments() {
     snap.forEach(function(doc) {
       var d = doc.data(); d._docId = doc.id;
       // Staff/admin still see every document regardless of accessRoles —
-      // the field scopes what a client sees in their own document list,
-      // not what staff can administer. Docs with no accessRoles field at
-      // all default to visible, matching the pre-accessRoles behavior.
-      if (isAdmin || !d.accessRoles || d.accessRoles.indexOf('client') > -1) {
+      // the field scopes what a client/agent sees in their own document
+      // list, not what staff can administer. Docs with no accessRoles
+      // field at all default to visible, matching the pre-accessRoles
+      // behavior.
+      if (isAdmin || !d.accessRoles || d.accessRoles.indexOf(myRole) > -1) {
         _documents.push(d);
       }
     });
@@ -21490,6 +21731,14 @@ function submitDocumentUpload() {
   var uid  = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'anonymous';
   var uName= typeof currentUser !== 'undefined' && currentUser
     ? (currentUser.displayName || currentUser.name || currentUser.email || '') : '';
+  // agentId was never written by either document creator, which is why an
+  // agent could never see a document even when 'agent' was checked in
+  // accessRoles — there was no candidate uid for firestore.rules' agentId
+  // ownership clause to match against. Attributed to the uploader when
+  // they're actually an agent (the common case: an agent files paperwork
+  // for their own client); left blank for an admin/staff upload made on
+  // a client's behalf, same as before.
+  var agentId = (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'agent') ? uid : '';
 
   db.collection('documents').add({
     id:           '',
@@ -21501,6 +21750,7 @@ function submitDocumentUpload() {
     dealId:       '',
     clientId:     clientId,
     clientName:   clientName,
+    agentId:      agentId,
     uploadedByName: uName,
     accessRoles:  accessRoles,
     signatories:  sigNames.map(function(n){ return { name:n, signed:false, signedAt:null }; }),
@@ -21824,10 +22074,15 @@ function saveGeneratedContract() {
   var d     = _cgContractData;
   var docType = d.type === 'sale' ? 'sale_agreement' : 'rental_agreement';
   var docName = (d.type === 'sale' ? 'Sale Agreement' : 'Rental Agreement') + ' — ' + d.prop;
+  // Same reasoning as submitDocumentUpload(): d.agent is free-text typed
+  // into the contract form, not a real uid, so it can't be used as
+  // agentId. Attribute to the generating user when they're an agent.
+  var agentId = (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'agent') ? uid : '';
 
   db.collection('documents').add({
     id: '', name: docName, type: docType, fileUrl: '',
     propertyTitle: d.prop, propertyId: '', dealId: '', clientId: d.clientId, clientName: d.clientName,
+    agentId: agentId,
     uploadedByName: uName,
     contractData: d,
     accessRoles: ['agent','admin','client'],
@@ -22147,6 +22402,13 @@ function openVerificationDetail(id) {
   var reportSection = e2('vd-report-section');
   if (reportSection) reportSection.style.display = isAdmin && svc.status === 'completed' ? '' : 'none';
   if (svc.reportUrl && e2('vd-report-url')) e2('vd-report-url').value = svc.reportUrl;
+
+  var rateSection = e2('vd-rate-section');
+  var canRate = !isAdmin && svc.status === 'completed' && svc.partnerId && !svc.serviceRated
+    && (typeof currentUser === 'undefined' || !currentUser || svc.requestedBy === currentUser.uid);
+  if (rateSection) rateSection.style.display = canRate ? '' : 'none';
+  var rateBtn = e2('vd-rate-btn');
+  if (rateBtn) rateBtn.setAttribute('onclick', "openRatePartner('" + (svc.partnerId || '') + "','" + id + "')");
 
   populateAssignPartnerSelect(svc.assignedToId || '');
   m.style.display = 'flex';
