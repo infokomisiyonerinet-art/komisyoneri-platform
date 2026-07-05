@@ -229,13 +229,20 @@ service cloud.firestore {
     }
 
     match /reviews/{id} {
-      // Partner reviews (subjectType != 'staff') are intentionally public;
-      // staff performance reviews (subjectType == 'staff') are private to
-      // the reviewed employee and admin/staff — never publicly readable.
-      allow read:   if resource.data.subjectType == 'staff'
-                    ? (isAdminOrStaff() || resource.data.staffId == request.auth.uid)
-                    : true;
-      allow create: if isAuth() && hasStandardFields();
+      // Fully public — this collection is exclusively partner ratings now
+      // (staff performance reviews live in staff_reviews, see below). No
+      // field-dependent branching here on purpose: Firestore cannot prove
+      // a list/query read is safe when a rule branches on a field that
+      // isn't part of the query filter, which is exactly what previously
+      // let an unrelated user list another employee's private reviews
+      // (verified against the rules-enabled emulator) when this collection
+      // still held both kinds of data. Fixed by migrating the old staff
+      // review docs out (scripts/migrate-staff-reviews.js — MUST run
+      // before deploying this rule) rather than trying to keep any
+      // conditional branching here.
+      allow read:   if true;
+      allow create: if isAuth() && hasStandardFields()
+                    && request.resource.data.get('subjectType', 'partner') != 'staff';
       allow update: if isAdminOrStaff();
       allow delete: if false;
     }
