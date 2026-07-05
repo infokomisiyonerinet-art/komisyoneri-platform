@@ -18,6 +18,7 @@
  */
 
 const { onDocumentUpdated, onDocumentCreated } = require('firebase-functions/v2/firestore');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { logger } = require('firebase-functions');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
@@ -25,6 +26,7 @@ const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 initializeApp();
 
 const REGION = 'us-central1';
+const KIGALI_OFFSET_MS = 2 * 60 * 60 * 1000; // Africa/Kigali is UTC+2 year-round, no DST
 
 // ── Constants — copied verbatim from index.html ────────────────────────
 const COMMISSION_RATES = {
@@ -357,4 +359,68 @@ exports.onSiteEnquiryCreated = onDocumentCreated({ document: 'site_enquiries/{en
     siteId: data.siteId || '', plotId: data.plotId || '', clientId: data.clientId || '',
     agentId: data.agentId || '', createdBy: data.createdBy || data.clientId || ''
   });
+});
+
+/**
+ * Nightly follow-up reminder sweep — replaces
+ * _checkLeadFollowupNotifications(), which only ever ran client-side, at
+ * the moment someone happened to have the CRM page open, and only over
+ * whichever leads THAT viewer's own query returned (their own leads, or
+ * every lead if they're admin/staff). If nobody opened the CRM on a given
+ * day, zero reminders went out that day, for anyone. This runs once a day
+ * regardless of whether any browser tab is open anywhere.
+ *
+ * Query and business logic are unchanged from the original: any active
+ * lead with a nextFollowUp date that has arrived (today or earlier),
+ * excluding closed_won/closed_lost, notifies that lead's agent — every
+ * day it remains outstanding, not just once — matching the original's
+ * "remind every day until it's handled" behavior exactly.
+ *
+ * Dedup is now a real per-lead Firestore field (lastFollowupReminderDate)
+ * instead of a per-browser localStorage key, so it actually prevents
+ * duplicate reminders across devices/sessions rather than only within one
+ * browser — a genuine correctness improvement, not just a reliability one.
+ * The existing isActive+nextFollowUp composite index already covers this
+ * query; no new index is needed.
+ */
+exports.nightlyFollowupReminderSweep = onSchedule({
+  schedule: '0 6 * * *',
+  timeZone: 'Africa/Kigali',
+  region: REGION
+}, async () => {
+  const db = getFirestore();
+  const now = new Date();
+  const kigaliNow = new Date(now.getTime() + KIGALI_OFFSET_MS);
+  const todayKey = kigaliNow.toISOString().slice(0, 10); // YYYY-MM-DD, Kigali-local
+  // Midnight today in Kigali, expressed as the equivalent UTC instant —
+  // this is the boundary the original code compared against after its own
+  // fuDate.setHours(0,0,0,0) truncation to local midnight.
+  const startOfTodayKigali = new Date(Date.UTC(kigaliNow.getUTCFullYear(), kigaliNow.getUTCMonth(), kigaliNow.getUTCDate()) - KIGALI_OFFSET_MS);
+  const endOfTodayKigali = new Date(startOfTodayKigali.getTime() + 24 * 60 * 60 * 1000 - 1);
+
+  const snap = await db.collection('leads')
+    .where('isActive', '==', true)
+    .where('nextFollowUp', '<=', endOfTodayKigali)
+    .get();
+
+  let sent = 0;
+  for (const doc of snap.docs) {
+    const lead = doc.data();
+    if (lead.pipelineStage === 'closed_won' || lead.pipelineStage === 'closed_lost') continue;
+    const target = lead.agentId;
+    if (!target) continue;
+    if (lead.lastFollowupReminderDate === todayKey) continue; // already reminded today
+
+    const fuDate = lead.nextFollowUp && lead.nextFollowUp.toDate ? lead.nextFollowUp.toDate() : new Date(lead.nextFollowUp);
+    const isOverdue = fuDate.getTime() < startOfTodayKigali.getTime();
+    const clientN = lead.clientName || 'Client';
+    const title = isOverdue ? 'Follow-up Overdue' : 'Follow-up Due Today';
+    const body = 'Follow up with ' + clientN + (isOverdue ? ' — Overdue!' : ' today.');
+
+    await notifyUser(db, target, title, body, 'lead_followup', 'leads', doc.id, 'system');
+    await doc.ref.update({ lastFollowupReminderDate: todayKey, updatedAt: FieldValue.serverTimestamp() });
+    sent++;
+  }
+
+  logger.info('Nightly follow-up sweep complete', { checked: snap.size, sent });
 });
