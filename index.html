@@ -5974,6 +5974,43 @@ html,body{overscroll-behavior-x:none}
   </div>
 </div>
 
+<!-- Staff performance review modal -->
+<div class="modal-wrap" role="dialog" aria-modal="true" id="staff-review-modal" style="display:none">
+  <div class="modal" style="max-width:460px;max-height:90vh;overflow-y:auto">
+    <div class="modal-hdr">
+      <div class="modal-title"><span id="srm-staff-name">Performance Review</span></div>
+      <button class="modal-close" onclick="closeStaffReviewModal()">&times;</button>
+    </div>
+    <input type="hidden" id="srm-staff-id">
+    <input type="hidden" id="srm-period">
+    <div style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem"><span id="srm-period-label"></span></div>
+
+    <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.08em;margin-bottom:.5rem" data-rw="AMATEKA Y'ISUZUMA" data-en="REVIEW HISTORY">REVIEW HISTORY</div>
+    <div id="srm-history" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem;max-height:220px;overflow-y:auto">
+      <p style="color:var(--muted);font-size:.82rem">Loading...</p>
+    </div>
+
+    <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.08em;margin-bottom:.5rem" data-rw="ISUZUMA RISHYA" data-en="NEW REVIEW">NEW REVIEW</div>
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+      <div style="display:flex;justify-content:center;gap:.5rem" id="sr-stars-input">
+        <span class="sr-star" data-val="1" onclick="setSrStar(1)" style="font-size:2rem;cursor:pointer;opacity:.35;transition:var(--tr)" role="button" tabindex="0">⭐</span>
+        <span class="sr-star" data-val="2" onclick="setSrStar(2)" style="font-size:2rem;cursor:pointer;opacity:.35;transition:var(--tr)" role="button" tabindex="0">⭐</span>
+        <span class="sr-star" data-val="3" onclick="setSrStar(3)" style="font-size:2rem;cursor:pointer;opacity:.35;transition:var(--tr)" role="button" tabindex="0">⭐</span>
+        <span class="sr-star" data-val="4" onclick="setSrStar(4)" style="font-size:2rem;cursor:pointer;opacity:.35;transition:var(--tr)" role="button" tabindex="0">⭐</span>
+        <span class="sr-star" data-val="5" onclick="setSrStar(5)" style="font-size:2rem;cursor:pointer;opacity:.35;transition:var(--tr)" role="button" tabindex="0">⭐</span>
+      </div>
+      <div class="vr-field">
+        <label data-rw="Ibitekerezo (bishobora kuba ubusa)" data-en="Comment (optional)">Comment</label>
+        <textarea id="sr-comment" rows="3" placeholder="Notes on performance this period..." style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box;resize:vertical"></textarea>
+      </div>
+      <div style="display:flex;gap:.6rem">
+        <button class="btn btn-navy" style="flex:1;justify-content:center" onclick="saveStaffReview()" data-rw="Ohereza Isuzuma" data-en="Submit Review">Submit Review</button>
+        <button class="btn btn-outline" onclick="closeStaffReviewModal()" style="padding:.5rem .8rem">✕</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- === PAGE: ACCOUNTING & FINANCE === -->
 <div class="page" id="page-accounting">
   <div class="page-hdr">
@@ -19590,27 +19627,75 @@ function loadPerformance() {
 
 // Real manager-submitted performance review — previously this tab was
 // entirely read-only derived metrics with no way to actually record a
-// review. Reuses the existing `reviews` collection (already used for
-// partner ratings) with a subjectType field so the two stay distinct and
-// staff reviews stay private (see the updated Firestore rule).
+// review, and the capture UI was a pair of prompt() dialogs with no
+// history shown back anywhere. Writes to its own `staff_reviews`
+// collection rather than reusing the public-facing `reviews` collection
+// (partner ratings) — a rule that branches on a field not present on
+// every document in a collection can't be proven safe by Firestore for
+// list/query reads, so keeping this separate is what makes the privacy
+// rule provably enforceable rather than just apparently enforceable.
+var _srStarVal = 0;
 function submitStaffReview(uid, staffName, period) {
   if (typeof db === 'undefined' || !currentUser) return;
-  var ratingStr = prompt((curLang==='rw' ? 'Tanga amanota kuri ' : 'Rate ') + staffName + (curLang==='rw' ? ' (1-5):' : ' (1-5):'));
-  if (!ratingStr) return;
-  var rating = Math.max(1, Math.min(5, parseInt(ratingStr) || 0));
-  if (!rating) { showToast(curLang==='rw'?'Andika umubare hagati ya 1 na 5':'Enter a number between 1 and 5', 'error'); return; }
-  var comment = prompt(curLang==='rw' ? 'Andika ibitekerezo (bishobora kuba ubusa):' : 'Add a comment (optional):') || '';
-  var revRef = db.collection('reviews').doc();
+  _srStarVal = 0;
+  g('srm-staff-id').value = uid;
+  g('srm-period').value = period;
+  g('srm-staff-name').textContent = staffName;
+  g('srm-period-label').textContent = period;
+  if (g('sr-comment')) g('sr-comment').value = '';
+  document.querySelectorAll('.sr-star').forEach(function(s) { s.style.opacity = '.35'; });
+  loadStaffReviewHistory(uid);
+  openModal('staff-review-modal');
+}
+function closeStaffReviewModal() { closeModal('staff-review-modal'); }
+
+function setSrStar(val) {
+  _srStarVal = val;
+  document.querySelectorAll('.sr-star').forEach(function(s) {
+    var starVal = parseInt(s.getAttribute('data-val'), 10);
+    s.style.opacity = starVal <= val ? '1' : '.35';
+  });
+}
+
+function loadStaffReviewHistory(staffId) {
+  if (typeof db === 'undefined') return;
+  var el = g('srm-history');
+  if (!el) return;
+  el.innerHTML = '<p style="color:var(--muted);font-size:.82rem">Loading...</p>';
+  db.collection('staff_reviews').where('staffId','==',staffId).where('isActive','==',true)
+    .orderBy('createdAt','desc').limit(10).get().then(function(snap) {
+      if (snap.empty) { el.innerHTML = '<p style="color:var(--muted);font-size:.82rem" data-rw="Nta suzuma rirahaba" data-en="No reviews yet">No reviews yet</p>'; return; }
+      el.innerHTML = snap.docs.map(function(d) {
+        var r = d.data();
+        return '<div class="partner-review">'
+          + '<div class="partner-review-head">'
+          + '<span class="partner-stars-sm">' + renderStarsHtml(r.rating||0) + '</span>'
+          + '<span style="font-size:.75rem;color:var(--muted)">' + escapeHtml(r.period||'') + ' &middot; ' + escapeHtml(r.reviewerName||'') + '</span>'
+          + '</div>'
+          + (r.comment ? '<div style="font-size:.82rem;margin-top:.25rem">' + escapeHtml(r.comment) + '</div>' : '')
+          + '</div>';
+      }).join('');
+    }).catch(function(e) { el.innerHTML = ''; console.error('[HR] loadStaffReviewHistory', e); });
+}
+
+function saveStaffReview() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var uid = g('srm-staff-id').value;
+  var period = g('srm-period').value;
+  var staffName = (g('srm-staff-name')||{}).textContent || '';
+  if (!_srStarVal) { showToast(curLang==='rw'?'Hitamo amanota hagati ya 1 na 5':'Select a rating between 1 and 5', 'error'); return; }
+  var comment = (g('sr-comment')||{}).value || '';
+  var revRef = db.collection('staff_reviews').doc();
   revRef.set({
-    id: revRef.id, subjectType: 'staff', staffId: uid, staffName: staffName, period: period,
+    id: revRef.id, staffId: uid, staffName: staffName, period: period,
     reviewerId: currentUser.uid, reviewerName: currentUser.displayName||currentUser.name||currentUser.email||'',
-    rating: rating, comment: comment,
+    rating: _srStarVal, comment: comment,
     status: 'active', isActive: true,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     createdBy: currentUser.uid, updatedBy: currentUser.uid
   }).then(function() {
-    logAudit('staff_review.submitted', 'reviews', revRef.id, null, { staffId: uid, rating: rating, period: period });
+    logAudit('staff_review.submitted', 'staff_reviews', revRef.id, null, { staffId: uid, rating: _srStarVal, period: period });
     showToast(curLang==='rw'?'Isuzuma ryabitswe!':'Performance review saved!', 'success');
     if (typeof notifyUser === 'function') {
       notifyUser(uid,
@@ -19618,9 +19703,10 @@ function submitStaffReview(uid, staffName, period) {
         curLang==='rw' ? 'Wahawe isuzuma rishya ry\'akazi kawe.' : 'You have received a new performance review.',
         'performance_review', 'reviews', revRef.id);
     }
+    closeStaffReviewModal();
   }).catch(function(e) {
     showToast(curLang==='rw'?'Habaye ikosa':'Error saving review', 'error');
-    console.error('[HR] submitStaffReview', e);
+    console.error('[HR] saveStaffReview', e);
   });
 }
 

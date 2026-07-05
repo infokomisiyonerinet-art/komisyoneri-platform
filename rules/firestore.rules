@@ -240,6 +240,22 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /staff_reviews/{id} {
+      // Kept as its own collection rather than reusing `reviews` (which
+      // mixes in publicly-readable partner ratings): a rule that branches
+      // on a field not present in every document of a collection cannot be
+      // proven safe by Firestore for list/query reads, and empirically
+      // (verified against the rules-enabled emulator) that ambiguity lets
+      // an unrelated authenticated user list another employee's private
+      // reviews. staffId is always present here and always matches the
+      // query filter loadStaffReviewHistory() actually issues, so this
+      // stays simple and provably safe for both get and list.
+      allow read:   if isAdminOrStaff() || (isAuth() && resource.data.staffId == request.auth.uid);
+      allow create: if isAdminOrStaff() && hasStandardFields();
+      allow update: if false;
+      allow delete: if false;
+    }
+
     match /branches/{id} {
       allow read:   if isAuth();
       allow create: if isAdminOrStaff() && hasStandardFields();
