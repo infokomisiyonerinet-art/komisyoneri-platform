@@ -3837,6 +3837,7 @@ html,body{overscroll-behavior-x:none}
         <div class="ft-col"><h5 data-rw="Sosiyete" data-en="Company">Sosiyete</h5><ul>
           <li><a onclick="go('about')" style="cursor:pointer" data-rw="Abo Turi Bo" data-en="About Us">Abo Turi Bo</a></li>
           <li><a onclick="go('agents')" style="cursor:pointer" data-rw="Abakomisiyoneri" data-en="Our Agents">Abakomisiyoneri</a></li>
+          <li><a onclick="go('careers')" style="cursor:pointer" data-rw="Akazi Kacu" data-en="Careers">Akazi Kacu</a></li>
           <li><a onclick="go('analytics')" style="cursor:pointer" data-rw="Amakuru y'Isoko" data-en="Market News">Amakuru y'Isoko</a></li>
           <li><a onclick="go('privacy')" style="cursor:pointer" data-rw="Politiki y'Ubucungezi" data-en="Privacy Policy">Politiki y'Ubucungezi</a></li>
           <li><a onclick="go('terms')" style="cursor:pointer" data-rw="Amabwiriza" data-en="Terms of Service">Amabwiriza</a></li>
@@ -3935,6 +3936,42 @@ html,body{overscroll-behavior-x:none}
       <div style="font-weight:700;font-size:1rem;margin-bottom:.3rem">Ushaka kuba Agent wa KOMISIYONERI?</div>
       <div style="font-size:.82rem;opacity:.8;margin-bottom:1rem">Iyandikishe ubuntu — habwa 40% ya commission buri deal</div>
       <button onclick="showBecomeAgent()" class="btn btn-gold btn-sm" style="border-radius:20px">✦ Iyandikishe Ubu →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PAGE: CAREERS
+════════════════════════════════════ -->
+<div class="page" id="page-careers">
+  <div class="list-hdr">
+    <div class="wrap">
+      <div class="eyebrow tag-green">💼 Akazi kuri KOMISIYONERI</div>
+      <h1 class="h1" data-rw="Twinjire mu Itsinda Ryacu" data-en="Join Our Team">Twinjire mu Itsinda Ryacu</h1>
+      <p style="color:rgba(255,255,255,.75);font-size:.9rem;margin-top:.3rem" data-rw="Reba impaka z'akazi zihari kuri KOMISIYONERI ConnectPro Services" data-en="Browse current openings at KOMISIYONERI ConnectPro Services">Browse current openings at KOMISIYONERI ConnectPro Services</p>
+    </div>
+  </div>
+  <div class="wrap" style="padding-top:1.5rem;padding-bottom:5rem">
+    <div id="careers-list"></div>
+  </div>
+</div>
+
+<!-- Job application modal -->
+<div class="modal-wrap" role="dialog" aria-modal="true" id="job-apply-modal" style="display:none">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="ja-job-title" data-rw="Saba Akazi" data-en="Apply">Apply</div>
+      <button class="modal-close" onclick="closeJobApply()">&times;</button>
+    </div>
+    <input type="hidden" id="ja-posting-id">
+    <div class="form-group"><label data-rw="Amazina" data-en="Full Name">Full Name</label><input type="text" id="ja-name" class="form-control"></div>
+    <div class="form-group"><label data-rw="Imeyili" data-en="Email">Email</label><input type="email" id="ja-email" class="form-control"></div>
+    <div class="form-group"><label data-rw="Telefoni" data-en="Phone">Phone</label><input type="tel" id="ja-phone" class="form-control"></div>
+    <div class="form-group"><label data-rw="Kopi ya CV (URL)" data-en="Resume Link (URL)">Resume Link (URL)</label><input type="url" id="ja-resume" class="form-control" placeholder="https://drive.google.com/..."></div>
+    <div class="form-group"><label data-rw="Ubutumwa" data-en="Cover Note">Cover Note</label><textarea id="ja-note" rows="3" class="form-control"></textarea></div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" onclick="closeJobApply()" data-en="Cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitJobApplication()" data-en="Submit Application">Submit Application</button>
     </div>
   </div>
 </div>
@@ -5789,6 +5826,7 @@ html,body{overscroll-behavior-x:none}
     <button class="off-tab" id="hrtab-btn-payroll" onclick="switchHRTab('payroll')" data-rw="Mishahara" data-en="Payroll">Payroll</button>
     <button class="off-tab" id="hrtab-btn-performance" onclick="switchHRTab('performance')" data-rw="Imikorere" data-en="Performance">Performance</button>
     <button class="off-tab" id="hrtab-btn-lifecycle" onclick="switchHRTab('lifecycle')" data-rw="Amashami n'Intangiriro" data-en="Departments & Lifecycle">Departments & Lifecycle</button>
+    <button class="off-tab" id="hrtab-btn-recruitment" onclick="switchHRTab('recruitment')" data-rw="Gushaka Abakozi" data-en="Recruitment">Recruitment</button>
   </div>
 
   <!-- STAFF DIRECTORY PANE -->
@@ -5858,6 +5896,64 @@ html,body{overscroll-behavior-x:none}
 
     <div style="font-weight:700;color:var(--navy);margin:1.5rem 0 .75rem" data-rw="Intangiriro n'Isohoka" data-en="Onboarding & Offboarding">Onboarding & Offboarding</div>
     <div id="hr-lifecycle-list"></div>
+  </div>
+
+  <!-- RECRUITMENT PANE -->
+  <div class="off-pane" id="hrtab-recruitment" style="display:none">
+    <div class="off-pane-hdr">
+      <div style="font-weight:700;color:var(--navy)" data-rw="Impaka z'Akazi" data-en="Job Postings">Job Postings</div>
+      <button class="btn btn-primary" onclick="openJobPostingCreate()" style="display:flex;align-items:center;gap:.4rem">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-rw="Impaka Nshya" data-en="New Posting">New Posting</span>
+      </button>
+    </div>
+    <div id="hr-jobpostings-list" class="hr-staff-grid"></div>
+  </div>
+</div>
+
+<!-- Job posting create modal -->
+<div class="modal-wrap" role="dialog" aria-modal="true" id="jobposting-create-modal" style="display:none">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-hdr">
+      <div class="modal-title" data-rw="Impaka Nshya y'Akazi" data-en="New Job Posting">New Job Posting</div>
+      <button class="modal-close" onclick="closeJobPostingCreate()">&times;</button>
+    </div>
+    <div class="form-group"><label data-rw="Umwanya" data-en="Job Title">Job Title</label><input type="text" id="jp-title" class="form-control" placeholder="e.g. Sales Agent"></div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label data-rw="Ishami" data-en="Department">Department</label>
+        <select id="jp-department" class="form-control"><option value="">-- None --</option></select>
+      </div>
+      <div class="form-group">
+        <label data-rw="Ubwoko bw'Akazi" data-en="Employment Type">Employment Type</label>
+        <select id="jp-employment-type" class="form-control">
+          <option value="full_time">Full-Time</option>
+          <option value="part_time">Part-Time</option>
+          <option value="contract">Contract</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label data-rw="Aho" data-en="Location">Location</label><input type="text" id="jp-location" class="form-control" placeholder="e.g. Kigali, Rwanda"></div>
+    <div class="form-group"><label data-rw="Ibisobanuro" data-en="Description">Description</label><textarea id="jp-description" rows="3" class="form-control"></textarea></div>
+    <div class="form-group"><label data-rw="Ibisabwa" data-en="Requirements">Requirements</label><textarea id="jp-requirements" rows="3" class="form-control"></textarea></div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" onclick="closeJobPostingCreate()" data-en="Cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="saveJobPosting()" data-en="Save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Job posting pipeline modal — candidates grouped by stage -->
+<div class="modal-wrap" role="dialog" aria-modal="true" id="jobposting-pipeline-modal" style="display:none">
+  <div class="modal" style="max-width:640px;max-height:90vh;overflow-y:auto">
+    <div class="modal-hdr">
+      <div class="modal-title" id="jpp-title">Candidates</div>
+      <button class="modal-close" onclick="closeJobPostingPipeline()">&times;</button>
+    </div>
+    <div style="display:flex;gap:.5rem;margin-bottom:.75rem">
+      <button class="btn btn-sm" id="jpp-close-btn" onclick="toggleJobPostingStatus()">Close Posting</button>
+    </div>
+    <div id="jpp-pipeline"></div>
   </div>
 </div>
 
@@ -10622,6 +10718,14 @@ async function handleLogin() {
     showToast((curLang==='rw'?'Murakaza neza, ':'Welcome, ')+user.name+'! 🎉');
     var pa = _pendingAction; _pendingAction = null;
     if (pa === 'agent-reg') { go('home'); openAgentReg(); }
+    else if (pa === 'job-apply' && _pendingJobApplyId) {
+      var _resumeJobId = _pendingJobApplyId; _pendingJobApplyId = null;
+      go('careers');
+      setTimeout(function() {
+        var p = _jobPostings.find(function(x) { return x.id === _resumeJobId; });
+        openJobApply(_resumeJobId, p ? p.title : '');
+      }, 400);
+    }
     else { go('home'); }
   } catch(err) {
     console.error('[AUTH] handleLogin FAILED — code:', err.code, 'message:', err.message);
@@ -10733,6 +10837,14 @@ async function handleRegister() {
     showToast(curLang==='rw'?'Konti yakozwe! Reba imeyili yawe kugira ngo uremeze.':'Account created! Check your email to verify.');
     var pa = _pendingAction; _pendingAction = null;
     if (pa === 'agent-reg') { go('home'); openAgentReg(); }
+    else if (pa === 'job-apply' && _pendingJobApplyId) {
+      var _resumeJobId = _pendingJobApplyId; _pendingJobApplyId = null;
+      go('careers');
+      setTimeout(function() {
+        var p = _jobPostings.find(function(x) { return x.id === _resumeJobId; });
+        openJobApply(_resumeJobId, p ? p.title : '');
+      }, 400);
+    }
     else { go('home'); }
   } catch(err) {
     console.error('[AUTH] handleRegister FAILED — code:', err.code, 'message:', err.message);
@@ -10891,6 +11003,7 @@ function go(name) {
     auth:      curLang === 'rw' ? 'Injira — KOMISIYONERI'          : 'Sign In — KOMISIYONERI',
     about:     curLang === 'rw' ? 'Abo Turi Bo — KOMISIYONERI'     : 'About Us — KOMISIYONERI',
     agents:    curLang === 'rw' ? 'Abajyanama — KOMISIYONERI'      : 'Real Estate Agents in Rwanda — KOMISIYONERI',
+    careers:   curLang === 'rw' ? 'Akazi — KOMISIYONERI'           : 'Careers — KOMISIYONERI',
     privacy:   curLang === 'rw' ? 'Politiki y\'Ibanga — KOMISIYONERI' : 'Privacy Policy — KOMISIYONERI',
     terms:     curLang === 'rw' ? 'Amabwiriza — KOMISIYONERI'      : 'Terms of Service — KOMISIYONERI'
   };
@@ -10903,6 +11016,7 @@ function go(name) {
     home:      curLang === 'rw' ? 'Platform N°1 y\'imitungo mu Rwanda. Kugura, kugurisha, no gukodesha imitungo i Kigali no mu gihugu hose.' : 'Rwanda\'s #1 real estate platform. Buy, sell, or rent property in Kigali and across all 30 districts of Rwanda.',
     listings:  curLang === 'rw' ? 'Shakisha imitungo yose iri ku KOMISIYONERI — inzu, ubutaka, na apartment biri hagati mu Rwanda.' : 'Browse all verified property listings on KOMISIYONERI — houses, land, and apartments for sale or rent across Rwanda.',
     agents:    curLang === 'rw' ? 'Menya abajyanama b\'imitungo bemejwe na KOMISIYONERI mu turere twose twa Rwanda.' : 'Find verified real estate agents and brokers across all districts of Rwanda, vetted by KOMISIYONERI.',
+    careers:   curLang === 'rw' ? 'Reba impaka z\'akazi zihari kuri KOMISIYONERI ConnectPro Services.' : 'Browse current job openings at KOMISIYONERI ConnectPro Services.',
     about:     curLang === 'rw' ? 'Menya KOMISIYONERI ConnectPro Services Ltd — urubuga rw\'imitungo rwizewe mu Rwanda.' : 'Learn about KOMISIYONERI ConnectPro Services Ltd — Rwanda\'s trusted digital real estate operating system.'
   };
   var metaDescEl = document.querySelector('meta[name="description"]');
@@ -10923,7 +11037,7 @@ function go(name) {
   // app pages (dashboard, crm, hr, etc.) keep hash routing unchanged.
   var CLEAN_PATHS = {
     home: '/', listings: '/listings', about: '/about',
-    agents: '/agents', privacy: '/privacy', terms: '/terms'
+    agents: '/agents', careers: '/careers', privacy: '/privacy', terms: '/terms'
   };
   var cleanPath = CLEAN_PATHS[name];
   if (cleanPath) {
@@ -13319,6 +13433,87 @@ function showBecomeAgent() {
   openAgentReg();
 }
 
+// ── Public Careers page ──────────────────────────────
+var _pendingJobApplyId = null;
+
+function loadCareersPage() {
+  var el = document.getElementById('careers-list');
+  if (!el || typeof db === 'undefined') return;
+  el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  // Public, no auth required — job_postings allows open read. Filtered
+  // to status=='open' client-side rather than adding a 3-field composite
+  // index for what's expected to be a small, admin-managed collection.
+  db.collection('job_postings').where('isActive','==',true).orderBy('createdAt','desc').limit(100).get().then(function(snap) {
+    var postings = [];
+    snap.forEach(function(d) { var data = d.data(); data.id = d.id; if (data.status === 'open') postings.push(data); });
+    _jobPostings = postings; // so openJobApply()'s post-login resume can find the title
+    if (!postings.length) {
+      el.innerHTML = '<div class="empty-state" style="padding:3rem 1rem;text-align:center;color:var(--muted)" data-rw="Nta mwanya w\'akazi uboneka ubu. Ongera ugaruke vuba!" data-en="No openings right now. Check back soon!">No openings right now. Check back soon!</div>';
+      if (typeof switchLang === 'function') switchLang(curLang);
+      return;
+    }
+    el.innerHTML = postings.map(function(p) {
+      return '<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:1.3rem;margin-bottom:1rem">'
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem">'
+        + '<div><div style="font-weight:700;font-size:1.05rem;color:var(--navy)">' + escapeHtml(p.title || '') + '</div>'
+        + '<div style="font-size:.82rem;color:var(--muted);margin-top:.2rem">' + escapeHtml(p.location || '') + (p.employmentType ? ' — ' + (JOB_EMPLOYMENT_LABELS[p.employmentType] || p.employmentType) : '') + '</div></div>'
+        + '<button class="btn btn-gold btn-sm" onclick="openJobApply(\'' + p.id + '\', \'' + escapeHtml(p.title || '').replace(/'/g,"\\'") + '\')" data-rw="Saba" data-en="Apply">Apply</button>'
+        + '</div>'
+        + (p.description ? '<p style="font-size:.86rem;color:var(--text2);margin-top:.7rem;white-space:pre-wrap">' + escapeHtml(p.description) + '</p>' : '')
+        + (p.requirements ? '<div style="font-size:.8rem;color:var(--muted);margin-top:.5rem"><strong>Requirements:</strong> ' + escapeHtml(p.requirements) + '</div>' : '')
+        + '</div>';
+    }).join('');
+    if (typeof switchLang === 'function') switchLang(curLang);
+  }).catch(function(err) {
+    console.error('[Careers] load error:', err);
+    el.innerHTML = '<div class="empty-state" style="padding:2rem;text-align:center">Error loading job postings</div>';
+  });
+}
+
+function openJobApply(postingId, jobTitle) {
+  // Applying requires an account — same pattern as showBecomeAgent():
+  // resume the apply modal automatically once login/registration completes.
+  if (!currentUser) { _pendingAction = 'job-apply'; _pendingJobApplyId = postingId; go('auth'); return; }
+  document.getElementById('ja-posting-id').value = postingId;
+  document.getElementById('ja-job-title').textContent = jobTitle || 'Apply';
+  document.getElementById('ja-name').value = currentUser.name || currentUser.displayName || '';
+  document.getElementById('ja-email').value = currentUser.email || '';
+  document.getElementById('ja-phone').value = currentUser.phone || '';
+  document.getElementById('ja-resume').value = '';
+  document.getElementById('ja-note').value = '';
+  openModal('job-apply-modal');
+}
+function closeJobApply() { closeModal('job-apply-modal'); }
+
+function submitJobApplication() {
+  if (typeof db === 'undefined' || !currentUser) { showToast('Login required', 'error'); return; }
+  var postingId = document.getElementById('ja-posting-id').value;
+  var name = (document.getElementById('ja-name').value || '').trim();
+  var email = (document.getElementById('ja-email').value || '').trim();
+  var phone = (document.getElementById('ja-phone').value || '').trim();
+  if (!postingId || !name || !email) { showToast(curLang === 'rw' ? 'Uzuza amazina n\'imeyili' : 'Fill in your name and email', 'error'); return; }
+
+  var p = _jobPostings.find(function(x) { return x.id === postingId; }) || {};
+  var docRef = db.collection('job_applications').doc();
+  var payload = {
+    id: docRef.id, jobPostingId: postingId, jobTitle: p.title || document.getElementById('ja-job-title').textContent || '',
+    applicantId: currentUser.uid, applicantName: name, applicantEmail: email, applicantPhone: phone,
+    resumeUrl: (document.getElementById('ja-resume').value || '').trim(),
+    coverNote: (document.getElementById('ja-note').value || '').trim(),
+    stage: 'applied', status: 'applied', isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(), createdBy: currentUser.uid,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  };
+  docRef.set(payload).then(function() {
+    logAudit('job_application_submitted', 'job_applications', payload.id, null, { jobPostingId: postingId, applicantName: name });
+    showToast(curLang === 'rw' ? 'Ubusabe bwoherejwe! Turabushimira.' : 'Application submitted! Thank you for applying.', 'success');
+    closeJobApply();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error submitting application', 'error');
+    console.error('[Careers] apply error:', err);
+  });
+}
+
 
 // ════════════════════════════════════════════════════════
 //  DEMO LISTINGS + ADMIN LISTING + FILE UPLOAD
@@ -14097,7 +14292,7 @@ window.addEventListener('popstate', function(event) {
 window.addEventListener('DOMContentLoaded', function() {
   var PATH_TO_PAGE = {
     '/': 'home', '/listings': 'listings', '/about': 'about',
-    '/agents': 'agents', '/privacy': 'privacy', '/terms': 'terms'
+    '/agents': 'agents', '/careers': 'careers', '/privacy': 'privacy', '/terms': 'terms'
   };
   var path = window.location.pathname.replace(/\/$/, '') || '/';
   var pathPage = PATH_TO_PAGE[path];
@@ -14110,14 +14305,14 @@ window.addEventListener('DOMContentLoaded', function() {
     'sites','site','crm','deals','commissions',
     'verification','documents','financing','partners','investors',
     'customer','office','hr','accounting',
-    'exec','bi','branches','agents',
+    'exec','bi','branches','agents','careers',
     'dashboard','auth','about','privacy','terms'
   ];
   var page = pathPage || (validPages.indexOf(hash) > -1 ? hash : 'home');
   if (window.history && window.history.replaceState) {
     var CLEAN_PATHS = {
       home: '/', listings: '/listings', about: '/about',
-      agents: '/agents', privacy: '/privacy', terms: '/terms'
+      agents: '/agents', careers: '/careers', privacy: '/privacy', terms: '/terms'
     };
     window.history.replaceState({ page: page }, '', CLEAN_PATHS[page] || ('#' + page));
   }
@@ -15229,6 +15424,9 @@ go = function(page) {
   _goOrigAgents(page);
   if(page === 'agents') {
     setTimeout(loadAgentsPage, 100);
+  }
+  if(page === 'careers') {
+    setTimeout(loadCareersPage, 100);
   }
   if(page === 'crm') {
     setTimeout(loadCRM, 150);
@@ -18380,7 +18578,7 @@ function loadHRStats() {
 }
 
 function switchHRTab(tab) {
-  ['staff','payroll','performance','lifecycle'].forEach(function(t) {
+  ['staff','payroll','performance','lifecycle','recruitment'].forEach(function(t) {
     var btn  = g('hrtab-btn-' + t);
     var pane = g('hrtab-' + t);
     if (btn)  btn.classList.toggle('active', t === tab);
@@ -18390,6 +18588,7 @@ function switchHRTab(tab) {
   else if (tab === 'payroll')loadPayroll();
   else if (tab === 'performance') loadPerformance();
   else if (tab === 'lifecycle') loadHRLifecycle();
+  else if (tab === 'recruitment') loadJobPostings();
 }
 
 /* ── DEPARTMENTS ── */
@@ -18601,6 +18800,192 @@ function toggleChecklistItem(taskId, markDone) {
     status: markDone ? 'done' : 'todo',
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
   }).then(function() { loadHRLifecycle(); }).catch(function(){ showToast('Error updating item', 'error'); });
+}
+
+/* ── RECRUITMENT ── */
+var _jobPostings = [];
+var _jobApplications = [];
+var _jppCurrentPostingId = null;
+var APPLICATION_STAGES = [
+  { key:'applied',   label:'Applied',    color:'#64748B' },
+  { key:'screening', label:'Screening',  color:'#3B82F6' },
+  { key:'interview', label:'Interview',  color:'#8B5CF6' },
+  { key:'offer',     label:'Offer',      color:'#F59E0B' },
+  { key:'hired',     label:'Hired',      color:'#16A34A' },
+  { key:'rejected',  label:'Rejected',   color:'#DC2626' }
+];
+var JOB_EMPLOYMENT_LABELS = { full_time:'Full-Time', part_time:'Part-Time', contract:'Contract' };
+
+function loadJobPostings() {
+  if (typeof db === 'undefined') return;
+  var el = g('hr-jobpostings-list');
+  if (el) el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('job_postings').where('isActive','==',true).orderBy('createdAt','desc').limit(100).get().then(function(snap) {
+    _jobPostings = [];
+    snap.forEach(function(d) { var data = d.data(); data.id = d.id; _jobPostings.push(data); });
+    renderJobPostingCards();
+  }).catch(function(err) {
+    console.error('[Recruitment] load error:', err);
+    if (el) el.innerHTML = '<div class="exec-empty" style="padding:1.5rem">Error loading job postings</div>';
+  });
+}
+
+function renderJobPostingCards() {
+  var el = g('hr-jobpostings-list');
+  if (!el) return;
+  if (_jobPostings.length === 0) {
+    el.innerHTML = '<div class="exec-empty" style="padding:1.5rem" data-rw="Nta mpaka z\'akazi zabonetse. Ongeraho iya mbere." data-en="No job postings yet. Add your first one to get started.">No job postings yet. Add your first one to get started.</div>';
+    if (typeof switchLang === 'function') switchLang(curLang);
+    return;
+  }
+  el.innerHTML = _jobPostings.map(function(p) {
+    var deptName = '';
+    if (p.departmentId) { var d = _departments.find(function(x){ return x.id === p.departmentId; }); deptName = d ? d.name : ''; }
+    var statusColor = p.status === 'open' ? 'var(--success)' : 'var(--muted)';
+    return '<div class="hr-staff-card" onclick="openJobPostingPipeline(\'' + p.id + '\')" role="button" tabindex="0" style="cursor:pointer">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start"><strong>' + escapeHtml(p.title || '') + '</strong>'
+      + '<span style="font-size:.72rem;font-weight:700;color:' + statusColor + ';text-transform:uppercase">' + (p.status || 'open') + '</span></div>'
+      + '<div style="font-size:.78rem;color:var(--muted);margin-top:.2rem">' + escapeHtml(deptName) + (deptName && p.location ? ' — ' : '') + escapeHtml(p.location || '') + '</div>'
+      + '<div style="font-size:.78rem;color:var(--muted);margin-top:.1rem">' + (JOB_EMPLOYMENT_LABELS[p.employmentType] || '') + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function openJobPostingCreate() {
+  g('jp-title').value = '';
+  g('jp-location').value = '';
+  g('jp-description').value = '';
+  g('jp-requirements').value = '';
+  g('jp-employment-type').value = 'full_time';
+  var deptSel = g('jp-department');
+  if (deptSel) {
+    deptSel.innerHTML = '<option value="">-- None --</option>' + _departments.map(function(d) {
+      return '<option value="' + d.id + '">' + escapeHtml(d.name) + '</option>';
+    }).join('');
+  }
+  openModal('jobposting-create-modal');
+}
+function closeJobPostingCreate() { closeModal('jobposting-create-modal'); }
+
+function saveJobPosting() {
+  var cu = currentUser;
+  if (!cu) return;
+  var title = (g('jp-title').value || '').trim();
+  if (!title) { showToast(curLang === 'rw' ? 'Injiza umwanya w\'akazi' : 'Job title is required', 'error'); return; }
+
+  var docRef = db.collection('job_postings').doc();
+  var payload = {
+    id: docRef.id, title: title, departmentId: g('jp-department').value || '',
+    employmentType: g('jp-employment-type').value || 'full_time',
+    location: (g('jp-location').value || '').trim(),
+    description: (g('jp-description').value || '').trim(),
+    requirements: (g('jp-requirements').value || '').trim(),
+    status: 'open', postedBy: cu.uid, isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(), createdBy: cu.uid,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: cu.uid
+  };
+  docRef.set(payload).then(function() {
+    showToast(curLang === 'rw' ? 'Impaka yashyizweho!' : 'Job posting created!', 'success');
+    logAudit('job_posting_created', 'job_postings', payload.id, null, payload);
+    closeJobPostingCreate();
+    loadJobPostings();
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error saving job posting', 'error');
+    console.error('[Recruitment] save error:', err);
+  });
+}
+
+function openJobPostingPipeline(id) {
+  _jppCurrentPostingId = id;
+  var p = _jobPostings.find(function(x) { return x.id === id; });
+  if (!p) return;
+  g('jpp-title').textContent = p.title || 'Candidates';
+  var closeBtn = g('jpp-close-btn');
+  if (closeBtn) closeBtn.textContent = p.status === 'open' ? 'Close Posting' : 'Reopen Posting';
+  openModal('jobposting-pipeline-modal');
+  loadJobApplications(id);
+}
+function closeJobPostingPipeline() { closeModal('jobposting-pipeline-modal'); _jppCurrentPostingId = null; }
+
+function toggleJobPostingStatus() {
+  var id = _jppCurrentPostingId;
+  var p = _jobPostings.find(function(x) { return x.id === id; });
+  if (!p || typeof db === 'undefined') return;
+  var newStatus = p.status === 'open' ? 'closed' : 'open';
+  db.collection('job_postings').doc(id).update({
+    status: newStatus, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  }).then(function() {
+    p.status = newStatus;
+    logAudit('job_posting_status_changed', 'job_postings', id, null, { status: newStatus });
+    showToast(curLang === 'rw' ? 'Byahinduwe!' : 'Status updated!', 'success');
+    renderJobPostingCards();
+    openJobPostingPipeline(id);
+  }).catch(function() { showToast('Error updating status', 'error'); });
+}
+
+function loadJobApplications(postingId) {
+  if (typeof db === 'undefined') return;
+  var el = g('jpp-pipeline');
+  if (el) el.innerHTML = '<div class="exec-loading">Loading...</div>';
+  db.collection('job_applications').where('jobPostingId','==',postingId).where('isActive','==',true)
+    .orderBy('createdAt','desc').limit(200).get().then(function(snap) {
+      _jobApplications = [];
+      snap.forEach(function(d) { var data = d.data(); data.id = d.id; _jobApplications.push(data); });
+      renderJobPipeline();
+    }).catch(function(err) {
+      console.error('[Recruitment] applications load error:', err);
+      if (el) el.innerHTML = '<div class="exec-empty" style="padding:1rem">Error loading candidates</div>';
+    });
+}
+
+function renderJobPipeline() {
+  var el = g('jpp-pipeline');
+  if (!el) return;
+  if (_jobApplications.length === 0) {
+    el.innerHTML = '<div class="exec-empty" style="padding:1.5rem" data-rw="Nta basaba akazi barabonetse." data-en="No candidates have applied yet.">No candidates have applied yet.</div>';
+    if (typeof switchLang === 'function') switchLang(curLang);
+    return;
+  }
+  el.innerHTML = APPLICATION_STAGES.map(function(stage) {
+    var inStage = _jobApplications.filter(function(a) { return a.stage === stage.key; });
+    if (!inStage.length) return '';
+    return '<div style="margin-bottom:1rem">'
+      + '<div style="font-size:.75rem;font-weight:700;text-transform:uppercase;color:' + stage.color + ';margin-bottom:.4rem">' + stage.label + ' (' + inStage.length + ')</div>'
+      + inStage.map(function(a) {
+          var stageOpts = APPLICATION_STAGES.map(function(s) {
+            return '<option value="' + s.key + '"' + (s.key === a.stage ? ' selected' : '') + '>' + s.label + '</option>';
+          }).join('');
+          return '<div class="fin-summary-card" style="margin-bottom:.5rem">'
+            + '<div style="display:flex;justify-content:space-between;align-items:center">'
+            + '<div><strong>' + escapeHtml(a.applicantName || '') + '</strong>'
+            + '<div style="font-size:.76rem;color:var(--muted)">' + escapeHtml(a.applicantEmail || '') + (a.applicantPhone ? ' — ' + escapeHtml(a.applicantPhone) : '') + '</div>'
+            + (a.resumeUrl ? '<a href="' + escapeHtml(a.resumeUrl) + '" target="_blank" rel="noopener" style="font-size:.76rem">View Resume</a>' : '')
+            + '</div>'
+            + '<select onchange="moveApplicationStage(\'' + a.id + '\', this.value)" style="padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:6px;font-size:.78rem">' + stageOpts + '</select>'
+            + '</div>'
+            + '</div>';
+        }).join('')
+      + '</div>';
+  }).join('');
+}
+
+function moveApplicationStage(appId, newStage) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var app = _jobApplications.find(function(a) { return a.id === appId; });
+  var oldStage = app ? app.stage : '';
+  db.collection('job_applications').doc(appId).update({
+    stage: newStage, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  }).then(function() {
+    logAudit('job_application_stage_changed', 'job_applications', appId, { stage: oldStage }, { stage: newStage });
+    if (app) app.stage = newStage;
+    renderJobPipeline();
+    if (app && typeof notifyUser === 'function' && app.applicantId) {
+      var stageLabel = (APPLICATION_STAGES.find(function(s){ return s.key === newStage; }) || {}).label || newStage;
+      notifyUser(app.applicantId, 'Application Update',
+        'Your application status has been updated to: ' + stageLabel + '.',
+        'job_application_stage', 'job_applications', appId);
+    }
+  }).catch(function() { showToast('Error updating stage', 'error'); loadJobApplications(_jppCurrentPostingId); });
 }
 
 /* ── STAFF DIRECTORY ── */
