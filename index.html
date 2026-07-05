@@ -14821,6 +14821,75 @@ window.__firebaseNetworkLog = [];
   }
 })();
 </script>
+<script>
+// ═══════════════════════════════════════════════════════
+// On-page debug panel — visit any page with ?debug=1 in the URL to see a
+// live console + network log dump directly on screen. Mobile Chrome has no
+// DevTools console at all (no "Inspect" option exists in its menu), so this
+// is the only way to get diagnostic output without a desktop computer for
+// USB remote debugging. Completely inert unless ?debug=1 is present —
+// never shown to normal visitors.
+(function() {
+  if (window.location.search.indexOf('debug=1') === -1) return;
+  var logs = [];
+  function fmt(args) {
+    return Array.prototype.map.call(args, function(a) {
+      if (typeof a === 'string') return a;
+      try { return JSON.stringify(a); } catch (e) { return String(a); }
+    }).join(' ');
+  }
+  function capture(level, origFn) {
+    return function() {
+      origFn.apply(console, arguments);
+      logs.push('[' + level + '] ' + fmt(arguments));
+      if (logs.length > 300) logs.shift();
+      render();
+    };
+  }
+  console.error = capture('ERROR', console.error);
+  console.warn = capture('WARN', console.warn);
+
+  var panel = null, textEl = null, renderScheduled = false;
+  function ensurePanel() {
+    if (panel || !document.body) return;
+    panel = document.createElement('div');
+    panel.style.cssText = 'position:fixed;inset:0;background:#000;color:#0f0;font:11px/1.4 monospace;z-index:2147483647;overflow:auto;padding:10px;white-space:pre-wrap;word-break:break-all;';
+    var closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Close debug panel (data stays visible on reload)';
+    closeBtn.style.cssText = 'position:sticky;top:0;display:block;width:100%;margin-bottom:8px;padding:10px;background:#c00;color:#fff;border:0;font:12px monospace;';
+    closeBtn.onclick = function() { panel.style.display = 'none'; };
+    var reopenBtn = document.createElement('button');
+    reopenBtn.textContent = '⚠ DEBUG';
+    reopenBtn.style.cssText = 'position:fixed;bottom:10px;right:10px;z-index:2147483647;padding:8px 12px;background:#c00;color:#fff;border:0;border-radius:6px;font:11px monospace;';
+    reopenBtn.onclick = function() { panel.style.display = 'block'; };
+    textEl = document.createElement('div');
+    panel.appendChild(closeBtn);
+    panel.appendChild(textEl);
+    document.body.appendChild(panel);
+    document.body.appendChild(reopenBtn);
+  }
+  function render() {
+    if (renderScheduled) return;
+    renderScheduled = true;
+    setTimeout(function() {
+      renderScheduled = false;
+      if (!document.body) return;
+      ensurePanel();
+      var netLog = window.__firebaseNetworkLog || [];
+      textEl.textContent =
+        '=== FIREBASE NETWORK LOG (' + netLog.length + ' entries) ===\n' +
+        JSON.stringify(netLog, null, 2) +
+        '\n\n=== CONSOLE (errors/warnings only, newest last) ===\n' +
+        logs.join('\n');
+    }, 50);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', render, { once: true });
+  } else {
+    render();
+  }
+})();
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
