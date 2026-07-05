@@ -254,6 +254,23 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /job_postings/{id} {
+      // Public read — the Careers page lists open postings to signed-out
+      // visitors, same as property listings.
+      allow read:   if true;
+      allow create: if isAdminOrStaff() && hasStandardFields();
+      allow update: if isAdminOrStaff();
+      allow delete: if false;
+    }
+
+    match /job_applications/{id} {
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && resource.data.applicantId == request.auth.uid);
+      allow create: if isAuth() && hasStandardFields();
+      allow update: if isAdminOrStaff();
+      allow delete: if false;
+    }
+
     match /referrals/{id} {
       allow read:   if isAuth() && (resource.data.referrerId == request.auth.uid || isAdminOrStaff());
       allow create: if isAuth() && hasStandardFields();
