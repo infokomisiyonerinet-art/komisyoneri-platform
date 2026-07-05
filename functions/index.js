@@ -17,7 +17,7 @@
  * deliberate decision for later, not a side effect of this migration.
  */
 
-const { onDocumentUpdated } = require('firebase-functions/v2/firestore');
+const { onDocumentUpdated, onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { logger } = require('firebase-functions');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
@@ -318,4 +318,43 @@ exports.onPropertyStatusChanged = onDocumentUpdated({ document: 'properties/{pro
   }
 
   logger.info('Property ' + propertyId + ' status change (' + beforeStatus + ' -> ' + afterStatus + ') notification sent');
+});
+
+/**
+ * Gap-filling audit triggers — NOT a blanket "audit every write" catch-all.
+ *
+ * This codebase already has 78 distinct, specifically-named manual
+ * logAudit() calls covering nearly every collection and business action
+ * (deal.created, lead.stage.changed, commission.paid, branch_created, and
+ * so on). A generic trigger that logged every Firestore write on every
+ * collection would mostly duplicate that existing, well-named coverage
+ * with noise — one meaningful "deal.stage.changed" entry sitting next to
+ * a redundant generic "deals document updated" entry adds cost and
+ * clutter, not safety.
+ *
+ * What's actually missing, verified by checking every top-level
+ * `.add()` call site in index.html against the existing logAudit()
+ * calls, is exactly two: a brand-new property listing and a brand-new
+ * site enquiry are both created with no audit trail at all. These two
+ * triggers fill those two specific, confirmed gaps — they are not a
+ * general substitute for calling logAudit() in new code.
+ */
+async function auditCreate(db, action, collection, docId, snapshotData) {
+  await logAudit(db, action, collection, docId, null, snapshotData, snapshotData.createdBy || snapshotData.agentId || 'system');
+}
+
+exports.onPropertyCreated = onDocumentCreated({ document: 'properties/{propertyId}', region: REGION }, async (event) => {
+  const data = event.data.data() || {};
+  await auditCreate(getFirestore(), 'property.created', 'properties', event.params.propertyId, {
+    title: data.title || '', district: data.district || '', price: data.price || 0,
+    agentId: data.agentId || '', status: data.status || '', createdBy: data.createdBy || ''
+  });
+});
+
+exports.onSiteEnquiryCreated = onDocumentCreated({ document: 'site_enquiries/{enquiryId}', region: REGION }, async (event) => {
+  const data = event.data.data() || {};
+  await auditCreate(getFirestore(), 'site_enquiry.created', 'site_enquiries', event.params.enquiryId, {
+    siteId: data.siteId || '', plotId: data.plotId || '', clientId: data.clientId || '',
+    agentId: data.agentId || '', createdBy: data.createdBy || data.clientId || ''
+  });
 });
