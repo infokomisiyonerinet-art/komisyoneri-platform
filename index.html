@@ -9005,6 +9005,30 @@ html,body{overscroll-behavior-x:none}
   </div>
 </div>
 
+<!-- === ACCOUNTING: INVOICE REFUND MODAL === -->
+<div class="modal-wrap" role="dialog" aria-modal="true" id="invoice-refund-modal" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hdr">
+      <div class="modal-title" data-rw="Kwishyura Amafaranga" data-en="Refund Invoice">Refund Invoice</div>
+      <button class="modal-close" onclick="closeInvoiceRefund()">&times;</button>
+    </div>
+    <input type="hidden" id="ir-inv-id">
+    <div class="form-group">
+      <label data-rw="Amafaranga y'Ubwishyu" data-en="Refund Amount">Refund Amount (RWF)</label>
+      <input type="number" id="ir-amount" class="form-control" min="0" step="1">
+      <div style="font-size:.7rem;color:var(--muted);margin-top:.2rem" id="ir-max-hint"></div>
+    </div>
+    <div class="form-group">
+      <label data-rw="Impamvu" data-en="Reason">Reason</label>
+      <textarea id="ir-reason" class="form-control" rows="2" placeholder="e.g. deal fell through, client cancelled"></textarea>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" onclick="closeInvoiceRefund()" data-en="Cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitInvoiceRefund()" data-en="Confirm Refund" data-rw="Emeza Kwishyura">Confirm Refund</button>
+    </div>
+  </div>
+</div>
+
 <!-- === ACCOUNTING: EXPENSE CREATE MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="expense-create-modal" style="display:none">
   <div class="modal" style="max-width:480px">
@@ -18022,7 +18046,8 @@ var INV_STATUS = {
   sent:      { label: 'Sent',      color: '#1249B3' },
   paid:      { label: 'Paid',      color: '#16A34A' },
   overdue:   { label: 'Overdue',   color: '#DC2626' },
-  cancelled: { label: 'Cancelled', color: '#9CA3AF' }
+  cancelled: { label: 'Cancelled', color: '#9CA3AF' },
+  refunded:  { label: 'Refunded',  color: '#EA580C' }
 };
 
 var EXP_CATEGORIES = {
@@ -18088,10 +18113,18 @@ function loadAccountingStats() {
     var revMonth = 0, outstanding = 0;
     snap.forEach(function(d) {
       var inv = d.data();
-      if (inv.status === 'paid' && inv.paidAt) {
+      // Revenue is recognized when paid, regardless of a later refund — a
+      // refund is a separate contra-revenue event recorded in the month it
+      // happens, not a retroactive rewrite of the month it was paid in.
+      if (inv.paidAt) {
         var pd = inv.paidAt.toDate ? inv.paidAt.toDate() : new Date(inv.paidAt);
         var pdPeriod = pd.getFullYear() + '-' + String(pd.getMonth()+1).padStart(2,'0');
         if (pdPeriod === period) revMonth += (inv.totalAmount||0);
+      }
+      if (inv.status === 'refunded' && inv.refundedAt) {
+        var rd = inv.refundedAt.toDate ? inv.refundedAt.toDate() : new Date(inv.refundedAt);
+        var rdPeriod = rd.getFullYear() + '-' + String(rd.getMonth()+1).padStart(2,'0');
+        if (rdPeriod === period) revMonth -= (inv.refundAmount||0);
       }
       if (inv.status === 'sent' || inv.status === 'overdue') outstanding++;
     });
@@ -18312,9 +18345,13 @@ function openInvoiceDetail(id) {
   if (notesEl) notesEl.textContent = inv.notes ? 'Notes: ' + inv.notes : '';
   var paidEl = g('id-paid-info');
   if (paidEl) {
-    paidEl.innerHTML = inv.paidAt
+    var paidHtml = inv.paidAt
       ? '<div style="color:var(--success);font-weight:600;font-size:.82rem">Paid on ' + new Date(inv.paidAt.toDate ? inv.paidAt.toDate() : inv.paidAt).toLocaleDateString() + '</div>'
       : '';
+    if (inv.status === 'refunded' && inv.refundedAt) {
+      paidHtml += '<div style="color:#EA580C;font-weight:600;font-size:.82rem">Refunded ' + fmtRwfAC(inv.refundAmount) + ' on ' + new Date(inv.refundedAt.toDate ? inv.refundedAt.toDate() : inv.refundedAt).toLocaleDateString() + (inv.refundReason ? ' — ' + inv.refundReason : '') + '</div>';
+    }
+    paidEl.innerHTML = paidHtml;
   }
   var isAdmin = isAdminOrStaff(currentUser);
   var actEl = g('id-actions');
@@ -18324,9 +18361,12 @@ function openInvoiceDetail(id) {
       if (inv.status === 'draft') {
         html += '<button class="btn btn-primary" onclick="updateInvStatus(\'' + id + '\',\'sent\')" data-en="Mark as Sent" data-rw="Ohereza">Mark as Sent</button>';
       }
-      if (inv.status !== 'paid' && inv.status !== 'cancelled') {
+      if (inv.status !== 'paid' && inv.status !== 'cancelled' && inv.status !== 'refunded') {
         html += '<button class="btn" style="background:var(--success);color:#fff;border:none" onclick="updateInvStatus(\'' + id + '\',\'paid\')" data-en="Mark as Paid" data-rw="Yishyuwe">Mark as Paid</button>';
         html += '<button class="btn btn-outline" onclick="updateInvStatus(\'' + id + '\',\'cancelled\')" data-en="Cancel Invoice" data-rw="Siba">Cancel</button>';
+      }
+      if (inv.status === 'paid') {
+        html += '<button class="btn btn-outline" style="color:#EA580C;border-color:#EA580C" onclick="openInvoiceRefund(\'' + id + '\')" data-en="Refund" data-rw="Kwishyura">Refund</button>';
       }
     }
     actEl.innerHTML = html;
@@ -18409,6 +18449,48 @@ function updateInvStatus(id, newStatus) {
     closeInvoiceDetail(); loadInvoices(); loadAccountingStats();
     logAudit('invoice_status_changed', 'invoices', id, { status: oldStatus }, { status: newStatus });
   }).catch(function() { showToast('Error updating invoice', 'error'); });
+}
+
+// Real refund workflow — previously "cancel" was the only way to close out
+// a paid invoice, with no way to record money actually going back to a
+// client (deal fell through, client cancelled after paying, etc.) and no
+// trace of it in accounting reports. A refund is a data-entry action
+// (amount + reason), so it gets a real modal rather than confirm()/prompt().
+function openInvoiceRefund(id) {
+  var inv = _invoices.find(function(x) { return x.id === id; });
+  if (!inv) return;
+  g('ir-inv-id').value = id;
+  g('ir-amount').value = inv.totalAmount || 0;
+  g('ir-max-hint').textContent = 'Up to ' + fmtRwfAC(inv.totalAmount) + ' (full invoice total)';
+  g('ir-reason').value = '';
+  openModal('invoice-refund-modal');
+}
+function closeInvoiceRefund() { closeModal('invoice-refund-modal'); }
+
+function submitInvoiceRefund() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var id = g('ir-inv-id').value;
+  var inv = _invoices.find(function(x) { return x.id === id; });
+  if (!inv) return;
+  var amount = parseFloat(g('ir-amount').value) || 0;
+  if (amount <= 0) { showToast('Enter a refund amount greater than zero', 'error'); return; }
+  if (amount > inv.totalAmount) { showToast('Refund amount cannot exceed the invoice total', 'error'); return; }
+  var reason = (g('ir-reason').value || '').trim();
+  db.collection('invoices').doc(id).update({
+    status: 'refunded', refundAmount: amount, refundReason: reason,
+    refundedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  }).then(function() {
+    showToast('Invoice refunded', 'success');
+    inv.status = 'refunded'; inv.refundAmount = amount;
+    logAudit('invoice_refunded', 'invoices', id, { status: 'paid' }, { status: 'refunded', refundAmount: amount, refundReason: reason });
+    if (typeof notifyUser === 'function' && inv.clientId) {
+      notifyUser(inv.clientId, curLang==='rw' ? 'Wishyuwe' : 'Refund Issued',
+        curLang==='rw' ? 'Wishyuwe ' + fmtRwfAC(amount) + ' kuri invoice ' + (inv.invoiceNo||'') + '.' : 'You were refunded ' + fmtRwfAC(amount) + ' for invoice ' + (inv.invoiceNo||'') + '.',
+        'invoice_refunded', 'invoices', id);
+    }
+    closeInvoiceRefund(); closeInvoiceDetail(); loadInvoices(); loadAccountingStats();
+  }).catch(function() { showToast('Error processing refund', 'error'); });
 }
 
 /* ── EXPENSES ── */
@@ -18537,7 +18619,7 @@ function loadReports() {
   var yr = parseInt((g('ac-rep-year')||{}).value || new Date().getFullYear());
   var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   Promise.all([
-    db.collection('invoices').where('isActive','==',true).where('status','==','paid').limit(500).get(),
+    db.collection('invoices').where('isActive','==',true).where('status','in',['paid','refunded']).limit(500).get(),
     db.collection('expenses').where('isActive','==',true).limit(500).get()
   ]).then(function(results) {
     var invSnap = results[0], expSnap = results[1];
@@ -18545,9 +18627,16 @@ function loadReports() {
     var expByMonth  = new Array(12).fill(0);
     invSnap.forEach(function(d) {
       var inv = d.data();
+      // Same recognition rule as loadAccountingStats(): revenue lands in
+      // the month it was paid; a later refund is a separate contra-revenue
+      // entry in the month it happens, not a rewrite of the paid month.
       if (inv.paidAt) {
         var pd = inv.paidAt.toDate ? inv.paidAt.toDate() : new Date(inv.paidAt);
         if (pd.getFullYear() === yr) revByMonth[pd.getMonth()] += (inv.totalAmount||0);
+      }
+      if (inv.status === 'refunded' && inv.refundedAt) {
+        var rd = inv.refundedAt.toDate ? inv.refundedAt.toDate() : new Date(inv.refundedAt);
+        if (rd.getFullYear() === yr) revByMonth[rd.getMonth()] -= (inv.refundAmount||0);
       }
     });
     expSnap.forEach(function(d) {
