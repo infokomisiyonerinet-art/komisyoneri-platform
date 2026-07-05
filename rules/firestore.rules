@@ -43,16 +43,36 @@ service cloud.firestore {
     match /users/{uid} {
       allow read:   if isAuth() && (request.auth.uid == uid || isAdminOrStaff());
       allow create: if isAuth() && request.auth.uid == uid && hasStandardFields();
-      allow update: if isAuth() && (request.auth.uid == uid || isAdminOrStaff());
+      // A non-admin may only ever touch their own doc, and only the handful
+      // of fields the profile-edit UI actually writes (see saveEditProfile(),
+      // favorites toggle, referral code generation) — never `role`, `status`,
+      // `isActive`, `isVerified`, or any other field that every isAdminOrStaff()
+      // check in this entire ruleset (and in the app itself) ultimately derives
+      // from. Without this allowlist, any signed-in user could self-escalate by
+      // writing role:'admin' to their own document.
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && request.auth.uid == uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['phone','location','preference','photoURL',
+                                     'referralCode','favorites','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
     match /properties/{id} {
       allow read:   if true;
       allow create: if isAuth() && hasStandardFields();
+      // The owning agent/owner may edit their own listing's content, but
+      // never the fields that represent the admin-review decision itself
+      // (status, approvedBy, approvedAt, isVerified) or reassign ownership
+      // (agentId, ownerId) — matches what the self-edit UI actually sends
+      // (see the edit-mode branch of submitProperty()) and closes off a
+      // client-side bypass of the "every listing is admin-reviewed" guarantee.
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.agentId == request.auth.uid)
-                    || (isAuth() && resource.data.ownerId == request.auth.uid);
+                    || ((resource.data.agentId == request.auth.uid || resource.data.ownerId == request.auth.uid)
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['type','category','district','sector','price','bedrooms',
+                                     'bathrooms','area','description','title','amenities',
+                                     'images','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
