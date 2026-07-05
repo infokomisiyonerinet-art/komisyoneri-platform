@@ -258,3 +258,64 @@ exports.onDealClosedWon = onDocumentUpdated({ document: 'deals/{dealId}', region
 
   logger.info('Deal ' + dealId + ' closed_won cascade complete', { commissionCreated, dealValue, agentShare, companyShare });
 });
+
+/**
+ * Notifies the listing's agent and writes an audit log entry the moment a
+ * property's admin-review decision changes — replacing the notifyUser()/
+ * logAudit() calls that used to live inline in _fsAdminApprove()/
+ * _fsAdminReject(), in the same .then() as the status write itself. Those
+ * two writes happened in sequence on the client with no guarantee the
+ * second one (the notification) survived a closed tab; this makes the
+ * notification a property of the status change itself; it happens
+ * wherever the write comes from, and can't be lost independently of it.
+ *
+ * Status values in this collection are stored inconsistently-cased
+ * ('approved' from this admin flow vs 'Approved' in some older
+ * localStorage-mirrored writes) — comparisons here are lowercased to be
+ * robust to that, matching the defensive pattern used for `role` checks
+ * elsewhere in this codebase.
+ *
+ * The two title strings below use real unicode emoji rather than the
+ * original code's HTML entities (&#9989; / &#10060;) in the title text —
+ * the notification panel's render path passes the title through
+ * escapeHtml() before display, which neutralizes those entities into
+ * unrenderable literal text. That was a pre-existing display bug in the
+ * code this replaces; fixing it here rather than reproducing it, since
+ * it's a one-line cosmetic fix, not a behavior change. The `type` field
+ * itself is kept exactly as the original ('property_approved' / 'system')
+ * since that field is used for icon/analytics categorization elsewhere,
+ * not just display text.
+ */
+exports.onPropertyStatusChanged = onDocumentUpdated({ document: 'properties/{propertyId}', region: REGION }, async (event) => {
+  const before = event.data.before.data() || {};
+  const after = event.data.after.data() || {};
+  const beforeStatus = String(before.status || '').toLowerCase();
+  const afterStatus = String(after.status || '').toLowerCase();
+  if (beforeStatus === afterStatus) return;
+  if (afterStatus !== 'approved' && afterStatus !== 'rejected') return; // only these two transitions exist today
+
+  const propertyId = event.params.propertyId;
+  const db = getFirestore();
+  const actingUid = after.updatedBy || 'system';
+  const propTitle = after.title || after.titleEN || 'Property';
+
+  if (afterStatus === 'approved') {
+    await logAudit(db, 'property.approved', 'properties', propertyId, { status: before.status || 'pending' }, { status: after.status }, actingUid);
+    if (after.agentId) {
+      await notifyUser(db, after.agentId,
+        '✅ Property Approved!',
+        propTitle + ' has been approved and is now live.',
+        'property_approved', 'properties', propertyId, actingUid);
+    }
+  } else {
+    await logAudit(db, 'property.rejected', 'properties', propertyId, { status: before.status || 'pending' }, { status: after.status }, actingUid);
+    if (after.agentId) {
+      await notifyUser(db, after.agentId,
+        '❌ Property Not Approved',
+        propTitle + ' was not approved. Please contact admin for more details.',
+        'system', 'properties', propertyId, actingUid);
+    }
+  }
+
+  logger.info('Property ' + propertyId + ' status change (' + beforeStatus + ' -> ' + afterStatus + ') notification sent');
+});
