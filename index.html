@@ -8818,6 +8818,7 @@ html,body{overscroll-behavior-x:none}
             <option value="developer">Developer</option>
             <option value="admin">Admin</option>
             <option value="ceo">CEO</option>
+            <option value="company_owner">Company Owner</option>
           </select>
           <button class="btn btn-sm btn-navy" onclick="changeUserRole(_spProfileId)" style="font-size:.78rem" data-en="Change Role">Change Role</button>
         </div>
@@ -9851,14 +9852,25 @@ var _pendingAction = null;
 var ROLE_TIERS = {
   ADMIN:         ['super_admin', 'admin'],
   EXEC:          ['super_admin', 'admin', 'ceo'],
-  STAFF:         ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager'],        // == firestore.rules isAdminOrStaff()
-  INTERNAL_TEAM: ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'agent'] // == firestore.rules isInternalTeam()
+  STAFF:         ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'company_owner'],        // == firestore.rules isAdminOrStaff()
+  INTERNAL_TEAM: ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'company_owner', 'agent'] // == firestore.rules isInternalTeam()
 };
 function _roleOf(user) { return ((user || currentUser || {}).role || '').toLowerCase(); }
 function isAdmin(user)        { return ROLE_TIERS.ADMIN.indexOf(_roleOf(user)) > -1; }
 function isExec(user)         { return ROLE_TIERS.EXEC.indexOf(_roleOf(user)) > -1; }
 function isAdminOrStaff(user) { return ROLE_TIERS.STAFF.indexOf(_roleOf(user)) > -1; }
 function isInternalTeam(user) { return ROLE_TIERS.INTERNAL_TEAM.indexOf(_roleOf(user)) > -1; }
+// Read-only access to the Exec Dashboard for passive stakeholders who
+// shouldn't get isExec()'s write-oriented actions (change a user's role,
+// mark payroll paid) but do legitimately need to see the same company-wide
+// numbers a CEO sees. Also fixes a pre-existing gap: the sidebar already
+// showed 'investor' the Exec Dashboard link, but loadExecDash()'s guard
+// was plain isExec() (which never included investor), so clicking it hit
+// a hard "Access restricted" wall — investors now get an actual dashboard,
+// though some of its underlying queries still return empty for them since
+// investor isn't part of ROLE_TIERS.STAFF (a separate, pre-existing,
+// larger gap this doesn't attempt to fully close).
+function canViewExecDash(user) { return isExec(user) || ['investor', 'company_owner'].indexOf(_roleOf(user)) > -1; }
 
 // Default to "open" immediately rather than leaving window._listingsOpen
 // undefined (falsy) until applyPlatformFlags() runs on DOMContentLoaded —
@@ -17850,13 +17862,13 @@ function switchExecTab(tab) {
   if (tab === 'revenue') loadExecRevenue();
   if (tab === 'pipeline') loadExecPipeline();
   if (tab === 'team') loadExecTeam();
-  switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(currentLang);
 }
 
 function loadExecDash() {
   var cu = currentUser;
   if (!cu) { showToast('Injira kuri konti yawe', 'error'); return; }
-  if (!isExec(cu)) {
+  if (!canViewExecDash(cu)) {
     var pg = g('page-exec');
     if (pg) pg.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--muted)"><div style="font-size:2rem;margin-bottom:.5rem">&#128274;</div><div data-rw="Ntaburenganzira" data-en="Access restricted to executives">Access restricted to executives</div></div>';
     return;
@@ -17872,7 +17884,7 @@ function loadExecDash() {
   }
   loadExecKPIs();
   switchExecTab(_execTabActive);
-  switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(currentLang);
 }
 
 function loadExecKPIs() {
@@ -18970,7 +18982,8 @@ var OFFBOARDING_CHECKLIST = [
 
 var HR_ROLE_LABELS = {
   super_admin: 'Super Admin', admin: 'Admin', ceo: 'CEO',
-  staff: 'Staff', branch_manager: 'Branch Manager', hr_manager: 'HR Manager', agent: 'Agent', partner: 'Partner',
+  staff: 'Staff', branch_manager: 'Branch Manager', hr_manager: 'HR Manager', company_owner: 'Company Owner',
+  agent: 'Agent', partner: 'Partner',
   owner: 'Owner', client: 'Client', investor: 'Investor'
 };
 
@@ -31642,7 +31655,7 @@ function submitCompose() {
     { match: "go('customer')",     roles: _ALL },
     { match: "go('office')",       roles: _STAFF },
     { match: "go('hr')",           roles: _ADMIN },
-    { match: "go('exec')",         roles: _EXEC.concat(['investor']) },
+    { match: "go('exec')",         roles: _EXEC.concat(['investor', 'company_owner']) },
     { match: "go('bi')",           roles: _STAFF },
     { match: "go('branches')",     roles: _EXEC },
     { match: "go('branch-mgr')",   roles: ['branch_manager'] },
