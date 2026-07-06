@@ -100,12 +100,40 @@ service cloud.firestore {
     }
 
     match /deals/{id} {
+      // P0.1 security closure (adversarial re-audit found this the same
+      // day #70 merged): the old create/update rules let ANY authenticated
+      // user fabricate a deal naming themselves as its own agentId with an
+      // arbitrary agreedPrice, then self-transition it to closed_won —
+      // laundering an arbitrary amount into a REAL, Admin-SDK-written
+      // commission + invoice via the legitimate onDealClosedWon cascade
+      // (that trigger bypasses rules entirely, so it can't be the backstop).
+      //
+      // Fix has two parts:
+      // 1. create requires the caller be an actual party to the deal (its
+      //    own agentId or its own clientId) unless they're admin/staff —
+      //    covers both convertLeadToDeal()'s agent-initiated creation and
+      //    submitOffer()'s buyer-initiated creation (where the agent is a
+      //    real third party, not the creator) — and a deal can never be
+      //    born already closed_won.
+      // 2. update to closed_won — the money-triggering transition — now
+      //    requires admin/staff, full stop. A non-staff agent keeps full
+      //    update rights on every other stage/field of their own deal, but
+      //    can neither reassign agentId away from themselves nor
+      //    self-approve the one transition that generates real money.
+      //    onDealClosedWon (functions/index.js) independently re-verifies
+      //    the actor was genuinely staff as a second, server-side layer.
       allow read:   if isAdminOrStaff()
                     || (isAuth() && (resource.data.clientId == request.auth.uid
                         || resource.data.agentId  == request.auth.uid));
-      allow create: if isAuth() && hasStandardFields();
+      allow create: if isAuth() && hasStandardFields()
+                    && request.resource.data.pipelineStage != 'closed_won'
+                    && (isAdminOrStaff()
+                        || request.resource.data.agentId == request.auth.uid
+                        || request.resource.data.clientId == request.auth.uid);
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.agentId == request.auth.uid);
+                    || (isAuth() && resource.data.agentId == request.auth.uid
+                        && request.resource.data.agentId == request.auth.uid
+                        && request.resource.data.pipelineStage != 'closed_won');
       allow delete: if false;
     }
 
@@ -161,33 +189,55 @@ service cloud.firestore {
     match /payout_requests/{id} {
       // A payout request is a snapshot of specific commission doc IDs +
       // their summed agentShare at request time (see submitPayoutRequest()
-      // in index.html) — approving one batch-updates exactly those
-      // commissions to status:'paid', so the underlying ledger stays
-      // exact regardless of what the agent's balance does afterward.
+      // in index.html). Approving one no longer batch-updates commissions
+      // directly from the client — see P0.1 note below.
       allow read:   if isAdminOrStaff()
                     || (isAuth() && resource.data.agentId == request.auth.uid);
       // Tightened beyond the `leaves` collection's equivalent create rule
       // (which doesn't check the self-ownership field): this collection
       // moves money, so a client can only ever create a payout request
       // for themselves, not on another agent's behalf. Also pinned to
-      // status == 'pending' (P0 remediation) so a request can never be
-      // self-created already 'approved' — actual approval, and the real
-      // commission-paid batch write, only ever happen via the admin/staff
-      // `update` path below. A Cloud Function (onPayoutRequestCreated)
-      // independently re-verifies the amount/ownership/commission status
-      // server-side the instant a request is created and auto-rejects any
-      // mismatch before an admin ever sees it in the queue.
+      // status == 'pending' so a request can never be self-created
+      // already 'approved'.
+      //
+      // P0.1 security closure: the adversarial re-audit of #70 found that
+      // serverVerified/verifiedAmount/verifiedAt — the fields the whole
+      // approval gate depends on — were writable by the client, since the
+      // create rule never constrained them. A client could set
+      // serverVerified:true on their own forged request, and
+      // approvePayoutRequest() only ever checked that flag, never status.
+      // Now: creation must set all three to their explicit unverified
+      // defaults, and no update path (admin included) may ever change
+      // them — only the onPayoutRequestCreated Cloud Function (Admin SDK,
+      // bypasses these rules) can ever set serverVerified:true.
       allow create: if isAuth() && hasStandardFields()
                     && request.resource.data.agentId == request.auth.uid
-                    && request.resource.data.status == 'pending';
-      // Admin/staff can approve or reject; the requesting agent may only
-      // cancel their own still-pending request (not approve it, not
-      // change the amount) — a plain document update, so unlike list
-      // reads this can safely inspect resource.data.status directly.
-      allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.agentId == request.auth.uid
-                        && resource.data.status == 'pending'
-                        && request.resource.data.status == 'cancelled');
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.serverVerified == false
+                    && request.resource.data.verifiedAmount == 0
+                    && request.resource.data.verifiedAt == null;
+      // The requesting agent may only cancel their own still-pending
+      // request (not approve it, not change the amount) — a plain
+      // document update, so unlike list reads this can safely inspect
+      // resource.data.status directly. Admin/staff may reject freely, but
+      // may only transition INTO 'approved' from a genuinely 'pending' +
+      // already-server-verified request — never a request the trigger
+      // hasn't cleared yet, structurally closing the exact forgery this
+      // section's comment above describes. The actual commission-paid
+      // batch write happens in onPayoutRequestApproved (functions/
+      // index.js), which independently re-verifies everything a second
+      // time before moving anything, since server-verified state can go
+      // stale between verification and approval (e.g. a commission paid
+      // out via a different, concurrent request).
+      allow update: if (request.resource.data.serverVerified == resource.data.serverVerified
+                        && request.resource.data.verifiedAmount == resource.data.verifiedAmount
+                        && request.resource.data.verifiedAt == resource.data.verifiedAt)
+                    && ((isAdminOrStaff()
+                         && (request.resource.data.status != 'approved'
+                             || (resource.data.status == 'pending' && resource.data.serverVerified == true)))
+                        || (isAuth() && resource.data.agentId == request.auth.uid
+                            && resource.data.status == 'pending'
+                            && request.resource.data.status == 'cancelled'));
       allow delete: if false;
     }
 

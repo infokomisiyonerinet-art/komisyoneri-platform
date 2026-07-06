@@ -24407,6 +24407,11 @@ function submitPayoutRequest() {
     amount: _prAmount, commissionIds: _prCommissionIds,
     notes: (g('pr-notes').value || '').trim(),
     approvedBy: null, approvedAt: null, rejectedReason: null,
+    // Must be exactly these unverified defaults — the Firestore rule now
+    // requires it (P0.1 security closure). Only the onPayoutRequestCreated
+    // Cloud Function may ever set serverVerified:true; no client write,
+    // including this one, is allowed to.
+    serverVerified: false, verifiedAmount: 0, verifiedAt: null,
     status: 'pending', isActive: true,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -24451,10 +24456,18 @@ function cancelPayoutRequest(id) {
   }).catch(function() { showToast('Error cancelling request', 'error'); });
 }
 
+var _payoutAdminUnsub = null;
 function loadPayoutRequestsAdmin() {
   if (typeof db === 'undefined' || !currentUser) return;
-  db.collection('payout_requests').where('status','==','pending').where('isActive','==',true)
-    .orderBy('createdAt','desc').limit(100).get().then(function(snap) {
+  // Live listener rather than a one-time get() (P0.1 security closure):
+  // a stale, un-refreshed queue previously kept showing an enabled
+  // "Approve & Pay" button for a request the server had already
+  // auto-rejected in the background, since the admin's own UI never
+  // updated to reflect that. Detach any previous listener first so
+  // re-navigating to this page doesn't stack duplicate subscriptions.
+  if (typeof _payoutAdminUnsub === 'function') { _payoutAdminUnsub(); _payoutAdminUnsub = null; }
+  _payoutAdminUnsub = db.collection('payout_requests').where('status','==','pending').where('isActive','==',true)
+    .orderBy('createdAt','desc').limit(100).onSnapshot(function(snap) {
       var el = g('payout-admin-list');
       if (!el) return;
       if (snap.empty) { el.innerHTML = '<div class="exec-empty">No pending payout requests.</div>'; return; }
@@ -24478,43 +24491,43 @@ function loadPayoutRequestsAdmin() {
           + '</div>'
           + '</div>';
       }).join('');
-    }).catch(function(){});
+    }, function() {});
 }
 
 function approvePayoutRequest(id) {
   if (typeof db === 'undefined' || !currentUser) return;
   db.collection('payout_requests').doc(id).get().then(function(doc) {
-    if (!doc.exists) return;
+    if (!doc.exists) return false;
     var req = doc.data();
     // Defense in depth: the UI already hides the Approve button until the
     // server-side onPayoutRequestCreated function has verified this
     // request, but a raw call here (or a stale render) is still blocked.
     if (!req.serverVerified) {
       showToast('This request has not finished server verification yet — please wait a moment and refresh.', 'error');
-      return;
+      return false;
     }
-    var batch = db.batch();
-    (req.commissionIds || []).forEach(function(cid) {
-      batch.update(db.collection('commissions').doc(cid), {
-        status: 'paid', paidAt: firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
-      });
-    });
-    batch.update(db.collection('payout_requests').doc(id), {
+    // P0.1 security closure: this no longer marks commissions paid
+    // directly — it only signals approval intent. The rule only allows
+    // this transition from a genuinely pending + server-verified request,
+    // and onPayoutRequestApproved (functions/index.js) independently
+    // re-verifies everything a second time — ownership, unpaid status,
+    // duplicate claims, the amount — before actually moving anything,
+    // since "verified a moment ago" and "still true right now" are
+    // different claims (e.g. a concurrently-approved request could have
+    // paid out the same commission in between).
+    return db.collection('payout_requests').doc(id).update({
       status: 'approved', approvedBy: currentUser.uid,
       approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
-    });
-    return batch.commit().then(function() { return req; });
-  }).then(function(req) {
-    showToast('Payout approved — commissions marked paid', 'success');
+    }).then(function() { return true; });
+  }).then(function(submitted) {
+    if (!submitted) return;
+    showToast('Approval submitted — the payout will be completed once the server re-verifies it.', 'success');
     logAudit('payout_request_approved', 'payout_requests', id, null, {});
-    if (req && typeof notifyUser === 'function' && req.agentId) {
-      notifyUser(req.agentId, curLang==='rw'?'Wishyuwe':'Payout Approved',
-        curLang==='rw'?'Icyifuzo cyawe cyo kwishyurwa cyemejwe.':'Your payout request has been approved.',
-        'payout_approved', 'payout_requests', id);
-    }
-    loadPayoutRequestsAdmin();
+    // The agent's "Payout Approved" notification now fires from
+    // onPayoutRequestApproved once the money actually moves, not here —
+    // notifying before the server re-check would be a claim this code
+    // can no longer make good on by itself.
   }).catch(function() { showToast('Error approving payout', 'error'); });
 }
 
@@ -25266,52 +25279,100 @@ function _loadDealOffers(dealId) {
     tl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.78rem;padding:.5rem" data-rw="Nta offers irahari" data-en="No offers yet">No offers yet</div>';
     return;
   }
-  db.collection('offers').where('dealId','==',dealId).orderBy('createdAt','asc').get()
-    .then(function(snap) {
-      if (snap.empty) {
-        tl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.78rem;padding:.5rem">'
-          + (curLang === 'rw' ? 'Nta offers irahari' : 'No offers yet') + '</div>';
-        return;
-      }
-      var html = '';
-      var pendingId = '';
-      var canRespond = typeof currentUser !== 'undefined' && currentUser &&
-        (currentUser.role === 'agent' || isAdminOrStaff(currentUser));
-      snap.forEach(function(doc) {
-        var o = doc.data();
-        var cls = 'offer-entry ' + (o.fromRole === 'client' ? 'client' : 'agent');
-        if (o.status === 'accepted') cls += ' offer-accepted';
-        if (o.status === 'rejected') cls += ' offer-rejected';
-        var dateStr = o.createdAt && typeof o.createdAt.toDate === 'function'
-          ? o.createdAt.toDate().toLocaleDateString() : '';
-        var amtStr = o.amount ? parseInt(o.amount).toLocaleString() + ' RWF' : '—';
-        // P0 remediation (Enterprise Readiness Audit): the offer timeline
-        // has always rendered 'accepted'/'rejected' styling, but nothing
-        // anywhere ever actually set an offer to either status — a buyer's
-        // offer had no real approval/rejection action. These two buttons,
-        // agent/staff-only, on the buyer's still-pending offer, are that
-        // missing action.
-        var actions = '';
-        if (canRespond && o.fromRole === 'client' && o.status === 'pending') {
-          actions = '<div style="display:flex;gap:.4rem;margin-top:.4rem">'
-            + '<button class="btn btn-sm" style="background:#16A34A;color:#fff" onclick="acceptOffer(\'' + doc.id + '\')" data-en="Accept">Accept</button>'
-            + '<button class="btn btn-sm btn-outline" onclick="rejectOffer(\'' + doc.id + '\')" data-en="Reject">Reject</button>'
-            + '</div>';
-        }
-        html += '<div class="' + cls + '">'
-          + '<div class="offer-amount">' + amtStr + '</div>'
-          + '<div class="offer-meta">' + (o.fromName || o.fromRole || '—') + ' · ' + (o.status || 'pending').toUpperCase() + (dateStr ? ' · ' + dateStr : '') + '</div>'
-          + (o.message ? '<div style="font-size:.75rem;color:var(--dark);margin-top:.15rem">' + o.message + '</div>' : '')
-          + actions
-          + '</div>';
-        if (o.status === 'pending') pendingId = doc.id;
-      });
-      tl.innerHTML = html;
-      var pi = document.getElementById('dd-pending-offer-id');
-      if (pi) pi.value = pendingId;
-    }).catch(function() {
-      tl.innerHTML = '<div style="color:var(--muted);font-size:.78rem;padding:.4rem">'
+
+  function render(docs) {
+    docs.sort(function(a, b) {
+      var at = a.data().createdAt, bt = b.data().createdAt;
+      var av = at && at.toDate ? at.toDate().getTime() : 0;
+      var bv = bt && bt.toDate ? bt.toDate().getTime() : 0;
+      return av - bv;
+    });
+    if (!docs.length) {
+      tl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.78rem;padding:.5rem">'
         + (curLang === 'rw' ? 'Nta offers irahari' : 'No offers yet') + '</div>';
+      return;
+    }
+    var html = '';
+    var pendingId = '';
+    var canRespond = typeof currentUser !== 'undefined' && currentUser &&
+      (currentUser.role === 'agent' || isAdminOrStaff(currentUser));
+    docs.forEach(function(doc) {
+      var o = doc.data();
+      var cls = 'offer-entry ' + (o.fromRole === 'client' ? 'client' : 'agent');
+      if (o.status === 'accepted') cls += ' offer-accepted';
+      if (o.status === 'rejected') cls += ' offer-rejected';
+      var dateStr = o.createdAt && typeof o.createdAt.toDate === 'function'
+        ? o.createdAt.toDate().toLocaleDateString() : '';
+      var amtStr = o.amount ? parseInt(o.amount).toLocaleString() + ' RWF' : '—';
+      // P0 remediation (Enterprise Readiness Audit): the offer timeline
+      // has always rendered 'accepted'/'rejected' styling, but nothing
+      // anywhere ever actually set an offer to either status — a buyer's
+      // offer had no real approval/rejection action. These two buttons,
+      // agent/staff-only, on the buyer's still-pending offer, are that
+      // missing action.
+      var actions = '';
+      if (canRespond && o.fromRole === 'client' && o.status === 'pending') {
+        actions = '<div style="display:flex;gap:.4rem;margin-top:.4rem">'
+          + '<button class="btn btn-sm" style="background:#16A34A;color:#fff" onclick="acceptOffer(\'' + doc.id + '\')" data-en="Accept">Accept</button>'
+          + '<button class="btn btn-sm btn-outline" onclick="rejectOffer(\'' + doc.id + '\')" data-en="Reject">Reject</button>'
+          + '</div>';
+      }
+      html += '<div class="' + cls + '">'
+        + '<div class="offer-amount">' + amtStr + '</div>'
+        + '<div class="offer-meta">' + (o.fromName || o.fromRole || '—') + ' · ' + (o.status || 'pending').toUpperCase() + (dateStr ? ' · ' + dateStr : '') + '</div>'
+        + (o.message ? '<div style="font-size:.75rem;color:var(--dark);margin-top:.15rem">' + o.message + '</div>' : '')
+        + actions
+        + '</div>';
+      if (o.status === 'pending') pendingId = doc.id;
+    });
+    tl.innerHTML = html;
+    var pi = document.getElementById('dd-pending-offer-id');
+    if (pi) pi.value = pendingId;
+  }
+
+  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : '';
+  var isStaff = typeof currentUser !== 'undefined' && currentUser && isAdminOrStaff(currentUser);
+
+  if (isStaff) {
+    db.collection('offers').where('dealId','==',dealId).get()
+      .then(function(snap) { render(snap.docs); })
+      .catch(function() {
+        tl.innerHTML = '<div style="color:var(--muted);font-size:.78rem;padding:.4rem">'
+          + (curLang === 'rw' ? 'Nta offers irahari' : 'No offers yet') + '</div>';
+      });
+    return;
+  }
+
+  if (!uid) {
+    tl.innerHTML = '<div style="color:var(--muted);font-size:.78rem;padding:.4rem">'
+      + (curLang === 'rw' ? 'Nta offers irahari' : 'No offers yet') + '</div>';
+    return;
+  }
+
+  // P0.1 security closure: a plain dealId-only query can never be proven
+  // safe for a non-admin under the offers rule's fromUserId==uid ||
+  // toUserId==uid condition — Firestore rejects the whole list query
+  // up front regardless of what the data actually says, since it can't
+  // verify every possible matching document without inspecting each one.
+  // Two queries, each directly matching one branch of that OR, are each
+  // independently provable and get merged here instead — this is what
+  // actually lets the listing agent (not just staff) see their own
+  // deal's offers, not just populating toUserId on write.
+  Promise.all([
+    db.collection('offers').where('dealId','==',dealId).where('fromUserId','==',uid).get(),
+    db.collection('offers').where('dealId','==',dealId).where('toUserId','==',uid).get()
+  ]).then(function(results) {
+    var seen = {};
+    var docs = [];
+    results[0].docs.concat(results[1].docs).forEach(function(d) {
+      if (seen[d.id]) return;
+      seen[d.id] = true;
+      docs.push(d);
+    });
+    render(docs);
+  }).catch(function() {
+    tl.innerHTML = '<div style="color:var(--muted);font-size:.78rem;padding:.4rem">'
+      + (curLang === 'rw' ? 'Nta offers irahari' : 'No offers yet') + '</div>';
     });
 }
 
@@ -25397,6 +25458,15 @@ function advanceDealStage() {
   var curKey   = stageEl  ? stageEl.value  : 'new';
   var nextKey  = typeof getNextStageKey === 'function' ? getNextStageKey(curKey) : null;
   if (!nextKey) { showToast(curLang === 'rw' ? 'Deal yageze ku ntambwe ya nyuma!' : 'Deal is at final stage!', 'info'); return; }
+  // P0.1 security closure: closing a deal (closed_won) now requires
+  // admin/staff at the rules layer — a regular agent could previously
+  // self-approve their own deal straight into the commission-generating
+  // cascade. Check client-side first so a non-staff agent sees a clear
+  // explanation instead of a raw permission-denied error.
+  if (nextKey === 'closed_won' && !isAdminOrStaff(currentUser)) {
+    showToast(curLang === 'rw' ? 'Gufunga deal (Won) bisaba admin/manager.' : 'Closing a deal as Won requires admin/manager approval.', 'info');
+    return;
+  }
 
   if (typeof db !== 'undefined' && dealId) {
     var newStageObj = typeof getCrmStage === 'function' ? getCrmStage(nextKey) : { labelEN: nextKey, labelRW: nextKey };
@@ -25470,6 +25540,9 @@ function submitCounterOffer() {
     fromUserId:  uid,
     fromName:    agentName,
     fromRole:    'agent',
+    // P0.1 security closure: mirrors the same toUserId fix in
+    // submitOffer() — a counter-offer's recipient is the deal's buyer.
+    toUserId:    _ddCurrentDeal ? (_ddCurrentDeal.clientId || '') : '',
     amount:      parseInt(amount),
     counterTo:   pendingId,
     message:     msg,
@@ -25708,6 +25781,12 @@ function submitOffer() {
       fromUserId:  uid,
       fromName:    fromName,
       fromRole:    'client',
+      // P0.1 security closure: toUserId was declared in this schema but
+      // never populated, so the offers.read/update rule's `toUserId ==
+      // request.auth.uid` clause could never match anyone — the listing
+      // agent (not staff) could never actually load or act on their own
+      // deal's offers. Setting it to the deal's real agent closes that.
+      toUserId:    deal.data.agentId || '',
       amount:      amount,
       counterTo:   '',
       message:     msg,
@@ -31670,6 +31749,11 @@ function closeDealWon() {
   var cur = _ddCurrentDeal.pipelineStage || 'new';
   if (cur === 'closed_won') {
     showToast(curLang === 'rw' ? 'Deal isanzwe ifunzwe neza!' : 'Deal already closed won!', 'info'); return;
+  }
+  // P0.1 security closure — see the matching check in advanceDealStage().
+  if (!isAdminOrStaff(currentUser)) {
+    showToast(curLang === 'rw' ? 'Gufunga deal (Won) bisaba admin/manager.' : 'Closing a deal as Won requires admin/manager approval.', 'info');
+    return;
   }
   if (!confirm(curLang === 'rw'
     ? 'Wemeza ko deal irangiye neza kandi wabigezeho (Closed Won)?'
