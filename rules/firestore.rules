@@ -31,17 +31,18 @@ service cloud.firestore {
       // so a ceo account clicking those buttons got a silent write
       // rejection. Aligning the two: a CEO shouldn't have less write
       // capability than regular staff.
-      // 'branch_manager' is a staff-tier role (same trust level as
-      // 'staff'/'ceo' — no per-branch write restriction exists for
-      // 'staff' either, so this introduces no new permission beyond what
-      // that tier already has) — see ROLE_TIERS.STAFF in index.html,
-      // which this list must stay in sync with.
+      // 'branch_manager' and 'hr_manager' are staff-tier roles (same trust
+      // level as 'staff'/'ceo' — no per-branch or per-department write
+      // restriction exists for 'staff' either, so these introduce no new
+      // permission beyond what that tier already has) — see
+      // ROLE_TIERS.STAFF in index.html, which this list must stay in
+      // sync with.
       return isAuth() && getRole() != null &&
-        getRole().lower() in ['admin', 'super_admin', 'staff', 'ceo', 'branch_manager'];
+        getRole().lower() in ['admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager'];
     }
     function isInternalTeam() {
       return isAuth() && getRole() != null &&
-        getRole().lower() in ['agent', 'staff', 'admin', 'super_admin', 'ceo', 'branch_manager'];
+        getRole().lower() in ['agent', 'staff', 'admin', 'super_admin', 'ceo', 'branch_manager', 'hr_manager'];
     }
     function hasStandardFields() {
       return request.resource.data.keys().hasAll([

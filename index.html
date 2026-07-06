@@ -4417,6 +4417,7 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="go('bi')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg><span data-rw="Ubushakashatsi bw'Amakuru" data-en="Business Intelligence">Business Intelligence</span><span class="ds-badge" id="bi-sidebar-badge"></span></div>
       <div class="dn" onclick="go('branches')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-rw="Amashami y'Igihugu" data-en="Branch Network">Branch Network</span><span class="ds-badge" id="branch-sidebar-badge"></span></div>
       <div class="dn" onclick="go('branch-mgr')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-rw="Ikibaho cy'Ishami" data-en="Branch Dashboard">Branch Dashboard</span></div>
+      <div class="dn" onclick="go('hr-mgr')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Ikibaho cy'Abakozi" data-en="HR Dashboard">HR Dashboard</span></div>
       <div class="ds-section" data-rw="KONTI" data-en="ACCOUNT">KONTI</div>
       <div class="dn" onclick="openProfile()" role="button" tabindex="0"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Profil" data-en="Profile">Profil</span></div>
       <div class="dn" onclick="openProfile()" role="button" tabindex="0"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-rw="Igenamiterere" data-en="Settings">Igenamiterere</span></div>
@@ -6481,6 +6482,28 @@ html,body{overscroll-behavior-x:none}
       <div class="exec-panel-hdr" data-rw="Deals Ziheruka" data-en="Recent Deals">Recent Deals</div>
       <div id="bm-deals-list"></div>
     </div>
+  </div>
+</div>
+
+<!-- === PAGE: HR MANAGER DASHBOARD === -->
+<div class="page" id="page-hr-mgr">
+  <div class="page-hdr">
+    <h2 data-rw="Ikibaho cy'Umuyobozi w'Abakozi" data-en="HR Manager Dashboard">HR Manager Dashboard</h2>
+  </div>
+  <!-- KPI strip -->
+  <div class="br-kpi-strip">
+    <div class="br-kpi"><span class="br-kpi-val" id="hm-kpi-staff">—</span><span class="br-kpi-lbl" data-rw="Abakozi Bose" data-en="Total Staff">Total Staff</span></div>
+    <div class="br-kpi"><span class="br-kpi-val" id="hm-kpi-depts">—</span><span class="br-kpi-lbl" data-rw="Amashami" data-en="Departments">Departments</span></div>
+    <div class="br-kpi"><span class="br-kpi-val" id="hm-kpi-leaves">—</span><span class="br-kpi-lbl" data-rw="Ibisabwa Bitegerejwe" data-en="Pending Leaves">Pending Leaves</span></div>
+    <div class="br-kpi"><span class="br-kpi-val" id="hm-kpi-jobs">—</span><span class="br-kpi-lbl" data-rw="Impaka Zifunguye" data-en="Open Job Postings">Open Job Postings</span></div>
+  </div>
+  <div class="exec-panel">
+    <div class="exec-panel-hdr" data-rw="Ibisabwa Bitegerejwe" data-en="Pending Leave Requests">Pending Leave Requests</div>
+    <div id="hm-leaves-list"></div>
+  </div>
+  <div class="exec-panel" style="margin-top:14px">
+    <div class="exec-panel-hdr" data-rw="Amashami n'Abakozi" data-en="Departments Overview">Departments Overview</div>
+    <div id="hm-depts-list"></div>
   </div>
 </div>
 
@@ -8791,6 +8814,7 @@ html,body{overscroll-behavior-x:none}
             <option value="investor">Investor</option>
             <option value="staff">Staff</option>
             <option value="branch_manager">Branch Manager</option>
+            <option value="hr_manager">HR Manager</option>
             <option value="developer">Developer</option>
             <option value="admin">Admin</option>
             <option value="ceo">CEO</option>
@@ -9827,8 +9851,8 @@ var _pendingAction = null;
 var ROLE_TIERS = {
   ADMIN:         ['super_admin', 'admin'],
   EXEC:          ['super_admin', 'admin', 'ceo'],
-  STAFF:         ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager'],        // == firestore.rules isAdminOrStaff()
-  INTERNAL_TEAM: ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'agent'] // == firestore.rules isInternalTeam()
+  STAFF:         ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager'],        // == firestore.rules isAdminOrStaff()
+  INTERNAL_TEAM: ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'agent'] // == firestore.rules isInternalTeam()
 };
 function _roleOf(user) { return ((user || currentUser || {}).role || '').toLowerCase(); }
 function isAdmin(user)        { return ROLE_TIERS.ADMIN.indexOf(_roleOf(user)) > -1; }
@@ -14453,7 +14477,7 @@ window.addEventListener('DOMContentLoaded', function() {
     'sites','site','crm','deals','commissions',
     'verification','documents','financing','partners','investors',
     'customer','office','hr','accounting',
-    'exec','bi','branches','branch-mgr','agents','careers',
+    'exec','bi','branches','branch-mgr','hr-mgr','agents','careers',
     'dashboard','auth','about','privacy','terms'
   ];
   var page = pathPage || (validPages.indexOf(hash) > -1 ? hash : 'home');
@@ -15626,6 +15650,9 @@ go = function(page) {
   }
   if(page === 'branch-mgr') {
     setTimeout(loadBranchMgrDash, 150);
+  }
+  if(page === 'hr-mgr') {
+    setTimeout(loadHRMgrDash, 150);
   }
 };
 
@@ -17062,6 +17089,79 @@ function loadBranchMgrDash() {
   db.collection('users').where('branchId','==',branchId).where('role','==','staff').where('isActive','==',true).count().get().then(function(s) {
     if (g('bm-kpi-staff')) g('bm-kpi-staff').textContent = s.data().count;
   }).catch(function(){});
+}
+
+/* ── HR MANAGER DASHBOARD ── */
+// The second Phase 7 management dashboard, for the new 'hr_manager' role.
+// Unlike the full admin HR console (page-hr, staff CRUD + payroll + role
+// changes, admin-only), this is a scoped monitoring + leave-approval view
+// — the "dashboard" reading of the roadmap item, not a delegation of the
+// full administrative console.
+function loadHRMgrDash() {
+  if (typeof db === 'undefined' || !currentUser) return;
+
+  db.collection('users').where('isActive','==',true).orderBy('displayName').limit(200).get().then(function(snap) {
+    _hrStaff = [];
+    snap.forEach(function(d) { var u = d.data(); u.id = d.id; _hrStaff.push(u); });
+    if (g('hm-kpi-staff')) g('hm-kpi-staff').textContent = _hrStaff.length;
+    renderHRMgrDepts();
+  }).catch(function(){});
+
+  fetchDepartments(function() {
+    if (g('hm-kpi-depts')) g('hm-kpi-depts').textContent = _departments.length;
+    renderHRMgrDepts();
+  });
+
+  db.collection('leaves').where('status','==','pending').where('isActive','==',true).limit(100).get().then(function(snap) {
+    var leaves = [];
+    snap.forEach(function(d) { var lv = d.data(); lv.id = d.id; leaves.push(lv); });
+    if (g('hm-kpi-leaves')) g('hm-kpi-leaves').textContent = leaves.length;
+    var el = g('hm-leaves-list');
+    if (el) {
+      el.innerHTML = leaves.length
+        ? leaves.map(function(lv) {
+            var who = (_hrStaff.find(function(u){ return u.id === lv.userId; }) || {}).displayName || lv.userId || '—';
+            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.85rem">'
+              + '<div><span style="font-weight:600">' + escapeHtml(who) + '</span> <span style="color:var(--muted)">' + (LEAVE_TYPES[lv.type]||lv.type) + ', ' + (lv.days||0) + 'd (' + (lv.startDate||'') + ' &rarr; ' + (lv.endDate||'') + ')</span></div>'
+              + '<div style="display:flex;gap:.4rem">'
+              + '<button class="btn btn-sm" style="background:var(--success);color:#fff" onclick="hrMgrProcessLeave(\'' + lv.id + '\',\'approved\')" data-en="Approve">Approve</button>'
+              + '<button class="btn btn-sm btn-outline" onclick="hrMgrProcessLeave(\'' + lv.id + '\',\'rejected\')" data-en="Reject">Reject</button>'
+              + '</div>'
+              + '</div>';
+          }).join('')
+        : '<div class="exec-empty">No pending leave requests.</div>';
+    }
+  }).catch(function(){});
+
+  db.collection('job_postings').where('isActive','==',true).where('status','==','open').limit(500).get().then(function(snap) {
+    if (g('hm-kpi-jobs')) g('hm-kpi-jobs').textContent = snap.size;
+  }).catch(function(){});
+}
+
+function renderHRMgrDepts() {
+  var el = g('hm-depts-list');
+  if (!el) return;
+  if (!_departments.length) { el.innerHTML = '<div class="exec-empty">No departments yet.</div>'; return; }
+  el.innerHTML = _departments.map(function(d) {
+    var count = _hrStaff.filter(function(u) { return u.departmentId === d.id; }).length;
+    return '<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.85rem">'
+      + '<span style="font-weight:600">' + escapeHtml(d.name||'') + '</span>'
+      + '<span style="color:var(--muted)">' + count + ' staff</span>'
+      + '</div>';
+  }).join('');
+}
+
+function hrMgrProcessLeave(id, newStatus) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  db.collection('leaves').doc(id).update({
+    status: newStatus, approvedBy: currentUser.uid,
+    approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  }).then(function() {
+    showToast('Leave request ' + newStatus, 'success');
+    logAudit('leave_status_changed', 'leaves', id, null, { status: newStatus });
+    loadHRMgrDash();
+  }).catch(function() { showToast('Error updating leave request', 'error'); });
 }
 
 /* ── SIDEBAR BADGE ── */
@@ -18870,7 +18970,7 @@ var OFFBOARDING_CHECKLIST = [
 
 var HR_ROLE_LABELS = {
   super_admin: 'Super Admin', admin: 'Admin', ceo: 'CEO',
-  staff: 'Staff', branch_manager: 'Branch Manager', agent: 'Agent', partner: 'Partner',
+  staff: 'Staff', branch_manager: 'Branch Manager', hr_manager: 'HR Manager', agent: 'Agent', partner: 'Partner',
   owner: 'Owner', client: 'Client', investor: 'Investor'
 };
 
@@ -31545,7 +31645,8 @@ function submitCompose() {
     { match: "go('exec')",         roles: _EXEC.concat(['investor']) },
     { match: "go('bi')",           roles: _STAFF },
     { match: "go('branches')",     roles: _EXEC },
-    { match: "go('branch-mgr')",   roles: ['branch_manager'] }
+    { match: "go('branch-mgr')",   roles: ['branch_manager'] },
+    { match: "go('hr-mgr')",       roles: ['hr_manager'] }
     /* openProfile() and items with no onclick → always visible */
   ];
 
