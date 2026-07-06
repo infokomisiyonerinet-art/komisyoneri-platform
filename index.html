@@ -28712,30 +28712,41 @@ function resetSidebarFilters() {
   loadApprovedProperties();
 }
 
-/* Load live platform stats into hero section */
+/* Load live platform stats into hero section. The only canonical
+   implementation — this used to be duplicated three times (two same-named
+   function declarations plus a separately-scheduled _loadHeroStats()), all
+   racing to write the same three DOM nodes with slightly different query
+   shapes and number formats. Consolidated here. */
 function loadLiveHomeStats() {
+  if (typeof db === 'undefined') return;
   var elListings = document.getElementById('hero-stat-listings');
   var elClients  = document.getElementById('hero-stat-clients');
   var elAgents   = document.getElementById('hero-stat-agents');
   if (!elListings && !elClients && !elAgents) return;
 
-  db.collection('properties')
-    .where('status', 'in', ['approved', 'Approved'])
-    .where('isActive', '==', true)
-    .get().then(function(snap) {
-      if (elListings && snap.size > 0) elListings.textContent = snap.size + '+';
+  function fmtCount(n) { return n >= 1000 ? (n / 1000).toFixed(1) + 'K+' : n + '+'; }
+
+  // Filter isActive client-side rather than chaining it onto the query —
+  // status+isActive has no composite index, which made this silently
+  // return zero results in production before this fix.
+  db.collection('properties').where('status', 'in', ['approved', 'Approved']).get()
+    .then(function(snap) {
+      var active = 0;
+      snap.forEach(function(d) { if (d.data().isActive !== false) active++; });
+      if (elListings && active > 0) elListings.textContent = fmtCount(active);
     }).catch(function(){});
 
   db.collection('users').where('isActive', '==', true).get().then(function(snap) {
-    if (elClients && snap.size > 0) elClients.textContent = snap.size + '+';
+    // Deliberately hidden below 4 users rather than showing a low, sparse-looking count.
+    if (elClients && snap.size > 3) elClients.textContent = fmtCount(snap.size);
   }).catch(function(){});
 
   db.collection('users').where('role', 'in', ['agent', 'Agent']).get().then(function(snap) {
-    if (elAgents && snap.size > 0) elAgents.textContent = snap.size + '+';
+    if (elAgents && snap.size > 0) elAgents.textContent = fmtCount(snap.size);
   }).catch(function(){});
 }
 
-/* Hook loadLiveHomeStats into home page navigation */
+/* Hook loadLiveHomeStats into home page navigation, initial page load, and auth settling */
 (function() {
   var _goP7 = go;
   go = function(name) {
@@ -28743,6 +28754,9 @@ function loadLiveHomeStats() {
     if (name === 'home') setTimeout(loadLiveHomeStats, 800);
   };
   document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(loadLiveHomeStats, 1500);
+  });
+  firebase.auth().onAuthStateChanged(function() {
     setTimeout(loadLiveHomeStats, 1500);
   });
 })();
@@ -30182,30 +30196,8 @@ function openClientDetail(clientKey) {
    5. convertLeadToDeal() — creates deal + commission from lead
    ══════════════════════════════════════════════════════════════════════ */
 
-/* Fix 1: Remove composite index (status + isActive) from hero stats query */
-function loadLiveHomeStats() {
-  var elListings = document.getElementById('hero-stat-listings');
-  var elClients  = document.getElementById('hero-stat-clients');
-  var elAgents   = document.getElementById('hero-stat-agents');
-  if (!elListings && !elClients && !elAgents) return;
-  if (typeof db === 'undefined') return;
-
-  db.collection('properties')
-    .where('status', 'in', ['approved', 'Approved'])
-    .get().then(function(snap) {
-      var active = 0;
-      snap.forEach(function(d) { if (d.data().isActive !== false) active++; });
-      if (elListings && active > 0) elListings.textContent = active + '+';
-    }).catch(function(){});
-
-  db.collection('users').where('isActive', '==', true).get().then(function(snap) {
-    if (elClients && snap.size > 3) elClients.textContent = snap.size + '+';
-  }).catch(function(){});
-
-  db.collection('users').where('role', 'in', ['agent', 'Agent']).get().then(function(snap) {
-    if (elAgents && snap.size > 0) elAgents.textContent = snap.size + '+';
-  }).catch(function(){});
-}
+/* Fix 1 (hero stats composite-index fix) now lives in the single
+   canonical loadLiveHomeStats() defined earlier in this file. */
 
 /* Fix 2: openMyProps — Firestore-backed (queries by agentId, merges localStorage) */
 function _renderMyPropsList(mine, list) {
@@ -31664,44 +31656,9 @@ function _uploadDocFileToStorage(file, callback) {
    HERO SEARCH CARD — wire selects to openSearch()
 ══════════════════════════════════════════════════════ */
 
-/* ══════════════════════════════════════════════════════
-   HERO STATS — load live counts from Firestore
-══════════════════════════════════════════════════════ */
-
-(function() {
-  function _loadHeroStats() {
-    if (typeof db === 'undefined') return;
-    /* Listings count */
-    db.collection('properties').where('isActive','==',true).where('status','==','approved').get()
-      .then(function(s) {
-        var n = s.size;
-        var el = document.getElementById('hero-stat-listings');
-        if (el && n > 0) el.textContent = n >= 1000 ? (n/1000).toFixed(1)+'K+' : n + '+';
-      }).catch(function(){});
-    /* Agents count */
-    db.collection('users').where('isActive','==',true).where('role','==','agent').get()
-      .then(function(s) {
-        var n = s.size;
-        var el = document.getElementById('hero-stat-agents');
-        if (el && n > 0) el.textContent = n + '+';
-      }).catch(function(){});
-    /* Clients count (users who are clients or have logged in) */
-    db.collection('users').where('isActive','==',true).get()
-      .then(function(s) {
-        var n = s.size;
-        var el = document.getElementById('hero-stat-clients');
-        if (el && n > 0) el.textContent = n + '+';
-      }).catch(function(){});
-  }
-
-  document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(_loadHeroStats, 3000);
-  });
-  /* Also re-load after auth settles */
-  firebase.auth().onAuthStateChanged(function() {
-    setTimeout(_loadHeroStats, 1500);
-  });
-})();
+/* HERO STATS — consolidated into the single loadLiveHomeStats()
+   defined earlier in this file (see its hook for the DOMContentLoaded /
+   onAuthStateChanged / go('home') triggers). */
 
 /* ══════════════════════════════════════════════════════════
    AUTO LEAD CREATION — property inquiries & bookings → CRM leads
