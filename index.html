@@ -3119,7 +3119,7 @@ html,body{overscroll-behavior-x:none}
 <div id="hamburger-overlay" onclick="closeHamburger()" style="display:none;position:fixed;inset:0;z-index:998;background:rgba(0,0,0,.3);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)"></div>
 
 <!-- ═══ PROFILE MODAL ═══ -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="profile-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="profile-modal">
   <div class="modal" style="max-width:400px">
     <div class="modal-hdr">
       <div class="modal-title" id="profile-title">Profile Yange</div>
@@ -3214,7 +3214,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- ═══ ADD PROPERTY MODAL ═══ -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="add-prop-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="add-prop-modal">
   <div class="modal" style="max-width:500px;max-height:90vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border);padding-bottom:.8rem;flex-direction:column;align-items:stretch;gap:.6rem">
       <div style="display:flex;justify-content:space-between;align-items:center">
@@ -3957,7 +3957,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- Job application modal -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="job-apply-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="job-apply-modal">
   <div class="modal" style="max-width:480px">
     <div class="modal-hdr">
       <div class="modal-title" id="ja-job-title" data-rw="Saba Akazi" data-en="Apply">Apply</div>
@@ -4594,7 +4594,7 @@ html,body{overscroll-behavior-x:none}
 
 
 <!-- === ADMIN PANEL MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="admin-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="admin-modal">
   <div class="modal" style="max-width:600px;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
@@ -5165,7 +5165,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === CLIENT DETAIL MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="client-detail-modal" style="display:none" onclick="if(event.target===this)closeModal('client-detail-modal')">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="client-detail-modal" onclick="if(event.target===this)closeModal('client-detail-modal')">
   <div class="modal" style="max-width:620px;width:95%;max-height:90vh;overflow-y:auto">
     <div class="modal-hdr">
       <h3 id="cdm-client-name" style="margin:0;font-size:1.05rem;color:var(--navy)">Client</h3>
@@ -6004,7 +6004,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- Job posting create modal -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="jobposting-create-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="jobposting-create-modal">
   <div class="modal" style="max-width:520px">
     <div class="modal-hdr">
       <div class="modal-title" data-rw="Impaka Nshya y'Akazi" data-en="New Job Posting">New Job Posting</div>
@@ -6036,7 +6036,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- Job posting pipeline modal — candidates grouped by stage -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="jobposting-pipeline-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="jobposting-pipeline-modal">
   <div class="modal" style="max-width:640px;max-height:90vh;overflow-y:auto">
     <div class="modal-hdr">
       <div class="modal-title" id="jpp-title">Candidates</div>
@@ -6050,7 +6050,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- Department create modal -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="dept-create-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="dept-create-modal">
   <div class="modal" style="max-width:420px">
     <div class="modal-hdr">
       <div class="modal-title" data-rw="Ishami Rishya" data-en="New Department">New Department</div>
@@ -6067,7 +6067,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- Asset create/edit modal -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="asset-create-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="asset-create-modal">
   <div class="modal" style="max-width:420px">
     <div class="modal-hdr">
       <div class="modal-title" id="asset-modal-title" data-rw="Ikikoresho Gishya" data-en="New Asset">New Asset</div>
@@ -6095,7 +6095,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- Asset assign modal -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="asset-assign-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="asset-assign-modal">
   <div class="modal" style="max-width:400px">
     <div class="modal-hdr">
       <div class="modal-title"><span data-rw="Ihagarikwa: " data-en="Assign: "></span><span id="asset-assign-name">Asset</span></div>
@@ -6114,7 +6114,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- Staff performance review modal -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="staff-review-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="staff-review-modal">
   <div class="modal" style="max-width:460px;max-height:90vh;overflow-y:auto">
     <div class="modal-hdr">
       <div class="modal-title"><span id="srm-staff-name">Performance Review</span></div>
@@ -6708,7 +6708,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === BRANCH CREATE MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="branch-create-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="branch-create-modal">
   <div class="modal" style="max-width:500px">
     <div class="modal-hdr">
       <div class="modal-title" id="branch-modal-title" data-rw="Ongera Ishami" data-en="Add Branch">Add Branch</div>
@@ -6757,7 +6757,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === BRANCH DETAIL MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="branch-detail-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="branch-detail-modal">
   <div class="modal" style="max-width:560px;max-height:90vh;overflow-y:auto">
     <div class="modal-hdr">
       <div class="modal-title" id="branch-detail-title">Branch Details</div>
@@ -6768,7 +6768,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === SITE SUBMIT MODAL (multi-step) === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="site-submit-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="site-submit-modal">
   <div class="modal" style="max-width:560px;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title" id="site-modal-title" data-rw="Ongeramo Site Nshya" data-en="Add New Development Site">Add New Development Site</div>
@@ -6931,7 +6931,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === PLOT DETAIL MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="plot-detail-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="plot-detail-modal">
   <div class="modal" style="max-width:420px">
     <div class="modal-hdr">
       <div class="modal-title" id="plot-detail-title" data-rw="Ibisobanuro by'Ikiraro" data-en="Plot Details">Plot Details</div>
@@ -6942,7 +6942,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === RESERVE PLOT MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="reserve-plot-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="reserve-plot-modal">
   <div class="modal" style="max-width:440px">
     <div class="modal-hdr">
       <div class="modal-title" data-rw="Bika Ikiraro" data-en="Reserve Plot">Reserve Plot</div>
@@ -6985,7 +6985,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === MY PROPERTIES MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="my-props-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="my-props-modal">
   <div class="modal" style="max-width:500px;max-height:90vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">🏠 Imitungo Yange</div>
@@ -6998,7 +6998,7 @@ html,body{overscroll-behavior-x:none}
 
 
 <!-- === MORTGAGE CALCULATOR === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="mortgage-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="mortgage-modal">
   <div class="modal" style="max-width:440px">
     <div class="modal-hdr">
       <div class="modal-title">🏦 Mortgage Calculator — Inguzanyo ya Banki</div>
@@ -7054,7 +7054,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === PROPERTY COMPARISON === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="compare-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="compare-modal">
   <div class="modal" style="max-width:620px;overflow-x:auto">
     <div class="modal-hdr">
       <div class="modal-title">⚖️ Gusuzuma Inzu 2 — Property Comparison</div>
@@ -7072,7 +7072,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === REVIEW FORM === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="review-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="review-modal">
   <div class="modal" style="max-width:420px">
     <div class="modal-hdr">
       <div class="modal-title">✍️ Andika Review Yawe</div>
@@ -7102,7 +7102,7 @@ html,body{overscroll-behavior-x:none}
 
 
 <!-- === PHONE OTP MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="phone-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="phone-modal">
   <div class="modal" style="max-width:380px">
     <div class="modal-hdr">
       <div class="modal-title">📱 Injira na Telefoni</div>
@@ -7151,7 +7151,7 @@ html,body{overscroll-behavior-x:none}
 
 
 <!-- === AGENT REGISTRATION MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="agent-reg-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="agent-reg-modal">
   <div class="modal" style="max-width:520px;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">👔 Iyandikishe nka Agent wa KOMISIYONERI</div>
@@ -7286,7 +7286,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === LEAD REQUEST MODAL (for clients) === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="lead-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="lead-modal">
   <div class="modal" style="max-width:440px">
     <div class="modal-hdr">
       <div class="modal-title">🏠 Saba Agent Wawe</div>
@@ -7341,7 +7341,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === LEAD DETAIL MODAL (Phase 2 — CRM) === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="lead-detail-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="lead-detail-modal">
   <div class="modal" style="max-width:520px;width:95%;max-height:92vh;overflow-y:auto">
     <button class="modal-x" onclick="closeLeadDetail()" style="position:sticky;top:0;z-index:10;float:right;background:#fff;border:none;cursor:pointer;font-size:1.1rem;padding:.3rem .5rem;color:var(--muted)">✕</button>
     <div style="padding:.2rem 0 .6rem">
@@ -7462,7 +7462,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === OFFER SUBMISSION MODAL (Phase 3) === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="offer-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="offer-modal">
   <div class="modal" style="max-width:460px;width:95%">
     <button class="modal-x" onclick="closeOfferModal()" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
     <div style="margin-bottom:1rem">
@@ -7493,7 +7493,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === DEAL DETAIL MODAL (Phase 3) === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="deal-detail-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="deal-detail-modal">
   <div class="modal" style="max-width:540px;width:95%;max-height:92vh;overflow-y:auto">
     <button class="modal-x" onclick="closeDealDetail()" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
     <div style="margin-bottom:.8rem">
@@ -7578,7 +7578,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === VIEWING REPORT MODAL (Phase 3 — Agent) === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="viewing-report-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="viewing-report-modal">
   <div class="modal" style="max-width:460px;width:95%">
     <button class="modal-x" onclick="closeViewingReport()" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
     <div style="margin-bottom:1rem">
@@ -7622,7 +7622,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === CREATE DEAL MODAL (Phase 3 — Agent/Staff) === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="create-deal-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="create-deal-modal">
   <div class="modal" style="max-width:460px;width:95%">
     <button class="modal-x" onclick="document.getElementById('create-deal-modal').style.display='none'" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
     <div style="margin-bottom:1rem">
@@ -7664,7 +7664,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === COMMISSION DETAIL MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="commission-detail-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="commission-detail-modal">
   <div class="modal" style="max-width:540px;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">💰 <span id="cd2-title" data-rw="Ibisobanuro bya Komisiyoni" data-en="Commission Details">Commission Details</span></div>
@@ -7720,7 +7720,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === APPROVE COMMISSION MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="approve-commission-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="approve-commission-modal">
   <div class="modal" style="max-width:420px;width:95%">
     <div style="margin-bottom:1rem">
       <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:.25rem" data-rw="KWEMEZA KOMISIYONI" data-en="APPROVE COMMISSION">APPROVE COMMISSION</div>
@@ -7747,7 +7747,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === PAYSLIP MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="payslip-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="payslip-modal">
   <div class="modal" style="max-width:500px;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">📄 <span data-rw="Payslip" data-en="Commission Payslip">Commission Payslip</span></div>
@@ -7763,7 +7763,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === MANUAL COMMISSION MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="manual-commission-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="manual-commission-modal">
   <div class="modal" style="max-width:440px;width:95%">
     <button class="modal-x" onclick="document.getElementById('manual-commission-modal').style.display='none'" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
     <div style="margin-bottom:1rem">
@@ -7805,7 +7805,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === PAYOUT REQUEST MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="payout-request-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="payout-request-modal">
   <div class="modal" style="max-width:420px">
     <div class="modal-hdr">
       <div class="modal-title" data-rw="Saba Kwishyurwa" data-en="Request Payout">Request Payout</div>
@@ -7824,7 +7824,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === VERIFICATION REQUEST MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="verification-request-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="verification-request-modal">
   <div class="modal" style="max-width:460px;width:95%;max-height:92vh;overflow-y:auto">
     <button class="modal-x" onclick="closeVerificationRequest()" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
     <div style="margin-bottom:1rem">
@@ -7881,7 +7881,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === VERIFICATION DETAIL MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="verification-detail-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="verification-detail-modal">
   <div class="modal" style="max-width:520px;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">🛡️ <span id="vd-title">Service Details</span></div>
@@ -7944,7 +7944,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === DOCUMENT UPLOAD MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="document-upload-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="document-upload-modal">
   <div class="modal" style="max-width:460px;width:95%;max-height:92vh;overflow-y:auto">
     <button class="modal-x" onclick="closeDocumentUpload()" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
     <div style="margin-bottom:1rem">
@@ -8021,7 +8021,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === DOCUMENT VIEW MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="document-view-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="document-view-modal">
   <div class="modal" style="max-width:540px;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">📄 <span id="dv-title">Document</span></div>
@@ -8054,7 +8054,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === DOCUMENT SIGN MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="document-sign-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="document-sign-modal">
   <div class="modal" style="max-width:400px;width:95%">
     <div style="text-align:center;margin-bottom:1rem">
       <div style="font-size:2rem;margin-bottom:.5rem">✍️</div>
@@ -8083,7 +8083,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === CONTRACT GENERATOR MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="contract-generator-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="contract-generator-modal">
   <div class="modal" style="max-width:560px;width:95%;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">📜 <span data-rw="Inyandiko y'Amasezerano" data-en="Contract Generator">Contract Generator</span></div>
@@ -8156,7 +8156,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === PARTNER REGISTER MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="partner-register-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="partner-register-modal">
   <div class="modal" style="max-width:480px;width:95%;max-height:92vh;overflow-y:auto">
     <button class="modal-x" onclick="closePartnerRegister()" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
     <div style="margin-bottom:1rem">
@@ -8224,7 +8224,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === PARTNER DETAIL MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="partner-detail-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="partner-detail-modal">
   <div class="modal" style="max-width:520px;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">🤝 <span id="pd-name">Partner</span></div>
@@ -8268,7 +8268,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === RATE PARTNER MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="rate-partner-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="rate-partner-modal">
   <div class="modal" style="max-width:400px;width:95%">
     <div style="text-align:center;margin-bottom:1rem">
       <div style="font-size:1.8rem;margin-bottom:.4rem">⭐</div>
@@ -8300,7 +8300,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === MORTGAGE CALCULATOR MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="mortgage-calc-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="mortgage-calc-modal">
   <div class="modal" style="max-width:540px;width:95%">
     <div class="modal-hdr" style="background:var(--navy);color:#fff;border-radius:12px 12px 0 0;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center">
       <div style="font-weight:700;font-size:1rem;color:#fff">🏦 <span data-rw="Ibarurishamibare ry'Inguzanyo" data-en="Mortgage Calculator">Mortgage Calculator</span></div>
@@ -8380,7 +8380,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === LOAN APPLICATION MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="loan-apply-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="loan-apply-modal">
   <div class="modal" style="max-width:560px;width:95%;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">📋 <span data-rw="Gusaba Inguzanyo" data-en="Loan Application">Loan Application</span></div>
@@ -8551,7 +8551,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === LOAN DETAIL MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="loan-detail-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="loan-detail-modal">
   <div class="modal" style="max-width:560px;width:95%;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">📋 <span data-rw="Ibirenzeho by'Inguzanyo" data-en="Loan Application Detail">Loan Application Detail</span></div>
@@ -8599,7 +8599,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === AFTER-SALE REQUEST MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="aftersale-request-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="aftersale-request-modal">
   <div class="modal" style="max-width:500px;width:95%">
     <div class="modal-hdr">
       <div class="modal-title">🛠️ <span data-rw="Saba Serivisi After-Sale" data-en="New After-Sale Service Request">New After-Sale Service Request</span></div>
@@ -8649,7 +8649,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === AFTER-SALE DETAIL MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="aftersale-detail-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="aftersale-detail-modal">
   <div class="modal" style="max-width:480px;width:95%">
     <div class="modal-hdr">
       <div class="modal-title">🛠️ <span data-rw="Ibirenzeho bya Serivisi" data-en="Service Request Detail">Service Request Detail</span></div>
@@ -8693,7 +8693,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === OFFICE: TASK CREATE MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="task-create-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="task-create-modal">
   <div class="modal" style="max-width:520px">
     <div class="modal-hdr">
       <div class="modal-title" id="task-modal-heading" data-en="New Task" data-rw="Ongera Umurimo">New Task</div>
@@ -8753,7 +8753,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === OFFICE: TASK DETAIL MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="task-detail-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="task-detail-modal">
   <div class="modal" style="max-width:560px;max-height:90vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title" data-en="Task Detail" data-rw="Amakuru y'Umurimo">Task Detail</div>
@@ -8787,7 +8787,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === OFFICE: CHECK-IN MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="checkin-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="checkin-modal">
   <div class="modal" style="max-width:420px">
     <div class="modal-hdr">
       <div class="modal-title" data-rw="Igihe Cyo Kuja / Gusohoka" data-en="Attendance Check-in / Out">Attendance Check-in / Out</div>
@@ -8806,7 +8806,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === OFFICE: LEAVE APPLY MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="leave-apply-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="leave-apply-modal">
   <div class="modal" style="max-width:480px">
     <div class="modal-hdr">
       <div class="modal-title" data-rw="Saba Congo" data-en="Request Leave">Request Leave</div>
@@ -8845,7 +8845,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === OFFICE: LEAVE DETAIL MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="leave-detail-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="leave-detail-modal">
   <div class="modal" style="max-width:480px">
     <div class="modal-hdr">
       <div class="modal-title" data-rw="Amakuru ya Congo" data-en="Leave Detail">Leave Detail</div>
@@ -8864,7 +8864,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === HR: STAFF PROFILE MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="staff-profile-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="staff-profile-modal">
   <div class="modal" style="max-width:540px;max-height:90vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title" data-rw="Profil y'Umukozi" data-en="Staff Profile">Staff Profile</div>
@@ -8957,7 +8957,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === HR: PAYSLIP CREATE MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="payslip-create-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="payslip-create-modal">
   <div class="modal" style="max-width:560px;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title" data-rw="Kora Payslip" data-en="Generate Payslip">Generate Payslip</div>
@@ -9034,7 +9034,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === HR: PAYSLIP DETAIL MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="payslip-detail-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="payslip-detail-modal">
   <div class="modal" style="max-width:520px;max-height:90vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title" data-rw="Amakuru ya Payslip" data-en="Payslip Detail">Payslip Detail</div>
@@ -9075,7 +9075,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === ACCOUNTING: INVOICE CREATE MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="invoice-create-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="invoice-create-modal">
   <div class="modal" style="max-width:600px;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title" data-rw="Ongera Invoice" data-en="Create Invoice">Create Invoice</div>
@@ -9136,7 +9136,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === ACCOUNTING: INVOICE DETAIL MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="invoice-detail-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="invoice-detail-modal">
   <div class="modal" style="max-width:560px;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title" data-rw="Amakuru ya Invoice" data-en="Invoice Detail">Invoice Detail</div>
@@ -9178,7 +9178,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === ACCOUNTING: INVOICE REFUND MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="invoice-refund-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="invoice-refund-modal">
   <div class="modal" style="max-width:420px">
     <div class="modal-hdr">
       <div class="modal-title" data-rw="Kwishyura Amafaranga" data-en="Refund Invoice">Refund Invoice</div>
@@ -9202,7 +9202,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === ACCOUNTING: EXPENSE CREATE MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="expense-create-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="expense-create-modal">
   <div class="modal" style="max-width:480px">
     <div class="modal-hdr">
       <div class="modal-title" data-rw="Ongera Igisonerwa" data-en="Add Expense">Add Expense</div>
@@ -9254,7 +9254,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === ESCROW / DEAL TRACKER MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="deal-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="deal-modal">
   <div class="modal" style="max-width:500px;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">📊 Deal Tracker — Ikurikirana Transaction</div>
@@ -9265,7 +9265,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === BOOKING MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="booking-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="booking-modal">
   <div class="modal" style="max-width:420px">
     <div class="modal-hdr">
       <div class="modal-title">📅 Gushyiraho Gahunda yo Gusura</div>
@@ -9294,7 +9294,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === MESSAGE OWNER MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="msg-owner-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="msg-owner-modal">
   <div class="modal" style="max-width:420px">
     <div class="modal-hdr">
       <div class="modal-title">✉️ Kohereza Message ku Mugurisha</div>
@@ -9316,7 +9316,7 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- === DEPOSIT PAYMENT MODAL === -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="deposit-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="deposit-modal">
   <div class="modal" style="max-width:420px">
     <div class="modal-hdr">
       <div class="modal-title">💰 Kwishyura Deposit</div>
@@ -9340,7 +9340,7 @@ html,body{overscroll-behavior-x:none}
 <!-- ═══════════════════════════════════
      PAYMENT MODAL
 ════════════════════════════════════ -->
-<div class="modal-wrap" role="dialog" aria-modal="true" id="pay-modal" style="display:none">
+<div class="modal-wrap" role="dialog" aria-modal="true" id="pay-modal">
   <div class="modal">
     <div class="modal-hdr">
       <div class="modal-title" data-rw="Kwishyura" data-en="Payment">Kwishyura</div>
