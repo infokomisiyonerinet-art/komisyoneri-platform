@@ -8839,6 +8839,7 @@ html,body{overscroll-behavior-x:none}
             <option value="branch_manager">Branch Manager</option>
             <option value="hr_manager">HR Manager</option>
             <option value="operations_manager">Operations Manager</option>
+            <option value="marketing_manager">Marketing Manager</option>
             <option value="developer">Developer</option>
             <option value="admin">Admin</option>
             <option value="ceo">CEO</option>
@@ -9876,8 +9877,8 @@ var _pendingAction = null;
 var ROLE_TIERS = {
   ADMIN:         ['super_admin', 'admin'],
   EXEC:          ['super_admin', 'admin', 'ceo'],
-  STAFF:         ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'company_owner'],        // == firestore.rules isAdminOrStaff()
-  INTERNAL_TEAM: ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'company_owner', 'agent'] // == firestore.rules isInternalTeam()
+  STAFF:         ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner'],        // == firestore.rules isAdminOrStaff()
+  INTERNAL_TEAM: ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'agent'] // == firestore.rules isInternalTeam()
 };
 function _roleOf(user) { return ((user || currentUser || {}).role || '').toLowerCase(); }
 function isAdmin(user)        { return ROLE_TIERS.ADMIN.indexOf(_roleOf(user)) > -1; }
@@ -16612,7 +16613,7 @@ function switchBranchTab(tab) {
   if (tab === 'staff')      loadBranchStaff();
   if (tab === 'performance') loadBranchPerformance();
   if (tab === 'coverage')   loadBranchCoverage();
-  switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(currentLang);
 }
 
 function loadBranchNetwork() {
@@ -16677,7 +16678,7 @@ function renderBranchCards() {
   var el = g('br-branches-grid'); if (!el) return;
   if (_branches.length === 0) {
     el.innerHTML = '<div class="exec-empty" style="padding:2rem" data-rw="Nta mashami yabonetse. Ongeraho ishami rya mbere." data-en="No branches yet. Add your first branch to get started.">No branches yet. Add your first branch to get started.</div>';
-    switchLang(currentLang);
+    if (typeof switchLang !== 'undefined') switchLang(currentLang);
     return;
   }
   var q = (_branchFilter.q || '').toLowerCase();
@@ -16689,7 +16690,7 @@ function renderBranchCards() {
   });
   if (filtered.length === 0) {
     el.innerHTML = '<div class="exec-empty" style="padding:2rem" data-rw="Nta mashami ahuye na filteri" data-en="No branches match your filter">No branches match your filter</div>';
-    switchLang(currentLang);
+    if (typeof switchLang !== 'undefined') switchLang(currentLang);
     return;
   }
   el.innerHTML = filtered.map(function(b) {
@@ -16720,7 +16721,7 @@ function renderBranchCards() {
       var el2 = g('br-stat-props-' + b.id); if (el2) el2.innerHTML = '<span>' + s.data().count + '</span> listings';
     }).catch(function(){});
   });
-  switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(currentLang);
 }
 
 function filterBranches() {
@@ -16756,7 +16757,7 @@ function openBranchCreate(branchId) {
     g('branch-status').value = 'active';
   }
   openModal('branch-create-modal');
-  switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(currentLang);
 }
 
 function closeBranchCreate() { closeModal('branch-create-modal'); }
@@ -16848,7 +16849,7 @@ function openBranchDetail(branchId) {
     '<div class="br-detail-stats" id="br-detail-stats-' + b.id + '"><div class="exec-loading">Loading...</div></div>';
 
   openModal('branch-detail-modal');
-  switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(currentLang);
 
   /* Load live stats */
   var statsEl = g('br-detail-stats-' + b.id);
@@ -16901,7 +16902,7 @@ function loadBranchStaff() {
     });
     html += '</tbody></table>';
     el.innerHTML = html;
-    switchLang(currentLang);
+    if (typeof switchLang !== 'undefined') switchLang(currentLang);
   }).catch(function() {
     el.innerHTML = '<div class="exec-empty">Unable to load staff</div>';
   });
@@ -16952,7 +16953,7 @@ function loadBranchPerformance() {
   var el = g('br-perf-content'); if (!el) return;
   if (_branches.length === 0) {
     el.innerHTML = '<div class="exec-empty" style="padding:2rem" data-rw="Nta mashami abonetse" data-en="No branches to compare">No branches to compare</div>';
-    switchLang(currentLang);
+    if (typeof switchLang !== 'undefined') switchLang(currentLang);
     return;
   }
   el.innerHTML = '<div class="exec-loading">Loading performance data...</div>';
@@ -16984,7 +16985,7 @@ function renderBranchPerf(results, el) {
   }).join('');
   html += '</div>';
   el.innerHTML = html;
-  switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(currentLang);
 }
 
 /* ── COVERAGE TAB ── */
@@ -17031,7 +17032,7 @@ function loadBranchCoverage() {
       }).join('');
     }).catch(function(){ propsEl.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
   }
-  switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(currentLang);
 }
 
 function updateBranchSidebarBadge() {
@@ -17339,7 +17340,7 @@ function switchBITab(tab) {
   if (tab === 'agents')   loadBIAgents();
   if (tab === 'insights') loadBIInsights();
   if (tab === 'forecast') loadBIForecast();
-  switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(currentLang);
 }
 
 /* ── entry point ── */
@@ -17618,7 +17619,7 @@ function renderBenchTable(agents, el) {
   });
   html += '</tbody></table></div>';
   el.innerHTML = html;
-  switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(currentLang);
 }
 
 function biDealVelocity() {
@@ -18067,7 +18068,7 @@ function loadExecAlerts() {
     if (pending > 0) return;
     if (alerts.length === 0) {
       container.innerHTML = '<div class="exec-empty" data-rw="Nta makuru mashya" data-en="All clear">All clear</div>';
-      switchLang(currentLang);
+      if (typeof switchLang !== 'undefined') switchLang(currentLang);
       return;
     }
     container.innerHTML = alerts.map(function(a) {
@@ -18211,7 +18212,7 @@ function loadExecTopAgents() {
       });
       html += '</tbody></table>';
       container.innerHTML = html;
-      switchLang(currentLang);
+      if (typeof switchLang !== 'undefined') switchLang(currentLang);
     });
   }).catch(function() {
     container.innerHTML = '<div class="exec-empty">Unable to load agent data</div>';
@@ -18272,7 +18273,7 @@ function loadExecConversion() {
       });
       dv.innerHTML = dvHtml || '<div class="exec-empty">No deal data</div>';
     }
-    switchLang(currentLang);
+    if (typeof switchLang !== 'undefined') switchLang(currentLang);
   }
   db.collection('leads').where('isActive','==',true).count().get().then(function(snap) {
     totalLeads = snap.data().count; render();
@@ -18326,7 +18327,7 @@ function renderAgentPerf(agents, container) {
   });
   html += '</tbody></table></div>';
   container.innerHTML = html;
-  switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(currentLang);
 }
 
 function loadExecAttRate() {
@@ -19103,7 +19104,7 @@ var OFFBOARDING_CHECKLIST = [
 var HR_ROLE_LABELS = {
   super_admin: 'Super Admin', admin: 'Admin', ceo: 'CEO',
   staff: 'Staff', branch_manager: 'Branch Manager', hr_manager: 'HR Manager', operations_manager: 'Operations Manager',
-  company_owner: 'Company Owner', agent: 'Agent', partner: 'Partner',
+  marketing_manager: 'Marketing Manager', company_owner: 'Company Owner', agent: 'Agent', partner: 'Partner',
   owner: 'Owner', client: 'Client', investor: 'Investor'
 };
 
