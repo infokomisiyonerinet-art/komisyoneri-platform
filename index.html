@@ -4416,6 +4416,7 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="go('exec')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h2v5H7zm4-3h2v8h-2zm4 2h2v6h-2z"/></svg><span data-rw="Ikigega cy'Ubuyobozi" data-en="Executive Dashboard">Executive Dashboard</span><span class="ds-badge" id="exec-sidebar-badge"></span></div>
       <div class="dn" onclick="go('bi')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg><span data-rw="Ubushakashatsi bw'Amakuru" data-en="Business Intelligence">Business Intelligence</span><span class="ds-badge" id="bi-sidebar-badge"></span></div>
       <div class="dn" onclick="go('branches')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-rw="Amashami y'Igihugu" data-en="Branch Network">Branch Network</span><span class="ds-badge" id="branch-sidebar-badge"></span></div>
+      <div class="dn" onclick="go('branch-mgr')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-rw="Ikibaho cy'Ishami" data-en="Branch Dashboard">Branch Dashboard</span></div>
       <div class="ds-section" data-rw="KONTI" data-en="ACCOUNT">KONTI</div>
       <div class="dn" onclick="openProfile()" role="button" tabindex="0"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Profil" data-en="Profile">Profil</span></div>
       <div class="dn" onclick="openProfile()" role="button" tabindex="0"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-rw="Igenamiterere" data-en="Settings">Igenamiterere</span></div>
@@ -6454,6 +6455,31 @@ html,body{overscroll-behavior-x:none}
     <div class="exec-panel" style="margin-top:14px">
       <div class="exec-panel-hdr" data-rw="Imitungo ku Karere" data-en="Properties per District">Properties per District</div>
       <div id="br-props-by-district"></div>
+    </div>
+  </div>
+</div>
+
+<!-- === PAGE: BRANCH MANAGER DASHBOARD === -->
+<div class="page" id="page-branch-mgr">
+  <div class="page-hdr">
+    <h2 data-rw="Ikibaho cy'Umuyobozi w'Ishami" data-en="Branch Manager Dashboard">Branch Manager Dashboard</h2>
+  </div>
+  <div id="bm-no-branch" class="off-empty" style="display:none" data-rw="Ntabwo urahabwa ishami. Saba umuyobozi akwemerere ishami." data-en="You are not yet assigned to a branch. Ask an admin to assign you to one.">You are not yet assigned to a branch. Ask an admin to assign you to one.</div>
+  <div id="bm-content" style="display:none">
+    <!-- KPI strip -->
+    <div class="br-kpi-strip">
+      <div class="br-kpi"><span class="br-kpi-val" id="bm-kpi-agents">—</span><span class="br-kpi-lbl" data-rw="Abacuruzi" data-en="Agents">Agents</span></div>
+      <div class="br-kpi"><span class="br-kpi-val" id="bm-kpi-staff">—</span><span class="br-kpi-lbl" data-rw="Abakozi" data-en="Staff">Staff</span></div>
+      <div class="br-kpi"><span class="br-kpi-val" id="bm-kpi-props">—</span><span class="br-kpi-lbl" data-rw="Imitungo" data-en="Listings">Listings</span></div>
+      <div class="br-kpi"><span class="br-kpi-val" id="bm-kpi-deals">—</span><span class="br-kpi-lbl" data-rw="Deals Zikora" data-en="Active Deals">Active Deals</span></div>
+    </div>
+    <div class="exec-panel">
+      <div class="exec-panel-hdr" data-rw="Itsinda ry'Ishami" data-en="Branch Team">Branch Team</div>
+      <div id="bm-agents-list"></div>
+    </div>
+    <div class="exec-panel" style="margin-top:14px">
+      <div class="exec-panel-hdr" data-rw="Deals Ziheruka" data-en="Recent Deals">Recent Deals</div>
+      <div id="bm-deals-list"></div>
     </div>
   </div>
 </div>
@@ -8764,6 +8790,7 @@ html,body{overscroll-behavior-x:none}
             <option value="partner">Partner</option>
             <option value="investor">Investor</option>
             <option value="staff">Staff</option>
+            <option value="branch_manager">Branch Manager</option>
             <option value="developer">Developer</option>
             <option value="admin">Admin</option>
             <option value="ceo">CEO</option>
@@ -9800,8 +9827,8 @@ var _pendingAction = null;
 var ROLE_TIERS = {
   ADMIN:         ['super_admin', 'admin'],
   EXEC:          ['super_admin', 'admin', 'ceo'],
-  STAFF:         ['super_admin', 'admin', 'staff', 'ceo'],        // == firestore.rules isAdminOrStaff()
-  INTERNAL_TEAM: ['super_admin', 'admin', 'staff', 'ceo', 'agent'] // == firestore.rules isInternalTeam()
+  STAFF:         ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager'],        // == firestore.rules isAdminOrStaff()
+  INTERNAL_TEAM: ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'agent'] // == firestore.rules isInternalTeam()
 };
 function _roleOf(user) { return ((user || currentUser || {}).role || '').toLowerCase(); }
 function isAdmin(user)        { return ROLE_TIERS.ADMIN.indexOf(_roleOf(user)) > -1; }
@@ -14426,7 +14453,7 @@ window.addEventListener('DOMContentLoaded', function() {
     'sites','site','crm','deals','commissions',
     'verification','documents','financing','partners','investors',
     'customer','office','hr','accounting',
-    'exec','bi','branches','agents','careers',
+    'exec','bi','branches','branch-mgr','agents','careers',
     'dashboard','auth','about','privacy','terms'
   ];
   var page = pathPage || (validPages.indexOf(hash) > -1 ? hash : 'home');
@@ -15596,6 +15623,9 @@ go = function(page) {
   }
   if(page === 'branches') {
     setTimeout(loadBranchNetwork, 150);
+  }
+  if(page === 'branch-mgr') {
+    setTimeout(loadBranchMgrDash, 150);
   }
 };
 
@@ -16941,6 +16971,96 @@ function loadBranchCoverage() {
 function updateBranchSidebarBadge() {
   db.collection('branches').where('isActive','==',true).count().get().then(function(s) {
     var el = g('branch-sidebar-badge'); if (el) el.textContent = s.data().count > 0 ? s.data().count : '';
+  }).catch(function(){});
+}
+
+/* ── BRANCH MANAGER DASHBOARD ── */
+// A single-branch, self-scoped view for the new 'branch_manager' role —
+// the first of the Phase 7 management dashboards. Unlike the cross-branch
+// Branch Network page (EXEC-only, loops every branch), this auto-scopes
+// to currentUser.branchId with no branch picker.
+//
+// Listings/deals are attributed via the branch's agent roster (agentId),
+// not a direct branchId field on those collections — because nothing in
+// this codebase ever writes branchId onto properties/deals/invoices
+// (confirmed: it's only ever set on users, via staff branch assignment).
+// The existing Branch Network > Performance tab has this exact same gap
+// already (its per-branch deals/properties/revenue queries filter on
+// properties.branchId/deals.branchId, which is never populated, so those
+// numbers are silently always zero there) — not something introduced or
+// fixed here. Revenue is left out of this dashboard entirely rather than
+// show a permanently-zero KPI, since invoices don't carry an agentId
+// either to attribute them to a branch's agents indirectly.
+function loadBranchMgrDash() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var branchId = currentUser.branchId;
+  var noBranchEl = g('bm-no-branch'), contentEl = g('bm-content');
+  if (!branchId) {
+    if (noBranchEl) noBranchEl.style.display = '';
+    if (contentEl) contentEl.style.display = 'none';
+    return;
+  }
+  if (noBranchEl) noBranchEl.style.display = 'none';
+  if (contentEl) contentEl.style.display = '';
+
+  db.collection('users').where('branchId','==',branchId).where('role','==','agent').where('isActive','==',true).limit(50).get().then(function(snap) {
+    var agents = [];
+    snap.forEach(function(d) { var u = d.data(); u.id = d.id; agents.push(u); });
+    if (g('bm-kpi-agents')) g('bm-kpi-agents').textContent = agents.length;
+    var listEl = g('bm-agents-list');
+    if (listEl) {
+      listEl.innerHTML = agents.length
+        ? agents.map(function(a) {
+            return '<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.85rem">'
+              + '<span style="font-weight:600">' + escapeHtml(a.displayName||a.email||'—') + '</span>'
+              + '<span style="color:var(--muted)">' + escapeHtml(a.email||'') + '</span>'
+              + '</div>';
+          }).join('')
+        : '<div class="exec-empty">No agents assigned to this branch yet.</div>';
+    }
+
+    // Listings + deals are attributed via this branch's own agents — see
+    // the function-level comment above for why (no branchId field exists
+    // on those collections). Firestore's 'in' operator caps at 10 values.
+    var agentIds = agents.map(function(a) { return a.id; }).slice(0, 10);
+    if (!agentIds.length) {
+      if (g('bm-kpi-props')) g('bm-kpi-props').textContent = 0;
+      if (g('bm-kpi-deals')) g('bm-kpi-deals').textContent = 0;
+      if (g('bm-deals-list')) g('bm-deals-list').innerHTML = '<div class="exec-empty">No agents assigned to this branch yet.</div>';
+      return;
+    }
+
+    db.collection('properties').where('agentId','in',agentIds).where('isActive','==',true).limit(500).get().then(function(pSnap) {
+      if (g('bm-kpi-props')) g('bm-kpi-props').textContent = pSnap.size;
+    }).catch(function(){});
+
+    db.collection('deals').where('agentId','in',agentIds).where('isActive','==',true).limit(200).get().then(function(dSnap) {
+      var deals = [];
+      dSnap.forEach(function(d) { var x = d.data(); x.id = d.id; deals.push(x); });
+      if (g('bm-kpi-deals')) g('bm-kpi-deals').textContent = deals.length;
+      deals.sort(function(a,b) {
+        var av = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate() : new Date(a.createdAt||0);
+        var bv = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt||0);
+        return bv - av;
+      });
+      var dealsEl = g('bm-deals-list');
+      if (dealsEl) {
+        dealsEl.innerHTML = deals.length
+          ? deals.slice(0,5).map(function(d) {
+              return '<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.85rem">'
+                + '<span style="font-weight:600">' + escapeHtml(d.propertyTitle||d.clientName||'—') + '</span>'
+                + '<span style="color:var(--muted)">' + escapeHtml(d.pipelineStage||d.status||'—') + '</span>'
+                + '</div>';
+            }).join('')
+          : '<div class="exec-empty">No active deals for this branch\'s agents yet.</div>';
+      }
+    }).catch(function(){});
+  }).catch(function() {
+    if (contentEl) contentEl.innerHTML = '<div class="exec-empty">Unable to load branch data.</div>';
+  });
+
+  db.collection('users').where('branchId','==',branchId).where('role','==','staff').where('isActive','==',true).count().get().then(function(s) {
+    if (g('bm-kpi-staff')) g('bm-kpi-staff').textContent = s.data().count;
   }).catch(function(){});
 }
 
@@ -18750,7 +18870,7 @@ var OFFBOARDING_CHECKLIST = [
 
 var HR_ROLE_LABELS = {
   super_admin: 'Super Admin', admin: 'Admin', ceo: 'CEO',
-  staff: 'Staff', agent: 'Agent', partner: 'Partner',
+  staff: 'Staff', branch_manager: 'Branch Manager', agent: 'Agent', partner: 'Partner',
   owner: 'Owner', client: 'Client', investor: 'Investor'
 };
 
@@ -31424,7 +31544,8 @@ function submitCompose() {
     { match: "go('hr')",           roles: _ADMIN },
     { match: "go('exec')",         roles: _EXEC.concat(['investor']) },
     { match: "go('bi')",           roles: _STAFF },
-    { match: "go('branches')",     roles: _EXEC }
+    { match: "go('branches')",     roles: _EXEC },
+    { match: "go('branch-mgr')",   roles: ['branch_manager'] }
     /* openProfile() and items with no onclick → always visible */
   ];
 
