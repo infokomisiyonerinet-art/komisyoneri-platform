@@ -5254,6 +5254,39 @@ html,body{overscroll-behavior-x:none}
         <div class="crm-stat-l" data-rw="Igiteranyo (RWF M)" data-en="Total (RWF M)">Total (M)</div>
       </div>
     </div>
+
+    <!-- Agent wallet (hidden for admin/staff via JS) -->
+    <div class="exec-panel" id="wallet-card" style="display:none;margin-bottom:1rem">
+      <div class="exec-panel-hdr" data-rw="Ikofi Yanjye" data-en="My Wallet">My Wallet</div>
+      <div class="crm-stats">
+        <div class="crm-stat">
+          <div class="crm-stat-v" id="wallet-available" style="color:#16A34A">0</div>
+          <div class="crm-stat-l" data-rw="Byemejwe, Bitegereje Kwishyurwa" data-en="Available to Request">Available to Request</div>
+        </div>
+        <div class="crm-stat">
+          <div class="crm-stat-v" id="wallet-pending" style="color:#F59E0B">0</div>
+          <div class="crm-stat-l" data-rw="Bitegerejwe Kwemezwa" data-en="Awaiting Approval">Awaiting Approval</div>
+        </div>
+        <div class="crm-stat">
+          <div class="crm-stat-v" id="wallet-paid" style="color:var(--gold)">0</div>
+          <div class="crm-stat-l" data-rw="Byishyuwe Byose" data-en="Lifetime Paid">Lifetime Paid</div>
+        </div>
+      </div>
+      <button class="btn btn-gold btn-sm" id="wallet-request-btn" onclick="openPayoutRequest()" style="margin-top:.5rem">
+        <span data-rw="Saba Kwishyurwa" data-en="Request Payout">Request Payout</span>
+      </button>
+      <div style="margin-top:.75rem">
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.4rem" data-rw="Ibyasabwe Kwishyurwa" data-en="Payout Requests">Payout Requests</div>
+        <div id="wallet-requests-list"></div>
+      </div>
+    </div>
+
+    <!-- Admin payout requests queue (hidden for agents via JS) -->
+    <div class="exec-panel" id="payout-admin-card" style="display:none;margin-bottom:1rem">
+      <div class="exec-panel-hdr" data-rw="Ibisabwa Kwishyurwa Bitegereje" data-en="Pending Payout Requests">Pending Payout Requests</div>
+      <div id="payout-admin-list"></div>
+    </div>
+
     <!-- Filters -->
     <div class="crm-filters">
       <select id="comm-filter-status" onchange="filterCommissions()" aria-label="Filter by status">
@@ -7724,6 +7757,25 @@ html,body{overscroll-behavior-x:none}
       <button id="mc-submit-btn" class="btn btn-gold" style="width:100%;justify-content:center" onclick="createManualCommission()">
         <span id="mc-submit-lbl" data-rw="Bika Komisiyoni" data-en="Save Commission">Save Commission</span>
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- === PAYOUT REQUEST MODAL === -->
+<div class="modal-wrap" role="dialog" aria-modal="true" id="payout-request-modal" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hdr">
+      <div class="modal-title" data-rw="Saba Kwishyurwa" data-en="Request Payout">Request Payout</div>
+      <button class="modal-close" onclick="closePayoutRequest()">&times;</button>
+    </div>
+    <div style="background:var(--light);border-radius:8px;padding:.85rem;font-size:.9rem;margin-bottom:.75rem">
+      <div style="color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em" data-rw="Amafaranga" data-en="Amount">Amount</div>
+      <div style="font-weight:800;font-size:1.3rem;color:var(--navy)" id="pr-amount-display">0 RWF</div>
+    </div>
+    <div class="form-group"><label data-rw="Ibisobanuro (bishobora kuba ubusa)" data-en="Notes (optional)">Notes (optional)</label><textarea id="pr-notes" class="form-control" rows="2"></textarea></div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" onclick="closePayoutRequest()" data-en="Cancel">Cancel</button>
+      <button class="btn btn-gold" id="pr-submit-btn" onclick="submitPayoutRequest()" data-en="Submit Request">Submit Request</button>
     </div>
   </div>
 </div>
@@ -24143,6 +24195,7 @@ function loadCommissions() {
     });
     renderCommissionList();
     updateCommissionStats();
+    renderWalletSection();
   }).catch(function(err) {
     list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⚠️</div><div class="crm-empty-title">Error loading</div></div>';
     console.error('[Commissions] load error:', err);
@@ -24166,6 +24219,172 @@ function updateCommissionStats() {
       : totalRwf >= 1000 ? Math.round(totalRwf/1000) + 'K'
       : totalRwf.toLocaleString();
   }
+}
+
+/* ── AGENT WALLET / PAYOUT REQUESTS ── */
+// A real wallet balance and payout-request flow — previously an agent's
+// "balance" was only ever an ad-hoc sum shown in read-only stat cards
+// (see the sidebar badge above), with no way to actually request payment
+// and no admin queue to action such a request. Reuses the commissions
+// collection's existing pending/approved/paid status as the ledger
+// rather than inventing a parallel balance field — "available to
+// request" is the sum of this agent's *approved* (confirmed owed, not
+// yet paid) commissions. There's no payment gateway anywhere in this
+// app, so "payout" here means routing a real request to an admin queue
+// for them to action, not moving money automatically.
+var _prCommissionIds = [];
+var _prAmount = 0;
+
+function renderWalletSection() {
+  var isAdmin = isAdminOrStaff(currentUser);
+  var walletCard = g('wallet-card');
+  var adminCard = g('payout-admin-card');
+  if (isAdmin) {
+    if (walletCard) walletCard.style.display = 'none';
+    if (adminCard) adminCard.style.display = '';
+    loadPayoutRequestsAdmin();
+    return;
+  }
+  if (adminCard) adminCard.style.display = 'none';
+  if (walletCard) walletCard.style.display = '';
+  var sum = function(list) { return list.reduce(function(s,c){ return s + (c.agentShare||0); }, 0); };
+  var approved = _commissions.filter(function(c){ return c.status === 'approved'; });
+  var pending  = _commissions.filter(function(c){ return c.status === 'pending'; });
+  var paid     = _commissions.filter(function(c){ return c.status === 'paid'; });
+  if (g('wallet-available')) g('wallet-available').textContent = fmtRwfAC(sum(approved));
+  if (g('wallet-pending'))   g('wallet-pending').textContent   = fmtRwfAC(sum(pending));
+  if (g('wallet-paid'))      g('wallet-paid').textContent      = fmtRwfAC(sum(paid));
+  var btn = g('wallet-request-btn');
+  if (btn) btn.disabled = sum(approved) <= 0;
+  loadMyPayoutRequests();
+}
+
+function openPayoutRequest() {
+  var approved = _commissions.filter(function(c){ return c.status === 'approved'; });
+  var amount = approved.reduce(function(s,c){ return s + (c.agentShare||0); }, 0);
+  if (amount <= 0) { showToast(curLang==='rw'?'Nta mafaranga ahari yo gusaba':'No available balance to request', 'error'); return; }
+  _prCommissionIds = approved.map(function(c){ return c._docId; });
+  _prAmount = amount;
+  if (g('pr-amount-display')) g('pr-amount-display').textContent = fmtRwfAC(amount);
+  if (g('pr-notes')) g('pr-notes').value = '';
+  openModal('payout-request-modal');
+}
+function closePayoutRequest() { closeModal('payout-request-modal'); }
+
+function submitPayoutRequest() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  if (!_prCommissionIds.length) { showToast('No available balance to request', 'error'); return; }
+  var docRef = db.collection('payout_requests').doc();
+  var payload = {
+    id: docRef.id, agentId: currentUser.uid,
+    agentName: currentUser.displayName || currentUser.name || currentUser.email || '',
+    amount: _prAmount, commissionIds: _prCommissionIds,
+    notes: (g('pr-notes').value || '').trim(),
+    approvedBy: null, approvedAt: null, rejectedReason: null,
+    status: 'pending', isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: currentUser.uid, updatedBy: currentUser.uid
+  };
+  docRef.set(payload).then(function() {
+    logAudit('payout_requested', 'payout_requests', docRef.id, null, { amount: _prAmount });
+    showToast(curLang==='rw'?'Icyifuzo cyoherejwe!':'Payout request submitted!', 'success');
+    closePayoutRequest();
+    loadMyPayoutRequests();
+  }).catch(function() { showToast('Error submitting payout request', 'error'); });
+}
+
+function loadMyPayoutRequests() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  db.collection('payout_requests').where('agentId','==',currentUser.uid).where('isActive','==',true)
+    .orderBy('createdAt','desc').limit(20).get().then(function(snap) {
+      var el = g('wallet-requests-list');
+      if (!el) return;
+      if (snap.empty) { el.innerHTML = '<div class="exec-empty">No payout requests yet.</div>'; return; }
+      var STATUS_COLORS = { pending:'#F59E0B', approved:'#16A34A', rejected:'#DC2626', cancelled:'#9CA3AF' };
+      el.innerHTML = snap.docs.map(function(d) {
+        var r = d.data();
+        var color = STATUS_COLORS[r.status] || '#64748B';
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.82rem">'
+          + '<span>' + fmtRwfAC(r.amount) + '</span>'
+          + '<span class="chip" style="background:' + color + ';color:#fff;font-size:.68rem">' + (r.status||'') + '</span>'
+          + (r.status === 'pending' ? '<button class="btn btn-sm btn-outline" onclick="cancelPayoutRequest(\'' + d.id + '\')" data-en="Cancel">Cancel</button>' : '<span></span>')
+          + '</div>';
+      }).join('');
+    }).catch(function(){});
+}
+
+function cancelPayoutRequest(id) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  db.collection('payout_requests').doc(id).update({
+    status: 'cancelled', updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  }).then(function() {
+    showToast('Payout request cancelled', 'success');
+    logAudit('payout_request_cancelled', 'payout_requests', id, null, {});
+    loadMyPayoutRequests();
+  }).catch(function() { showToast('Error cancelling request', 'error'); });
+}
+
+function loadPayoutRequestsAdmin() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  db.collection('payout_requests').where('status','==','pending').where('isActive','==',true)
+    .orderBy('createdAt','desc').limit(100).get().then(function(snap) {
+      var el = g('payout-admin-list');
+      if (!el) return;
+      if (snap.empty) { el.innerHTML = '<div class="exec-empty">No pending payout requests.</div>'; return; }
+      el.innerHTML = snap.docs.map(function(d) {
+        var r = d.data();
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.85rem">'
+          + '<div><span style="font-weight:600">' + escapeHtml(r.agentName||r.agentId||'') + '</span> <span style="color:var(--muted)">' + fmtRwfAC(r.amount) + (r.notes ? (' — ' + escapeHtml(r.notes)) : '') + '</span></div>'
+          + '<div style="display:flex;gap:.4rem">'
+          + '<button class="btn btn-sm" style="background:var(--success);color:#fff" onclick="approvePayoutRequest(\'' + d.id + '\')" data-en="Approve &amp; Pay">Approve &amp; Pay</button>'
+          + '<button class="btn btn-sm btn-outline" onclick="rejectPayoutRequest(\'' + d.id + '\')" data-en="Reject">Reject</button>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+    }).catch(function(){});
+}
+
+function approvePayoutRequest(id) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  db.collection('payout_requests').doc(id).get().then(function(doc) {
+    if (!doc.exists) return;
+    var req = doc.data();
+    var batch = db.batch();
+    (req.commissionIds || []).forEach(function(cid) {
+      batch.update(db.collection('commissions').doc(cid), {
+        status: 'paid', paidAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+      });
+    });
+    batch.update(db.collection('payout_requests').doc(id), {
+      status: 'approved', approvedBy: currentUser.uid,
+      approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+    });
+    return batch.commit().then(function() { return req; });
+  }).then(function(req) {
+    showToast('Payout approved — commissions marked paid', 'success');
+    logAudit('payout_request_approved', 'payout_requests', id, null, {});
+    if (req && typeof notifyUser === 'function' && req.agentId) {
+      notifyUser(req.agentId, curLang==='rw'?'Wishyuwe':'Payout Approved',
+        curLang==='rw'?'Icyifuzo cyawe cyo kwishyurwa cyemejwe.':'Your payout request has been approved.',
+        'payout_approved', 'payout_requests', id);
+    }
+    loadPayoutRequestsAdmin();
+  }).catch(function() { showToast('Error approving payout', 'error'); });
+}
+
+function rejectPayoutRequest(id) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  if (!confirm(curLang==='rw'?'Wanga iki cyifuzo cyo kwishyurwa?':'Reject this payout request?')) return;
+  db.collection('payout_requests').doc(id).update({
+    status: 'rejected', updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  }).then(function() {
+    showToast('Payout request rejected', 'success');
+    logAudit('payout_request_rejected', 'payout_requests', id, null, {});
+    loadPayoutRequestsAdmin();
+  }).catch(function() { showToast('Error rejecting request', 'error'); });
 }
 
 function filterCommissions() {

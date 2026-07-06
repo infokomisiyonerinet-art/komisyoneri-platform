@@ -117,6 +117,31 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /payout_requests/{id} {
+      // A payout request is a snapshot of specific commission doc IDs +
+      // their summed agentShare at request time (see submitPayoutRequest()
+      // in index.html) — approving one batch-updates exactly those
+      // commissions to status:'paid', so the underlying ledger stays
+      // exact regardless of what the agent's balance does afterward.
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && resource.data.agentId == request.auth.uid);
+      // Tightened beyond the `leaves` collection's equivalent create rule
+      // (which doesn't check the self-ownership field): this collection
+      // moves money, so a client can only ever create a payout request
+      // for themselves, not on another agent's behalf.
+      allow create: if isAuth() && hasStandardFields()
+                    && request.resource.data.agentId == request.auth.uid;
+      // Admin/staff can approve or reject; the requesting agent may only
+      // cancel their own still-pending request (not approve it, not
+      // change the amount) — a plain document update, so unlike list
+      // reads this can safely inspect resource.data.status directly.
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && resource.data.agentId == request.auth.uid
+                        && resource.data.status == 'pending'
+                        && request.resource.data.status == 'cancelled');
+      allow delete: if false;
+    }
+
     match /documents/{id} {
       // accessRoles (checked at upload, e.g. by submitDocumentUpload() in
       // index.html) lets staff file a document under a client's clientId
