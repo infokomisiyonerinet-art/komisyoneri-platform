@@ -31,18 +31,18 @@ service cloud.firestore {
       // so a ceo account clicking those buttons got a silent write
       // rejection. Aligning the two: a CEO shouldn't have less write
       // capability than regular staff.
-      // 'branch_manager', 'hr_manager', and 'company_owner' are staff-tier
-      // roles (same trust level as 'staff'/'ceo' — no per-branch or
-      // per-department write restriction exists for 'staff' either, so
-      // these introduce no new permission beyond what that tier already
-      // has) — see ROLE_TIERS.STAFF in index.html, which this list must
-      // stay in sync with.
+      // 'branch_manager', 'hr_manager', 'operations_manager', and
+      // 'company_owner' are staff-tier roles (same trust level as
+      // 'staff'/'ceo' — no per-branch or per-department write restriction
+      // exists for 'staff' either, so these introduce no new permission
+      // beyond what that tier already has) — see ROLE_TIERS.STAFF in
+      // index.html, which this list must stay in sync with.
       return isAuth() && getRole() != null &&
-        getRole().lower() in ['admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'company_owner'];
+        getRole().lower() in ['admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'company_owner'];
     }
     function isInternalTeam() {
       return isAuth() && getRole() != null &&
-        getRole().lower() in ['agent', 'staff', 'admin', 'super_admin', 'ceo', 'branch_manager', 'hr_manager', 'company_owner'];
+        getRole().lower() in ['agent', 'staff', 'admin', 'super_admin', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'company_owner'];
     }
     function hasStandardFields() {
       return request.resource.data.keys().hasAll([

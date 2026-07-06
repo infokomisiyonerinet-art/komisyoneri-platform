@@ -4418,6 +4418,7 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="go('branches')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-rw="Amashami y'Igihugu" data-en="Branch Network">Branch Network</span><span class="ds-badge" id="branch-sidebar-badge"></span></div>
       <div class="dn" onclick="go('branch-mgr')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-rw="Ikibaho cy'Ishami" data-en="Branch Dashboard">Branch Dashboard</span></div>
       <div class="dn" onclick="go('hr-mgr')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Ikibaho cy'Abakozi" data-en="HR Dashboard">HR Dashboard</span></div>
+      <div class="dn" onclick="go('ops-mgr')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg><span data-rw="Ikibaho cy'Ibikorwa" data-en="Operations Dashboard">Operations Dashboard</span></div>
       <div class="ds-section" data-rw="KONTI" data-en="ACCOUNT">KONTI</div>
       <div class="dn" onclick="openProfile()" role="button" tabindex="0"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-rw="Profil" data-en="Profile">Profil</span></div>
       <div class="dn" onclick="openProfile()" role="button" tabindex="0"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-rw="Igenamiterere" data-en="Settings">Igenamiterere</span></div>
@@ -6504,6 +6505,28 @@ html,body{overscroll-behavior-x:none}
   <div class="exec-panel" style="margin-top:14px">
     <div class="exec-panel-hdr" data-rw="Amashami n'Abakozi" data-en="Departments Overview">Departments Overview</div>
     <div id="hm-depts-list"></div>
+  </div>
+</div>
+
+<!-- === PAGE: OPERATIONS MANAGER DASHBOARD === -->
+<div class="page" id="page-ops-mgr">
+  <div class="page-hdr">
+    <h2 data-rw="Ikibaho cy'Ibikorwa" data-en="Operations Manager Dashboard">Operations Manager Dashboard</h2>
+  </div>
+  <!-- KPI strip -->
+  <div class="br-kpi-strip">
+    <div class="br-kpi"><span class="br-kpi-val" id="om-kpi-open">—</span><span class="br-kpi-lbl" data-rw="Ibikorwa Bifunguye" data-en="Open Tasks">Open Tasks</span></div>
+    <div class="br-kpi"><span class="br-kpi-val" id="om-kpi-overdue">—</span><span class="br-kpi-lbl" data-rw="Byarengeje Igihe" data-en="Overdue Tasks">Overdue Tasks</span></div>
+    <div class="br-kpi"><span class="br-kpi-val" id="om-kpi-attendance">—</span><span class="br-kpi-lbl" data-rw="Ubwitabire Uyu Munsi" data-en="Today's Attendance">Today's Attendance</span></div>
+    <div class="br-kpi"><span class="br-kpi-val" id="om-kpi-viewings">—</span><span class="br-kpi-lbl" data-rw="Kureba Bitegerejwe" data-en="Upcoming Viewings">Upcoming Viewings</span></div>
+  </div>
+  <div class="exec-panel">
+    <div class="exec-panel-hdr" data-rw="Ibikorwa Byarengeje Igihe" data-en="Overdue Tasks">Overdue Tasks</div>
+    <div id="om-overdue-list"></div>
+  </div>
+  <div class="exec-panel" style="margin-top:14px">
+    <div class="exec-panel-hdr" data-rw="Kureba Uyu Munsi" data-en="Today's Viewings">Today's Viewings</div>
+    <div id="om-today-viewings-list"></div>
   </div>
 </div>
 
@@ -8815,6 +8838,7 @@ html,body{overscroll-behavior-x:none}
             <option value="staff">Staff</option>
             <option value="branch_manager">Branch Manager</option>
             <option value="hr_manager">HR Manager</option>
+            <option value="operations_manager">Operations Manager</option>
             <option value="developer">Developer</option>
             <option value="admin">Admin</option>
             <option value="ceo">CEO</option>
@@ -9852,8 +9876,8 @@ var _pendingAction = null;
 var ROLE_TIERS = {
   ADMIN:         ['super_admin', 'admin'],
   EXEC:          ['super_admin', 'admin', 'ceo'],
-  STAFF:         ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'company_owner'],        // == firestore.rules isAdminOrStaff()
-  INTERNAL_TEAM: ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'company_owner', 'agent'] // == firestore.rules isInternalTeam()
+  STAFF:         ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'company_owner'],        // == firestore.rules isAdminOrStaff()
+  INTERNAL_TEAM: ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'company_owner', 'agent'] // == firestore.rules isInternalTeam()
 };
 function _roleOf(user) { return ((user || currentUser || {}).role || '').toLowerCase(); }
 function isAdmin(user)        { return ROLE_TIERS.ADMIN.indexOf(_roleOf(user)) > -1; }
@@ -14489,7 +14513,7 @@ window.addEventListener('DOMContentLoaded', function() {
     'sites','site','crm','deals','commissions',
     'verification','documents','financing','partners','investors',
     'customer','office','hr','accounting',
-    'exec','bi','branches','branch-mgr','hr-mgr','agents','careers',
+    'exec','bi','branches','branch-mgr','hr-mgr','ops-mgr','agents','careers',
     'dashboard','auth','about','privacy','terms'
   ];
   var page = pathPage || (validPages.indexOf(hash) > -1 ? hash : 'home');
@@ -15665,6 +15689,9 @@ go = function(page) {
   }
   if(page === 'hr-mgr') {
     setTimeout(loadHRMgrDash, 150);
+  }
+  if(page === 'ops-mgr') {
+    setTimeout(loadOpsMgrDash, 150);
   }
 };
 
@@ -17174,6 +17201,99 @@ function hrMgrProcessLeave(id, newStatus) {
     logAudit('leave_status_changed', 'leaves', id, null, { status: newStatus });
     loadHRMgrDash();
   }).catch(function() { showToast('Error updating leave request', 'error'); });
+}
+
+/* ── OPERATIONS MANAGER DASHBOARD ── */
+// The third Phase 7 management dashboard, for the new 'operations_manager'
+// role. "Overdue" isn't a stored field on tasks or a "missed" flag on
+// viewings anywhere in this codebase — both are computed client-side from
+// dueAt/scheduledAt, matching the exact same ad-hoc pattern already used
+// by _checkTaskDueNotifications() and the Office page's own viewing stats,
+// rather than inventing a new precomputed-field convention here.
+function loadOpsMgrDash() {
+  if (typeof db === 'undefined' || !currentUser) return;
+
+  db.collection('tasks').where('isActive','==',true).orderBy('createdAt','desc').limit(200).get().then(function(snap) {
+    var tasks = [];
+    snap.forEach(function(d) { var t = d.data(); t.id = d.id; tasks.push(t); });
+    var now = new Date();
+    var open = tasks.filter(function(t) { return t.status !== 'done' && t.status !== 'cancelled'; });
+    var overdue = open.filter(function(t) {
+      var due = t.dueAt ? (t.dueAt.toDate ? t.dueAt.toDate() : new Date(t.dueAt)) : null;
+      return due && due < now;
+    });
+    if (g('om-kpi-open')) g('om-kpi-open').textContent = open.length;
+    if (g('om-kpi-overdue')) g('om-kpi-overdue').textContent = overdue.length;
+    overdue.sort(function(a,b) {
+      var ad = a.dueAt ? (a.dueAt.toDate ? a.dueAt.toDate() : new Date(a.dueAt)) : 0;
+      var bd = b.dueAt ? (b.dueAt.toDate ? b.dueAt.toDate() : new Date(b.dueAt)) : 0;
+      return ad - bd;
+    });
+    var el = g('om-overdue-list');
+    if (el) {
+      el.innerHTML = overdue.length
+        ? overdue.slice(0,10).map(function(t) {
+            var due = t.dueAt ? (t.dueAt.toDate ? t.dueAt.toDate() : new Date(t.dueAt)) : null;
+            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.85rem">'
+              + '<div><span style="font-weight:600">' + escapeHtml(t.title||'') + '</span> <span style="color:var(--muted)">' + escapeHtml(t.assignedToName||t.assignedTo||'—') + (due ? ', due ' + due.toLocaleDateString() : '') + '</span></div>'
+              + '<button class="btn btn-sm" style="background:var(--success);color:#fff" onclick="omMarkTaskDone(\'' + t.id + '\')" data-en="Mark Done">Mark Done</button>'
+              + '</div>';
+          }).join('')
+        : '<div class="exec-empty">No overdue tasks.</div>';
+    }
+  }).catch(function(){});
+
+  db.collection('viewings').where('isActive','==',true).orderBy('scheduledAt','desc').limit(200).get().then(function(snap) {
+    var viewings = [];
+    snap.forEach(function(d) { var v = d.data(); v.id = d.id; viewings.push(v); });
+    var now = new Date();
+    var todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var todayEnd = new Date(todayStart.getTime() + 86400000);
+    var upcoming = viewings.filter(function(v) {
+      var dt = v.scheduledAt ? (v.scheduledAt.toDate ? v.scheduledAt.toDate() : new Date(v.scheduledAt)) : null;
+      return dt && dt >= now && v.status !== 'cancelled' && v.status !== 'completed';
+    });
+    var today = viewings.filter(function(v) {
+      var dt = v.scheduledAt ? (v.scheduledAt.toDate ? v.scheduledAt.toDate() : new Date(v.scheduledAt)) : null;
+      return dt && dt >= todayStart && dt < todayEnd && v.status !== 'cancelled';
+    });
+    if (g('om-kpi-viewings')) g('om-kpi-viewings').textContent = upcoming.length;
+    var el = g('om-today-viewings-list');
+    if (el) {
+      el.innerHTML = today.length
+        ? today.map(function(v) {
+            var dt = v.scheduledAt ? (v.scheduledAt.toDate ? v.scheduledAt.toDate() : new Date(v.scheduledAt)) : null;
+            return '<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.85rem">'
+              + '<span style="font-weight:600">' + escapeHtml(v.propertyTitle||'—') + '</span>'
+              + '<span style="color:var(--muted)">' + escapeHtml(v.agentName||'—') + (dt ? ', ' + dt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '') + '</span>'
+              + '</div>';
+          }).join('')
+        : '<div class="exec-empty">No viewings scheduled for today.</div>';
+    }
+  }).catch(function(){});
+
+  var todayStr = new Date().toISOString().slice(0,10);
+  Promise.all([
+    db.collection('attendance').where('date','==',todayStr).where('isActive','==',true).limit(500).get(),
+    db.collection('users').where('isActive','==',true).limit(500).get()
+  ]).then(function(results) {
+    var attSnap = results[0], userSnap = results[1];
+    var checkedIn = {};
+    attSnap.forEach(function(d) { checkedIn[d.data().userId] = true; });
+    var fieldRoles = ['agent','staff'];
+    var total = 0;
+    userSnap.forEach(function(d) { if (fieldRoles.indexOf(d.data().role) > -1) total++; });
+    var pct = total > 0 ? Math.round(Object.keys(checkedIn).length / total * 100) : 0;
+    if (g('om-kpi-attendance')) g('om-kpi-attendance').textContent = pct + '%';
+  }).catch(function(){});
+}
+
+// Reuses the existing tasks status-update function (same pattern the
+// Office page itself uses) rather than duplicating its write logic, then
+// refreshes this dashboard's own KPIs/lists once the write settles.
+function omMarkTaskDone(id) {
+  updateTaskStatus(id, 'done');
+  setTimeout(loadOpsMgrDash, 400);
 }
 
 /* ── SIDEBAR BADGE ── */
@@ -18982,8 +19102,8 @@ var OFFBOARDING_CHECKLIST = [
 
 var HR_ROLE_LABELS = {
   super_admin: 'Super Admin', admin: 'Admin', ceo: 'CEO',
-  staff: 'Staff', branch_manager: 'Branch Manager', hr_manager: 'HR Manager', company_owner: 'Company Owner',
-  agent: 'Agent', partner: 'Partner',
+  staff: 'Staff', branch_manager: 'Branch Manager', hr_manager: 'HR Manager', operations_manager: 'Operations Manager',
+  company_owner: 'Company Owner', agent: 'Agent', partner: 'Partner',
   owner: 'Owner', client: 'Client', investor: 'Investor'
 };
 
@@ -31659,7 +31779,8 @@ function submitCompose() {
     { match: "go('bi')",           roles: _STAFF },
     { match: "go('branches')",     roles: _EXEC },
     { match: "go('branch-mgr')",   roles: ['branch_manager'] },
-    { match: "go('hr-mgr')",       roles: ['hr_manager'] }
+    { match: "go('hr-mgr')",       roles: ['hr_manager'] },
+    { match: "go('ops-mgr')",      roles: ['operations_manager'] }
     /* openProfile() and items with no onclick → always visible */
   ];
 
