@@ -17,7 +17,7 @@
  * deliberate decision for later, not a side effect of this migration.
  */
 
-const { onDocumentUpdated, onDocumentCreated } = require('firebase-functions/v2/firestore');
+const { onDocumentUpdated, onDocumentCreated, onDocumentWritten } = require('firebase-functions/v2/firestore');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { logger } = require('firebase-functions');
 const { initializeApp } = require('firebase-admin/app');
@@ -76,6 +76,26 @@ async function notifyUser(db, targetUserId, title, body, type, relatedCollection
     createdBy: actingUid,
     updatedBy: actingUid
   });
+}
+
+// Broadcasts a notification to every active admin/staff-tier account.
+// 'Admin' (capitalized) is included alongside 'admin' because this
+// codebase stores that one role inconsistently-cased in a few older user
+// records (see the client-side isAdminOrStaff() checks elsewhere) — every
+// other role here is written consistently lowercase. That's exactly 10
+// entries, Firestore's cap for a single `in` query. Recipients are also
+// capped at 20 — a defensive limit, not a real one, since this codebase's
+// staff roster is small; if either cap is ever hit for real, this should
+// move to a dedicated broadcast mechanism instead of fanning out
+// individual notification writes.
+const STAFF_ROLES = ['admin', 'Admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner'];
+async function notifyStaff(db, title, body, type, relatedCollection, relatedId, actingUid) {
+  const snap = await db.collection('users')
+    .where('role', 'in', STAFF_ROLES)
+    .where('isActive', '==', true)
+    .limit(20)
+    .get();
+  await Promise.all(snap.docs.map((d) => notifyUser(db, d.id, title, body, type, relatedCollection, relatedId, actingUid)));
 }
 
 async function logAudit(db, action, collection, docId, oldValue, newValue, actingUid) {
@@ -668,4 +688,207 @@ exports.dailySubscriptionSync = onSchedule({
   }
 
   logger.info('Daily subscription sync complete', { active: snap.size, renewed, synced });
+});
+
+/**
+ * P0 remediation (Enterprise Readiness Audit): moves the FIRST subscription
+ * invoice server-side, the same way dailySubscriptionSync's renewal invoice
+ * already is. subscribeToPremium() in index.html used to write this invoice
+ * client-side, which meant the invoices.create rule had to carve out an
+ * exception for it. Deleting that carve-out (see rules/firestore.rules)
+ * closes off a class of forged-invoice risk entirely, at the cost of
+ * needing this one extra trigger.
+ *
+ * Fires on subscriptions/{agentId} create OR update, but only acts on a
+ * genuine transition INTO 'active' (fresh subscribe, or re-subscribe after
+ * a cancellation) — a metadata-only update to an already-active
+ * subscription must not generate a second invoice. Uses the exact same
+ * deterministic invoice ID scheme as the renewal path
+ * (sub_<agentId>_<YYYY-MM>_invoice), so if both paths were ever to race for
+ * the same billing period, the second write hits ALREADY_EXISTS and is
+ * skipped — idempotent by construction, not by coincidence.
+ */
+exports.onSubscriptionActivated = onDocumentWritten({ document: 'subscriptions/{agentId}', region: REGION }, async (event) => {
+  const before = event.data.before && event.data.before.exists ? event.data.before.data() : null;
+  const after = event.data.after && event.data.after.exists ? event.data.after.data() : null;
+  if (!after || after.status !== 'active') return;
+  if (before && before.status === 'active') return; // already active — not a fresh activation
+
+  const db = getFirestore();
+  const agentId = event.params.agentId;
+  const periodStart = after.currentPeriodStart && after.currentPeriodStart.toDate
+    ? after.currentPeriodStart.toDate() : new Date();
+  const periodKey = periodStart.toISOString().slice(0, 7); // YYYY-MM
+  const amount = after.amount || AGENT_PREMIUM_MONTHLY;
+  const vatAmount = Math.round(amount * RWANDA_VAT);
+  const totalAmount = amount + vatAmount;
+
+  const invoiceRef = db.collection('invoices').doc('sub_' + agentId + '_' + periodKey + '_invoice');
+  let invoiceCreated = false;
+  try {
+    await invoiceRef.create({
+      id: invoiceRef.id,
+      invoiceNo: '',
+      type: 'subscription',
+      subscriptionId: agentId,
+      dealId: '',
+      billedTo: after.agentName || agentId,
+      clientId: agentId,
+      clientEmail: '',
+      clientAddress: '',
+      lineItems: [{ description: 'Agent Premium Subscription — first month', qty: 1, unitPrice: amount, lineTotal: amount }],
+      subtotal: amount,
+      vatAmount: vatAmount,
+      totalAmount: totalAmount,
+      dueDate: periodStart.toISOString().slice(0, 10),
+      notes: 'Agent Premium subscription — first billing period',
+      paidAt: null,
+      pdfUrl: null,
+      status: 'sent',
+      isActive: true,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+      createdBy: 'system',
+      updatedBy: 'system'
+    });
+    invoiceCreated = true;
+  } catch (e) {
+    if (e.code === 6 /* ALREADY_EXISTS */) {
+      logger.info('Subscription activation invoice already generated for ' + agentId + ' period ' + periodKey + ' — skipping (idempotent retry)');
+    } else {
+      throw e;
+    }
+  }
+
+  if (invoiceCreated) {
+    await logAudit(db, 'subscription.invoice_generated', 'invoices', invoiceRef.id, null,
+      { agentId: agentId, totalAmount: totalAmount }, 'system');
+    await notifyUser(db, agentId, 'Subscribed to Agent Premium',
+      'Your first invoice (' + totalAmount.toLocaleString() + ' RWF) has been generated.',
+      'subscription_invoice', 'invoices', invoiceRef.id, 'system');
+  }
+});
+
+/**
+ * P0 remediation (Enterprise Readiness Audit): server-side verification of
+ * every payout request the instant it's created. The audit found the
+ * client-submitted amount/commissionIds were never recomputed or checked
+ * server-side — an authenticated user could reference commissions they
+ * don't own, that aren't approved, or that are already claimed by another
+ * request, or simply submit a mismatched amount. This runs before any
+ * admin ever sees the request in their queue: on success it stamps
+ * serverVerified:true (which the admin approval UI now requires before
+ * showing an Approve action); on any mismatch it auto-rejects the request
+ * and notifies the agent, exactly as if an admin had rejected it by hand.
+ */
+exports.onPayoutRequestCreated = onDocumentCreated({ document: 'payout_requests/{requestId}', region: REGION }, async (event) => {
+  const db = getFirestore();
+  const requestId = event.params.requestId;
+  const ref = event.data.ref;
+  const req = event.data.data() || {};
+  if (req.status !== 'pending') return; // rules pin creation to 'pending' — defensive only
+
+  async function autoReject(reason) {
+    await ref.update({
+      status: 'rejected',
+      rejectedReason: reason,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: 'system'
+    });
+    await logAudit(db, 'payout_request.auto_rejected', 'payout_requests', requestId, null, { reason: reason }, 'system');
+    if (req.agentId) {
+      await notifyUser(db, req.agentId, 'Payout Request Rejected',
+        'Your payout request was automatically rejected: ' + reason,
+        'payout_rejected', 'payout_requests', requestId, 'system');
+    }
+    logger.info('Payout request auto-rejected', { requestId: requestId, reason: reason });
+  }
+
+  const commissionIds = Array.isArray(req.commissionIds) ? req.commissionIds : [];
+  if (!req.agentId || !commissionIds.length) {
+    await autoReject('No commissions were referenced.');
+    return;
+  }
+
+  // No other pending/approved request by this agent may already claim any
+  // of the same commission IDs — prevents duplicate/double-spent requests.
+  const existingSnap = await db.collection('payout_requests')
+    .where('agentId', '==', req.agentId)
+    .where('status', 'in', ['pending', 'approved'])
+    .get();
+  const claimed = new Set();
+  existingSnap.forEach((d) => {
+    if (d.id === requestId) return;
+    (d.data().commissionIds || []).forEach((cid) => claimed.add(cid));
+  });
+  if (commissionIds.some((cid) => claimed.has(cid))) {
+    await autoReject('One or more commissions are already referenced by another payout request.');
+    return;
+  }
+
+  // Recompute the real total from the actual commission documents — the
+  // client-submitted amount is never trusted.
+  let recomputedTotal = 0;
+  for (const cid of commissionIds) {
+    const cDoc = await db.collection('commissions').doc(cid).get();
+    if (!cDoc.exists) { await autoReject('A referenced commission does not exist.'); return; }
+    const c = cDoc.data();
+    if (c.agentId !== req.agentId) { await autoReject('A referenced commission does not belong to you.'); return; }
+    if (c.status !== 'approved') { await autoReject('A referenced commission is not in an approved, payable state.'); return; }
+    recomputedTotal += Number(c.agentShare) || 0;
+  }
+  if (Math.round(recomputedTotal) !== Math.round(Number(req.amount) || 0)) {
+    await autoReject('The requested amount does not match the referenced commissions.');
+    return;
+  }
+
+  await ref.update({
+    serverVerified: true,
+    verifiedAmount: recomputedTotal,
+    verifiedAt: FieldValue.serverTimestamp()
+  });
+  logger.info('Payout request verified', { requestId: requestId, agentId: req.agentId, amount: recomputedTotal });
+});
+
+/**
+ * P0 remediation (Enterprise Readiness Audit): the audit found
+ * submitOffer() in index.html was a dead end — it wrote a real Firestore
+ * doc that nothing ever read back, no notification ever fired despite a
+ * comment claiming one did. index.html's submitOffer() now resolves/
+ * creates a real deals doc for every offer so it inherits the existing
+ * deal-detail-modal's offer timeline, staff/agent dashboard visibility,
+ * and reporting — this trigger is the "notify" half of that fix: a
+ * client's offer notifies the deal's agent AND staff (so a new inbound
+ * offer isn't only visible if someone happens to be looking), while an
+ * agent's counter-offer notifies the buyer whose offer it responds to.
+ */
+exports.onOfferCreated = onDocumentCreated({ document: 'offers/{offerId}', region: REGION }, async (event) => {
+  const db = getFirestore();
+  const offerId = event.params.offerId;
+  const offer = event.data.data() || {};
+  const amountStr = (Number(offer.amount) || 0).toLocaleString() + ' RWF';
+
+  if (offer.fromRole === 'client') {
+    let agentId = '';
+    if (offer.dealId) {
+      const dealDoc = await db.collection('deals').doc(offer.dealId).get();
+      if (dealDoc.exists) agentId = dealDoc.data().agentId || '';
+    }
+    if (agentId) {
+      await notifyUser(db, agentId, 'New Offer Received',
+        (offer.fromName || 'A client') + ' submitted an offer of ' + amountStr + '.',
+        'offer_received', 'offers', offerId, 'system');
+    }
+    await notifyStaff(db, 'New Offer Received',
+      (offer.fromName || 'A client') + ' submitted an offer of ' + amountStr + '.',
+      'offer_received', 'offers', offerId, 'system');
+  } else if (offer.fromRole === 'agent' && offer.counterTo) {
+    const origDoc = await db.collection('offers').doc(offer.counterTo).get();
+    const buyerId = origDoc.exists ? origDoc.data().fromUserId : '';
+    if (buyerId) {
+      await notifyUser(db, buyerId, 'Counter-Offer Received',
+        'The agent sent a counter-offer of ' + amountStr + '.',
+        'offer_countered', 'offers', offerId, 'system');
+    }
+  }
 });

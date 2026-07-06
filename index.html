@@ -24460,10 +24460,20 @@ function loadPayoutRequestsAdmin() {
       if (snap.empty) { el.innerHTML = '<div class="exec-empty">No pending payout requests.</div>'; return; }
       el.innerHTML = snap.docs.map(function(d) {
         var r = d.data();
+        // A payout_requests write is verified almost immediately by the
+        // server-side onPayoutRequestCreated Cloud Function (P0
+        // remediation, Enterprise Readiness Audit), which recomputes the
+        // real commission total and either stamps serverVerified:true or
+        // auto-rejects a mismatched/fraudulent request before it ever
+        // reaches this queue. Approve is hidden until that's landed, so
+        // an admin can never approve a request the server hasn't checked.
+        var approveBtn = r.serverVerified
+          ? '<button class="btn btn-sm" style="background:var(--success);color:#fff" onclick="approvePayoutRequest(\'' + d.id + '\')" data-en="Approve &amp; Pay">Approve &amp; Pay</button>'
+          : '<span class="chip" style="background:var(--border);color:var(--muted);font-size:.68rem" data-en="Verifying…">Verifying…</span>';
         return '<div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.85rem">'
           + '<div><span style="font-weight:600">' + escapeHtml(r.agentName||r.agentId||'') + '</span> <span style="color:var(--muted)">' + fmtRwfAC(r.amount) + (r.notes ? (' — ' + escapeHtml(r.notes)) : '') + '</span></div>'
-          + '<div style="display:flex;gap:.4rem">'
-          + '<button class="btn btn-sm" style="background:var(--success);color:#fff" onclick="approvePayoutRequest(\'' + d.id + '\')" data-en="Approve &amp; Pay">Approve &amp; Pay</button>'
+          + '<div style="display:flex;gap:.4rem;align-items:center">'
+          + approveBtn
           + '<button class="btn btn-sm btn-outline" onclick="rejectPayoutRequest(\'' + d.id + '\')" data-en="Reject">Reject</button>'
           + '</div>'
           + '</div>';
@@ -24476,6 +24486,13 @@ function approvePayoutRequest(id) {
   db.collection('payout_requests').doc(id).get().then(function(doc) {
     if (!doc.exists) return;
     var req = doc.data();
+    // Defense in depth: the UI already hides the Approve button until the
+    // server-side onPayoutRequestCreated function has verified this
+    // request, but a raw call here (or a stale render) is still blocked.
+    if (!req.serverVerified) {
+      showToast('This request has not finished server verification yet — please wait a moment and refresh.', 'error');
+      return;
+    }
     var batch = db.batch();
     (req.commissionIds || []).forEach(function(cid) {
       batch.update(db.collection('commissions').doc(cid), {
@@ -24578,20 +24595,11 @@ function subscribeToPremium() {
         createdAt: firebase.firestore.FieldValue.serverTimestamp(), updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         createdBy: currentUser.uid, updatedBy: currentUser.uid
       });
-      var invRef = db.collection('invoices').doc();
-      var vatAmount = Math.round(AGENT_PREMIUM_MONTHLY * RWANDA_VAT);
-      var totalAmount = AGENT_PREMIUM_MONTHLY + vatAmount;
-      batch.set(invRef, {
-        id: invRef.id, invoiceNo: genInvoiceNo(), type: 'subscription', dealId: '',
-        billedTo: currentUser.displayName||currentUser.name||currentUser.email||'',
-        clientId: currentUser.uid, clientEmail: currentUser.email||'', clientAddress: '',
-        lineItems: [{ description: 'Agent Premium Subscription — first month', qty: 1, unitPrice: AGENT_PREMIUM_MONTHLY, lineTotal: AGENT_PREMIUM_MONTHLY }],
-        subtotal: AGENT_PREMIUM_MONTHLY, vatAmount: vatAmount, totalAmount: totalAmount,
-        dueDate: now.toISOString().slice(0,10), notes: 'Agent Premium subscription — first billing period',
-        paidAt: null, pdfUrl: null, status: 'sent', isActive: true,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(), updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        createdBy: currentUser.uid, updatedBy: currentUser.uid
-      });
+      // The first invoice is generated server-side by the
+      // onSubscriptionActivated Cloud Function the instant this write
+      // lands (P0 remediation, Enterprise Readiness Audit) — never
+      // client-side, so the invoices.create rule doesn't need a
+      // client-trusted exception for it.
       return batch.commit().then(function() { return true; });
     });
   }).then(function(subscribed) {
@@ -25267,6 +25275,8 @@ function _loadDealOffers(dealId) {
       }
       var html = '';
       var pendingId = '';
+      var canRespond = typeof currentUser !== 'undefined' && currentUser &&
+        (currentUser.role === 'agent' || isAdminOrStaff(currentUser));
       snap.forEach(function(doc) {
         var o = doc.data();
         var cls = 'offer-entry ' + (o.fromRole === 'client' ? 'client' : 'agent');
@@ -25275,10 +25285,24 @@ function _loadDealOffers(dealId) {
         var dateStr = o.createdAt && typeof o.createdAt.toDate === 'function'
           ? o.createdAt.toDate().toLocaleDateString() : '';
         var amtStr = o.amount ? parseInt(o.amount).toLocaleString() + ' RWF' : '—';
+        // P0 remediation (Enterprise Readiness Audit): the offer timeline
+        // has always rendered 'accepted'/'rejected' styling, but nothing
+        // anywhere ever actually set an offer to either status — a buyer's
+        // offer had no real approval/rejection action. These two buttons,
+        // agent/staff-only, on the buyer's still-pending offer, are that
+        // missing action.
+        var actions = '';
+        if (canRespond && o.fromRole === 'client' && o.status === 'pending') {
+          actions = '<div style="display:flex;gap:.4rem;margin-top:.4rem">'
+            + '<button class="btn btn-sm" style="background:#16A34A;color:#fff" onclick="acceptOffer(\'' + doc.id + '\')" data-en="Accept">Accept</button>'
+            + '<button class="btn btn-sm btn-outline" onclick="rejectOffer(\'' + doc.id + '\')" data-en="Reject">Reject</button>'
+            + '</div>';
+        }
         html += '<div class="' + cls + '">'
           + '<div class="offer-amount">' + amtStr + '</div>'
           + '<div class="offer-meta">' + (o.fromName || o.fromRole || '—') + ' · ' + (o.status || 'pending').toUpperCase() + (dateStr ? ' · ' + dateStr : '') + '</div>'
           + (o.message ? '<div style="font-size:.75rem;color:var(--dark);margin-top:.15rem">' + o.message + '</div>' : '')
+          + actions
           + '</div>';
         if (o.status === 'pending') pendingId = doc.id;
       });
@@ -25289,6 +25313,75 @@ function _loadDealOffers(dealId) {
       tl.innerHTML = '<div style="color:var(--muted);font-size:.78rem;padding:.4rem">'
         + (curLang === 'rw' ? 'Nta offers irahari' : 'No offers yet') + '</div>';
     });
+}
+
+/* P0 remediation (Enterprise Readiness Audit): real approve/reject actions
+   for a buyer's offer — completing the workflow the audit found was a
+   dead end. Accepting moves the deal to the contract stage and records
+   the accepted amount as the agreed price, matching how an accepted
+   offer is meant to lead directly into drawing up a contract. */
+function acceptOffer(offerId) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  db.collection('offers').doc(offerId).get().then(function(doc) {
+    if (!doc.exists) return;
+    var offer = doc.data();
+    var uid = currentUser.uid;
+    var batch = db.batch();
+    batch.update(db.collection('offers').doc(offerId), {
+      status: 'accepted', updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: uid
+    });
+    if (offer.dealId) {
+      batch.update(db.collection('deals').doc(offer.dealId), {
+        pipelineStage: 'contract', status: 'contract', agreedPrice: offer.amount,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: uid
+      });
+    }
+    return batch.commit().then(function() { return offer; });
+  }).then(function(offer) {
+    if (!offer) return;
+    showToast(curLang === 'rw' ? 'Offer yemejwe!' : 'Offer accepted!', 'success');
+    logAudit('offer.accepted', 'offers', offerId, { status: 'pending' }, { status: 'accepted' });
+    if (offer.fromUserId) {
+      notifyUser(offer.fromUserId,
+        curLang === 'rw' ? 'Offer Yemejwe!' : 'Your Offer Was Accepted!',
+        curLang === 'rw' ? 'Offer yawe ya ' + parseInt(offer.amount).toLocaleString() + ' RWF yemejwe. Umukozi azabahamagara vuba.' : 'Your offer of ' + parseInt(offer.amount).toLocaleString() + ' RWF was accepted. The agent will contact you shortly to proceed.',
+        'offer_accepted', 'offers', offerId);
+    }
+    if (offer.dealId) {
+      _loadDealOffers(offer.dealId);
+      if (_ddCurrentDeal) { _ddCurrentDeal.pipelineStage = 'contract'; _ddCurrentDeal.agreedPrice = offer.amount; }
+      if (typeof loadDeals === 'function') loadDeals();
+    }
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error accepting offer', 'error');
+    console.error('[Offer] Accept error:', err);
+  });
+}
+
+function rejectOffer(offerId) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  if (!confirm(curLang === 'rw' ? 'Wanga iyi offer?' : 'Reject this offer?')) return;
+  db.collection('offers').doc(offerId).get().then(function(doc) {
+    if (!doc.exists) return;
+    var offer = doc.data();
+    return db.collection('offers').doc(offerId).update({
+      status: 'rejected', updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+    }).then(function() { return offer; });
+  }).then(function(offer) {
+    if (!offer) return;
+    showToast(curLang === 'rw' ? 'Offer yanzwe' : 'Offer rejected', 'success');
+    logAudit('offer.rejected', 'offers', offerId, { status: 'pending' }, { status: 'rejected' });
+    if (offer.fromUserId) {
+      notifyUser(offer.fromUserId,
+        curLang === 'rw' ? 'Offer Yanzwe' : 'Your Offer Was Declined',
+        curLang === 'rw' ? 'Offer yawe ya ' + parseInt(offer.amount).toLocaleString() + ' RWF ntiyemewe. Mushobora kohereza indi offer.' : 'Your offer of ' + parseInt(offer.amount).toLocaleString() + ' RWF was declined. Feel free to submit another offer.',
+        'offer_rejected', 'offers', offerId);
+    }
+    if (offer.dealId) _loadDealOffers(offer.dealId);
+  }).catch(function(err) {
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error rejecting offer', 'error');
+    console.error('[Offer] Reject error:', err);
+  });
 }
 
 function closeDealDetail() {
@@ -25556,30 +25649,76 @@ function submitOffer() {
   if (!expiry)                { showToast(curLang === 'rw' ? 'Hitamo itariki y\'itukirwa!' : 'Select expiry date!', 'error'); return; }
 
   if (typeof db === 'undefined') { showToast('Firebase ntabwo ihuye', 'error'); return; }
+  if (typeof currentUser === 'undefined' || !currentUser) { showToast(curLang === 'rw' ? 'Injira mbere!' : 'Please sign in first!', 'error'); return; }
 
   if (sbBtn) { sbBtn.disabled = true; if(sbLbl) sbLbl.textContent = (curLang === 'rw' ? 'Tegereza...' : 'Sending...'); }
 
-  var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : '';
+  var uid = currentUser.uid;
   var prop = window._currentProp || {};
+  var fromName = currentUser.displayName || currentUser.name || currentUser.email || 'Client';
 
-  db.collection('offers').add({
-    id:          '',
-    propertyId:  propId,
-    dealId:      '',
-    fromUserId:  uid,
-    fromName:    typeof currentUser !== 'undefined' && currentUser
-      ? (currentUser.displayName || currentUser.name || currentUser.email || 'Client') : 'Anonymous',
-    fromRole:    'client',
-    amount:      amount,
-    counterTo:   '',
-    message:     msg,
-    expiresAt:   firebase.firestore.Timestamp.fromDate(new Date(expiry)),
-    status:      'pending',
-    isActive:    true,
-    createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
-    updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
-    createdBy:   uid,
-    updatedBy:   uid
+  // P0 remediation (Enterprise Readiness Audit): a standalone offer used to
+  // write with dealId:'' and was never read back by anyone — a real dead
+  // end. Every offer is now attached to a real deal, so it inherits the
+  // existing deal-detail-modal's offer timeline, staff/agent dashboard
+  // visibility, and reporting/analytics instead of a brand-new, duplicate
+  // "offers inbox" being built from scratch. Reuses any still-open deal
+  // this same buyer already has on this property rather than creating a
+  // new one every time they submit another offer.
+  var dealsQuery = db.collection('deals')
+    .where('propertyId', '==', propId)
+    .where('clientId', '==', uid)
+    .where('isActive', '==', true)
+    .limit(1);
+
+  dealsQuery.get().then(function(dealsSnap) {
+    var openDeal = null;
+    dealsSnap.forEach(function(d) {
+      var dl = d.data();
+      if (dl.pipelineStage !== 'closed_won' && dl.pipelineStage !== 'closed_lost') openDeal = { id: d.id, data: dl };
+    });
+    if (openDeal) return openDeal;
+
+    var dealType = prop.service === 'Gukodesha' ? 'rent' : 'sale';
+    var dealRef = db.collection('deals').doc();
+    var dealPayload = {
+      id: dealRef.id, leadId: '', propertyId: propId,
+      propertyTitle: prop.title || '',
+      clientId: uid, clientName: fromName, clientPhone: currentUser.phone || '',
+      sellerId: agentId || prop.agentId || '',
+      agentId: agentId || prop.agentId || '',
+      agentName: prop.agentName || '',
+      dealType: dealType, agreedPrice: 0, commissionRate: 0.04,
+      pipelineStage: 'negotiation', offerId: '',
+      notes: 'Created from a buyer-submitted offer',
+      milestones: {}, closedAt: null, isActive: true, status: 'negotiation',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy: uid, updatedBy: uid
+    };
+    return dealRef.set(dealPayload).then(function() {
+      logAudit('deal.created.from_offer', 'deals', dealRef.id, null, { propertyId: propId, clientId: uid });
+      return { id: dealRef.id, data: dealPayload };
+    });
+  }).then(function(deal) {
+    return db.collection('offers').add({
+      id:          '',
+      propertyId:  propId,
+      dealId:      deal.id,
+      fromUserId:  uid,
+      fromName:    fromName,
+      fromRole:    'client',
+      amount:      amount,
+      counterTo:   '',
+      message:     msg,
+      expiresAt:   firebase.firestore.Timestamp.fromDate(new Date(expiry)),
+      status:      'pending',
+      isActive:    true,
+      createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy:   uid,
+      updatedBy:   uid
+    });
   }).then(function(ref) {
     ref.update({ id: ref.id });
     logAudit('offer.submitted', 'offers', ref.id, null,
@@ -25589,15 +25728,9 @@ function submitOffer() {
     if (amountEl) amountEl.value = '';
     if (msgEl)    msgEl.value    = '';
     if (sbBtn) { sbBtn.disabled = false; if(sbLbl) sbLbl.textContent = curLang === 'rw' ? 'Ohereza Offer' : 'Submit Offer'; }
-
-    // Also notify via WhatsApp
-    var prop = window._currentProp || {};
-    var waMsg = 'OFFER NSHYA — Imitungo: ' + (prop.title || propId)
-      + ' — Igiciro: ' + amount.toLocaleString() + ' RWF — Client: '
-      + (typeof currentUser !== 'undefined' && currentUser ? currentUser.email || '' : 'Anonymous');
-    if (agentId) {
-      // Could open WA to agent — skipping for now; notification via Firestore listener
-    }
+    // Agent + staff notification now happens server-side (onOfferCreated
+    // in functions/index.js) the instant the offer document lands, so it
+    // can't be lost if this tab closes right after submit.
   }).catch(function(err) {
     showToast(curLang === 'rw' ? 'Habaye ikosa — ongera ugerageze' : 'Error submitting offer', 'error');
     if (sbBtn) { sbBtn.disabled = false; if(sbLbl) sbLbl.textContent = curLang === 'rw' ? 'Ohereza Offer' : 'Submit Offer'; }
