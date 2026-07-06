@@ -12,6 +12,25 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
+<!-- Theme (Light/Dark/System) — applied here, before any CSS/paint, so the
+     page never flashes the wrong theme on load. Mirrors the exact
+     precedence rule applyTheme()/getThemePref() use later: localStorage
+     ('km_theme': 'light'|'dark'|'system', default 'system') resolved
+     against prefers-color-scheme for 'system'. The Firestore-synced value
+     for logged-in users is written into this same localStorage key by
+     restoreUserSession(), so it's already available here on repeat visits. -->
+<script>
+(function(){
+  try {
+    var pref = localStorage.getItem('km_theme') || 'system';
+    var resolved = pref === 'system'
+      ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : pref;
+    document.documentElement.setAttribute('data-theme', resolved);
+  } catch (e) {}
+})();
+</script>
+
 <!-- ── PRIMARY SEO ── -->
 <title>KOMISIYONERI — Rwanda's Real Estate Operating System</title>
 <meta name="description" content="KOMISIYONERI is Rwanda's Real Estate Operating System — search, buy, sell & rent verified property in Kigali and all 30 districts, with AI valuations, 3D tours & a vetted agent network.">
@@ -233,8 +252,17 @@ if(typeof Sentry!=='undefined'&&_sentryDsn.indexOf('YOUR_')!==0){Sentry.init({ds
   /* Hover variants — one step darker */
   --navy-hover:#0a2d6e; --blue-hover:#1248b0; --green-hover:#1f9040; --gold-hover:#e09b18;
   /* Neutrals */
-  --dark:#0F1B35; --light:#F4F7FC; --white:#fff; --black:#000;
+  --bg:#fff; --dark:#0F1B35; --light:#F4F7FC; --white:#fff; --black:#000;
   --muted:#6B7A99; --border:#DDE5F5; --surface:#fff;
+  --hover-bg:#F5F8FF; --skeleton-hi:#e2e8f0;
+  --nav-bg:rgba(255,255,255,.97);
+  /* Fixed dark text for pairing with backgrounds that deliberately don't
+     change between themes (gold — see .btn-gold and friends). --dark
+     itself flips to a light colour in dark mode, so anything still reading
+     color:var(--dark) against a permanently-bright gold fill would go
+     from 8.4:1 contrast to 1.7:1 the moment dark mode is on. */
+  --on-gold:#0F1B35;
+  color-scheme:light;
   /* Semantic states */
   --error:#dc2626;    --error-bg:#fee2e2;  --error-dark:#991b1b;
   --warn:#f59e0b;     --warn-bg:#fffbeb;   --warn-dark:#92400e;
@@ -250,14 +278,83 @@ if(typeof Sentry!=='undefined'&&_sentryDsn.indexOf('YOUR_')!==0){Sentry.init({ds
   --sh-btn:0 4px 18px rgba(13,59,140,.28);
   /* Motion */
   --tr:all .22s cubic-bezier(.4,0,.2,1);
+  --theme-tr-dur:.25s;
+}
+/* ══════════════════════════════════════
+   DARK THEME — same token names, dark-safe
+   values. Any rule already written against
+   var(--x) re-themes for free; only the raw
+   literals swept below (and the native-
+   control/component safety net further down)
+   need their own [data-theme="dark"] rules.
+
+   Brand hues (navy/blue/gold/green) are kept
+   recognizably "the same colour family" per
+   KOMISIYONERI's identity, but navy/blue are
+   brightened for dark mode: the light-mode
+   values are dark, saturated blues used as
+   TEXT in ~100 places (headings, prices) as
+   well as backgrounds — at the light-mode hex
+   they'd fail WCAG AA as text on a dark page,
+   so they're calibrated brighter here for both
+   roles at once rather than splitting every
+   call site into separate text/background
+   tokens. Gold needs no change — it already
+   reads clearly on a dark background.
+══════════════════════════════════════ */
+:root[data-theme="dark"]{
+  /* Calibrated, not just brightened: navy/blue/green are each used BOTH as
+     text-on-dark-page AND as a solid button/chip fill with white text on
+     top (.btn-navy, .btn-blue, .btn-green, .chip.on, etc). Those two roles
+     pull the ideal luminance in opposite directions — text-on-#0A1220
+     wants to be brighter, white-text-on-fill wants to be darker — so each
+     value here is the balance point that keeps both pairings close to
+     WCAG AA (4.5:1), rather than optimizing one role at the other's
+     expense. Verified against the actual rendered rgb() via
+     getComputedStyle in the cross-viewport theme test, not just the raw
+     hex math. */
+  --navy:#4874D6;  --blue:#4680E8;  --green:#1F8A46;  --gold:#F5A623;
+  --navy-hover:#5E89E8; --blue-hover:#5FA0FF; --green-hover:#2FAE5C; --gold-hover:#FFC24D;
+  --bg:#0A1220; --dark:#E7ECF7; --light:#111B2E; --white:#fff; --black:#000;
+  --muted:#96A5C9; --border:#26314A; --surface:#16213A;
+  --hover-bg:#1B2740; --skeleton-hi:#243154;
+  --nav-bg:rgba(10,18,32,.92);
+  color-scheme:dark;
+  --error:#F87171;    --error-bg:#3B1B1E;  --error-dark:#FCA5A5;
+  --warn:#FBBF54;     --warn-bg:#3A2E12;   --warn-dark:#FDE1A8;
+  --success:#4ADE80;  --success-bg:#12301F;
+  --whatsapp:#25D366; --whatsapp-hover:#3EE07C;
+  --sh:0 2px 16px rgba(0,0,0,.45);
+  --sh-lg:0 12px 48px rgba(0,0,0,.6);
+  --sh-sm:0 2px 8px rgba(0,0,0,.4);
+  --sh-btn:0 4px 18px rgba(0,0,0,.5);
+}
+/* Smooth cross-fade while a theme switch is in flight (see applyTheme()),
+   scoped to a short-lived class rather than left on every element
+   permanently — a permanent universal transition would make every hover/
+   focus/layout change on the page sluggish for no benefit. */
+html.theme-transitioning, html.theme-transitioning *{
+  transition:background-color var(--theme-tr-dur) ease,
+             color var(--theme-tr-dur) ease,
+             border-color var(--theme-tr-dur) ease,
+             box-shadow var(--theme-tr-dur) ease,
+             fill var(--theme-tr-dur) ease,
+             stroke var(--theme-tr-dur) ease !important;
 }
 html{scroll-behavior:smooth}
-body{font-family:'DM Sans',sans-serif;color:var(--dark);background:#fff;overflow-x:hidden;line-height:1.6}
+body{font-family:'DM Sans',sans-serif;color:var(--dark);background:var(--bg);overflow-x:hidden;line-height:1.6}
 button{cursor:pointer;font-family:inherit}
 a{text-decoration:none;color:inherit}
 ::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:#f0f4fb}
+::-webkit-scrollbar-track{background:var(--light)}
 ::-webkit-scrollbar-thumb{background:var(--blue);border-radius:3px}
+/* Native-control safety net: color-scheme (set on :root above, inherited
+   here) tells the browser to render native chrome — scrollbars, date/time
+   pickers, form-control default backgrounds — using its own dark-aware
+   defaults wherever our CSS doesn't otherwise override them. */
+input[type=checkbox],input[type=radio],input[type=range]{accent-color:var(--navy)}
+select option{background:var(--surface);color:var(--dark)}
+::placeholder{color:var(--muted);opacity:1}
 
 /* ══════════════════════════════════════
    TYPOGRAPHY SYSTEM
@@ -288,7 +385,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .btn svg{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2}
 .btn-navy{background:var(--navy);color:var(--white);box-shadow:var(--sh-btn)}.btn-navy:hover{background:var(--blue);transform:translateY(-1px)}
 .btn-blue{background:var(--blue);color:var(--white);box-shadow:0 4px 18px rgba(22,87,204,.25)}.btn-blue:hover{background:var(--blue-hover);transform:translateY(-1px)}
-.btn-gold{background:var(--gold);color:var(--dark);box-shadow:0 4px 18px rgba(245,166,35,.32)}.btn-gold:hover{background:var(--gold-hover);transform:translateY(-1px)}
+.btn-gold{background:var(--gold);color:var(--on-gold);box-shadow:0 4px 18px rgba(245,166,35,.32)}.btn-gold:hover{background:var(--gold-hover);transform:translateY(-1px)}
 .btn-green{background:var(--green);color:var(--white)}.btn-green:hover{background:var(--green-hover);transform:translateY(-1px)}
 .btn-outline{background:transparent;color:var(--navy);border:2px solid var(--navy)}.btn-outline:hover{background:var(--navy);color:#fff}
 .btn-ghost{background:rgba(255,255,255,.13);color:#fff;border:1.5px solid rgba(255,255,255,.25)}.btn-ghost:hover{background:rgba(255,255,255,.22)}
@@ -296,7 +393,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .btn-lg{padding:.92rem 2.2rem;font-size:.95rem}
 
 /* CARDS */
-.card{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);box-shadow:var(--sh);overflow:hidden;transition:var(--tr)}
+.card{background:var(--surface);border-radius:var(--r);border:1.5px solid var(--border);box-shadow:var(--sh);overflow:hidden;transition:var(--tr)}
 .card-hover:hover{transform:translateY(-4px);box-shadow:var(--sh-lg)}
 
 /* BADGES */
@@ -305,14 +402,14 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .b-navy{background:var(--navy);color:#fff}
 .b-blue{background:var(--blue);color:#fff}
 .b-green{background:var(--green);color:#fff}
-.b-gold{background:var(--gold);color:var(--dark)}
+.b-gold{background:var(--gold);color:var(--on-gold)}
 .b-muted{background:var(--light);color:var(--muted);border:1px solid var(--border)}
-.b-red{background:#fee2e2;color:#dc2626}
+.b-red{background:var(--error-bg);color:var(--error)}
 
 /* FORM CONTROLS */
 .field{display:flex;flex-direction:column;gap:.55rem}
 .field label{font-size:.69rem;font-weight:700;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
-.field input,.field select,.field textarea{padding:.6rem .9rem;min-height:44px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:.86rem;color:var(--dark);background:#fff;outline:none;transition:var(--tr);appearance:none;-webkit-appearance:none}
+.field input,.field select,.field textarea{padding:.6rem .9rem;min-height:44px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:.86rem;color:var(--dark);background:var(--surface);outline:none;transition:var(--tr);appearance:none;-webkit-appearance:none}
 .field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(22,87,204,.1)}
 /* iOS Safari: font-size < 16px on focused inputs triggers viewport zoom */
 @media(max-width:768px){
@@ -326,7 +423,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .sel-wrap select{padding-right:2rem;width:100%}
 
 /* CHIP FILTERS */
-.chip{padding:.34rem 1rem;border-radius:100px;font-size:.77rem;font-weight:600;border:1.5px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;transition:var(--tr)}
+.chip{padding:.34rem 1rem;border-radius:100px;font-size:.77rem;font-weight:600;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:var(--tr)}
 .chip:hover,.chip.on{border-color:var(--blue);background:var(--blue);color:#fff}
 
 /* STAT */
@@ -337,7 +434,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .delta{display:inline-flex;align-items:center;gap:.3rem;padding:.17rem .55rem;border-radius:100px;font-size:.75rem;font-weight:700}
 .delta svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.5}
 .d-up{background:rgba(39,168,74,.12);color:#1a7a35}
-.d-dn{background:rgba(220,38,38,.1);color:#dc2626}
+.d-dn{background:rgba(220,38,38,.1);color:var(--error)}
 
 /* DIVIDER */
 .hr{height:1.5px;background:var(--border);border:none;margin:1.4rem 0}
@@ -364,7 +461,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .topnav{
   position:fixed;top:0;left:0;right:0;height:64px;z-index:1000;
   display:flex;align-items:center;justify-content:space-between;padding:0 3.5%;
-  background:rgba(255,255,255,.97);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  background:var(--nav-bg);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
   border-bottom:1.5px solid var(--border);
   box-shadow:0 2px 20px rgba(13,59,140,.06);
   padding-left:max(3.5%,env(safe-area-inset-left));
@@ -381,7 +478,21 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .topnav-right{display:flex;align-items:center;gap:.6rem;flex-shrink:0;position:relative}
 .lang-sw{display:flex;background:var(--light);border-radius:100px;padding:3px}
 .lang-btn{background:none;border:none;font-size:.69rem;font-weight:700;letter-spacing:.08em;padding:.26rem .72rem;border-radius:100px;color:var(--muted);transition:var(--tr);font-family:'DM Sans',sans-serif;cursor:pointer}
-.lang-btn.active{background:#fff;color:var(--blue);box-shadow:0 1px 6px rgba(0,0,0,.11)}
+.lang-btn.active{background:var(--surface);color:var(--blue);box-shadow:0 1px 6px rgba(0,0,0,.11)}
+/* Theme toggle — same 38x38 icon-button footprint as notif-bell/nav-fav-btn */
+.theme-toggle-btn{position:relative;background:none;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--navy)}
+.theme-toggle-btn svg{width:19px;height:19px;transition:opacity .2s ease,transform .3s ease}
+.theme-toggle-btn .icon-moon{position:absolute;opacity:0;transform:scale(.6) rotate(-40deg)}
+.theme-toggle-btn .icon-sun{opacity:1;transform:scale(1) rotate(0)}
+:root[data-theme="dark"] .theme-toggle-btn .icon-sun{opacity:0;transform:scale(.6) rotate(40deg)}
+:root[data-theme="dark"] .theme-toggle-btn .icon-moon{opacity:1;transform:scale(1) rotate(0)}
+/* Theme section inside Profile/Settings */
+.theme-opt-row{display:flex;gap:.5rem}
+.theme-opt{flex:1;display:flex;flex-direction:column;align-items:center;gap:.35rem;padding:.65rem .4rem;border:1.5px solid var(--border);border-radius:10px;background:var(--surface);cursor:pointer;transition:var(--tr);font-family:'DM Sans',sans-serif}
+.theme-opt svg{width:20px;height:20px;color:var(--muted)}
+.theme-opt span{font-size:.72rem;font-weight:600;color:var(--muted)}
+.theme-opt.active{border-color:var(--navy);background:var(--hover-bg)}
+.theme-opt.active svg,.theme-opt.active span{color:var(--navy)}
 
 /* ══════════════════════════════════════
    TICKER STRIP
@@ -420,7 +531,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
    SEARCH CARD — CLEAN STYLE (v3)
    Nk'uko bigaragara muri screenshot
 ═══════════════════════════════════════ */
-.s-card{background:#fff;border-radius:22px;padding:1.6rem 1.9rem;box-shadow:0 28px 80px rgba(0,0,0,.22);max-height:90vh;overflow-y:auto;scrollbar-width:thin;}
+.s-card{background:var(--surface);border-radius:22px;padding:1.6rem 1.9rem;box-shadow:0 28px 80px rgba(0,0,0,.22);max-height:90vh;overflow-y:auto;scrollbar-width:thin;}
 /* Title */
 .s-card-title{
   font-family:'Cormorant Garamond',serif;
@@ -444,7 +555,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
   font-family:'DM Sans',sans-serif;
 }
 .s-tab.active{
-  background:#fff;color:var(--navy);
+  background:var(--surface);color:var(--navy);
   box-shadow:0 1px 8px rgba(0,0,0,.13);
 }
 /* Fields */
@@ -481,7 +592,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
   font-family:'DM Sans',sans-serif;
   font-size:.87rem;color:var(--dark);
   outline:none;appearance:none;-webkit-appearance:none;
-  background:#fff;cursor:pointer;transition:var(--tr);
+  background:var(--surface);cursor:pointer;transition:var(--tr);
 }
 .s-sel-wrap select:focus{
   border-color:var(--blue);
@@ -517,7 +628,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
    PROPERTY CARDS
 ══════════════════════════════════════ */
 .p-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem}
-.p-card{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);overflow:hidden;cursor:pointer;transition:var(--tr)}
+.p-card{background:var(--surface);border-radius:var(--r);border:1.5px solid var(--border);overflow:hidden;cursor:pointer;transition:var(--tr)}
 .p-card:hover{transform:translateY(-5px);box-shadow:var(--sh-lg)}
 .p-img{height:195px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background-size:cover;background-position:center;background-repeat:no-repeat}
 .p-img-inner svg{width:72px;height:72px;fill:none;stroke:rgba(255,255,255,.55);stroke-width:1}.p-img[style*="background-image"] .p-img-inner{display:none}
@@ -577,7 +688,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
    FEATURES GRID (6 from pitch deck)
 ══════════════════════════════════════ */
 .f-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:2.6rem}
-.f-card{padding:1.8rem;border-radius:var(--r);border:1.5px solid var(--border);background:#fff;transition:var(--tr);position:relative;overflow:hidden}
+.f-card{padding:1.8rem;border-radius:var(--r);border:1.5px solid var(--border);background:var(--surface);transition:var(--tr);position:relative;overflow:hidden}
 .f-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;opacity:0;transition:var(--tr)}
 .f-card:hover{border-color:var(--blue);box-shadow:var(--sh-lg);transform:translateY(-3px)}
 .f-card:hover::before{opacity:1}
@@ -605,8 +716,8 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 
 /* MORE SERVICES (real partner/service categories — each one clickable) */
 .network-strip{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin-top:2rem}
-.network-chip{display:flex;align-items:center;gap:.55rem;padding:.75rem 1.3rem;border-radius:100px;border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;color:var(--dark);cursor:pointer;transition:var(--tr)}
-.network-chip:hover,.network-chip:focus-visible{border-color:var(--gold);background:#FFFBF0;transform:translateY(-2px);outline:none}
+.network-chip{display:flex;align-items:center;gap:.55rem;padding:.75rem 1.3rem;border-radius:100px;border:1.5px solid var(--border);background:var(--surface);font-size:.85rem;font-weight:600;color:var(--dark);cursor:pointer;transition:var(--tr)}
+.network-chip:hover,.network-chip:focus-visible{border-color:var(--gold);background:rgba(245,166,35,.1);transform:translateY(-2px);outline:none}
 .network-chip svg{width:18px;height:18px;fill:none;stroke:var(--navy);stroke-width:1.9}
 
 /* CREDIBILITY STRIP */
@@ -621,7 +732,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 
 /* FAQ */
 .faq-list{max-width:760px;margin:2.2rem auto 0;display:flex;flex-direction:column;gap:.7rem}
-.faq-item{border:1.5px solid var(--border);border-radius:var(--r-sm);overflow:hidden;background:#fff}
+.faq-item{border:1.5px solid var(--border);border-radius:var(--r-sm);overflow:hidden;background:var(--surface)}
 .faq-q{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1rem 1.3rem;cursor:pointer;font-weight:700;font-size:.9rem;min-height:44px}
 .faq-q svg{width:18px;height:18px;fill:none;stroke:var(--navy);stroke-width:2.2;flex-shrink:0;transition:var(--tr)}
 .faq-item.open .faq-q svg{transform:rotate(45deg)}
@@ -640,7 +751,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 
 /* ROLES */
 .roles{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:2.6rem}
-.role-card{border:2px solid var(--border);border-radius:var(--r);padding:2rem 1.85rem;transition:var(--tr);background:#fff;cursor:pointer}
+.role-card{border:2px solid var(--border);border-radius:var(--r);padding:2rem 1.85rem;transition:var(--tr);background:var(--surface);cursor:pointer}
 .role-card:hover{border-color:var(--blue);box-shadow:var(--sh-lg);transform:translateY(-4px)}
 .role-icon{width:56px;height:56px;border-radius:15px;display:flex;align-items:center;justify-content:center;margin-bottom:1.2rem}
 .role-icon svg{width:26px;height:26px;fill:none;stroke-width:1.7}
@@ -668,7 +779,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .list-hdr p{color:rgba(255,255,255,.82);font-size:.88rem}
 .list-body{display:grid;grid-template-columns:270px 1fr;gap:2rem;padding:2rem 4%;max-width:1240px;margin:0 auto}
 .filters{position:sticky;top:80px;height:fit-content}
-.filt-card{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);padding:1.5rem;box-shadow:var(--sh)}
+.filt-card{background:var(--surface);border-radius:var(--r);border:1.5px solid var(--border);padding:1.5rem;box-shadow:var(--sh)}
 .filt-sec{margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border)}
 .filt-sec:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
 .filt-title{font-size:.76rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.8rem}
@@ -683,9 +794,9 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .res-count{font-size:.86rem;color:var(--muted)}
 .res-count strong{color:var(--dark);font-weight:700}
 .bar-right{display:flex;align-items:center;gap:.7rem}
-.sort-sel{padding:.42rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.81rem;outline:none;cursor:pointer;background:#fff;appearance:none;color:var(--dark)}
+.sort-sel{padding:.42rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.81rem;outline:none;cursor:pointer;background:var(--surface);appearance:none;color:var(--dark)}
 .v-btns{display:flex;gap:.35rem}
-.v-btn{width:34px;height:34px;border:1.5px solid var(--border);border-radius:7px;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--tr)}
+.v-btn{width:34px;height:34px;border:1.5px solid var(--border);border-radius:7px;background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--tr)}
 .v-btn.active,.v-btn:hover{border-color:var(--blue);background:var(--blue)}
 .v-btn svg{width:14px;height:14px;fill:none;stroke:var(--muted);stroke-width:2}
 .v-btn.active svg,.v-btn:hover svg{stroke:#fff}
@@ -705,7 +816,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .det-hero-info{position:absolute;bottom:1.8rem;left:4%;right:4%;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem}
 .det-price{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:700;color:#fff;line-height:1}
 .det-price small{font-size:.95rem;font-weight:400;color:rgba(255,255,255,.82);margin-left:.35rem}
-.det-thumbs{display:flex;gap:.7rem;padding:.9rem 4%;background:#fff;border-bottom:1.5px solid var(--border);overflow-x:auto}
+.det-thumbs{display:flex;gap:.7rem;padding:.9rem 4%;background:var(--surface);border-bottom:1.5px solid var(--border);overflow-x:auto}
 .thumb{width:88px;height:62px;border-radius:8px;overflow:hidden;cursor:pointer;border:2.5px solid transparent;transition:var(--tr);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem}
 .thumb.active,.thumb:hover{border-color:var(--blue)}
 .det-layout{display:grid;grid-template-columns:1fr 340px;gap:2.5rem;padding:2rem 4%;max-width:1240px;margin:0 auto}
@@ -730,7 +841,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .t-btn svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2}
 .room-chips{display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap}
 .r-chip{padding:.28rem .82rem;border-radius:100px;border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.82);font-size:.73rem;cursor:pointer;background:transparent;font-family:'DM Sans',sans-serif;transition:var(--tr)}
-.r-chip.active,.r-chip:hover{background:var(--gold);color:var(--dark);border-color:var(--gold)}
+.r-chip.active,.r-chip:hover{background:var(--gold);color:var(--on-gold);border-color:var(--gold)}
 
 /* TOUR MODAL */
 #tour-modal{position:fixed;inset:0;z-index:3000;background:#000;display:none;flex-direction:column}
@@ -760,7 +871,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .ai-g-item span{font-size:.88rem;font-weight:600;color:#fff}
 
 /* AGENT CARD */
-.ag-card{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);padding:1.5rem;box-shadow:var(--sh);margin-bottom:1.2rem}
+.ag-card{background:var(--surface);border-radius:var(--r);border:1.5px solid var(--border);padding:1.5rem;box-shadow:var(--sh);margin-bottom:1.2rem}
 .ag-head{display:flex;align-items:center;gap:.85rem;margin-bottom:1.15rem}
 .ag-av{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--blue));display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;flex-shrink:0}
 .ag-name{font-weight:700;font-size:.96rem}
@@ -776,7 +887,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 /* PAYMENT MODAL */
 .modal-wrap{position:fixed;inset:0;background:rgba(8,20,58,.55);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);z-index:2000;display:none;align-items:center;justify-content:center;padding:1rem}
 .modal-wrap.open{display:flex}
-.modal{background:#fff;border-radius:22px;padding:2.1rem;width:100%;max-width:510px;box-shadow:0 24px 90px rgba(0,0,0,.28);animation:mIn .28s ease}
+.modal{background:var(--surface);border-radius:22px;padding:2.1rem;width:100%;max-width:510px;box-shadow:0 24px 90px rgba(0,0,0,.28);animation:mIn .28s ease}
 @keyframes mIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
 .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
 .modal-title{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:700}
@@ -799,7 +910,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .km-toggle input{display:none}
 .km-toggle-track{width:36px;height:20px;border-radius:10px;background:var(--border);transition:.2s;position:relative;flex-shrink:0}
 .km-toggle input:checked+.km-toggle-track{background:var(--navy)}
-.km-toggle-track::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:2px;left:2px;transition:.2s}
+.km-toggle-track::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:var(--surface);top:2px;left:2px;transition:.2s}
 .km-toggle input:checked+.km-toggle-track::after{transform:translateX(16px)}
 .pay-m{border:2px solid var(--border);border-radius:10px;padding:1rem;text-align:center;cursor:pointer;transition:var(--tr)}
 .pay-m:hover,.pay-m.active{border-color:var(--blue);background:rgba(22,87,204,.04)}
@@ -817,11 +928,11 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .an-hdr h1{font-family:'Cormorant Garamond',serif;font-size:2.25rem;font-weight:700;margin-bottom:.4rem}
 .an-hdr p{color:rgba(255,255,255,.6);font-size:.88rem}
 .an-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;padding:2rem 4%;max-width:1240px;margin:0 auto}
-.an-kpi{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);padding:1.35rem;box-shadow:var(--sh)}
+.an-kpi{background:var(--surface);border-radius:var(--r);border:1.5px solid var(--border);padding:1.35rem;box-shadow:var(--sh)}
 .an-kpi-v{font-family:'Cormorant Garamond',serif;font-size:2.1rem;font-weight:700;color:var(--navy);display:block;line-height:1}
 .an-kpi-l{font-size:.69rem;color:var(--muted);letter-spacing:.11em;text-transform:uppercase;margin-top:.22rem;display:block}
 .an-body{display:grid;grid-template-columns:1fr 370px;gap:1.8rem;padding:0 4% 3rem;max-width:1240px;margin:0 auto}
-.chart-card{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);padding:1.5rem;box-shadow:var(--sh);margin-bottom:1.5rem}
+.chart-card{background:var(--surface);border-radius:var(--r);border:1.5px solid var(--border);padding:1.5rem;box-shadow:var(--sh);margin-bottom:1.5rem}
 .chart-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.3rem}
 .chart-title{font-size:.95rem;font-weight:700;color:var(--dark)}
 .chart-sub{font-size:.76rem;color:var(--muted)}
@@ -861,9 +972,9 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .dn{display:flex;align-items:center;gap:.72rem;padding:.62rem 1.4rem;color:rgba(255,255,255,.55);font-size:.83rem;font-weight:500;cursor:pointer;transition:var(--tr);border-left:3px solid transparent}
 .dn:hover,.dn.active{background:rgba(255,255,255,.09);color:#fff;border-left-color:var(--gold)}
 .dn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;flex-shrink:0}
-.ds-badge{margin-left:auto;background:var(--gold);color:var(--dark);font-size:.62rem;font-weight:700;padding:.1rem .45rem;border-radius:100px}
+.ds-badge{margin-left:auto;background:var(--gold);color:var(--on-gold);font-size:.62rem;font-weight:700;padding:.1rem .45rem;border-radius:100px}
 /* Mobile sidebar drawer toggle — hidden on desktop, shown ≤1024px (see RESPONSIVE block) */
-.dash-sidebar-toggle{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;margin-bottom:1rem}
+.dash-sidebar-toggle{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;margin-bottom:1rem}
 .dash-sidebar-toggle svg{width:20px;height:20px;stroke:var(--navy);stroke-width:2}
 .dash-sidebar-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
 .dash-sidebar-overlay.open{display:block}
@@ -872,7 +983,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .dash-welcome h2{font-family:'Cormorant Garamond',serif;font-size:1.85rem;font-weight:700}
 .dash-welcome p{font-size:.86rem;color:var(--muted);margin-top:.22rem}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem;margin-bottom:1.8rem}
-.kpi{background:#fff;border-radius:var(--r);padding:1.3rem;border:1.5px solid var(--border);box-shadow:var(--sh)}
+.kpi{background:var(--surface);border-radius:var(--r);padding:1.3rem;border:1.5px solid var(--border);box-shadow:var(--sh)}
 .kpi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.55rem}
 .kpi-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center}
 .kpi-icon svg{width:19px;height:19px;fill:none;stroke-width:1.9}
@@ -883,7 +994,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .kpi-v{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--dark);line-height:1}
 .kpi-l{font-size:.7rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:.18rem}
 .dash-grid{display:grid;grid-template-columns:1fr 350px;gap:1.4rem}
-.dc{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);box-shadow:var(--sh);overflow:hidden}
+.dc{background:var(--surface);border-radius:var(--r);border:1.5px solid var(--border);box-shadow:var(--sh);overflow:hidden}
 .dc-hdr{padding:1.1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
 .dc-title{font-size:.91rem;font-weight:700}
 .dc-action{font-size:.77rem;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif}
@@ -920,12 +1031,12 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .auth-left::before{content:'';position:absolute;width:420px;height:420px;border-radius:50%;background:rgba(255,255,255,.04);top:-120px;left:-120px}
 .auth-left::after{content:'';position:absolute;width:250px;height:250px;border-radius:50%;background:rgba(245,166,35,.06);bottom:-60px;right:-60px}
 .auth-right{background:var(--light);display:flex;align-items:center;justify-content:center;padding:3rem 2rem}
-.auth-box{background:#fff;border-radius:22px;padding:2.4rem;width:100%;max-width:420px;box-shadow:0 8px 48px rgba(13,59,140,.1)}
+.auth-box{background:var(--surface);border-radius:22px;padding:2.4rem;width:100%;max-width:420px;box-shadow:0 8px 48px rgba(13,59,140,.1)}
 .auth-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:700;margin-bottom:.32rem}
 .auth-sub{font-size:.84rem;color:var(--muted);margin-bottom:1.7rem}
 .role-tabs{display:flex;gap:.35rem;background:var(--light);padding:4px;border-radius:100px;margin-bottom:1.5rem}
 .rt{flex:1;padding:.38rem;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.77rem;font-weight:600;color:var(--muted);border-radius:100px;cursor:pointer;transition:var(--tr)}
-.rt.active{background:#fff;color:var(--navy);box-shadow:0 1px 7px rgba(0,0,0,.11)}
+.rt.active{background:var(--surface);color:var(--navy);box-shadow:0 1px 7px rgba(0,0,0,.11)}
 .form-2{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
 .auth-switch{text-align:center;margin-top:1.1rem;font-size:.83rem;color:var(--muted)}
 .auth-switch button{background:none;border:none;color:var(--blue);font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.83rem}
@@ -933,7 +1044,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .dvdr::before,.dvdr::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:var(--border)}
 .dvdr::before{left:0}.dvdr::after{right:0}
 .soc-btns{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
-.soc-btn{padding:.58rem;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.45rem;font-size:.8rem;font-weight:600;font-family:'DM Sans',sans-serif;transition:var(--tr);color:var(--dark)}
+.soc-btn{padding:.58rem;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.45rem;font-size:.8rem;font-weight:600;font-family:'DM Sans',sans-serif;transition:var(--tr);color:var(--dark)}
 .soc-btn:hover{border-color:var(--blue);background:rgba(22,87,204,.04)}
 .soc-btn svg{width:18px;height:18px;flex-shrink:0}
 
@@ -952,13 +1063,13 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .chat-fab svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:1.9}
 .chat-notif{
   position:absolute;top:-3px;right:-3px;width:20px;height:20px;
-  border-radius:50%;background:var(--gold);color:var(--dark);
+  border-radius:50%;background:var(--gold);color:var(--on-gold);
   font-size:.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;
   border:2px solid #fff;animation:pulse 2s infinite;
 }
 .chat-panel{
   position:fixed;bottom:6.8rem;right:2rem;width:340px;
-  background:#fff;border-radius:22px;
+  background:var(--surface);border-radius:22px;
   box-shadow:0 20px 80px rgba(13,59,140,.22);
   z-index:900;display:none;flex-direction:column;
   max-height:88vh;overflow:visible;
@@ -1050,28 +1161,28 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 
 .chat-sugs{
   display:flex;gap:.38rem;padding:.5rem .88rem;flex-wrap:wrap;flex-shrink:0;
-  border-top:1px solid var(--border);background:#fafbff;
+  border-top:1px solid var(--border);background:var(--hover-bg);
 }
 .c-sug{
   padding:.3rem .78rem;border:1.5px solid var(--border);
   border-radius:100px;font-size:.73rem;color:var(--blue);
-  font-weight:600;cursor:pointer;background:#fff;
+  font-weight:600;cursor:pointer;background:var(--surface);
   font-family:'DM Sans',sans-serif;transition:var(--tr);white-space:nowrap;
 }
 .c-sug:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
 
 .chat-inp-row{
   display:flex;gap:.45rem;padding:.7rem .88rem;
-  border-top:1.5px solid var(--border);flex-shrink:0;background:#fff;
+  border-top:1.5px solid var(--border);flex-shrink:0;background:var(--surface);
   border-radius:0 0 20px 20px;
 }
 .chat-inp{
   flex:1;border:1.5px solid var(--border);border-radius:100px;
   padding:.44rem .92rem;font-size:.83rem;
   font-family:'DM Sans',sans-serif;outline:none;transition:var(--tr);
-  background:#fafbff;
+  background:var(--hover-bg);
 }
-.chat-inp:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(22,87,204,.09)}
+.chat-inp:focus{border-color:var(--blue);background:var(--surface);box-shadow:0 0 0 3px rgba(22,87,204,.09)}
 .chat-send{
   width:36px;height:36px;border-radius:50%;
   background:linear-gradient(135deg,var(--navy),var(--blue));
@@ -1088,7 +1199,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 /* ══════════════════════════════════════
    TOAST
 ══════════════════════════════════════ */
-.toast{position:fixed;top:76px;right:1.5rem;background:#fff;border-radius:12px;padding:.88rem 1.2rem;box-shadow:0 8px 32px rgba(0,0,0,.14);border-left:4px solid var(--green);display:flex;align-items:center;gap:.7rem;z-index:3000;font-size:.83rem;color:var(--dark);transform:translateX(130%);transition:transform .3s ease;max-width:295px}
+.toast{position:fixed;top:76px;right:1.5rem;background:var(--surface);border-radius:12px;padding:.88rem 1.2rem;box-shadow:0 8px 32px rgba(0,0,0,.14);border-left:4px solid var(--green);display:flex;align-items:center;gap:.7rem;z-index:3000;font-size:.83rem;color:var(--dark);transform:translateX(130%);transition:transform .3s ease;max-width:295px}
 .toast.show{transform:translateX(0)}
 .toast.toast-error{border-left-color:var(--error)}
 .toast.toast-error svg{stroke:var(--error)}
@@ -1116,6 +1227,14 @@ footer{background:var(--dark);color:rgba(255,255,255,.5);padding:3.8rem 4% calc(
    RESPONSIVE
 ══════════════════════════════════════ */
 @media(max-width:1024px){
+  /* The full desktop link row (Home/Properties/AI Analytics/New Sites/
+     Dashboard/List Property/Sign In) needs ~900-1100px to fit without
+     overflowing — below that (this covers real tablet widths like iPad
+     portrait's 768px, previously only handled from 660px down) it has to
+     collapse into the hamburger menu instead, or it pushes the nav's own
+     icon cluster (avatar/notifications/hamburger itself) off-screen and
+     unreachable, since overflow-x is clipped rather than scrollable. */
+  .topnav-links{display:none}
   .hero-inner{grid-template-columns:1fr}
   .s-card{
     margin:0 4% 0;
@@ -1262,7 +1381,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   .hero-inner{gap:2rem}
   /* Card moves below hero via negative margin overlap */
   .s-card{
-    background:#fff;
+    background:var(--surface);
     border-radius:20px;
     padding:1.5rem;
     box-shadow:0 16px 60px rgba(13,59,140,.18);
@@ -1291,7 +1410,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 @keyframes smFade{from{opacity:0}to{opacity:1}}
 
 .sm-box{
-  background:#fff;border-radius:24px;width:100%;max-width:600px;
+  background:var(--surface);border-radius:24px;width:100%;max-width:600px;
   box-shadow:0 32px 100px rgba(0,0,0,.35);
   animation:smUp .28s cubic-bezier(.34,1.56,.64,1);
   overflow:hidden;
@@ -1316,7 +1435,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .sm-tabs{display:flex;background:var(--light);padding:4px;border-radius:100px;margin:.9rem 1.5rem .2rem}
 .sm-tab{flex:1;padding:.42rem;border:none;background:transparent;font-family:'DM Sans',sans-serif;
   font-size:.84rem;font-weight:600;color:var(--muted);border-radius:100px;cursor:pointer;transition:var(--tr)}
-.sm-tab.active{background:#fff;color:var(--navy);box-shadow:0 2px 10px rgba(0,0,0,.11)}
+.sm-tab.active{background:var(--surface);color:var(--navy);box-shadow:0 2px 10px rgba(0,0,0,.11)}
 
 .sm-body{padding:.75rem 1.5rem 1.2rem;display:flex;flex-direction:column;gap:.6rem}
 
@@ -1324,7 +1443,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .sm-field label{font-size:.67rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
 .sm-field select,.sm-field input{
   width:100%;padding:.62rem .95rem;border:1.5px solid var(--border);border-radius:10px;
-  font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--dark);background:#fff;
+  font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--dark);background:var(--surface);
   outline:none;appearance:none;-webkit-appearance:none;transition:var(--tr);
 }
 .sm-field select:focus,.sm-field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(22,87,204,.1)}
@@ -1333,14 +1452,14 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .sm-chips-label{font-size:.67rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.32rem;display:block}
 .sm-chips{display:flex;gap:.4rem;flex-wrap:wrap}
 .sm-chip{padding:.35rem .9rem;border-radius:100px;font-size:.78rem;font-weight:600;
-  border:1.5px solid var(--border);background:#fff;color:var(--muted);
+  border:1.5px solid var(--border);background:var(--surface);color:var(--muted);
   cursor:pointer;transition:var(--tr);font-family:'DM Sans',sans-serif}
 .sm-chip.on,.sm-chip:hover{border-color:var(--blue);background:var(--blue);color:#fff}
 
 .sm-divider{height:1px;background:var(--border);margin:.2rem 0}
 
 .sm-footer{padding:.85rem 1.5rem;border-top:1.5px solid var(--border);
-  display:flex;gap:.75rem;align-items:center;background:#fafbff}
+  display:flex;gap:.75rem;align-items:center;background:var(--hover-bg)}
 .sm-reset{background:none;border:1.5px solid var(--border);border-radius:10px;
   padding:.62rem 1.2rem;font-family:'DM Sans',sans-serif;font-size:.84rem;
   font-weight:600;color:var(--muted);cursor:pointer;transition:var(--tr)}
@@ -1356,7 +1475,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .sm-hints{display:flex;gap:.4rem;flex-wrap:wrap}
 .sm-hint-chip{
   padding:.32rem .8rem;border-radius:100px;font-size:.78rem;font-weight:600;
-  border:1.5px solid var(--border);background:#fff;color:var(--muted);
+  border:1.5px solid var(--border);background:var(--surface);color:var(--muted);
   cursor:pointer;transition:var(--tr);font-family:'DM Sans',sans-serif;
 }
 .sm-hint-chip:hover{border-color:var(--blue);background:var(--blue);color:#fff}
@@ -1375,7 +1494,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .qs-wrap{position:relative;max-width:540px}
 .qs-suggestions{
   position:absolute;top:calc(100% + 8px);left:0;right:0;
-  background:#fff;border-radius:16px;
+  background:var(--surface);border-radius:16px;
   box-shadow:0 20px 56px rgba(8,20,58,.18),0 2px 8px rgba(0,0,0,.08);
   border:1.5px solid var(--border);z-index:1600;overflow:hidden;
   animation:smFade .18s ease;max-height:340px;overflow-y:auto;
@@ -1386,7 +1505,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   border-bottom:1px solid var(--light);
 }
 .qs-item:last-of-type{border-bottom:none}
-.qs-item:hover,.qs-item.focused{background:#f5f8ff}
+.qs-item:hover,.qs-item.focused{background:var(--hover-bg)}
 .qs-thumb{width:48px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0}
 .qs-thumb-ph{
   width:48px;height:40px;border-radius:8px;flex-shrink:0;
@@ -1401,7 +1520,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .qs-price{font-size:.8rem;font-weight:700;color:var(--blue);flex-shrink:0;margin-left:.5rem}
 .qs-no-results{padding:1rem 1.1rem;text-align:center;color:var(--muted);font-size:.84rem}
 .qs-footer{
-  padding:.58rem 1.1rem;background:#f8faff;border-top:1px solid var(--border);
+  padding:.58rem 1.1rem;background:var(--hover-bg);border-top:1px solid var(--border);
   font-size:.75rem;color:var(--blue);font-weight:600;
   display:flex;align-items:center;gap:.4rem;cursor:pointer;transition:opacity .12s;
 }
@@ -1414,7 +1533,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 }
 .qs-input-field::placeholder{color:var(--muted)}
 .similar-results-note{
-  grid-column:1/-1;background:linear-gradient(135deg,#f0f5ff,#e8eeff);
+  grid-column:1/-1;background:linear-gradient(135deg,var(--surface),var(--hover-bg));
   border:1.5px solid rgba(22,87,204,.25);border-radius:14px;
   padding:.9rem 1.4rem;margin-bottom:.3rem;
   display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;
@@ -1432,7 +1551,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 ══════════════════════════════ */
 .search-trigger-bar{
   position:sticky;top:64px;z-index:900;
-  background:rgba(255,255,255,.97);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  background:var(--nav-bg);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
   border-bottom:1.5px solid var(--border);
   padding:.55rem 4%;
   display:none;
@@ -1445,13 +1564,13 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   border-radius:100px;padding:.52rem 1.1rem;
   cursor:pointer;transition:var(--tr);
 }
-.stb-input:hover{border-color:var(--blue);background:#fff;box-shadow:0 2px 12px rgba(22,87,204,.1)}
+.stb-input:hover{border-color:var(--blue);background:var(--surface);box-shadow:0 2px 12px rgba(22,87,204,.1)}
 .stb-input svg{width:16px;height:16px;fill:none;stroke:var(--muted);stroke-width:2;flex-shrink:0}
 .stb-input span{font-size:.85rem;color:var(--muted);font-weight:500}
 .stb-filters{display:flex;gap:.4rem;overflow-x:auto;scrollbar-width:none;min-width:0}
 .stb-filters::-webkit-scrollbar{display:none}
 .stb-fc{padding:.35rem .9rem;border-radius:100px;border:1.5px solid var(--border);
-  background:#fff;font-size:.75rem;font-weight:600;color:var(--muted);
+  background:var(--surface);font-size:.75rem;font-weight:600;color:var(--muted);
   cursor:pointer;white-space:nowrap;transition:var(--tr);font-family:'DM Sans',sans-serif;flex-shrink:0}
 .stb-fc:hover,.stb-fc.on{border-color:var(--blue);background:var(--blue);color:#fff}
 
@@ -1483,7 +1602,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   cursor:pointer;flex-shrink:0;white-space:nowrap;transition:var(--tr);
 }
 .hsb-btn svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2.2}
-.hsb-btn:hover{background:var(--gold);color:var(--dark)}
+.hsb-btn:hover{background:var(--gold);color:var(--on-gold)}
 @media(max-width:600px){
   .hsb-sep,.hsb-item:nth-child(3),.hsb-item:nth-child(4){display:none}
   .hero-search-bar{border-radius:14px;padding:.5rem}
@@ -1754,7 +1873,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   font-size: .74rem; margin-bottom: .5rem;
 }
 .p-stars { display: flex; gap: 1px; }
-.p-star { font-size: .72rem; color: #e2e8f0; }
+.p-star { font-size: .72rem; color: var(--skeleton-hi); }
 .p-star.on { color: var(--gold); }
 .p-rating-count { color: var(--muted); font-size: .7rem; }
 
@@ -1768,7 +1887,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .p-btn-detail {
   flex: 1; padding: .55rem;
   border: 1.5px solid var(--border); border-radius: 8px;
-  background: #fff; color: var(--navy);
+  background: var(--surface); color: var(--navy);
   font-size: .78rem; font-weight: 700;
   font-family: 'DM Sans', sans-serif;
   cursor: pointer; transition: var(--tr); text-align: center;
@@ -1790,7 +1909,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .wa-fab {
   position: fixed; bottom: calc(5.5rem + env(safe-area-inset-bottom)); right: max(2rem, env(safe-area-inset-right));
   width: 56px; height: 56px; border-radius: 50%;
-  background: #25D366; border: none;
+  background: var(--whatsapp); border: none;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 6px 24px rgba(37,211,102,.5);
   cursor: pointer; z-index: 899;
@@ -1905,8 +2024,8 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 }
 
 /* ── HAMBURGER: hide on desktop, show on mobile ── */
-@media(min-width:661px){ #hamburger-btn{display:none!important} }
-@media(max-width:660px){ #hamburger-btn{display:flex!important} }
+@media(min-width:1025px){ #hamburger-btn{display:none!important} }
+@media(max-width:1024px){ #hamburger-btn{display:flex!important} }
 
 /* ── FOOTER: single column on small phones ── */
 @media(max-width:480px){
@@ -1950,7 +2069,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .field-error>input,
 .field-error>select,
 .field-error>textarea{border-color:var(--error)!important;box-shadow:0 0 0 3px rgba(220,38,38,.1)!important}
-.field-err-msg{display:none;font-size:.67rem;color:#dc2626;margin-top:.18rem;font-weight:600;letter-spacing:.02em}
+.field-err-msg{display:none;font-size:.67rem;color:var(--error);margin-top:.18rem;font-weight:600;letter-spacing:.02em}
 .field-error .field-err-msg{display:block}
 .pw-strength{height:4px;border-radius:2px;margin-top:4px;transition:width .3s,background .3s;width:0;display:block}
 .pw-strength.weak{width:33%;background:var(--error)}
@@ -1960,10 +2079,10 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 /* ── UX STEP 5: SKELETON LOADER ── */
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 .skeleton-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.2rem;padding:1rem 0}
-.skeleton-card{background:#fff;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.skeleton-img{height:180px;background:linear-gradient(90deg,var(--light) 25%,#e2e8f0 50%,var(--light) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
+.skeleton-card{background:var(--surface);border-radius:14px;border:1.5px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.skeleton-img{height:180px;background:linear-gradient(90deg,var(--light) 25%,var(--skeleton-hi) 50%,var(--light) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
 .skeleton-body{padding:.9rem}
-.skeleton-line{height:.7rem;border-radius:4px;background:linear-gradient(90deg,var(--light) 25%,#e2e8f0 50%,var(--light) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;margin-bottom:.5rem}
+.skeleton-line{height:.7rem;border-radius:4px;background:linear-gradient(90deg,var(--light) 25%,var(--skeleton-hi) 50%,var(--light) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;margin-bottom:.5rem}
 .skeleton-line.sl-title{height:.85rem;width:70%}
 .skeleton-line.sl-sub{width:50%}
 .skeleton-line.sl-price{width:40%;height:.8rem}
@@ -2248,11 +2367,11 @@ html,body{overscroll-behavior-x:none}
 
 /* Site listing cards */
 .site-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.2rem;padding:1.2rem 0}
-.site-card{background:#fff;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;transition:var(--tr);cursor:pointer}
+.site-card{background:var(--surface);border-radius:14px;border:1.5px solid var(--border);overflow:hidden;transition:var(--tr);cursor:pointer}
 .site-card:hover{box-shadow:0 6px 24px rgba(13,59,140,.12);transform:translateY(-2px)}
 .site-card-img{width:100%;height:160px;object-fit:cover;background:var(--light);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.8rem;position:relative}
 .site-card-img img{width:100%;height:100%;object-fit:cover}
-.site-card-status-badge{position:absolute;top:.6rem;right:.6rem;padding:.25rem .6rem;border-radius:20px;font-size:.68rem;font-weight:700;text-transform:uppercase;background:#fff;color:var(--navy)}
+.site-card-status-badge{position:absolute;top:.6rem;right:.6rem;padding:.25rem .6rem;border-radius:20px;font-size:.68rem;font-weight:700;text-transform:uppercase;background:var(--surface);color:var(--navy)}
 .site-card-body{padding:1rem}
 .site-card-name{font-weight:700;font-size:.95rem;color:var(--dark);margin-bottom:.25rem;line-height:1.3}
 .site-card-district{font-size:.75rem;color:var(--muted);margin-bottom:.6rem;display:flex;align-items:center;gap:.3rem}
@@ -2289,7 +2408,7 @@ html,body{overscroll-behavior-x:none}
 .legend-dot.hold{background:var(--plot-hold)}
 
 /* Plot popup (appears near plot) */
-.plot-popup{position:absolute;z-index:50;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.22);border:1.5px solid var(--border);padding:1rem;min-width:200px;max-width:240px;pointer-events:all}
+.plot-popup{position:absolute;z-index:50;background:var(--surface);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.22);border:1.5px solid var(--border);padding:1rem;min-width:200px;max-width:240px;pointer-events:all}
 .plot-popup-close{position:absolute;top:.4rem;right:.5rem;background:none;border:none;font-size:1.1rem;cursor:pointer;line-height:1;color:var(--muted)}
 .plot-popup-num{font-weight:700;font-size:.95rem;color:var(--navy);margin-bottom:.25rem}
 .plot-popup-status{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .55rem;border-radius:20px;font-size:.68rem;font-weight:700;margin-bottom:.6rem}
@@ -2325,11 +2444,11 @@ html,body{overscroll-behavior-x:none}
 /* Site page header */
 #page-sites .list-hdr,#page-site .list-hdr{background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 100%)}
 .site-filters{display:flex;gap:.6rem;flex-wrap:wrap;padding:.8rem 0;align-items:center}
-.site-filters select,.site-filters input{padding:.5rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;font-family:inherit;background:#fff;min-width:140px}
+.site-filters select,.site-filters input{padding:.5rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;font-family:inherit;background:var(--surface);min-width:140px}
 
 /* Stats row for site detail */
 .site-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;margin-bottom:1rem}
-.site-kpi{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:.8rem;text-align:center}
+.site-kpi{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.8rem;text-align:center}
 .site-kpi-val{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:var(--navy)}
 .site-kpi-lbl{font-size:.68rem;color:var(--muted);margin-top:.1rem}
 
@@ -2351,7 +2470,7 @@ html,body{overscroll-behavior-x:none}
 /* ═══ Property Image Uploader — drag&drop, previews, cover, reorder ═══ */
 .img-uploader{display:flex;flex-direction:column;gap:.7rem}
 .img-uploader-drop{border:2px dashed var(--border);border-radius:12px;padding:1.4rem 1rem;text-align:center;cursor:pointer;transition:var(--tr);background:var(--light)}
-.img-uploader-drop:hover,.img-uploader-drop.dragover{border-color:var(--navy);background:#eef3fc}
+.img-uploader-drop:hover,.img-uploader-drop.dragover{border-color:var(--navy);background:var(--hover-bg)}
 .img-uploader-drop svg{stroke:var(--muted)}
 .img-uploader-drop.dragover svg{stroke:var(--navy)}
 .img-uploader-drop-title{font-weight:700;font-size:.86rem;color:var(--navy);margin-top:.5rem}
@@ -2369,10 +2488,10 @@ html,body{overscroll-behavior-x:none}
 .img-uploader-item:hover .img-uploader-set-cover,.img-uploader-item:focus-within .img-uploader-set-cover{opacity:1}
 .img-uploader-progress{position:absolute;inset:0;background:rgba(13,59,140,.6);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.3rem;color:#fff;font-size:.68rem;font-weight:700}
 .img-uploader-bar{width:70%;height:4px;background:rgba(255,255,255,.35);border-radius:2px;overflow:hidden}
-.img-uploader-bar-fill{height:100%;background:#fff;width:0%;transition:width .15s linear}
+.img-uploader-bar-fill{height:100%;background:var(--surface);width:0%;transition:width .15s linear}
 .img-uploader-error{position:absolute;inset:0;background:rgba(220,38,38,.75);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;color:#fff;font-size:1.2rem;text-align:center;padding:.3rem}
 .img-uploader-error-code{font-size:.55rem;font-weight:700;line-height:1.2;word-break:break-all;opacity:.95}
-.img-uploader-add-more{border:1.5px dashed var(--border);border-radius:10px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);flex-direction:column;gap:.2rem;font-size:.62rem;font-weight:700;background:#fff}
+.img-uploader-add-more{border:1.5px dashed var(--border);border-radius:10px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);flex-direction:column;gap:.2rem;font-size:.62rem;font-weight:700;background:var(--surface)}
 .img-uploader-add-more:hover{border-color:var(--navy);color:var(--navy)}
 .img-uploader-count{font-size:.71rem;color:var(--muted);text-align:right}
 @media(max-width:480px){
@@ -2426,7 +2545,7 @@ html,body{overscroll-behavior-x:none}
 /* ── form field wrapper (used in nearly every modal across the suite) ── */
 .vr-field{display:flex;flex-direction:column;gap:.32rem;margin-bottom:.15rem}
 .vr-field label{font-size:.69rem;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-.vr-field input,.vr-field select,.vr-field textarea{border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.55rem .7rem;font-family:inherit;font-size:.85rem;color:var(--dark);background:#fff;transition:var(--tr)}
+.vr-field input,.vr-field select,.vr-field textarea{border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.55rem .7rem;font-family:inherit;font-size:.85rem;color:var(--dark);background:var(--surface);transition:var(--tr)}
 .vr-field input:focus,.vr-field select:focus,.vr-field textarea:focus{outline:none;border-color:var(--blue)}
 
 /* ── tab bar (Office/HR/Accounting/Exec/BI/Branches) ── */
@@ -2437,7 +2556,7 @@ html,body{overscroll-behavior-x:none}
 .off-pane{padding-top:.2rem}
 .off-pane-hdr{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem}
 .off-pane-filters{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
-.off-filter,.off-search{border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.5rem .7rem;font-family:inherit;font-size:.8rem;color:var(--dark);background:#fff}
+.off-filter,.off-search{border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.5rem .7rem;font-family:inherit;font-size:.8rem;color:var(--dark);background:var(--surface)}
 .off-search{flex:1;min-width:160px}
 .off-filter:focus,.off-search:focus{outline:none;border-color:var(--blue)}
 
@@ -2458,7 +2577,7 @@ html,body{overscroll-behavior-x:none}
 .fin-summary-row strong{color:var(--dark);font-weight:700;text-align:right}
 
 /* ── panel wrapper (Exec/BI/Branches primary container) ── */
-.exec-panel{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);box-shadow:var(--sh);padding:1rem;margin-bottom:1rem}
+.exec-panel{background:var(--surface);border-radius:var(--r);border:1.5px solid var(--border);box-shadow:var(--sh);padding:1rem;margin-bottom:1rem}
 .exec-panel-hdr{font-size:.86rem;font-weight:700;color:var(--navy);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
 .exec-two-col,.bi-two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 @media(max-width:820px){.exec-two-col,.bi-two-col{grid-template-columns:1fr}}
@@ -2466,7 +2585,7 @@ html,body{overscroll-behavior-x:none}
 
 /* ── KPI/summary strip family — same visual language across all 5 variants ── */
 .exec-kpi-strip,.bi-summary-strip,.br-kpi-strip,.crm-stats,.hr-stats,.ac-stats,.off-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.7rem;margin-bottom:1rem}
-.exec-kpi-card,.bi-sum-card,.br-kpi,.crm-stat,.hr-stat-card,.ac-stat-card,.off-stat-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.75rem .9rem;display:flex;flex-direction:column;gap:.2rem;border-top:3px solid var(--navy)}
+.exec-kpi-card,.bi-sum-card,.br-kpi,.crm-stat,.hr-stat-card,.ac-stat-card,.off-stat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.75rem .9rem;display:flex;flex-direction:column;gap:.2rem;border-top:3px solid var(--navy)}
 .exec-kpi-val,.bi-sum-val,.br-kpi-val,.crm-stat-v,.hr-stat-val,.ac-stat-val,.off-stat-val{font-size:1.35rem;font-weight:800;color:var(--dark);line-height:1.1}
 .exec-kpi-lbl,.bi-sum-lbl,.br-kpi-lbl,.crm-stat-l,.hr-stat-lbl,.ac-stat-lbl,.off-stat-lbl{font-size:.7rem;color:var(--muted);font-weight:600}
 /* per-instance accent variants */
@@ -2479,7 +2598,7 @@ html,body{overscroll-behavior-x:none}
 .ac-rep-kpi.ac-net-neg{border-top-color:var(--error)}
 .ac-rep-kpi.ac-net-neg .ac-rep-kpi-val{color:var(--error)}
 .ac-rep-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.7rem;margin-bottom:1rem}
-.ac-rep-kpi{background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.75rem .9rem;display:flex;flex-direction:column;gap:.2rem;border-top:3px solid var(--navy)}
+.ac-rep-kpi{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.75rem .9rem;display:flex;flex-direction:column;gap:.2rem;border-top:3px solid var(--navy)}
 .ac-rep-kpi-val{font-size:1.35rem;font-weight:800;color:var(--dark)}
 .ac-rep-kpi-lbl{font-size:.7rem;color:var(--muted);font-weight:600}
 
@@ -2534,13 +2653,13 @@ html,body{overscroll-behavior-x:none}
 .crm-act-btn{display:inline-flex;align-items:center;gap:.25rem;padding:.32rem .65rem;border-radius:var(--r-sm);font-size:.7rem;font-weight:700;background:var(--light);color:var(--navy);border:none}
 .crm-act-btn:hover{background:var(--border)}
 .crm-act-btn-call{background:rgba(22,163,74,.1);color:var(--success)}
-.crm-act-btn-wa{background:rgba(37,211,102,.12);color:#1da851}
+.crm-act-btn-wa{background:rgba(37,211,102,.12);color:var(--whatsapp-hover)}
 .crm-card-actions{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border)}
 
 /* ── progress stepper (Verification/Financing pipeline trackers) ── */
 .verif-steps,.fin-stepper{display:flex;align-items:flex-start;margin-bottom:1rem}
 .verif-step,.fin-step{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;text-align:center}
-.verif-step-dot,.fin-step-dot{width:26px;height:26px;border-radius:50%;background:#fff;border:2.5px solid var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;z-index:1}
+.verif-step-dot,.fin-step-dot{width:26px;height:26px;border-radius:50%;background:var(--surface);border:2.5px solid var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;z-index:1}
 .verif-step.done .verif-step-dot,.fin-step.done .fin-step-dot{background:var(--success);border-color:var(--success);color:#fff}
 .verif-step.current .verif-step-dot,.fin-step.active .fin-step-dot{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 0 0 4px rgba(13,59,140,.15)}
 .verif-step-lbl,.fin-step-lbl{font-size:.62rem;color:var(--muted);margin-top:.35rem;text-transform:capitalize}
@@ -2578,7 +2697,7 @@ html,body{overscroll-behavior-x:none}
 .crm-wrap{padding:1.4rem 4% 3rem;max-width:1240px;margin:0 auto}
 .crm-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:1rem}
 .crm-view-toggle{display:inline-flex;border:1.5px solid var(--border);border-radius:var(--r-sm);overflow:hidden}
-.crm-vbtn{background:#fff;border:none;padding:.45rem .9rem;font-size:.76rem;font-weight:700;color:var(--muted)}
+.crm-vbtn{background:var(--surface);border:none;padding:.45rem .9rem;font-size:.76rem;font-weight:700;color:var(--muted)}
 .crm-vbtn.active{background:var(--navy);color:#fff}
 .crm-filters{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.9rem}
 .crm-filters select,.crm-filters input{border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.5rem .7rem;font-family:inherit;font-size:.8rem}
@@ -2593,7 +2712,7 @@ html,body{overscroll-behavior-x:none}
 .crm-pchip-cold.active{background:var(--blue);color:#fff}
 
 /* card family: crm-card / deal-card / verif-card / doc-card / fin-card */
-.crm-card,.deal-card,.verif-card,.doc-card,.fin-card{background:#fff;border:1.5px solid var(--border);border-left:4px solid var(--navy);border-radius:var(--r-sm);padding:.85rem 1rem;box-shadow:var(--sh-sm);cursor:pointer;transition:var(--tr)}
+.crm-card,.deal-card,.verif-card,.doc-card,.fin-card{background:var(--surface);border:1.5px solid var(--border);border-left:4px solid var(--navy);border-radius:var(--r-sm);padding:.85rem 1rem;box-shadow:var(--sh-sm);cursor:pointer;transition:var(--tr)}
 .crm-card:hover,.deal-card:hover,.verif-card:hover,.doc-card:hover,.fin-card:hover{box-shadow:var(--sh)}
 .crm-card.crm-overdue,.crm-card.crm-due-today,.deal-card.crm-overdue{border-left-color:var(--error)}
 .crm-card-header,.deal-card-header,.verif-card-header,.doc-card-header,.fin-card-head{display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap}
@@ -2607,14 +2726,14 @@ html,body{overscroll-behavior-x:none}
 .crm-col{min-width:220px;background:var(--light);border-radius:var(--r-sm);padding:.6rem}
 .crm-col-hdr{display:flex;justify-content:space-between;align-items:center;padding-bottom:.5rem;margin-bottom:.5rem;border-top:3px solid var(--navy);padding-top:.4rem}
 .crm-col-name{font-size:.76rem;font-weight:700;color:var(--dark)}
-.crm-col-count{font-size:.68rem;color:var(--muted);background:#fff;border-radius:var(--r-full);padding:.1rem .5rem}
-.crm-kcard{background:#fff;border-radius:var(--r-sm);padding:.6rem;margin-bottom:.5rem;box-shadow:var(--sh-sm);cursor:pointer}
+.crm-col-count{font-size:.68rem;color:var(--muted);background:var(--surface);border-radius:var(--r-full);padding:.1rem .5rem}
+.crm-kcard{background:var(--surface);border-radius:var(--r-sm);padding:.6rem;margin-bottom:.5rem;box-shadow:var(--sh-sm);cursor:pointer}
 .crm-kcard-name{font-size:.8rem;font-weight:700}
 .crm-kcard-meta{font-size:.7rem;color:var(--muted);margin-top:.25rem}
 .crm-kcard-footer{margin-top:.4rem;display:flex;justify-content:space-between;align-items:center}
 
 /* deal stat variants (legacy naming, same visual as crm-stat) */
-.deal-stat-total,.deal-stat-active,.deal-stat-won,.deal-stat-value{background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.75rem .9rem}
+.deal-stat-total,.deal-stat-active,.deal-stat-won,.deal-stat-value{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.75rem .9rem}
 
 /* commission breakdown / offer timeline / milestones */
 .comm-amount-block{background:var(--light);border-radius:var(--r-sm);padding:.85rem;display:flex;flex-direction:column;gap:.5rem}
@@ -2635,11 +2754,11 @@ html,body{overscroll-behavior-x:none}
 .milestone-list{display:flex;flex-direction:column;gap:.5rem}
 .milestone-item{display:flex;align-items:center;gap:.6rem;font-size:.82rem}
 .milestone-item.done{color:var(--muted);text-decoration:line-through}
-.mi-toggle{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);background:#fff;color:#fff;font-size:.7rem;flex-shrink:0}
+.mi-toggle{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);background:var(--surface);color:#fff;font-size:.7rem;flex-shrink:0}
 .milestone-item.done .mi-toggle{background:var(--success);border-color:var(--success)}
 
 /* payslip document (Commissions) */
-.payslip{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:1.4rem;max-width:520px;margin:0 auto}
+.payslip{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:1.4rem;max-width:520px;margin:0 auto}
 .payslip-header{text-align:center;border-bottom:2px solid var(--navy);padding-bottom:.8rem;margin-bottom:.8rem}
 .payslip-logo{font-size:1.3rem;font-weight:800;color:var(--navy);font-family:'Cormorant Garamond',serif}
 .payslip-company{font-size:.72rem;color:var(--muted);margin-top:.15rem}
@@ -2654,7 +2773,7 @@ html,body{overscroll-behavior-x:none}
 /* ══════════════════════════════════════════════════════════════
    DOCUMENTS — contract/letterhead document layout
 ══════════════════════════════════════════════════════════════ */
-.contract-preview{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:1.5rem;box-shadow:var(--sh)}
+.contract-preview{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:1.5rem;box-shadow:var(--sh)}
 .contract-doc{font-family:'DM Sans',sans-serif;color:var(--dark)}
 .contract-header{text-align:center;border-bottom:2px solid var(--navy);padding-bottom:1rem;margin-bottom:1.2rem}
 .contract-logo{font-size:1.5rem;font-weight:800;color:var(--navy);font-family:'Cormorant Garamond',serif}
@@ -2693,7 +2812,7 @@ html,body{overscroll-behavior-x:none}
 /* ══════════════════════════════════════════════════════════════
    PARTNERS
 ══════════════════════════════════════════════════════════════ */
-.partner-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:1rem;box-shadow:var(--sh-sm);cursor:pointer;transition:var(--tr)}
+.partner-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:1rem;box-shadow:var(--sh-sm);cursor:pointer;transition:var(--tr)}
 .partner-card:hover{box-shadow:var(--sh);transform:translateY(-2px)}
 .partner-card-head{display:flex;gap:.7rem;align-items:center;margin-bottom:.7rem}
 .partner-card-info{display:flex;flex-direction:column;gap:.25rem;flex:1;min-width:0}
@@ -2707,7 +2826,7 @@ html,body{overscroll-behavior-x:none}
 /* ══════════════════════════════════════════════════════════════
    OFFICE
 ══════════════════════════════════════════════════════════════ */
-.off-task-card,.off-leave-card{background:#fff;border:1.5px solid var(--border);border-left:3px solid var(--navy);border-radius:var(--r-sm);padding:.75rem .9rem;margin-bottom:.55rem;cursor:pointer;transition:var(--tr)}
+.off-task-card,.off-leave-card{background:var(--surface);border:1.5px solid var(--border);border-left:3px solid var(--navy);border-radius:var(--r-sm);padding:.75rem .9rem;margin-bottom:.55rem;cursor:pointer;transition:var(--tr)}
 .off-task-card:hover,.off-leave-card:hover{box-shadow:var(--sh-sm)}
 .off-task-card.overdue{border-left-color:var(--error)}
 .off-task-top,.off-leave-top{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
@@ -2739,7 +2858,7 @@ html,body{overscroll-behavior-x:none}
 .off-week-day-hdr{display:flex;justify-content:space-between;font-size:.72rem;font-weight:700;margin-bottom:.4rem}
 .off-week-dayname{color:var(--dark)}
 .off-week-date{color:var(--muted)}
-.off-week-task-item{background:#fff;border-left:3px solid var(--navy);border-radius:var(--r-xs);padding:.3rem .45rem;font-size:.68rem;margin-bottom:.3rem;cursor:pointer}
+.off-week-task-item{background:var(--surface);border-left:3px solid var(--navy);border-radius:var(--r-xs);padding:.3rem .45rem;font-size:.68rem;margin-bottom:.3rem;cursor:pointer}
 .off-week-empty{font-size:.7rem;color:var(--muted);text-align:center;padding:.5rem 0}
 .off-comment{padding:.5rem 0;border-bottom:1px solid var(--border)}
 .off-comment-author{font-weight:700;font-size:.78rem;color:var(--dark)}
@@ -2754,7 +2873,7 @@ html,body{overscroll-behavior-x:none}
    HR
 ══════════════════════════════════════════════════════════════ */
 .hr-staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.8rem}
-.hr-staff-card{display:flex;gap:.7rem;align-items:center;background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.85rem;cursor:pointer;transition:var(--tr)}
+.hr-staff-card{display:flex;gap:.7rem;align-items:center;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.85rem;cursor:pointer;transition:var(--tr)}
 .hr-staff-card:hover{box-shadow:var(--sh-sm)}
 .hr-staff-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:.15rem}
 .hr-staff-name{font-weight:700;font-size:.85rem;color:var(--dark)}
@@ -2763,12 +2882,12 @@ html,body{overscroll-behavior-x:none}
 .hr-ps-item{flex:1;min-width:100px}
 .hr-ps-label{display:block;font-size:.68rem;color:var(--muted)}
 .hr-ps-val{display:block;font-size:1.05rem;font-weight:800;color:var(--navy)}
-.hr-payroll-row{display:flex;justify-content:space-between;align-items:center;padding:.7rem .9rem;background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);margin-bottom:.5rem;cursor:pointer}
+.hr-payroll-row{display:flex;justify-content:space-between;align-items:center;padding:.7rem .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-sm);margin-bottom:.5rem;cursor:pointer}
 .hr-pr-name{font-weight:700;font-size:.84rem}
 .hr-pr-role{font-size:.7rem;color:var(--muted)}
 .hr-pr-right{text-align:right}
 .hr-pr-amount{font-weight:800;color:var(--navy);font-size:.92rem}
-.hr-perf-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.9rem;margin-bottom:.7rem}
+.hr-perf-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.9rem;margin-bottom:.7rem}
 .hr-perf-head{display:flex;gap:.6rem;align-items:center;margin-bottom:.7rem}
 .hr-perf-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;text-align:center}
 .hr-pm-val{display:block;font-weight:800;font-size:1rem;color:var(--dark)}
@@ -2789,7 +2908,7 @@ html,body{overscroll-behavior-x:none}
 /* ══════════════════════════════════════════════════════════════
    ACCOUNTING
 ══════════════════════════════════════════════════════════════ */
-.ac-invoice-card,.ac-expense-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.85rem;margin-bottom:.55rem}
+.ac-invoice-card,.ac-expense-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:.85rem;margin-bottom:.55rem}
 .ac-invoice-card{cursor:pointer;transition:var(--tr)}
 .ac-invoice-card:hover{box-shadow:var(--sh-sm)}
 .ac-inv-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem}
@@ -2811,7 +2930,7 @@ html,body{overscroll-behavior-x:none}
 .ac-total-row{display:flex;justify-content:space-between;font-size:.83rem;padding:.2rem 0}
 .ac-total-row.ac-grand-total{border-top:1.5px solid var(--border);margin-top:.3rem;padding-top:.5rem;font-weight:800;font-size:.95rem;color:var(--navy)}
 .ic-line-row{display:flex;gap:.5rem;align-items:center;margin-bottom:.5rem}
-.ic-remove-btn{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--error);font-size:1rem;line-height:1;flex-shrink:0}
+.ic-remove-btn{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);color:var(--error);font-size:1rem;line-height:1;flex-shrink:0}
 .ic-remove-btn:hover{background:var(--error-bg)}
 .ac-inv-header{text-align:center;border-bottom:2px solid var(--navy);padding-bottom:.8rem;margin-bottom:.9rem}
 .ac-inv-company{font-weight:800;color:var(--navy);font-size:1.05rem}
@@ -2892,7 +3011,7 @@ html,body{overscroll-behavior-x:none}
    BRANCHES
 ══════════════════════════════════════════════════════════════ */
 .br-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1rem}
-.br-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:1rem;cursor:pointer;transition:var(--tr)}
+.br-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:1rem;cursor:pointer;transition:var(--tr)}
 .br-card:hover{box-shadow:var(--sh);transform:translateY(-2px)}
 .br-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem}
 .br-card-name{font-weight:700;font-size:.92rem;color:var(--dark)}
@@ -3087,6 +3206,11 @@ html,body{overscroll-behavior-x:none}
       <button class="lang-btn active" id="lb-rw" onclick="setLang('rw')">RW</button>
       <button class="lang-btn" id="lb-en" onclick="setLang('en')">EN</button>
     </div>
+    <!-- Theme toggle (Light/Dark) — full Light/Dark/System choice lives in Settings -->
+    <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+    </button>
     <!-- Avatar (logged in) -->
     <div id="nav-avatar" onclick="openProfile()" style="display:none;width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;cursor:pointer;border:2px solid var(--gold)" role="button" tabindex="0">U</div>
     <!-- Saved Properties Button -->
@@ -3100,7 +3224,7 @@ html,body{overscroll-behavior-x:none}
       <span id="notif-badge" style="display:none;position:absolute;top:2px;right:2px;background:#e53e3e;color:#fff;border-radius:50%;font-size:.55rem;font-weight:700;width:14px;height:14px;align-items:center;justify-content:center">0</span>
     </button>
     <!-- Notification Dropdown Panel -->
-    <div id="notif-panel" style="display:none;position:absolute;top:56px;right:8px;width:300px;max-width:calc(100vw - 16px);background:#fff;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.13);z-index:9999;overflow:hidden">
+    <div id="notif-panel" style="display:none;position:absolute;top:56px;right:8px;width:300px;max-width:calc(100vw - 16px);background:var(--surface);border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.13);z-index:9999;overflow:hidden">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:.7rem 1rem;border-bottom:1px solid var(--border);background:var(--navy)">
         <span style="font-weight:700;font-size:.88rem;color:#fff">🔔 Notifications</span>
         <button onclick="closeNotifPanel()" style="background:none;border:none;color:#fff;font-size:1.1rem;cursor:pointer;line-height:1">×</button>
@@ -3116,7 +3240,7 @@ html,body{overscroll-behavior-x:none}
       <span id="inbox-badge" style="display:none;position:absolute;top:2px;right:2px;background:#7C3AED;color:#fff;border-radius:50%;font-size:.55rem;font-weight:700;width:14px;height:14px;align-items:center;justify-content:center">0</span>
     </button>
     <!-- Messages Inbox Panel (slide-in drawer) -->
-    <div id="inbox-panel" style="display:none;position:fixed;top:0;right:0;bottom:0;width:min(360px,100vw);background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:10001;flex-direction:column;overflow:hidden">
+    <div id="inbox-panel" style="display:none;position:fixed;top:0;right:0;bottom:0;width:min(360px,100vw);background:var(--surface);box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:10001;flex-direction:column;overflow:hidden">
       <div style="background:var(--navy);color:#fff;padding:.85rem 1rem;display:flex;align-items:center;gap:.6rem;flex-shrink:0">
         <button onclick="closeInbox()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;line-height:1;padding:.1rem .3rem;border-radius:4px;flex-shrink:0">&#8592;</button>
         <span style="font-weight:700;font-size:.95rem;flex:1" data-rw="Ubutumwa" data-en="Messages">Messages</span>
@@ -3125,7 +3249,7 @@ html,body{overscroll-behavior-x:none}
       <div id="inbox-list" style="flex:1;overflow-y:auto"></div>
     </div>
     <!-- Message Thread Panel (layered over inbox panel) -->
-    <div id="thread-panel" style="display:none;position:fixed;top:0;right:0;bottom:0;width:min(360px,100vw);background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:10002;flex-direction:column;overflow:hidden">
+    <div id="thread-panel" style="display:none;position:fixed;top:0;right:0;bottom:0;width:min(360px,100vw);background:var(--surface);box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:10002;flex-direction:column;overflow:hidden">
       <div style="background:var(--navy);color:#fff;padding:.85rem 1rem;display:flex;align-items:center;gap:.6rem;flex-shrink:0">
         <button onclick="closeThread()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;line-height:1;padding:.1rem .3rem;border-radius:4px;flex-shrink:0">&#8592;</button>
         <div style="flex:1;min-width:0">
@@ -3134,14 +3258,14 @@ html,body{overscroll-behavior-x:none}
         </div>
       </div>
       <div id="thread-messages" style="flex:1;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.5rem"></div>
-      <div style="flex-shrink:0;padding:.6rem;border-top:1px solid var(--border);display:flex;gap:.4rem;background:#fff">
+      <div style="flex-shrink:0;padding:.6rem;border-top:1px solid var(--border);display:flex;gap:.4rem;background:var(--surface)">
         <textarea id="thread-compose" rows="2" placeholder="Andika ubutumwa... / Type a message..." style="flex:1;resize:none;border:1.5px solid var(--border);border-radius:8px;padding:.5rem .7rem;font-family:'DM Sans',sans-serif;font-size:.84rem;outline:none;line-height:1.4" onkeydown="if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){sendThreadMessage()}"></textarea>
         <button onclick="sendThreadMessage()" style="background:var(--navy);color:#fff;border:none;border-radius:8px;padding:.5rem .8rem;font-weight:700;cursor:pointer;font-size:.8rem;align-self:flex-end;flex-shrink:0">&#9658;</button>
       </div>
     </div>
     <!-- Compose Modal -->
     <div id="compose-modal" style="display:none;position:fixed;inset:0;background:rgba(10,15,30,.55);z-index:10003;align-items:center;justify-content:center;padding:1rem">
-      <div style="background:#fff;border-radius:14px;width:100%;max-width:400px;overflow:hidden">
+      <div style="background:var(--surface);border-radius:14px;width:100%;max-width:400px;overflow:hidden">
         <div style="background:var(--navy);padding:.85rem 1rem;display:flex;align-items:center;justify-content:space-between">
           <span style="color:#fff;font-weight:700;font-size:.9rem" data-rw="Ubutumwa Bushya" data-en="New Message">New Message</span>
           <button onclick="closeCompose()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer">&#10005;</button>
@@ -3176,7 +3300,7 @@ html,body{overscroll-behavior-x:none}
 </nav>
 
 <!-- ═══ HAMBURGER DROPDOWN MENU ═══ -->
-<div id="hamburger-menu" style="display:none;position:fixed;top:76px;right:1rem;z-index:999;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.15);border:1.5px solid var(--border);min-width:220px;overflow:hidden">
+<div id="hamburger-menu" style="display:none;position:fixed;top:76px;right:1rem;z-index:999;background:var(--surface);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.15);border:1.5px solid var(--border);min-width:220px;overflow:hidden">
   <!-- User info (shown when logged in) -->
   <div id="hm-user-info" style="display:none;padding:.9rem 1rem;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff">
     <div style="font-weight:700;font-size:.9rem" id="hm-user-name">Umukoresha</div>
@@ -3292,6 +3416,26 @@ html,body{overscroll-behavior-x:none}
           <div><div style="font-size:.7rem;color:var(--muted)">Icyo Ashaka</div><div id="profile-preference" style="font-size:.9rem;font-weight:600">—</div></div>
         </div>
       </div>
+
+      <!-- ═══ APPEARANCE / THEME ═══ -->
+      <div style="margin-top:.4rem">
+        <label style="font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.5rem" data-rw="Imigaragarire" data-en="Appearance">Appearance</label>
+        <div class="theme-opt-row">
+          <button type="button" class="theme-opt" data-theme-choice="light" onclick="setTheme('light')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            <span data-rw="Umucyo" data-en="Light">Light</span>
+          </button>
+          <button type="button" class="theme-opt" data-theme-choice="dark" onclick="setTheme('dark')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            <span data-rw="Umwijima" data-en="Dark">Dark</span>
+          </button>
+          <button type="button" class="theme-opt" data-theme-choice="system" onclick="setTheme('system')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span data-rw="Sisitemu" data-en="System">System</span>
+          </button>
+        </div>
+      </div>
+
       <div style="display:flex;gap:.6rem;margin-top:.8rem">
         <button class="btn btn-navy btn-lg" style="flex:1;justify-content:center" onclick="openEditProfile()">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -3328,7 +3472,7 @@ html,body{overscroll-behavior-x:none}
         </div>
         <div>
           <label for="edit-preference" style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:.2rem">Icyo Nashaka</label>
-          <select id="edit-preference" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;box-sizing:border-box;background:#fff">
+          <select id="edit-preference" style="width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;box-sizing:border-box;background:var(--surface)">
             <option value="Kugura">Kugura</option>
             <option value="Kugurisha">Kugurisha</option>
             <option value="Gukoresha">Gukoresha</option>
@@ -3353,7 +3497,7 @@ html,body{overscroll-behavior-x:none}
 <!-- ═══ ADD PROPERTY MODAL ═══ -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="add-prop-modal">
   <div class="modal" style="max-width:500px;max-height:90vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border);padding-bottom:.8rem;flex-direction:column;align-items:stretch;gap:.6rem">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border);padding-bottom:.8rem;flex-direction:column;align-items:stretch;gap:.6rem">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div class="modal-title" data-rw="+ Andika Imitungo Nshya" data-en="+ Add New Property">+ Andika Imitungo Nshya</div>
         <button class="modal-x" onclick="closeAddProperty()" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -3457,7 +3601,7 @@ html,body{overscroll-behavior-x:none}
       </div>
       <!-- Investment Opportunity — admin/staff only -->
       <div id="prop-investment-section" style="display:none;flex-direction:column;gap:.7rem">
-        <div style="background:#fff8e1;border:1.5px solid var(--gold);border-radius:8px;padding:.7rem;font-size:.78rem;color:#7c5e10;font-weight:600">
+        <div style="background:var(--surface)8e1;border:1.5px solid var(--gold);border-radius:8px;padding:.7rem;font-size:.78rem;color:#7c5e10;font-weight:600">
           💼 Investment Opportunity (Investor Portal)
         </div>
         <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;font-weight:600;cursor:pointer">
@@ -3479,7 +3623,7 @@ html,body{overscroll-behavior-x:none}
         </div>
       </div>
       <!-- Documents section -->
-      <div style="background:#fff7e6;border:1.5px solid #f59e0b;border-radius:8px;padding:.7rem;font-size:.78rem;color:#92400e;font-weight:600">
+      <div style="background:var(--surface)7e6;border:1.5px solid #f59e0b;border-radius:8px;padding:.7rem;font-size:.78rem;color:#92400e;font-weight:600">
         📄 Inyandiko z'Imitungo (Documents)
       </div>
       <div class="field"><label>📋 LUC / Title Deed URL (Ntibisabwa)</label>
@@ -4033,8 +4177,8 @@ html,body{overscroll-behavior-x:none}
   <div class="wrap" style="padding-top:1.5rem;padding-bottom:5rem">
     <!-- Search + Filter bar -->
     <div style="display:flex;gap:.6rem;margin-bottom:1.2rem;flex-wrap:wrap">
-      <input type="text" id="agent-search-inp" oninput="filterAgentsPage()" placeholder="🔍 Shakisha agent ku izina cyangwa zone..." style="flex:1;min-width:180px;padding:.65rem .9rem;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;background:#fff">
-      <select id="agent-zone-filter" onchange="filterAgentsPage()" style="padding:.65rem .9rem;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;background:#fff" aria-label="Filter by zone">
+      <input type="text" id="agent-search-inp" oninput="filterAgentsPage()" placeholder="🔍 Shakisha agent ku izina cyangwa zone..." style="flex:1;min-width:180px;padding:.65rem .9rem;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;background:var(--surface)">
+      <select id="agent-zone-filter" onchange="filterAgentsPage()" style="padding:.65rem .9rem;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;background:var(--surface)" aria-label="Filter by zone">
         <option value="">📍 Turere Twose</option>
         <option value="Gasabo">Gasabo</option>
         <option value="Kicukiro">Kicukiro</option>
@@ -4411,7 +4555,7 @@ html,body{overscroll-behavior-x:none}
             </div>
             <span style="background:var(--blue);color:#fff;border-radius:100px;padding:.2rem .65rem;font-size:.68rem;font-weight:700">📥 Reba</span>
           </div>
-          <div style="margin-top:.5rem;padding:.9rem;background:#fff3cd;border:1px solid #ffc107;border-radius:10px;font-size:.8rem;color:#856404">
+          <div style="margin-top:.5rem;padding:.9rem;background:var(--surface)3cd;border:1px solid #ffc107;border-radius:10px;font-size:.8rem;color:#856404">
             ⚠️ Inyandiko zose zemejwe na KOMISIYONERI. Shakira agent wacu kugira ngo ubone kopi yuzuye.
           </div>
         </div>
@@ -4442,7 +4586,7 @@ html,body{overscroll-behavior-x:none}
       </div>
 
       <!-- Similar properties — Dynamic -->
-      <div style="background:#fff;border-radius:var(--r);border:1.5px solid var(--border);padding:1.3rem;box-shadow:var(--sh)">
+      <div style="background:var(--surface);border-radius:var(--r);border:1.5px solid var(--border);padding:1.3rem;box-shadow:var(--sh)">
         <div style="font-size:.88rem;font-weight:700;margin-bottom:1rem" data-rw="Imitungo Ifanana" data-en="Similar Properties">Imitungo Ifanana</div>
         <div id="similar-props-list" style="display:flex;flex-direction:column;gap:.6rem">
           <!-- Filled by JS -->
@@ -4733,7 +4877,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === ADMIN PANEL MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="admin-modal">
   <div class="modal" style="max-width:600px;max-height:92vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
         <div class="modal-title" style="color:var(--navy)">🔐 Admin Panel</div>
         <button onclick="openAdminAddProp()" style="background:var(--navy);color:#fff;border:none;padding:.4rem .9rem;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:700;display:flex;align-items:center;gap:.3rem">
@@ -6907,7 +7051,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === SITE SUBMIT MODAL (multi-step) === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="site-submit-modal">
   <div class="modal" style="max-width:560px;max-height:92vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title" id="site-modal-title" data-rw="Ongeramo Site Nshya" data-en="Add New Development Site">Add New Development Site</div>
       <button class="modal-x" onclick="closeSiteSubmit()" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
@@ -7124,7 +7268,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === MY PROPERTIES MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="my-props-modal">
   <div class="modal" style="max-width:500px;max-height:90vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">🏠 Imitungo Yange</div>
       <button class="modal-x" onclick="document.getElementById('my-props-modal').style.display='none'" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
@@ -7251,7 +7395,7 @@ html,body{overscroll-behavior-x:none}
       <div class="field">
         <label for="phone-country">Numero ya Telefoni</label>
         <div style="display:flex;gap:.5rem">
-          <select id="phone-country" style="padding:.7rem .5rem;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;font-family:'DM Sans',sans-serif;background:#fff">
+          <select id="phone-country" style="padding:.7rem .5rem;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;font-family:'DM Sans',sans-serif;background:var(--surface)">
             <option value="+250">🇷🇼 +250</option>
             <option value="+256">🇺🇬 +256</option>
             <option value="+255">🇹🇿 +255</option>
@@ -7290,7 +7434,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === AGENT REGISTRATION MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="agent-reg-modal">
   <div class="modal" style="max-width:520px;max-height:92vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">👔 Iyandikishe nka Agent wa KOMISIYONERI</div>
       <button class="modal-x" onclick="closeAgentReg()" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
@@ -7404,7 +7548,7 @@ html,body{overscroll-behavior-x:none}
       </div>
       <div class="field">
         <label>Deposit ya Kwemeza Iyandikishe (Ntibisabwa ubu)</label>
-        <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:.7rem;font-size:.8rem">
+        <div style="background:var(--surface)3cd;border:1px solid #ffc107;border-radius:8px;padding:.7rem;font-size:.8rem">
           ⚠️ Deposit ya 50,000 RWF izasabwa nyuma — ibikwa kugeza amasezerano arangira neza.
         </div>
       </div>
@@ -7480,7 +7624,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === LEAD DETAIL MODAL (Phase 2 — CRM) === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="lead-detail-modal">
   <div class="modal" style="max-width:520px;width:95%;max-height:92vh;overflow-y:auto">
-    <button class="modal-x" onclick="closeLeadDetail()" style="position:sticky;top:0;z-index:10;float:right;background:#fff;border:none;cursor:pointer;font-size:1.1rem;padding:.3rem .5rem;color:var(--muted)">✕</button>
+    <button class="modal-x" onclick="closeLeadDetail()" style="position:sticky;top:0;z-index:10;float:right;background:var(--surface);border:none;cursor:pointer;font-size:1.1rem;padding:.3rem .5rem;color:var(--muted)">✕</button>
     <div style="padding:.2rem 0 .6rem">
       <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:.3rem" data-rw="IKIBAZO CY'UMUKILIYA" data-en="CLIENT LEAD">CLIENT LEAD</div>
       <h2 id="ld-client-name" style="font-size:1.2rem;font-weight:800;color:var(--navy);margin-bottom:.2rem">—</h2>
@@ -7579,7 +7723,7 @@ html,body{overscroll-behavior-x:none}
       <button class="btn" id="ld-schedule-viewing-btn" style="flex:1;min-width:110px;justify-content:center;font-size:.82rem;background:#7C3AED;color:#fff;border:none" onclick="openViewingScheduler(document.getElementById('ld-lead-id').value)">
         &#128197; <span data-rw="Shyiraho Gusura" data-en="Schedule Viewing">Schedule Viewing</span>
       </button>
-      <button class="btn" id="ld-convert-deal-btn" style="flex:1;min-width:110px;justify-content:center;font-size:.82rem;background:var(--gold);color:var(--dark)" onclick="convertLeadToDeal(document.getElementById('ld-lead-id').value)">
+      <button class="btn" id="ld-convert-deal-btn" style="flex:1;min-width:110px;justify-content:center;font-size:.82rem;background:var(--gold);color:var(--on-gold)" onclick="convertLeadToDeal(document.getElementById('ld-lead-id').value)">
         &#128188; <span data-rw="Kora Deal" data-en="Convert to Deal">Convert to Deal</span>
       </button>
     </div>
@@ -7803,7 +7947,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === COMMISSION DETAIL MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="commission-detail-modal">
   <div class="modal" style="max-width:540px;max-height:92vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">💰 <span id="cd2-title" data-rw="Ibisobanuro bya Komisiyoni" data-en="Commission Details">Commission Details</span></div>
       <button class="modal-x" onclick="closeCommissionDetail()" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
@@ -7886,7 +8030,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === PAYSLIP MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="payslip-modal">
   <div class="modal" style="max-width:500px;max-height:92vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">📄 <span data-rw="Payslip" data-en="Commission Payslip">Commission Payslip</span></div>
       <div style="display:flex;gap:.5rem;align-items:center">
         <button class="btn btn-navy btn-sm" onclick="window.print()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> <span data-rw="Sohora" data-en="Print">Print</span></button>
@@ -8020,7 +8164,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === VERIFICATION DETAIL MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="verification-detail-modal">
   <div class="modal" style="max-width:520px;max-height:92vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">🛡️ <span id="vd-title">Service Details</span></div>
       <button class="modal-x" onclick="closeVerificationDetail()" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
@@ -8109,7 +8253,7 @@ html,body{overscroll-behavior-x:none}
       </div>
       <div class="vr-field">
         <label data-rw="Shyira Dosiye Hano" data-en="Upload File" for="du-file">Upload File (PDF / DOC / Image)</label>
-        <input type="file" id="du-file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif" style="width:100%;padding:.5rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;box-sizing:border-box;background:#fff;cursor:pointer">
+        <input type="file" id="du-file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif" style="width:100%;padding:.5rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;box-sizing:border-box;background:var(--surface);cursor:pointer">
         <div id="du-upload-progress" style="display:none;margin-top:.4rem">
           <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden">
             <div id="du-progress-bar" style="background:var(--navy);height:100%;border-radius:4px;width:0%;transition:width .3s ease"></div>
@@ -8160,7 +8304,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === DOCUMENT VIEW MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="document-view-modal">
   <div class="modal" style="max-width:540px;max-height:92vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">📄 <span id="dv-title">Document</span></div>
       <button class="modal-x" onclick="closeDocumentView()" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
@@ -8222,7 +8366,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === CONTRACT GENERATOR MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="contract-generator-modal">
   <div class="modal" style="max-width:560px;width:95%;max-height:92vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">📜 <span data-rw="Inyandiko y'Amasezerano" data-en="Contract Generator">Contract Generator</span></div>
       <button class="modal-x" onclick="closeContractGenerator()" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
@@ -8363,7 +8507,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === PARTNER DETAIL MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="partner-detail-modal">
   <div class="modal" style="max-width:520px;max-height:92vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">🤝 <span id="pd-name">Partner</span></div>
       <button class="modal-x" onclick="closePartnerDetail()" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
@@ -8519,7 +8663,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === LOAN APPLICATION MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="loan-apply-modal">
   <div class="modal" style="max-width:560px;width:95%;max-height:92vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">📋 <span data-rw="Gusaba Inguzanyo" data-en="Loan Application">Loan Application</span></div>
       <button onclick="closeLoanApply()" class="modal-close">✕</button>
     </div>
@@ -8690,7 +8834,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === LOAN DETAIL MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="loan-detail-modal">
   <div class="modal" style="max-width:560px;width:95%;max-height:92vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">📋 <span data-rw="Ibirenzeho by'Inguzanyo" data-en="Loan Application Detail">Loan Application Detail</span></div>
       <button onclick="closeLoanDetail()" class="modal-close">✕</button>
     </div>
@@ -8892,7 +9036,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === OFFICE: TASK DETAIL MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="task-detail-modal">
   <div class="modal" style="max-width:560px;max-height:90vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title" data-en="Task Detail" data-rw="Amakuru y'Umurimo">Task Detail</div>
       <button class="modal-close" onclick="closeTaskDetail()">&times;</button>
     </div>
@@ -9003,7 +9147,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === HR: STAFF PROFILE MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="staff-profile-modal">
   <div class="modal" style="max-width:540px;max-height:90vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title" data-rw="Profil y'Umukozi" data-en="Staff Profile">Staff Profile</div>
       <button class="modal-close" onclick="closeStaffProfile()">&times;</button>
     </div>
@@ -9096,7 +9240,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === HR: PAYSLIP CREATE MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="payslip-create-modal">
   <div class="modal" style="max-width:560px;max-height:92vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title" data-rw="Kora Payslip" data-en="Generate Payslip">Generate Payslip</div>
       <button class="modal-close" onclick="closePayslipCreate()">&times;</button>
     </div>
@@ -9173,7 +9317,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === HR: PAYSLIP DETAIL MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="payslip-detail-modal">
   <div class="modal" style="max-width:520px;max-height:90vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title" data-rw="Amakuru ya Payslip" data-en="Payslip Detail">Payslip Detail</div>
       <button class="modal-close" onclick="closePayslipDetail()">&times;</button>
     </div>
@@ -9214,7 +9358,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === ACCOUNTING: INVOICE CREATE MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="invoice-create-modal">
   <div class="modal" style="max-width:600px;max-height:92vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title" data-rw="Ongera Invoice" data-en="Create Invoice">Create Invoice</div>
       <button class="modal-close" onclick="closeInvoiceCreate()">&times;</button>
     </div>
@@ -9275,7 +9419,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === ACCOUNTING: INVOICE DETAIL MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="invoice-detail-modal">
   <div class="modal" style="max-width:560px;max-height:92vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title" data-rw="Amakuru ya Invoice" data-en="Invoice Detail">Invoice Detail</div>
       <button class="modal-close" onclick="closeInvoiceDetail()">&times;</button>
     </div>
@@ -9393,7 +9537,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === ESCROW / DEAL TRACKER MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="deal-modal">
   <div class="modal" style="max-width:500px;max-height:92vh;overflow-y:auto">
-    <div class="modal-hdr" style="position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid var(--border)">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">📊 Deal Tracker — Ikurikirana Transaction</div>
       <button class="modal-x" onclick="document.getElementById('deal-modal').style.display='none'" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
@@ -10185,6 +10329,84 @@ function isInternalTeam(user) { return ROLE_TIERS.INTERNAL_TEAM.indexOf(_roleOf(
 // larger gap this doesn't attempt to fully close).
 function canViewExecDash(user) { return isExec(user) || ['investor', 'company_owner'].indexOf(_roleOf(user)) > -1; }
 
+// ── THEME SYSTEM (Light / Dark / System) ────────────────────────────────
+// Single source of truth for the whole app. Persistence precedence on load
+// is: Firestore users/{uid}.themePref (synced into localStorage the moment
+// restoreUserSession() reads it) > localStorage 'km_theme' > 'system'. The
+// actual FIRST paint already applied one of these via the tiny inline
+// <script> at the very top of <head> (before any CSS loads) so there is
+// never a flash of the wrong theme — everything here is for *live* changes
+// after that first paint.
+var THEME_STORAGE_KEY = 'km_theme';
+var THEME_META_COLOR = { light: '#0D3B8C', dark: '#0A1220' };
+
+function getThemePref() {
+  try { return localStorage.getItem(THEME_STORAGE_KEY) || 'system'; }
+  catch (e) { return 'system'; }
+}
+function resolveTheme(pref) {
+  if (pref === 'system') {
+    return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  }
+  return pref === 'dark' ? 'dark' : 'light';
+}
+function getEffectiveTheme() { return resolveTheme(getThemePref()); }
+
+// Applies the resolved theme to the DOM. `pref` is the user's raw choice
+// ('light'|'dark'|'system'); the actually-rendered theme is always resolved
+// from it so 'system' stays live-reactive to OS changes (see the
+// matchMedia listener below) without ever being written to the DOM as-is.
+function applyTheme(pref) {
+  var resolved = resolveTheme(pref);
+  var root = document.documentElement;
+  // Smooth 200-300ms cross-fade (see html.theme-transitioning in <style>),
+  // scoped to a short-lived class so normal hover/focus transitions
+  // elsewhere on the page aren't slowed down permanently.
+  root.classList.add('theme-transitioning');
+  root.setAttribute('data-theme', resolved);
+  var metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (metaTheme) metaTheme.setAttribute('content', THEME_META_COLOR[resolved]);
+  window.setTimeout(function () { root.classList.remove('theme-transitioning'); }, 300);
+  document.querySelectorAll('.theme-opt').forEach(function (el) {
+    el.classList.toggle('active', el.getAttribute('data-theme-choice') === pref);
+  });
+}
+
+// Public setter — call this from any UI (nav icon, Settings radio group).
+// Persists to localStorage always (guests included, per spec), and mirrors
+// to the logged-in user's Firestore doc so the preference follows them
+// across devices. themePref is in the users/{uid} self-editable field
+// allowlist in firestore.rules — same tier as phone/location/photoURL,
+// not a privileged field.
+function setTheme(pref) {
+  try { localStorage.setItem(THEME_STORAGE_KEY, pref); } catch (e) {}
+  applyTheme(pref);
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.uid && typeof db !== 'undefined') {
+    db.collection('users').doc(currentUser.uid).update({
+      themePref: pref,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy: currentUser.uid
+    }).catch(function (e) { console.warn('[Theme] failed to sync themePref to Firestore:', e.code || '', e.message); });
+  }
+}
+
+// Nav icon quick-toggle — always flips between explicit light/dark (rather
+// than cycling through 'system' too), so one click always has a
+// predictable, visible effect regardless of what "system" currently
+// resolves to. The full three-way choice lives in Settings.
+function toggleTheme() {
+  setTheme(getEffectiveTheme() === 'dark' ? 'light' : 'dark');
+}
+
+// Live-react to an OS-level theme change while the user's choice is
+// 'system' — e.g. the device switches to Dark Mode at sunset.
+if (window.matchMedia) {
+  var _themeMedia = window.matchMedia('(prefers-color-scheme: dark)');
+  var _onSystemThemeChange = function () { if (getThemePref() === 'system') applyTheme('system'); };
+  if (_themeMedia.addEventListener) _themeMedia.addEventListener('change', _onSystemThemeChange);
+  else if (_themeMedia.addListener) _themeMedia.addListener(_onSystemThemeChange); // Safari < 14
+}
+
 // Default to "open" immediately rather than leaving window._listingsOpen
 // undefined (falsy) until applyPlatformFlags() runs on DOMContentLoaded —
 // that gate lives in openAddProperty(), and anything that can call it
@@ -10315,6 +10537,28 @@ function restoreUserSession(fbUser) {
         provider: provider,
         date: (fsData.createdAt && fsData.createdAt.toDate) ? fsData.createdAt.toDate().toISOString() : new Date().toISOString()
       };
+      // Pull the theme preference set on another device into this session —
+      // only when Firestore actually has one recorded; a guest preference
+      // already sitting in localStorage on this device is left alone
+      // otherwise (e.g. a first-time Google sign-in shouldn't silently wipe
+      // a dark-mode choice made before signing in).
+      if (fsData.themePref && fsData.themePref !== getThemePref()) {
+        try { localStorage.setItem(THEME_STORAGE_KEY, fsData.themePref); } catch (e) {}
+        applyTheme(fsData.themePref);
+      } else if (!fsData.themePref) {
+        // First login on a device that already had a local preference (or
+        // the very first login ever, still on the 'system' default) —
+        // adopt it as this account's profile preference going forward.
+        // Written directly against fbUser.uid rather than via setTheme()'s
+        // currentUser-based sync: currentUser is still the *previous*
+        // session's value (or null) at this point — saveUser() below is
+        // what actually assigns it for this restored session.
+        db.collection('users').doc(fbUser.uid).update({
+          themePref: getThemePref(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedBy: fbUser.uid
+        }).catch(function (e) { console.warn('[Theme] failed to seed themePref on login:', e.code || '', e.message); });
+      }
     } else {
       console.log('[AUTH] restoreUserSession: users/' + fbUser.uid + ' doc does NOT exist — creating new profile (role=client)');
       user = {
@@ -11998,6 +12242,11 @@ window.addEventListener('DOMContentLoaded', function() {
   // and actively wrong.
   setLang('rw');
   initChat();
+  // The inline <head> script already set data-theme before first paint (no
+  // flash of the wrong theme); this call just syncs the toggle icon and the
+  // Settings panel's active-option styling now that they exist in the DOM,
+  // without needing its own theme-color/localStorage side effects to re-run.
+  applyTheme(getThemePref());
 });
 
 // ============================================
@@ -12100,7 +12349,7 @@ function renderUserPropCard(prop) {
     + '</div>'
     + '<div class="p-card-footer">'
     +   '<button class="p-btn-detail" onclick="openPropDetail(\'' + pid + '\')">' + t('viewDetail') + '</button>'
-    +   '<button title="Add to Compare" onclick="event.stopPropagation();addToCompare(\'' + pid + '\')" style="padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:.82rem;color:var(--muted);transition:var(--tr)" onmouseover="this.style.borderColor=\'var(--navy)\';this.style.color=\'var(--navy)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--muted)\'">⚖️</button>'
+    +   '<button title="Add to Compare" onclick="event.stopPropagation();addToCompare(\'' + pid + '\')" style="padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-size:.82rem;color:var(--muted);transition:var(--tr)" onmouseover="this.style.borderColor=\'var(--navy)\';this.style.color=\'var(--navy)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--muted)\'">⚖️</button>'
     +   '<button class="p-btn-wa" onclick="event.stopPropagation();window.open(\'https://wa.me/' + waPhone + '?text=' + waText + '\',\'_blank\')">'
     +     '<svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>'
     +     'WhatsApp'
@@ -13986,7 +14235,7 @@ function openAdminLeads() {
 
   var html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1rem">'
     + '<div style="background:var(--light);border-radius:10px;padding:.8rem;text-align:center"><div style="font-size:1.5rem;font-weight:700;color:var(--navy)">'+leads.length+'</div><div style="font-size:.7rem;color:var(--muted)">Leads Zose</div></div>'
-    + '<div style="background:#fff3cd;border-radius:10px;padding:.8rem;text-align:center"><div style="font-size:1.5rem;font-weight:700;color:#856404">'+newLeads+'</div><div style="font-size:.7rem;color:var(--muted)">Nshya</div></div>'
+    + '<div style="background:var(--surface)3cd;border-radius:10px;padding:.8rem;text-align:center"><div style="font-size:1.5rem;font-weight:700;color:#856404">'+newLeads+'</div><div style="font-size:.7rem;color:var(--muted)">Nshya</div></div>'
     + '<div style="background:#d4edda;border-radius:10px;padding:.8rem;text-align:center"><div style="font-size:1.5rem;font-weight:700;color:#27A84A">'+closedLeads+'</div><div style="font-size:.7rem;color:var(--muted)">Zarangiye</div></div>'
     + '</div>'
 
@@ -14069,7 +14318,7 @@ function loadCareersPage() {
       return;
     }
     el.innerHTML = postings.map(function(p) {
-      return '<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:1.3rem;margin-bottom:1rem">'
+      return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.3rem;margin-bottom:1rem">'
         + '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem">'
         + '<div><div style="font-weight:700;font-size:1.05rem;color:var(--navy)">' + escapeHtml(p.title || '') + '</div>'
         + '<div style="font-size:.82rem;color:var(--muted);margin-top:.2rem">' + escapeHtml(p.location || '') + (p.employmentType ? ' — ' + (JOB_EMPLOYMENT_LABELS[p.employmentType] || p.employmentType) : '') + '</div></div>'
@@ -15024,7 +15273,7 @@ function openPWAInstallModal() {
   modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;padding:1rem';
   
   var box = document.createElement('div');
-  box.style.cssText = 'background:#fff;border-radius:20px;width:100%;max-width:440px;overflow:hidden';
+  box.style.cssText = 'background:var(--surface);border-radius:20px;width:100%;max-width:440px;overflow:hidden';
   box.innerHTML = '<div style="background:linear-gradient(135deg,#0D3B8C,#1657CC);padding:1.2rem;text-align:center;color:#fff">'
     + '<div style="font-size:2.2rem">📱</div>'
     + '<div style="font-weight:700;font-size:1rem;margin-top:.3rem">Shyiraho KOMISIYONERI</div>'
@@ -15036,7 +15285,7 @@ function openPWAInstallModal() {
     + '💡 App izagaragara kuri Home Screen nk\'icon ya KOMISIYONERI!</div>'
     + '</div>'
     + '<div style="display:flex;gap:.6rem;padding:.6rem 1.2rem 1.2rem">'
-    + '<button id="pwa-close-b" style="flex:1;padding:.75rem;border:1.5px solid #e5e7eb;border-radius:10px;background:#fff;font-size:.85rem;cursor:pointer;font-family:sans-serif">Funga</button>'
+    + '<button id="pwa-close-b" style="flex:1;padding:.75rem;border:1.5px solid #e5e7eb;border-radius:10px;background:var(--surface);font-size:.85rem;cursor:pointer;font-family:sans-serif">Funga</button>'
     + '<button id="pwa-ok-b" style="flex:2;padding:.75rem;background:#0D3B8C;color:#fff;border:none;border-radius:10px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:sans-serif">Nzabigeraho ✓</button>'
     + '</div>';
 
@@ -15287,7 +15536,7 @@ function renderAgentsGrid(agents) {
     var langs = (agent.languages||[]).join(' · ');
     var transport = agent.transport === 'car' ? '🚗 Imodoka' : agent.transport === 'boda' ? '🏍️ Boda' : '—';
 
-    return '<div style="background:#fff;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)">'
+    return '<div style="background:var(--surface);border-radius:14px;border:1.5px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)">'
       // Header
       + '<div style="background:linear-gradient(135deg,var(--navy),var(--blue));padding:1rem;display:flex;align-items:center;gap:.8rem">'
       +   '<div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0;border:2px solid var(--gold)">' + initials + '</div>'
@@ -15430,7 +15679,7 @@ function renderAdminReferrals() {
     var statusBg = { registered:'#F1F5F9', qualified:'#DCFCE7', rewarded:'#FEF9C3' };
     var sc = statusColor[r.status] || 'var(--muted)';
     var sb = statusBg[r.status] || '#F1F5F9';
-    html += '<div style="background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:.75rem 1rem;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">'
+    html += '<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.75rem 1rem;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">'
       + '<div style="flex:1;min-width:140px">'
       + '<div style="font-size:.82rem;font-weight:700;color:var(--dark)">' + escapeHtml(r.referredEmail || r.referredUserId || 'Unknown') + '</div>'
       + '<div style="font-size:.7rem;color:var(--muted)">Referred by: <span style="color:var(--navy);font-weight:600">' + escapeHtml(r.referrerCode || r.referrerId || '—') + '</span></div>'
@@ -15555,7 +15804,7 @@ function injectRealDepositForm() {
           '<div id="dep-m4" onclick="selectDepMethod(this)" style="border:1.5px solid var(--border);border-radius:8px;padding:.6rem;text-align:center;cursor:pointer" role="button" tabindex="0"><div style="font-weight:700;font-size:.82rem">🏦 Bank Transfer</div></div>' +
         '</div>' +
       '</div>' +
-      '<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:.7rem;font-size:.78rem;color:#856404">⚠️ Deposit igarukira kuri account ya KOMISIYONERI. Amasezerano azakufikira mu masaha 24.</div>' +
+      '<div style="background:var(--surface)3cd;border:1px solid #ffc107;border-radius:8px;padding:.7rem;font-size:.78rem;color:#856404">⚠️ Deposit igarukira kuri account ya KOMISIYONERI. Amasezerano azakufikira mu masaha 24.</div>' +
       '<button class="btn btn-gold btn-lg" style="width:100%;justify-content:center" onclick="submitDeposit()">' +
         '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' +
         ' Emeza Kwishyura Deposit' +
@@ -15634,7 +15883,7 @@ function renderAdminPlatform() {
     '</div>';
   }
   function group(title, rows) {
-    return '<div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:1rem 1.2rem;margin-bottom:.8rem">' +
+    return '<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:1rem 1.2rem;margin-bottom:.8rem">' +
       '<div style="font-size:.7rem;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem">' + title + '</div>' +
       rows +
     '</div>';
@@ -15752,14 +16001,14 @@ function _loadFsPendingUsers() {
     .get()
     .then(function(snap) {
       if (snap.empty) { wrap.innerHTML = ''; return; }
-      var html = '<div style="background:#fff3cd;border:1.5px solid #ffc107;border-radius:10px;padding:.75rem 1rem;margin-bottom:.75rem">'
+      var html = '<div style="background:var(--surface)3cd;border:1.5px solid #ffc107;border-radius:10px;padding:.75rem 1rem;margin-bottom:.75rem">'
         + '<div style="font-weight:700;font-size:.82rem;color:#7c3a00;margin-bottom:.6rem">&#9203; ' + snap.size + ' user(s) bategereje kwemezwa (Firestore)</div>'
         + '<div id="adm-fs-pending-rows">';
       snap.forEach(function(doc) {
         var u = doc.data();
         var uid = doc.id;
         var roleLabel = u.role === 'agent' ? '&#128084; Agent' : (u.role || 'client');
-        html += '<div style="border:1px solid rgba(0,0,0,.1);border-radius:8px;padding:.6rem .8rem;margin-bottom:.5rem;background:#fffef0;display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap">'
+        html += '<div style="border:1px solid rgba(0,0,0,.1);border-radius:8px;padding:.6rem .8rem;margin-bottom:.5rem;background:var(--surface)ef0;display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap">'
           + '<div style="flex:1">'
           + '<div style="font-weight:700;font-size:.85rem;color:var(--navy)">' + escapeHtml(u.displayName || u.name || '—') + '</div>'
           + '<div style="font-size:.73rem;color:var(--muted)">&#128231; ' + escapeHtml(u.email || '—') + ' | &#128222; ' + escapeHtml(u.phone || '—') + '</div>'
@@ -15870,7 +16119,7 @@ function _renderAdminAgentsList() {
 
   var pending = agents.filter(function(a){ return a.status === 'Pending Verification'; });
   var pendingBanner = pending.length > 0
-    ? '<div style="background:#fff3cd;border:1.5px solid #ffc107;border-radius:8px;padding:.6rem .9rem;margin-bottom:.7rem;font-size:.8rem;font-weight:600">⏳ ' + pending.length + ' agent(s) bategereje kwemezwa</div>'
+    ? '<div style="background:var(--surface)3cd;border:1.5px solid #ffc107;border-radius:8px;padding:.6rem .9rem;margin-bottom:.7rem;font-size:.8rem;font-weight:600">⏳ ' + pending.length + ' agent(s) bategereje kwemezwa</div>'
     : '';
 
   list.innerHTML = pendingBanner + '<div style="font-weight:700;font-size:.82rem;color:var(--navy);margin-bottom:.7rem">Agents '+ agents.length +' — Shinja cyangwa Emeza</div>'
@@ -15879,7 +16128,7 @@ function _renderAdminAgentsList() {
     var isPending = agent.status === 'Pending Verification';
     var statusColor = isActive ? '#27A84A' : isPending ? '#F5A623' : '#718096';
 
-    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.6rem;background:#fff">'
+    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.6rem;background:var(--surface)">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">'
       +   '<div style="flex:1">'
       +     '<div style="font-weight:700;font-size:.88rem;color:var(--navy)">' + (agent.name||'—') + '</div>'
@@ -16026,7 +16275,7 @@ function _renderAdminDealsList() {
     var statusColor = lead.status==='Closed'?'#27A84A':lead.status==='Active'?'var(--blue)':'#F5A623';
     var commission = lead.budgetMax ? Math.round(parseInt(lead.budgetMax) * 0.04).toLocaleString() + ' RWF' : '—';
 
-    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.6rem;background:#fff">'
+    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.6rem;background:var(--surface)">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
       +   '<div>'
       +     '<div style="font-weight:700;font-size:.85rem;color:var(--navy)">' + (lead.clientName||'—') + '</div>'
@@ -17387,7 +17636,7 @@ function openAssignBranch(userId, currentBranchId) {
   select.innerHTML = opts;
   select.style.cssText = 'width:100%;padding:.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;margin-bottom:.7rem';
   var div = document.createElement('div');
-  div.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:14px;padding:1.2rem;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:9999;min-width:280px';
+  div.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border-radius:14px;padding:1.2rem;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:9999;min-width:280px';
   div.innerHTML = '<div style="font-weight:700;color:var(--navy);margin-bottom:.8rem" data-en="Assign to Branch" data-rw="Gera ku Ishami">Assign to Branch</div>';
   div.appendChild(select);
   var btnRow = document.createElement('div');
@@ -19747,7 +19996,7 @@ function assignStaffDepartment(userId, currentDeptId) {
   select.innerHTML = opts;
   select.style.cssText = 'width:100%;padding:.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;margin-bottom:.7rem';
   var div = document.createElement('div');
-  div.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:14px;padding:1.2rem;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:9999;min-width:280px';
+  div.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border-radius:14px;padding:1.2rem;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:9999;min-width:280px';
   div.innerHTML = '<div style="font-weight:700;color:var(--navy);margin-bottom:.8rem" data-en="Assign to Department" data-rw="Gera ku Ishami">Assign to Department</div>';
   div.appendChild(select);
   var btnRow = document.createElement('div');
@@ -30475,7 +30724,7 @@ function _ensureViewingDetailModal(v, viewingId) {
       + '</div>'
     : '';
 
-  m.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.22)">'
+  m.innerHTML = '<div style="background:var(--surface);border-radius:16px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.22)">'
     + '<div style="padding:1.1rem 1.3rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#7C3AED,#A855F7);color:#fff">'
     + '<div><div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;opacity:.8;margin-bottom:.1rem">VIEWING DETAIL</div>'
     + '<h3 style="margin:0;font-size:.98rem;font-weight:700">' + escapeHtml(v.propertyTitle || (curLang==='rw'?'Imitungo':'Property')) + '</h3></div>'
@@ -31471,7 +31720,7 @@ function _ensureFavModal() {
   var modal = document.createElement('div');
   modal.id = 'fav-modal';
   modal.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:1rem';
-  modal.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:820px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.22)">'
+  modal.innerHTML = '<div style="background:var(--surface);border-radius:16px;width:100%;max-width:820px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.22)">'
     + '<div style="padding:1.4rem 1.6rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff">'
     + '<div><h3 style="margin:0;font-size:1.1rem;font-weight:700">❤️ <span data-rw="Imitungo Mwibitse" data-en="Saved Properties">Saved Properties</span></h3>'
     + '<p style="margin:.2rem 0 0;font-size:.76rem;opacity:.8" id="fav-count-label"></p></div>'
@@ -31617,7 +31866,7 @@ function _ensureAgentLeadModal() {
   var modal = document.createElement('div');
   modal.id = 'agent-lead-modal';
   modal.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:1rem';
-  modal.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:540px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.22)">'
+  modal.innerHTML = '<div style="background:var(--surface);border-radius:16px;width:100%;max-width:540px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.22)">'
     /* Header */
     + '<div style="padding:1.2rem 1.4rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff">'
     + '<div><div style="font-size:.64rem;text-transform:uppercase;letter-spacing:.1em;opacity:.8;margin-bottom:.15rem">CRM</div>'
