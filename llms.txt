@@ -31,6 +31,7 @@ KOMISIYONERI Connectpro Services Ltd is based in Kigali, Rwanda, founded in 2024
 ## Key pages
 - Home: https://komisiyoneri.co.rw/
 - Property listings: https://komisiyoneri.co.rw/listings
+- Market analytics: https://komisiyoneri.co.rw/analytics
 - Agent directory: https://komisiyoneri.co.rw/agents
 - About: https://komisiyoneri.co.rw/about
 

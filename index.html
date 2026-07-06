@@ -13,9 +13,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
 <!-- ── PRIMARY SEO ── -->
-<title>KOMISIYONERI | Kugura, Kugurisha & Gukodesha Imitungo mu Rwanda</title>
-<meta name="description" content="Platform N°1 y'imitungo mu Rwanda. Kugura, kugurisha, no gukodesha imitungo i Kigali, no mugihugu hose — AI Analytics, Virtual Tours 3D, agents bemewe.">
-<meta name="keywords" content="Rwanda real estate, imitungo Rwanda, kugura inzu Kigali, kugurishia inzu Rwanda, commission agent Rwanda, property Rwanda, Kigali houses for sale, Rwanda property market, real estate Kigali, inzu Kigali, ubutaka Rwanda">
+<title>KOMISIYONERI — Rwanda's Real Estate Operating System</title>
+<meta name="description" content="KOMISIYONERI is Rwanda's Real Estate Operating System — search, buy, sell & rent verified property in Kigali and all 30 districts, with AI valuations, 3D tours & a vetted agent network.">
+<meta name="keywords" content="Rwanda real estate operating system, Rwanda real estate, imitungo Rwanda, kugura inzu Kigali, kugurishia inzu Rwanda, commission agent Rwanda, property Rwanda, Kigali houses for sale, Rwanda property market, real estate Kigali, inzu Kigali, ubutaka Rwanda">
 <meta name="author" content="KOMISIYONERI Connectpro Services Ltd">
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
 <meta name="language" content="Kinyarwanda, English">
@@ -33,8 +33,8 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KOMISIYONERI Connectpro Services">
 <meta property="og:url" content="https://komisiyoneri.co.rw/">
-<meta property="og:title" content="KOMISIYONERI — Imitungo mu Rwanda | Rwanda Real Estate">
-<meta property="og:description" content="Platform N°1 y'imitungo mu Rwanda. Shakisha, gura, cyangwa ugurisha inzu ukoresha AI, Virtual Tours 3D, n'agents bemewe muri akarere 30 ka Rwanda.">
+<meta property="og:title" content="KOMISIYONERI — Rwanda's Real Estate Operating System">
+<meta property="og:description" content="A unified marketplace, verified agent network, and deal-management platform connecting buyers, sellers, agents & investors across all 30 districts of Rwanda.">
 <meta property="og:image" content="https://komisiyoneri.co.rw/images/kigali-skyline.jpg">
 <meta property="og:image:width" content="1536">
 <meta property="og:image:height" content="1024">
@@ -46,8 +46,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@komisiyoneri">
 <meta name="twitter:creator" content="@komisiyoneri">
-<meta name="twitter:title" content="KOMISIYONERI — Rwanda Real Estate Platform">
-<meta name="twitter:description" content="Shakisha, gura, cyangwa ugurisha inzu mu Rwanda ukoresha AI, Virtual Tours 3D, n'agents bemewe muri akarere 30 ka Rwanda.">
+<meta name="twitter:title" content="KOMISIYONERI — Rwanda's Real Estate Operating System">
+<meta name="twitter:description" content="Search, buy, sell & rent verified property across all 30 districts of Rwanda — AI valuations, 3D tours, and a vetted agent network.">
 <meta name="twitter:image" content="https://komisiyoneri.co.rw/images/kigali-skyline.jpg">
 
 <!-- ── PWA / MOBILE APP ── -->
@@ -63,9 +63,18 @@
 
 <link rel="manifest" href="/manifest.json">
 
-<!-- ── FAVICON ── -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230D3B8C'/><path d='M20 70 L50 30 L80 70 M35 70 L35 52 L65 52 L65 70' stroke='white' stroke-width='7' fill='none' stroke-linejoin='round' stroke-linecap='round'/></svg>">
-<link rel="apple-touch-icon" href="/icon-192.svg">
+<!-- ── FAVICON ──
+     Real files, not a data-URI, and not the old placeholder house glyph —
+     Google's favicon crawler needs a genuinely fetchable, cacheable image
+     URL to index and show next to search results; a data: URI can't be
+     crawled as a resource, which is why search results fell back to
+     Google's own generic globe icon instead of the KOMISIYONERI logo. -->
+<link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
 <!-- ── STRUCTURED DATA (Google Rich Results) ── -->
 <script type="application/ld+json">
@@ -77,7 +86,8 @@
       "@id": "https://komisiyoneri.co.rw/#website",
       "url": "https://komisiyoneri.co.rw/",
       "name": "KOMISIYONERI Connectpro Services",
-      "description": "Platform N°1 y'imitungo mu Rwanda — Rwanda Real Estate Platform",
+      "alternateName": "KOMISIYONERI",
+      "description": "Rwanda's Real Estate Operating System — a unified marketplace, agent network, and deal-management platform for buying, selling, and renting property.",
       "inLanguage": ["rw", "en"],
       "potentialAction": {
         "@type": "SearchAction",
@@ -92,6 +102,8 @@
       "@type": "Organization",
       "@id": "https://komisiyoneri.co.rw/#organization",
       "name": "KOMISIYONERI Connectpro Services Ltd",
+      "alternateName": "KOMISIYONERI",
+      "description": "Rwanda's Real Estate Operating System — the marketplace, agent network, CRM, and commission engine powering property transactions across all 30 districts of Rwanda.",
       "url": "https://komisiyoneri.co.rw/",
       "foundingDate": "2024",
       "founder": {
@@ -100,10 +112,12 @@
       },
       "logo": {
         "@type": "ImageObject",
-        "url": "https://komisiyoneri.co.rw/logo.png",
-        "width": 200,
-        "height": 60
+        "url": "https://komisiyoneri.co.rw/icon-512.png",
+        "contentUrl": "https://komisiyoneri.co.rw/icon-512.png",
+        "width": 512,
+        "height": 512
       },
+      "image": "https://komisiyoneri.co.rw/icon-512.png",
       "contactPoint": {
         "@type": "ContactPoint",
         "telephone": "+250783177254",
@@ -127,13 +141,36 @@
       "@type": "RealEstateAgent",
       "@id": "https://komisiyoneri.co.rw/#realestate",
       "name": "KOMISIYONERI Connectpro Services",
+      "alternateName": "KOMISIYONERI",
       "url": "https://komisiyoneri.co.rw/",
+      "logo": "https://komisiyoneri.co.rw/icon-512.png",
+      "image": "https://komisiyoneri.co.rw/icon-512.png",
+      "telephone": "+250783177254",
+      "email": "info.komisiyoneri.net@gmail.com",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Kigali",
+        "addressCountry": "RW"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": -1.9441,
+        "longitude": 30.0619
+      },
       "areaServed": {
         "@type": "Country",
         "name": "Rwanda"
       },
       "priceRange": "RWF 45,000,000 - RWF 500,000,000",
-      "description": "Rwanda's leading digital real estate platform. Buy, sell or rent properties across all 30 districts of Rwanda."
+      "description": "Rwanda's leading digital real estate operating system — a unified marketplace, agent network, and deal-management platform for buying, selling, and renting property across all 30 districts of Rwanda.",
+      "makesOffer": {
+        "@type": "Offer",
+        "itemOffered": [
+          { "@type": "Service", "name": "Property Sales" },
+          { "@type": "Service", "name": "Property Rentals" },
+          { "@type": "Service", "name": "Verified Agent Network" }
+        ]
+      }
     }
   ]
 }
@@ -11457,14 +11494,14 @@ function go(name) {
 
   // Update page title
   var titles = {
-    home:      curLang === 'rw' ? 'Ahabanza — KOMISIYONERI'        : 'Home — KOMISIYONERI',
-    listings:  curLang === 'rw' ? 'Imitungo — KOMISIYONERI'        : 'Properties — KOMISIYONERI',
+    home:      curLang === 'rw' ? 'KOMISIYONERI — Real Estate Operating System ya Rwanda' : 'KOMISIYONERI — Rwanda\'s Real Estate Operating System',
+    listings:  curLang === 'rw' ? 'Imitungo Yose — KOMISIYONERI'   : 'Property Listings in Rwanda — KOMISIYONERI',
     detail:    'Villa Kimironko — KOMISIYONERI',
-    analytics: 'AI Analytics — KOMISIYONERI',
+    analytics: curLang === 'rw' ? 'Isesengura ry\'Isoko — KOMISIYONERI' : 'Rwanda Real Estate Market Analytics — KOMISIYONERI',
     dashboard: 'Dashboard — KOMISIYONERI',
     auth:      curLang === 'rw' ? 'Injira — KOMISIYONERI'          : 'Sign In — KOMISIYONERI',
-    about:     curLang === 'rw' ? 'Abo Turi Bo — KOMISIYONERI'     : 'About Us — KOMISIYONERI',
-    agents:    curLang === 'rw' ? 'Abajyanama — KOMISIYONERI'      : 'Real Estate Agents in Rwanda — KOMISIYONERI',
+    about:     curLang === 'rw' ? 'Abo Turi Bo — KOMISIYONERI'     : 'About KOMISIYONERI — Rwanda\'s Real Estate Operating System',
+    agents:    curLang === 'rw' ? 'Abajyanama — KOMISIYONERI'      : 'Verified Real Estate Agents in Rwanda — KOMISIYONERI',
     careers:   curLang === 'rw' ? 'Akazi — KOMISIYONERI'           : 'Careers — KOMISIYONERI',
     privacy:   curLang === 'rw' ? 'Politiki y\'Ibanga — KOMISIYONERI' : 'Privacy Policy — KOMISIYONERI',
     terms:     curLang === 'rw' ? 'Amabwiriza — KOMISIYONERI'      : 'Terms of Service — KOMISIYONERI'
@@ -11475,11 +11512,14 @@ function go(name) {
   // browsing agents understand each SPA state, since document.title/meta
   // updates ARE picked up by crawlers that execute JavaScript.
   var metaDescs = {
-    home:      curLang === 'rw' ? 'Platform N°1 y\'imitungo mu Rwanda. Kugura, kugurisha, no gukodesha imitungo i Kigali no mu gihugu hose.' : 'Rwanda\'s #1 real estate platform. Buy, sell, or rent property in Kigali and across all 30 districts of Rwanda.',
+    home:      curLang === 'rw' ? 'KOMISIYONERI ni Real Estate Operating System ya Rwanda — urubuga rumwe rukwiye guhuza ababyeyi b\'imitungo, ababigura, abajyanama, n\'abashoramari mu turere 30 twa Rwanda.' : 'KOMISIYONERI is Rwanda\'s Real Estate Operating System — a unified marketplace, verified agent network, and deal-management platform connecting buyers, sellers, agents & investors across all 30 districts.',
     listings:  curLang === 'rw' ? 'Shakisha imitungo yose iri ku KOMISIYONERI — inzu, ubutaka, na apartment biri hagati mu Rwanda.' : 'Browse all verified property listings on KOMISIYONERI — houses, land, and apartments for sale or rent across Rwanda.',
+    analytics: curLang === 'rw' ? 'Ibipimo bifatika by\'isoko ry\'imitungo muri Rwanda — igiciro rusange, uturere dukorerwamo, n\'imigendekere y\'isoko, biva ku mitungo yemejwe kuri KOMISIYONERI.' : 'Real, live Rwanda property market data — average prices, price/m² by district, and market trends computed from listings actually on KOMISIYONERI.',
     agents:    curLang === 'rw' ? 'Menya abajyanama b\'imitungo bemejwe na KOMISIYONERI mu turere twose twa Rwanda.' : 'Find verified real estate agents and brokers across all districts of Rwanda, vetted by KOMISIYONERI.',
     careers:   curLang === 'rw' ? 'Reba impaka z\'akazi zihari kuri KOMISIYONERI ConnectPro Services.' : 'Browse current job openings at KOMISIYONERI ConnectPro Services.',
-    about:     curLang === 'rw' ? 'Menya KOMISIYONERI ConnectPro Services Ltd — urubuga rw\'imitungo rwizewe mu Rwanda.' : 'Learn about KOMISIYONERI ConnectPro Services Ltd — Rwanda\'s trusted digital real estate operating system.'
+    about:     curLang === 'rw' ? 'Menya KOMISIYONERI ConnectPro Services Ltd — Real Estate Operating System yizewe mu Rwanda.' : 'Learn about KOMISIYONERI ConnectPro Services Ltd — Rwanda\'s trusted Real Estate Operating System, uniting the marketplace, agent network, and deal ecosystem in one platform.',
+    privacy:   curLang === 'rw' ? 'Politiki y\'ibanga ya KOMISIYONERI — uburyo dukusanya, dukoresha, kandi turinda amakuru yawe.' : 'KOMISIYONERI\'s Privacy Policy — how we collect, use, and protect your personal data.',
+    terms:     curLang === 'rw' ? 'Amabwiriza n\'amategeko yo gukoresha KOMISIYONERI.' : 'The terms and conditions governing use of the KOMISIYONERI platform.'
   };
   var metaDescEl = document.querySelector('meta[name="description"]');
   if (metaDescEl && metaDescs[name]) metaDescEl.setAttribute('content', metaDescs[name]);
@@ -11498,7 +11538,7 @@ function go(name) {
   // Clean, crawlable paths for the public marketing pages only — internal
   // app pages (dashboard, crm, hr, etc.) keep hash routing unchanged.
   var CLEAN_PATHS = {
-    home: '/', listings: '/listings', about: '/about',
+    home: '/', listings: '/listings', analytics: '/analytics', about: '/about',
     agents: '/agents', careers: '/careers', privacy: '/privacy', terms: '/terms'
   };
   var cleanPath = CLEAN_PATHS[name];
@@ -11507,6 +11547,37 @@ function go(name) {
     if (canonEl) canonEl.setAttribute('href', 'https://komisiyoneri.co.rw' + (cleanPath === '/' ? '/' : cleanPath));
     var ogUrlEl = document.querySelector('meta[property="og:url"]');
     if (ogUrlEl) ogUrlEl.setAttribute('content', 'https://komisiyoneri.co.rw' + (cleanPath === '/' ? '/' : cleanPath));
+  }
+
+  // BreadcrumbList structured data — one crumb per public marketing page,
+  // matching the title/description maps above. Skipped for home (a single-
+  // item trail has nothing to add) and removed entirely for pages with no
+  // clean path (dashboard/crm/etc. — disallowed in robots.txt, not indexed).
+  var existingBreadcrumb = document.getElementById('breadcrumb-jsonld');
+  if (existingBreadcrumb) existingBreadcrumb.remove();
+  if (cleanPath && name !== 'home') {
+    var crumbLabels = {
+      listings: curLang === 'rw' ? 'Imitungo' : 'Properties',
+      analytics: curLang === 'rw' ? 'Isesengura' : 'Market Analytics',
+      about: curLang === 'rw' ? 'Abo Turi Bo' : 'About',
+      agents: curLang === 'rw' ? 'Abajyanama' : 'Agents',
+      careers: curLang === 'rw' ? 'Akazi' : 'Careers',
+      privacy: curLang === 'rw' ? 'Politiki y\'Ibanga' : 'Privacy Policy',
+      terms: curLang === 'rw' ? 'Amabwiriza' : 'Terms of Service'
+    };
+    var breadcrumbLd = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: curLang === 'rw' ? 'Ahabanza' : 'Home', item: 'https://komisiyoneri.co.rw/' },
+        { '@type': 'ListItem', position: 2, name: crumbLabels[name] || name, item: 'https://komisiyoneri.co.rw' + cleanPath }
+      ]
+    };
+    var bcScript = document.createElement('script');
+    bcScript.type = 'application/ld+json';
+    bcScript.id = 'breadcrumb-jsonld';
+    bcScript.textContent = JSON.stringify(breadcrumbLd);
+    document.head.appendChild(bcScript);
   }
 
   // SPA back-button support — push a history entry for each page visit.
@@ -11907,7 +11978,17 @@ document.addEventListener('keyup', function(e) {
 
 // ── Init on load ──
 window.addEventListener('DOMContentLoaded', function() {
-  go('home');
+  // Was an unconditional go('home') here — go('home') internally does
+  // history.pushState(..., '/'), which silently rewrote the URL to '/'
+  // (and showed home's content/title/canonical) on every single initial
+  // load, regardless of what path was actually requested. That ran before
+  // the path-aware router further down this file (which reads
+  // window.location.pathname to decide the real initial page) ever got a
+  // chance to see the original URL — so a direct visit or crawl of
+  // /listings, /about, /agents etc. never actually rendered as that page;
+  // it silently became home instead. That router already calls go(page)
+  // itself for every case including home, so this call was both redundant
+  // and actively wrong.
   setLang('rw');
   initChat();
 });
@@ -14811,7 +14892,7 @@ window.addEventListener('popstate', function(event) {
 // else), and set the first history entry accordingly.
 window.addEventListener('DOMContentLoaded', function() {
   var PATH_TO_PAGE = {
-    '/': 'home', '/listings': 'listings', '/about': 'about',
+    '/': 'home', '/listings': 'listings', '/analytics': 'analytics', '/about': 'about',
     '/agents': 'agents', '/careers': 'careers', '/privacy': 'privacy', '/terms': 'terms'
   };
   var path = window.location.pathname.replace(/\/$/, '') || '/';
@@ -14831,10 +14912,23 @@ window.addEventListener('DOMContentLoaded', function() {
   var page = pathPage || (validPages.indexOf(hash) > -1 ? hash : 'home');
   if (window.history && window.history.replaceState) {
     var CLEAN_PATHS = {
-      home: '/', listings: '/listings', about: '/about',
+      home: '/', listings: '/listings', analytics: '/analytics', about: '/about',
       agents: '/agents', careers: '/careers', privacy: '/privacy', terms: '/terms'
     };
     window.history.replaceState({ page: page }, '', CLEAN_PATHS[page] || ('#' + page));
+  }
+  // Makes the WebSite/SearchAction structured data (see the JSON-LD in
+  // <head>, urlTemplate .../listings?q={search_term_string}) actually
+  // functional instead of just declared: a query typed into Google's own
+  // sitelinks search box lands here and must really filter the listings,
+  // not just show the unfiltered page.
+  var qParam = new URLSearchParams(window.location.search).get('q');
+  if (page === 'listings' && qParam) {
+    window._qs_query = qParam;
+    var qsInput = document.getElementById('sm-quick-search');
+    if (qsInput) qsInput.value = qParam;
+    applyAndSearch();
+    return;
   }
   go(page);
 });
@@ -16386,7 +16480,7 @@ document.addEventListener('securitypolicyviolation', function(e) {
 
     function kmNotify(title, body, tag) {
       if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-        try { new Notification(title, { body: body, icon: '/icon-192.svg', badge: '/icon-192.svg', tag: tag||'km' }); } catch(e){}
+        try { new Notification(title, { body: body, icon: '/icon-192.png', badge: '/icon-192.png', tag: tag||'km' }); } catch(e){}
       }
       _kmNotifList.unshift({ title: title, body: body, time: Date.now() });
       if (_kmNotifList.length > 20) _kmNotifList.length = 20;
