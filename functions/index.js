@@ -539,3 +539,133 @@ exports.onLeadCreated = onDocumentCreated({ document: 'leads/{leadId}', region: 
 
   logger.info('Lead auto-assigned', { leadId, agentId: chosen.id, method, candidateCount: candidates.length });
 });
+
+/**
+ * Subscriptions — the last confirmed-unbuilt roadmap item. One plan for
+ * now (AGENT_PREMIUM_MONTHLY), matching the only concrete figure that
+ * appears anywhere in this app's own business-plan copy ("Subscription ya
+ * agents: 50,000 RWF/kwezi"). There is no payment gateway anywhere in this
+ * app, so "billing" here means generating a real invoice each period
+ * (through the exact same invoices collection every other invoice in this
+ * app already uses — no new invoice UI needed) rather than moving money
+ * automatically.
+ *
+ * Runs daily rather than exactly on each subscription's renewal instant:
+ * simpler, and it doubles as a self-healing sync for the `featured` flag
+ * (a boolean that already existed on every property and already affects
+ * homepage/search sort order, but until index.html's subscribeToPremium()
+ * nothing ever set it to true) — any property an agent adds mid-cycle
+ * becomes featured within a day, not just at subscribe/renew time.
+ *
+ * Deterministic invoice IDs (sub_<agentId>_<YYYY-MM>_invoice) make renewal
+ * idempotent by construction, the same pattern onDealClosedWon uses above.
+ */
+const AGENT_PREMIUM_MONTHLY = 50000;
+
+exports.dailySubscriptionSync = onSchedule({
+  schedule: '0 5 * * *',
+  timeZone: 'Africa/Kigali',
+  region: REGION
+}, async () => {
+  const db = getFirestore();
+  const now = new Date();
+
+  const snap = await db.collection('subscriptions').where('status', '==', 'active').get();
+  let renewed = 0;
+  let synced = 0;
+
+  for (const doc of snap.docs) {
+    const sub = doc.data();
+    const agentId = sub.agentId;
+    if (!agentId) continue;
+
+    // Re-sync featured flag against the agent's CURRENT active listings —
+    // covers listings added after subscribing/renewing.
+    const propsSnap = await db.collection('properties')
+      .where('agentId', '==', agentId).where('isActive', '==', true).get();
+    const currentIds = [];
+    const featureBatch = db.batch();
+    let featureBatchHasWrites = false;
+    propsSnap.forEach((p) => {
+      currentIds.push(p.id);
+      if (!p.data().featured) {
+        featureBatch.update(p.ref, { featured: true, updatedAt: FieldValue.serverTimestamp(), updatedBy: 'system' });
+        featureBatchHasWrites = true;
+      }
+    });
+    if (featureBatchHasWrites) {
+      await featureBatch.commit();
+      synced++;
+    }
+    const previousIds = Array.isArray(sub.featuredPropertyIds) ? sub.featuredPropertyIds : [];
+    if (currentIds.slice().sort().join(',') !== previousIds.slice().sort().join(',')) {
+      await doc.ref.update({ featuredPropertyIds: currentIds, updatedAt: FieldValue.serverTimestamp() });
+    }
+
+    // Renewal billing.
+    const periodEnd = sub.currentPeriodEnd && sub.currentPeriodEnd.toDate ? sub.currentPeriodEnd.toDate() : new Date(sub.currentPeriodEnd);
+    if (!periodEnd || periodEnd > now) continue;
+
+    const nextStart = periodEnd;
+    const nextEnd = new Date(nextStart.getTime());
+    nextEnd.setMonth(nextEnd.getMonth() + 1);
+    const periodKey = nextStart.toISOString().slice(0, 7); // YYYY-MM
+    const amount = sub.amount || AGENT_PREMIUM_MONTHLY;
+    const vatAmount = Math.round(amount * RWANDA_VAT);
+    const totalAmount = amount + vatAmount;
+    const invoiceRef = db.collection('invoices').doc('sub_' + agentId + '_' + periodKey + '_invoice');
+    let invoiceCreated = false;
+    try {
+      await invoiceRef.create({
+        id: invoiceRef.id,
+        invoiceNo: '',
+        type: 'subscription',
+        subscriptionId: doc.id,
+        dealId: '',
+        billedTo: sub.agentName || agentId,
+        clientId: agentId,
+        clientEmail: '',
+        clientAddress: '',
+        lineItems: [{ description: 'Agent Premium Subscription — ' + periodKey, qty: 1, unitPrice: amount, lineTotal: amount }],
+        subtotal: amount,
+        vatAmount: vatAmount,
+        totalAmount: totalAmount,
+        dueDate: nextStart.toISOString().slice(0, 10),
+        notes: 'Auto-generated subscription renewal',
+        paidAt: null,
+        pdfUrl: null,
+        status: 'sent',
+        isActive: true,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+        createdBy: 'system',
+        updatedBy: 'system'
+      });
+      invoiceCreated = true;
+    } catch (e) {
+      if (e.code === 6 /* ALREADY_EXISTS */) {
+        logger.info('Renewal invoice already generated for subscription ' + doc.id + ' period ' + periodKey + ' — skipping (idempotent retry)');
+      } else {
+        throw e;
+      }
+    }
+
+    if (invoiceCreated) {
+      await logAudit(db, 'subscription.invoice_generated', 'invoices', invoiceRef.id, null,
+        { agentId: agentId, subscriptionId: doc.id, totalAmount: totalAmount }, 'system');
+      await notifyUser(db, agentId, 'Subscription Renewed',
+        'Your Agent Premium subscription renewed — invoice ' + totalAmount.toLocaleString() + ' RWF.',
+        'subscription_renewed', 'invoices', invoiceRef.id, 'system');
+      renewed++;
+    }
+
+    await doc.ref.update({
+      currentPeriodStart: nextStart,
+      currentPeriodEnd: nextEnd,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: 'system'
+    });
+  }
+
+  logger.info('Daily subscription sync complete', { active: snap.size, renewed, synced });
+});
