@@ -10304,7 +10304,9 @@ function restoreUserSession(fbUser) {
 
 function updateNavForUser(user) {
   var adminBtn = document.getElementById('nav-admin-btn');
-  if (adminBtn) adminBtn.style.display = (user && user.email === 'info.komisiyoneri.net@gmail.com') ? 'block' : 'none';
+  // See updateHamburgerAuth()'s comment — same fix, same reasoning: role is
+  // what Firestore's rules actually check, the email is an extra allowance.
+  if (adminBtn) adminBtn.style.display = (user && (isAdmin(user) || user.email === 'info.komisiyoneri.net@gmail.com')) ? 'block' : 'none';
   var guest = document.getElementById('nav-guest');
   var userArea = document.getElementById('nav-user');
   var avatar = document.getElementById('nav-avatar');
@@ -12103,11 +12105,19 @@ function loadApprovedProperties() {
 
 // --- OPEN ADMIN PANEL ---
 function openAdmin() {
-  var isAdmin = currentUser && (
-    currentUser.email === 'info.komisiyoneri.net@gmail.com' ||
-    currentUser.role === 'Admin'
+  // Was `currentUser.role === 'Admin'` — an exact, case-sensitive match
+  // against a capitalized literal, while every role actually stored in
+  // Firestore is lowercase (and firestore.rules' isAdminOrStaff() compares
+  // case-insensitively) — so a genuinely admin account whose role was the
+  // normal lowercase 'admin' would fail this check and could only ever get
+  // in via the hardcoded email below. isAdmin() is the same case-insensitive
+  // check firestore.rules itself uses; the email is kept only as an extra
+  // allowance, not a substitute for it.
+  var isAdminUser = currentUser && (
+    isAdmin(currentUser) ||
+    currentUser.email === 'info.komisiyoneri.net@gmail.com'
   );
-  if (!isAdmin) {
+  if (!isAdminUser) {
     showToast(curLang==='rw' ? 'Ntabwo wemerewe! Admin gusa.' : 'Access denied. Admin only.', 'error');
     return;
   }
@@ -13850,11 +13860,14 @@ function submitLead() {
 
 // === ADMIN LEAD DASHBOARD ===
 function openAdminLeads() {
-  var isAdmin = currentUser && (
-    currentUser.email === 'info.komisiyoneri.net@gmail.com' ||
-    currentUser.role === 'Admin'
+  // Same fix as openAdmin() — see its comment: role is checked
+  // case-insensitively (matching firestore.rules), not against the literal
+  // capitalized string 'Admin'.
+  var isAdminUser = currentUser && (
+    isAdmin(currentUser) ||
+    currentUser.email === 'info.komisiyoneri.net@gmail.com'
   );
-  if (!isAdmin) {
+  if (!isAdminUser) {
     showToast(curLang==='rw' ? 'Ntabwo wemerewe! Admin gusa.' : 'Access denied. Admin only.', 'error');
     return;
   }
@@ -15024,7 +15037,14 @@ function closeDashSidebar() {
 
 function updateHamburgerAuth() {
   var isLoggedIn = !!currentUser;
-  var isAdmin = isLoggedIn && currentUser.email === 'info.komisiyoneri.net@gmail.com';
+  // Matches openAdmin()'s own gate and firestore.rules' isAdminOrStaff() —
+  // this used to check ONLY the hardcoded email below, completely
+  // independent of the role Firestore actually authorizes against, so the
+  // button could be visible for an account whose every admin-only query
+  // (referrals, sites, etc.) then failed permission-denied once opened.
+  // The email is kept only as an additional allowance, never a substitute
+  // for having the role Firestore itself checks.
+  var isAdminUser = isLoggedIn && (isAdmin(currentUser) || currentUser.email === 'info.komisiyoneri.net@gmail.com');
 
   // User info section
   var uInfo = document.getElementById('hm-user-info');
@@ -15058,7 +15078,7 @@ function updateHamburgerAuth() {
   show('hm-addprop-btn', true);
   show('hm-agent-btn', isLoggedIn);
   show('hm-logout-btn', isLoggedIn);
-  show('hm-admin-btn', isAdmin);
+  show('hm-admin-btn', isAdminUser);
   // Install button - always show unless already installed
   // Install button always visible - shows instructions if no prompt
   var installBtn2 = document.getElementById('hm-install-btn');
@@ -15274,8 +15294,15 @@ function loadAdminReferrals() {
     if (statRwd)  statRwd.textContent  = rwd;
     var badge = document.getElementById('adm-ref-badge');
     if (badge) badge.textContent = qual > 0 ? qual : '';
-  }).catch(function() {
-    el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#9888;&#65039;</div><div class="crm-empty-title">Error loading referrals</div></div>';
+  }).catch(function(err) {
+    // Never swallow this silently — permission-denied (role not actually
+    // admin/staff in Firestore, regardless of what the client-side gate
+    // showed) and failed-precondition (a composite index defined in
+    // firestore.indexes.json but not yet deployed) look identical to the
+    // user otherwise, and are fixed in completely different places.
+    console.error('[AdminReferrals] load failed:', err && err.code, err && err.message, err);
+    var detail = (err && err.code) ? ' (' + err.code + ')' : '';
+    el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#9888;&#65039;</div><div class="crm-empty-title">Error loading referrals' + detail + '</div><div class="crm-empty-sub">' + escapeHtml((err && err.message) || '') + '</div></div>';
   });
 }
 
@@ -27418,8 +27445,15 @@ function loadSites() {
       renderSitesGrid(_sitesCache);
     })
     .catch(function(err) {
-      console.error('[Sites] load error', err);
-      grid.innerHTML = '<div class="crm-empty" style="grid-column:1/-1"><div class="crm-empty-icon">⚠️</div><div class="crm-empty-title">Could not load sites</div></div>';
+      // sites.read is public (rules/firestore.rules: "allow read: if true"),
+      // so this can never be a permissions rejection — a failed-precondition
+      // here means the composite index this query needs (status+isActive+
+      // createdAt — already defined in firestore.indexes.json) hasn't
+      // actually been deployed to the live project yet. Surfaced on-screen
+      // too since mobile Chrome has no devtools console to check.
+      console.error('[Sites] load error:', err && err.code, err && err.message, err);
+      var detail = (err && err.code) ? ' (' + err.code + ')' : '';
+      grid.innerHTML = '<div class="crm-empty" style="grid-column:1/-1"><div class="crm-empty-icon">⚠️</div><div class="crm-empty-title">Could not load sites' + detail + '</div><div class="crm-empty-sub">' + escapeHtml((err && err.message) || '') + '</div></div>';
     });
 
   // Show "Add Site" button for agents/staff/admin
