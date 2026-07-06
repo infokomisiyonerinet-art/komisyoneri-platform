@@ -13037,23 +13037,36 @@ function _handleGoogleAuthError(error, source) {
   }
 
   if (code === 'auth/internal-error') {
-    // Firebase's generic wrapper for "the Identity Platform backend
-    // returned something the SDK couldn't parse into a specific code."
-    // For Google sign-in specifically (while email/password keeps working
-    // fine against the same project), this is almost always one of:
-    //   1. The Google OAuth 2.0 Web Client tied to this Firebase project
-    //      (Firebase Console > Authentication > Sign-in method > Google >
-    //      Web SDK configuration) has a missing/rotated/deleted client
-    //      secret, or was deleted in Google Cloud Console directly.
-    //   2. The OAuth consent screen is in a bad state (e.g. unverified app
-    //      blocked, or required scopes were removed).
-    //   3. The project's API key has an API restriction that excludes the
-    //      "Identity Toolkit API" or "Token Service API" — this would also
-    //      break email/password, so check this only if email/password ALSO
-    //      starts failing.
-    // None of this is reachable or fixable from client-side code; it must
-    // be checked in Firebase Console / Google Cloud Console directly.
-    console.error('[AUTH] auth/internal-error — check Firebase Console > Authentication > Sign-in method > Google (Web SDK configuration: client ID/secret) and Google Cloud Console > APIs & Services > Credentials for the associated OAuth 2.0 Web Client');
+    // Firebase's generic wrapper for "something the SDK couldn't parse into
+    // a specific code." For Google sign-in specifically (while email/password
+    // keeps working fine against the same project — ruling out API key
+    // restrictions and project-level Identity Toolkit issues), the confirmed
+    // root cause found in production (2026-07-06) was our own Content-Security-
+    // Policy (see vercel.json): signInWithPopup/signInWithRedirect both need
+    // to (1) load https://apis.google.com/js/api.js (the gapi.iframes loader)
+    // and (2) open a hidden iframe at <authDomain>/__/auth/iframe on OUR
+    // origin, to relay the auth result back from the popup/redirect. Either
+    // one missing from script-src/frame-src makes the browser silently block
+    // it — no JS exception, no rejected promise pointing at the real cause,
+    // just this generic code once the SDK's internal handshake times out.
+    // That's exactly why the consent screen itself always completes fine
+    // (it's a plain top-level navigation to accounts.google.com, outside
+    // CSP's reach) and the failure only surfaces once control returns to our
+    // page. The __cspViolations log below (populated by the
+    // securitypolicyviolation listener installed earlier in this file) is
+    // the direct way to see this instead of guessing — check it before
+    // assuming a Console-side config problem:
+    //   1. Google Cloud Console > Credentials > the OAuth 2.0 Web Client's
+    //      secret was rotated/deleted, or the client itself was deleted.
+    //   2. The OAuth consent screen is in a bad state (unverified/blocked).
+    //   3. An API key restriction excludes Identity Toolkit/Token Service
+    //      (would also break email/password — check this only if that ALSO
+    //      starts failing).
+    if (window.__cspViolations && window.__cspViolations.length) {
+      console.error('[AUTH] auth/internal-error — CSP violations logged during this session (this is very likely the actual cause, not a Console-side config issue):', window.__cspViolations);
+    } else {
+      console.error('[AUTH] auth/internal-error — no CSP violations captured this session. If this recurs, check Firebase Console > Authentication > Sign-in method > Google (Web SDK configuration: client ID/secret) and Google Cloud Console > APIs & Services > Credentials for the associated OAuth 2.0 Web Client.');
+    }
     showToast(curLang==='rw'
       ? '⚠️ Google Sign-In ifite ikibazo cy\'ubuyobozi — Ntabwo ari ikibazo cya interineti yawe. (' + rawDetail + ')'
       : '⚠️ Google Sign-In has a configuration problem on our end — this is not something retrying will fix. (' + rawDetail + ')', 'error');
@@ -13159,7 +13172,20 @@ function handleGoogleSignInClick() {
   }
   firebaseAuth.signInWithPopup(provider)
     .then(function(result) { console.log('[AUTH] signInWithPopup resolved for uid=' + result.user.uid); completeGoogleSignIn(result.user); })
-    .catch(function(error) { _handleGoogleAuthError(error, 'signInWithPopup'); });
+    .catch(function(error) {
+      // A blocked or unsupported popup is an environment failure, not a
+      // credential/consent failure — the user never got to choose an
+      // account, so silently retrying via a full-page redirect (which
+      // can't be popup-blocked) recovers the sign-in attempt instead of
+      // just dead-ending it on an error toast.
+      var code = error && error.code || '';
+      if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
+        console.warn('[AUTH] signInWithPopup failed (' + code + ') — falling back to signInWithRedirect');
+        firebaseAuth.signInWithRedirect(provider).catch(function(redirectError) { _handleGoogleAuthError(redirectError, 'signInWithRedirect (popup fallback)'); });
+        return;
+      }
+      _handleGoogleAuthError(error, 'signInWithPopup');
+    });
 }
 
 // === PHONE OTP AUTH ===
@@ -16027,6 +16053,31 @@ window.__firebaseNetworkLog = [];
     };
   }
 })();
+
+// CSP-violation capture. A blocked <script>/<iframe> load (e.g. Firebase
+// Auth's gapi.iframes loader at apis.google.com, or the hidden auth-relay
+// iframe at <authDomain>/__/auth/iframe — both required for signInWithPopup
+// and signInWithRedirect to complete) is invisible to try/catch, to promise
+// rejections, and to the fetch/XHR interceptor above: the browser blocks it
+// at the network-security layer before any JS of ours runs, and the only
+// way to observe it is this event. Installed for the same reason and at the
+// same point as the interceptor above — before anything that could trigger
+// a violation loads — so a future CSP gap surfaces immediately as a named
+// error instead of manifesting as an unexplained auth/internal-error.
+window.__cspViolations = [];
+document.addEventListener('securitypolicyviolation', function(e) {
+  var entry = {
+    loggedAt: Date.now(), blockedURI: e.blockedURI, violatedDirective: e.violatedDirective,
+    effectiveDirective: e.effectiveDirective, originalPolicy: e.originalPolicy,
+    sourceFile: e.sourceFile, lineNumber: e.lineNumber, disposition: e.disposition
+  };
+  window.__cspViolations.push(entry);
+  console.error('[CSP-VIOLATION] blockedURI        =', entry.blockedURI);
+  console.error('[CSP-VIOLATION] violatedDirective  =', entry.violatedDirective);
+  console.error('[CSP-VIOLATION] effectiveDirective =', entry.effectiveDirective);
+  console.error('[CSP-VIOLATION] sourceFile:line    =', entry.sourceFile + ':' + entry.lineNumber);
+  console.error('[CSP-VIOLATION] disposition        =', entry.disposition);
+});
 </script>
 <script>
 // ═══════════════════════════════════════════════════════
