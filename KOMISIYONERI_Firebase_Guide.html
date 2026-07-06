@@ -238,9 +238,27 @@ Hosting URL: https://komisiyoneri-rw.web.app</span></code></pre>
     <div class="tip">🎉 <strong>Yashoboye!</strong> Platform yawe ni online kuri <code>https://komisiyoneri-rw.web.app</code> — Google irayibona ubu!</div>
   </div>
 
-  <!-- STEP 7 — CUSTOM DOMAIN -->
+  <!-- STEP 7 — DEPLOY SECURITY RULES (REQUIRED — photo upload, and every other
+       Firestore/Storage-backed feature, silently fails without this) -->
+  <div class="step-card" style="border-color:#F5A623;border-width:2px">
+    <div class="step-num" style="background:linear-gradient(135deg,#7A5500,#F5A623)">⚠️</div>
+    <div class="step-title" style="color:#7A5500">BISABWA — Deploy Firestore &amp; Storage Rules</div>
+    <div class="step-desc"><code>firebase deploy --only hosting</code> (intambwe 6, hejuru) yohereza gusa website yawe (HTML/CSS/JS). NTIOHEREZA <code>rules/firestore.rules</code> cyangwa <code>rules/storage.rules</code> — nubwo files zombi ziri muri <code>firebase.json</code> kandi ziri muri git. Aka gace ni ko gatuma <strong>gushyiraho amafoto y'imitungo bidakora</strong> (na feature zindi zikoresha Firestore/Storage zikaba zidakingiwe neza): Firebase Storage isanzwe ifunze burundu (<code>allow read, write: if false</code>) niba nta rules zawe zohererejwe — kandi ntawuzabimenya keretse yohereje aya makuru ku bushake, kuko iyi guide yavuze <code>--only hosting</code> gusa kuva kera.</div>
+    <pre><code><span class="cmt"># Emeza ko uri mu mubyimba wa komisiyoneri/, hanyuma wandike aya yombi</span>
+<span class="cmt"># (rimwe rukumbi bihagije — gusubiramo ntacyo bitwaye niba wongeye ku rules):</span>
+<span class="cmd">firebase deploy --only firestore:rules,firestore:indexes,storage</span>
+
+<span class="cmt"># Niba ufite Cloud Functions (mu bubiko bwa functions/) nazo zohereza:</span>
+<span class="cmd">firebase deploy --only functions</span>
+
+<span class="cmt"># Cyangwa byose rimwe (hosting + rules + indexes + functions):</span>
+<span class="cmd">firebase deploy</span></code></pre>
+    <div class="warn">⚠️ Buri gihe wongeye guhindura <code>rules/firestore.rules</code> cyangwa <code>rules/storage.rules</code> (cyangwa se AI ikuboneshereje impinduka muri izi files), ugomba KONGERA gukoresha iyi command — guhindura file muri git ntibihindura ikintu na kimwe ku Firebase y'ukuri (production) keretse wayoherereje ukoresheje <code>firebase deploy</code>.</div>
+  </div>
+
+  <!-- STEP 8 — CUSTOM DOMAIN -->
   <div class="step-card">
-    <div class="step-num">7</div>
+    <div class="step-num">8</div>
     <div class="step-title">Shyira Domain Yawe — komisiyoneri.co.rw</div>
     <div class="step-desc">Firebase itanga SSL certificate ubuntu kuri domain yawe. Aya ni amabwiriza yo guhuza <code>komisiyoneri.co.rw</code>:</div>
     <ul class="check" style="margin-bottom:1rem">
@@ -258,9 +276,9 @@ Hosting URL: https://komisiyoneri-rw.web.app</span></code></pre>
     <div class="warn">⚠️ DNS records zishobora gufata amasaa 24-48 kugira ngo zikorere. Birashoboka!</div>
   </div>
 
-  <!-- STEP 8 — GOOGLE SEARCH CONSOLE -->
+  <!-- STEP 9 — GOOGLE SEARCH CONSOLE -->
   <div class="step-card">
-    <div class="step-num">8</div>
+    <div class="step-num">9</div>
     <div class="step-title">Iyandikishe kuri Google Search Console</div>
     <div class="step-desc">Google Search Console niyo ikemura ko Google ibona sitewayisitiwe yawe neza kandi iyandike mu search results.</div>
     <ul class="check" style="margin-bottom:1rem">
@@ -273,9 +291,9 @@ Hosting URL: https://komisiyoneri-rw.web.app</span></code></pre>
     <div class="tip">✅ Nyuma y'ibyumweru 2-4, uzabona KOMISIYONERI mu results za Google Search kuri <strong>"inzu Kigali"</strong>, <strong>"kugura inzu Rwanda"</strong>, na keywords zindi!</div>
   </div>
 
-  <!-- STEP 9 — GA4 -->
+  <!-- STEP 10 — GA4 -->
   <div class="step-card">
-    <div class="step-num">9</div>
+    <div class="step-num">10</div>
     <div class="step-title">Shyira Google Analytics 4 (GA4) — Reba Abasuye</div>
     <div class="step-desc">Jya mu Platform HTML yawe, usimbuze <code>G-XXXXXXXXXX</code> na ID yawe ya GA4:</div>
     <ul class="check" style="margin-bottom:1rem">
@@ -306,6 +324,7 @@ Hosting URL: https://komisiyoneri-rw.web.app</span></code></pre>
 <span class="cmt"># Reba history ya deploys yawe:</span>
 <span class="cmd">firebase hosting:channel:list</span></code></pre>
     <div class="tip">🚀 Firebase ifite <strong>automatic rollback</strong> — niba update nshya yananiwe, ushobora gusubira kuri version ya kera mu masegonda make!</div>
+    <div class="warn">⚠️ <code>--only hosting</code> yohereza <strong>gusa</strong> index.html/CSS/JS. Niba wowe cyangwa AI mwahinduye <code>rules/firestore.rules</code>, <code>rules/storage.rules</code>, <code>firestore.indexes.json</code>, cyangwa ikintu icyo ari cyo cyose muri <code>functions/</code> — ongera usome <strong>Intambwe 7</strong> hejuru maze wohereze na <code>firebase deploy --only firestore:rules,firestore:indexes,storage,functions</code>. Utabikoze, impinduka zisigara gusa muri git, ntizigera ku Firebase y'ukuri (production).</div>
   </div>
 
   <!-- FINAL BOX -->
