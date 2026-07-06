@@ -643,7 +643,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .thumb.active,.thumb:hover{border-color:var(--blue)}
 .det-layout{display:grid;grid-template-columns:1fr 340px;gap:2.5rem;padding:2rem 4%;max-width:1240px;margin:0 auto}
 .det-tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:1.8rem}
-.det-tab{padding:.62rem 1.4rem;font-size:.86rem;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer;transition:var(--tr);margin-bottom:-2px;border-top:none;border-left:none;border-right:none;background:none;font-family:'DM Sans',sans-serif}
+.det-tab{padding:.62rem 1.4rem;font-size:.86rem;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer;transition:var(--tr);margin-bottom:-2px;border-top:none;border-left:none;border-right:none;background:none;font-family:'DM Sans',sans-serif;flex-shrink:0}
 .det-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
 
 /* 3D TOUR VIEWER */
@@ -1064,7 +1064,20 @@ footer{background:var(--dark);color:rgba(255,255,255,.5);padding:3.8rem 4% calc(
   .steps::before{display:none}
   .f-grid{grid-template-columns:1fr 1fr}
   .roles{grid-template-columns:1fr}
-  .det-layout{grid-template-columns:1fr}
+  /* grid-template-columns:1fr defaults to minmax(auto,1fr) — an
+     unshrinkable descendant (e.g. the unwrapped .det-tabs row) forces
+     this single mobile column, and with it the whole page, wider than
+     the viewport. minmax(0,1fr) + min-width:0 on the items lets the
+     column actually respect the viewport instead of quietly blowing
+     out past it. */
+  .det-layout{grid-template-columns:minmax(0,1fr)}
+  .det-layout>div{min-width:0}
+  /* The 5-tab row (Ibisobanuro/3D Tour/Map/Inyandiko/Reviews) doesn't fit
+     the narrowed mobile column — scroll it horizontally instead of
+     letting its unwrapped content force the grid wider (the root cause
+     just fixed above). */
+  .det-tabs{overflow-x:auto;flex-wrap:nowrap;min-width:0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .det-tabs::-webkit-scrollbar{display:none}
   .an-kpis{grid-template-columns:1fr 1fr}
   .an-body{grid-template-columns:1fr}
   .dash-wrap{grid-template-columns:1fr}
@@ -1109,6 +1122,11 @@ footer{background:var(--dark);color:rgba(255,255,255,.5);padding:3.8rem 4% calc(
 *{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 /* Chrome scrollbar fix */
 html{overflow-y:scroll}
+/* Defense-in-depth: no page should ever gain a horizontal scrollbar. The
+   real fixes are per-component (see the property-details grid/tabs fixes
+   below), but this guarantees a future stray wide element can't reopen
+   full-page horizontal scroll on mobile. */
+html,body{overflow-x:hidden;max-width:100vw}
 /* Image rendering */
 img{-webkit-backface-visibility:hidden;backface-visibility:hidden}
 /* Focus visible for accessibility (Google Lighthouse) */
@@ -1357,7 +1375,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .stb-input:hover{border-color:var(--blue);background:#fff;box-shadow:0 2px 12px rgba(22,87,204,.1)}
 .stb-input svg{width:16px;height:16px;fill:none;stroke:var(--muted);stroke-width:2;flex-shrink:0}
 .stb-input span{font-size:.85rem;color:var(--muted);font-weight:500}
-.stb-filters{display:flex;gap:.4rem;overflow-x:auto;scrollbar-width:none}
+.stb-filters{display:flex;gap:.4rem;overflow-x:auto;scrollbar-width:none;min-width:0}
 .stb-filters::-webkit-scrollbar{display:none}
 .stb-fc{padding:.35rem .9rem;border-radius:100px;border:1.5px solid var(--border);
   background:#fff;font-size:.75rem;font-weight:600;color:var(--muted);
@@ -2064,6 +2082,17 @@ html,body{overscroll-behavior-x:none}
   .chat-panel{right:.75rem;width:calc(100vw - 1.5rem)}
 }
 
+/* Property Details already has its own Chat/Call/WhatsApp buttons in the
+   agent card's contact row (.ag-acts) — the global floating FABs are
+   redundant there and, on a stacked single-column mobile layout, sit
+   directly over that row instead of the empty page corner they're
+   designed for. Hide them while this page is open rather than just
+   padding around an overlap that serves no purpose on this page. */
+@media(max-width:1024px){
+  #page-detail.page.active ~ .chat-fab,
+  #page-detail.page.active ~ .wa-fab{display:none}
+}
+
 /* ── 4. RESPONSIVENESS AUDIT — 320px / 360px / 375px / 390px / 414px ── */
 
 /* Containers: ensure no horizontal overflow on any width */
@@ -2276,6 +2305,41 @@ html,body{overscroll-behavior-x:none}
 @media(max-width:480px){
   .img-uploader-grid{grid-template-columns:repeat(3,1fr)}
   .img-uploader-drop{padding:1.1rem .8rem}
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PROPERTY DETAILS — mobile-first audit (320px–430px)
+   The grid/tabs overflow root cause is fixed at the .det-layout and
+   .det-tabs rules above (see comments there). This block covers the
+   rest of the mobile pass: stat/comparison cards to a single column,
+   oversized headings brought down to something a 320px phone can
+   actually fit, and tightened spacing.
+══════════════════════════════════════════════════════════════ */
+@media(max-width:480px){
+  /* Comparison/stat card grids: single column instead of a cramped 2-up
+     that squeezes labels like "IMPUZANDENGO Y'AKARERE/M²" into ~140px. */
+  .ai-grid{grid-template-columns:1fr}
+  #det-poi-grid{grid-template-columns:1fr}
+  .det-info-grid{grid-template-columns:1fr}
+
+  /* Oversized headings */
+  .det-price{font-size:1.85rem}
+  .det-price small{display:block;margin-left:0;margin-top:.15rem}
+  .ai-val-price{font-size:1.6rem}
+  #det-prop-title{font-size:1.25rem}
+
+  /* Hero: 460px of navy background before any real content is excessive
+     on a 320–430px-wide phone screen. */
+  .det-hero{height:280px}
+  .det-hero-info{left:5%;right:5%;bottom:1.1rem;gap:.6rem}
+  .det-top-bar{padding:1rem 5%}
+  .det-thumbs{padding:.7rem 5%}
+
+  /* Density */
+  .det-layout{padding:1.2rem 5%;gap:1.5rem}
+  .ai-val{padding:1.15rem;margin-bottom:1.1rem}
+  .ag-card{padding:1.1rem}
+  .tour-box{height:300px}
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -4133,7 +4197,7 @@ html,body{overscroll-behavior-x:none}
       <!-- Description tab content -->
       <div id="tab-desc">
         <p style="font-size:.9rem;color:var(--muted);line-height:1.85;margin-bottom:1.2rem" data-rw="Inzu nziza cyane iri mu Kimironko, Gasabo — ahantu hateye amashyo, hagurutse, kandi hafite amahoro. Iri ni inzu ya squaremetre 320, ifite amazu 4, ubushumbusho 2, garage, n'imbuga nziza hanze." data-en="A beautiful property in Kimironko, Gasabo — a prestigious, elevated and peaceful location. This 320m² property features 4 bedrooms, 2 bathrooms, a garage, and a stunning outdoor garden.">Inzu nziza cyane iri mu Kimironko, Gasabo — ahantu hateye amashyo, hagurutse, kandi hafite amahoro. Iri ni inzu ya squaremetre 320, ifite amazu 4, ubushumbusho 2, garage, n'imbuga nziza hanze.</p>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-bottom:1.4rem">
+        <div class="det-info-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-bottom:1.4rem">
           <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Uburebure" data-en="Year Built">Uburebure</span><strong id="det-year-built">—</strong></div>
           <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Ubwoko" data-en="Type">Ubwoko</span><strong id="det-type-val">—</strong></div>
           <div style="background:var(--light);border-radius:10px;padding:.9rem"><span style="font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.18rem" data-rw="Status" data-en="Status">Status</span><strong id="det-status-val" style="color:var(--green)" data-rw="Iboneka" data-en="Available">Iboneka</strong></div>
