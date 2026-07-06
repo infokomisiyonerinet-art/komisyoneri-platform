@@ -1,8 +1,8 @@
 // KOMISIYONERI — Service Worker v4.0
 // PWA: Offline support + Fast loading (stale-while-revalidate)
 
-const CACHE = 'komisiyoneri-v4';
-const PRECACHE = ['/', '/index.html', '/manifest.json', '/icon-192.svg', '/icon-512.svg', '/images/kigali-skyline.webp'];
+const CACHE = 'komisiyoneri-v5';
+const PRECACHE = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png', '/favicon.ico', '/images/kigali-skyline.webp'];
 
 // INSTALL
 self.addEventListener('install', e => {
@@ -84,8 +84,8 @@ self.addEventListener('push', e => {
   e.waitUntil(
     self.registration.showNotification(data.title || 'KOMISIYONERI', {
       body: data.body || 'Fungura platform ubone amakuru mashya',
-      icon: '/icon-192.svg',
-      badge: '/icon-192.svg',
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
       tag: 'komisiyoneri',
       data: { url: data.url || '/' }
     })
