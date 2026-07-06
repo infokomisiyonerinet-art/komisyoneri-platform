@@ -9907,18 +9907,77 @@ function g(id) { return document.getElementById(id); }
 // existed anywhere: 48 call sites across Branches/Invoices/Expenses/Staff
 // Profile/Payslips/Tasks/the Mortgage Calculator threw ReferenceError the
 // instant they ran, so none of those modals could ever open or close.
+// Focus-trap + Escape-to-close for every modal opened through openModal()/
+// closeModal() (31 call sites, the shared modal system). A handful of older
+// modals bypass this system entirely via direct style.display manipulation
+// and are NOT covered here — a separate, smaller follow-up, since each of
+// those has its own bespoke show/hide function with unknown side effects
+// that a purely mechanical fix here shouldn't assume it's safe to touch.
+var _modalStack = [];
+var _modalPrevFocus = null;
+
+function _modalFocusableEls(container) {
+  var nodes = container.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  );
+  return Array.prototype.filter.call(nodes, function(node) {
+    var style = window.getComputedStyle(node);
+    return style.display !== 'none' && style.visibility !== 'hidden';
+  });
+}
+
+function _modalKeydownHandler(e) {
+  var el = this;
+  if (e.key === 'Escape') {
+    e.stopPropagation();
+    closeModal(el.id);
+    return;
+  }
+  if (e.key === 'Tab') {
+    var focusable = _modalFocusableEls(el);
+    if (!focusable.length) { e.preventDefault(); return; }
+    var first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+}
+
 function openModal(id) {
   var el = document.getElementById(id);
   if (!el) return;
   el.classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  if (_modalStack.indexOf(id) === -1) _modalStack.push(id);
+  if (_modalStack.length === 1) _modalPrevFocus = document.activeElement;
+
+  if (!el._focusTrapHandler) el._focusTrapHandler = _modalKeydownHandler.bind(el);
+  el.removeEventListener('keydown', el._focusTrapHandler);
+  el.addEventListener('keydown', el._focusTrapHandler);
+
+  // Content is always populated before openModal() is called at each call
+  // site, so the focusable set is already correct here — the short delay
+  // just gives the browser a paint tick before .focus(), since some
+  // browsers ignore focus() on an element in the same tick it becomes visible.
+  setTimeout(function() {
+    var focusable = _modalFocusableEls(el);
+    if (focusable.length) focusable[0].focus();
+    else { el.setAttribute('tabindex', '-1'); el.focus(); }
+  }, 30);
 }
 function closeModal(id) {
   var el = document.getElementById(id);
   if (!el) return;
   el.classList.remove('open');
+  if (el._focusTrapHandler) el.removeEventListener('keydown', el._focusTrapHandler);
+
+  var idx = _modalStack.indexOf(id);
+  if (idx !== -1) _modalStack.splice(idx, 1);
+
   if (!document.querySelector('.modal-wrap.open')) {
     document.body.style.overflow = '';
+    if (_modalPrevFocus && typeof _modalPrevFocus.focus === 'function') _modalPrevFocus.focus();
+    _modalPrevFocus = null;
   }
 }
 
