@@ -117,6 +117,31 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /subscriptions/{id} {
+      // Doc id is always the agent's own uid (see subscribeToPremium() /
+      // dailySubscriptionSync in functions/index.js), so `id ==
+      // request.auth.uid` and the agentId field check are redundant with
+      // each other on purpose — cheap defense in depth, not load-bearing
+      // on its own. Unlike payout_requests, this doesn't restrict WHICH
+      // fields an agent can change on their own doc (e.g. to a narrow
+      // status transition): a subscription is entirely self-managed
+      // bookkeeping with no payment gateway behind it, so the worst case
+      // of an agent tampering with their own currentPeriodEnd is "they
+      // keep believing they're subscribed a bit longer," not a real
+      // financial loss — nothing here moves money. The Cloud Function
+      // that actually bills renewals writes via the Admin SDK, which
+      // bypasses these rules entirely, so it needs no allowance here.
+      allow read:   if isAdminOrStaff()
+                    || (isAuth() && resource.data.agentId == request.auth.uid);
+      allow create: if isAuth() && hasStandardFields()
+                    && request.resource.data.agentId == request.auth.uid
+                    && id == request.auth.uid;
+      allow update: if isAdminOrStaff()
+                    || (isAuth() && id == request.auth.uid
+                        && request.resource.data.agentId == request.auth.uid);
+      allow delete: if false;
+    }
+
     match /payout_requests/{id} {
       // A payout request is a snapshot of specific commission doc IDs +
       // their summed agentShare at request time (see submitPayoutRequest()
