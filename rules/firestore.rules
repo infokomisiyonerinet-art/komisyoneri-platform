@@ -50,20 +50,44 @@ service cloud.firestore {
         'id','createdAt','updatedAt','createdBy','updatedBy','status','isActive'
       ]);
     }
-
     // ── EXISTING collections ──────────────────────────
 
     match /users/{uid} {
       allow read:   if isAuth() && (request.auth.uid == uid || isAdminOrStaff());
       allow create: if isAuth() && request.auth.uid == uid && hasStandardFields();
+      // Narrow, additive carve-out for the "Become an Agent" self-service
+      // application (see index.html's submitAgentReg()) — the only way a
+      // non-admin is allowed to move their own doc's role/status/isActive/
+      // isVerified at all. It only ever lands the caller in the *pending*
+      // state, never the approved one: isVerified must be exactly false and
+      // status exactly 'pending', so an applicant can never self-approve, and
+      // an existing staff/admin/super_admin account can't use it to reset
+      // itself. Only admins (via _fsPendingApprove()) can ever flip
+      // isVerified/status to their approved values. Must be declared inside
+      // this match block (not alongside the top-level helpers above) because
+      // it reads the {uid} path binding, which only exists in this scope.
+      function isSelfAgentApplication() {
+        return isAuth() && request.auth.uid == uid
+          && !(resource.data.get('role', 'client').lower() in ['admin','super_admin','staff'])
+          && request.resource.data.role == 'agent'
+          && request.resource.data.status == 'pending'
+          && request.resource.data.isActive == true
+          && request.resource.data.isVerified == false
+          && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['role','status','isActive','isVerified','displayName','phone','email',
+                       'nationalId','address','district','zone','experience','transport',
+                       'languages','agentAppliedAt','updatedAt','updatedBy']);
+      }
       // A non-admin may only ever touch their own doc, and only the handful
       // of fields the profile-edit UI actually writes (see saveEditProfile(),
       // favorites toggle, referral code generation) — never `role`, `status`,
       // `isActive`, `isVerified`, or any other field that every isAdminOrStaff()
       // check in this entire ruleset (and in the app itself) ultimately derives
       // from. Without this allowlist, any signed-in user could self-escalate by
-      // writing role:'admin' to their own document.
+      // writing role:'admin' to their own document. isSelfAgentApplication()
+      // is the one deliberate, tightly-scoped exception (see its own comment).
       allow update: if isAdminOrStaff()
+                    || isSelfAgentApplication()
                     || (isAuth() && request.auth.uid == uid
                         && request.resource.data.diff(resource.data).affectedKeys()
                            .hasOnly(['phone','location','preference','photoURL',

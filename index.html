@@ -10204,7 +10204,12 @@ function canListProperty(user) {
   if (!user) return false;
   if (user.email === 'info.komisiyoneri.net@gmail.com') return true;
   var r = (user.role || '').toLowerCase();
-  return r === 'agent' || r === 'owner';
+  if (r !== 'agent' && r !== 'owner') return false;
+  // An agent application sits in role:'agent', status:'pending' until an
+  // admin approves it (see submitAgentReg()/_fsPendingApprove()) — without
+  // this check, applying to become an agent would grant full listing rights
+  // immediately, before anyone actually reviewed the application.
+  return user.status !== 'pending';
 }
 
 function saveUser(user) {
@@ -10302,6 +10307,7 @@ function restoreUserSession(fbUser) {
         email: fsData.email || fbUser.email || '',
         phone: fsData.phone || fbUser.phoneNumber || '',
         role: fsData.role || 'client',
+        status: fsData.status || 'active',
         photo: fsData.photoURL || fbUser.photoURL || '',
         agentId: fsData.agentId || '',
         location: fsData.location || '',
@@ -10317,6 +10323,7 @@ function restoreUserSession(fbUser) {
         email: fbUser.email || '',
         phone: fbUser.phoneNumber || '',
         role: 'client',
+        status: 'active',
         photo: fbUser.photoURL || '',
         provider: provider,
         date: new Date().toISOString()
@@ -10635,7 +10642,7 @@ function openAddProperty() {
     go('auth'); return;
   }
   if (!canListProperty(currentUser)) {
-    if (currentUser.role === 'PendingAgent') {
+    if (currentUser.status === 'pending') {
       showToast(curLang==='rw'
         ? '⏳ Konti yawe irimo gusuzumwa. Tegereza kwemererwa.'
         : '⏳ Your account is under review. Wait for approval.');
@@ -11443,7 +11450,7 @@ function go(name) {
       console.log('[AUTH] go(dashboard): blocked — not logged in, redirecting to auth');
       showToast(curLang==='rw' ? 'Injira mbere!' : 'Please log in first!', 'warn');
       name = 'auth';
-    } else if (currentUser.role === 'PendingAgent') {
+    } else if (currentUser.status === 'pending') {
       showToast(curLang==='rw' ? '⏳ Iyandikishe ryawe irimo gusuzumwa! KOMISIYONERI izakugezaho mu masaa 24.' : '⏳ Your application is under review! We will contact you within 24 hours.', 'warn');
       return;
     } else {
@@ -13641,6 +13648,14 @@ function submitAgentReg() {
   var agEmail = g('ag-email');
   if(agEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(agEmail)){showToast('Imeyili ntabwo ari nziza!');return;}
   if(!document.getElementById('ag-agree').checked){showToast('Emeza amasezerano mbere!', 'error');return;}
+  // openAgentReg() is only reachable while logged in (showBecomeAgent() routes
+  // through auth first), but the write below needs a real uid to attach the
+  // application to — bail with a clear message instead of writing an orphaned,
+  // unowned record if that invariant is ever violated.
+  if(!currentUser || !currentUser.uid || typeof db === 'undefined') {
+    showToast(curLang==='rw' ? 'Injira mbere yo kwiyandikisha nka Agent!' : 'Please log in before applying to become an agent!', 'error');
+    return;
+  }
   var _arb=document.getElementById('agent-reg-btn'),_arl=document.getElementById('agent-reg-lbl');
   if(_arb){_arb.disabled=true;_arb.classList.add('btn-loading');if(_arl)_arl.innerHTML='<span class="btn-spinner"></span>'+(curLang==='rw'?'Tegereza...':'Sending...');}
 
@@ -13650,56 +13665,56 @@ function submitAgentReg() {
   if(document.getElementById('lang-fr').checked) langs.push('Français');
   if(document.getElementById('lang-sw').checked) langs.push('Kiswahili');
 
-  var agent = {
-    id: 'AG-' + Date.now(),
-    name: g('ag-name'),
-    phone: g('ag-phone'),
-    email: g('ag-email'),
-    nationalId: g('ag-id'),
-    address: g('ag-address'),
-    zone: g('ag-zone'),
-    experience: g('ag-exp'),
-    transport: g('ag-transport'),
-    languages: langs,
-    status: 'Pending Verification',
-    rating: 0,
-    deals: 0,
-    leads: [],
-    commissionTotal: 0,
-    registeredDate: new Date().toISOString()
+  var application = {
+    name: g('ag-name'), phone: g('ag-phone'), email: agEmail,
+    nationalId: g('ag-id'), address: g('ag-address'), zone: g('ag-zone'),
+    experience: g('ag-exp'), transport: g('ag-transport'), languages: langs
   };
 
-  // Save agent to localStorage + Firebase
-  var agents = [];
-  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
-  agents.push(agent);
-  try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
-  try { rtdb.ref('agents/' + agent.id).set(agent); } catch(e){}
-
-  // Update current user to pending agent — full Agent role granted on admin approval
-  if(currentUser) {
-    currentUser.role = 'PendingAgent';
-    currentUser.agentId = agent.id;
-    currentUser.zone = agent.zone;
-    saveUser(currentUser);
-    // Sync user role to Firebase so admin sees PendingAgent status
-    try {
-      var users = JSON.parse(localStorage.getItem('km_users')||'[]');
-      var uidx = users.findIndex(function(u){ return u.email === currentUser.email; });
-      if(uidx >= 0) { users[uidx].role='PendingAgent'; users[uidx].agentId=agent.id; users[uidx].zone=agent.zone; }
-      localStorage.setItem('km_users', JSON.stringify(users));
-      rtdb.ref('users/'+btoa(currentUser.email).replace(/[.#$[\]]/g,'_')).set(currentUser);
-    } catch(e){}
-  }
-
-  if(_arb){_arb.disabled=false;_arb.classList.remove('btn-loading');if(_arl)_arl.textContent='✅ Iyandikishe nka Agent';}
-  closeAgentReg();
-  showToast('✅ Iyandikishe yagenze neza! KOMISIYONERI izakugenzura mu masaa 24.');
-  kmTrack('agent_registration',{zone:agent.zone||'',experience:agent.experience||''});
-
-  // Notify admin via WhatsApp — called directly in user gesture (no confirm, no setTimeout)
-  var msg = 'Agent:'+agent.name+' Tel:'+agent.phone+' Zone:'+agent.zone+' ID:'+agent.nationalId;
+  // Notify admin via WhatsApp — fired synchronously in the click gesture
+  // (before the async Firestore write below) so popup blockers don't treat
+  // it as an unsolicited window.open().
+  var msg = 'Agent:'+application.name+' Tel:'+application.phone+' Zone:'+application.zone+' ID:'+application.nationalId;
   window.open('https://wa.me/250783177254?text=' + encodeURIComponent(msg), '_blank');
+
+  // The application is written straight onto the applicant's own users/{uid}
+  // Firestore doc (role:'agent', status:'pending') — the single source of
+  // truth the admin's Agent Approval queue (_loadFsPendingUsers) and the
+  // public agent directory (loadAgentsPage/_normalizeAgentDoc) both already
+  // read from. A narrowly-scoped Firestore rule (isSelfAgentApplication())
+  // allows exactly this self-write while still blocking self-approval —
+  // isVerified/status can only be set to their pending values here, never to
+  // 'active'/true, so an applicant can't grant themselves the approval.
+  db.collection('users').doc(currentUser.uid).set({
+    displayName: application.name,
+    phone:       application.phone,
+    email:       application.email || currentUser.email || '',
+    nationalId:  application.nationalId,
+    address:     application.address,
+    district:    application.zone,
+    zone:        application.zone,
+    experience:  application.experience,
+    transport:   application.transport,
+    languages:   application.languages,
+    role: 'agent', status: 'pending', isActive: true, isVerified: false,
+    agentAppliedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy:      currentUser.uid
+  }, { merge: true }).then(function() {
+    currentUser.role = 'agent';
+    currentUser.status = 'pending';
+    currentUser.zone = application.zone;
+    saveUser(currentUser);
+
+    if(_arb){_arb.disabled=false;_arb.classList.remove('btn-loading');if(_arl)_arl.textContent='✅ Iyandikishe nka Agent';}
+    closeAgentReg();
+    showToast('✅ Iyandikishe yagenze neza! KOMISIYONERI izakugenzura mu masaa 24.');
+    kmTrack('agent_registration',{zone:application.zone||'',experience:application.experience||''});
+  }).catch(function(e) {
+    console.error('[Agent] submitAgentReg: Firestore write failed (rules/network?):', e.code || '', e.message);
+    if(_arb){_arb.disabled=false;_arb.classList.remove('btn-loading');if(_arl)_arl.textContent='✅ Iyandikishe nka Agent';}
+    showToast(curLang==='rw' ? 'Habaye ikosa. Ongera ugerageze.' : 'Something went wrong — please try again.', 'error');
+  });
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -15775,8 +15790,13 @@ function _loadFsPendingUsers() {
       }
     })
     .catch(function(err) {
-      console.warn('[Admin] Firestore pending users query failed:', err);
-      wrap.innerHTML = '';
+      console.error('[Admin] Firestore pending users query failed:', err.code || '', err.message);
+      // Surface the failure on-screen instead of silently rendering an empty
+      // list — a permission-denied or failed-precondition (missing index)
+      // error would otherwise look identical to "no pending agents".
+      wrap.innerHTML = '<div style="background:#fde8e8;border:1.5px solid #e53e3e;border-radius:10px;padding:.75rem 1rem;color:#7c1d1d;font-size:.8rem">'
+        + '&#9888; ' + (curLang === 'rw' ? 'Ntibyashobotse gushaka abategereje kwemezwa' : 'Could not load pending approvals')
+        + ' (' + escapeHtml(err.code || err.message || 'unknown error') + ')</div>';
     });
 }
 
@@ -15785,10 +15805,15 @@ function _fsPendingApprove(uid) {
   var adminUid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'admin';
   var serverTs  = firebase.firestore.FieldValue.serverTimestamp();
   db.collection('users').doc(uid).update({
-    status:    'active',
-    isActive:  true,
-    updatedAt: serverTs,
-    updatedBy: adminUid
+    status:     'active',
+    isActive:   true,
+    // The public agent directory (loadAgentsPage/_normalizeAgentDoc) reads
+    // isVerified — not status — to decide whether an agent shows as "Active"
+    // or "Pending Verification", so approval has to flip both fields or the
+    // agent stays stuck showing as pending even after being approved here.
+    isVerified: true,
+    updatedAt:  serverTs,
+    updatedBy:  adminUid
   }).then(function() {
     logAudit('user.approved', 'users', uid, { status: 'pending' }, { status: 'active' });
     if (typeof notifyUser === 'function') {
