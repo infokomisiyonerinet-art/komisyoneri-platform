@@ -110,9 +110,25 @@ service cloud.firestore {
     }
 
     match /commissions/{id} {
+      // P0 remediation (Enterprise Readiness Audit): the old `isAuth() &&
+      // hasStandardFields()` create rule let ANY authenticated user forge a
+      // commission with status:'approved' and an arbitrary agentShare —
+      // skipping the approval workflow entirely. Real client creation
+      // paths (convertLeadToDeal(), calculatePlotCommission(),
+      // createManualCommission() in index.html) all legitimately need to
+      // create a commission client-side and must keep working, so create
+      // isn't locked to admin/staff — instead it's pinned to status ==
+      // 'pending', which has zero monetary effect on its own. The only
+      // rule that can ever move a commission to 'approved' or 'paid' is
+      // `update`, already admin/staff-only below, so this closes the
+      // forge-an-approved-commission path without breaking any existing
+      // workflow. The Cloud Function that creates real deal commissions
+      // (onDealClosedWon) writes via the Admin SDK, which bypasses rules
+      // entirely, so it needs no allowance here either.
       allow read:   if isAdminOrStaff()
                     || (isAuth() && resource.data.agentId == request.auth.uid);
-      allow create: if isAuth() && hasStandardFields();
+      allow create: if isAuth() && hasStandardFields()
+                    && request.resource.data.status == 'pending';
       allow update: if isAdminOrStaff();
       allow delete: if false;
     }
@@ -153,9 +169,17 @@ service cloud.firestore {
       // Tightened beyond the `leaves` collection's equivalent create rule
       // (which doesn't check the self-ownership field): this collection
       // moves money, so a client can only ever create a payout request
-      // for themselves, not on another agent's behalf.
+      // for themselves, not on another agent's behalf. Also pinned to
+      // status == 'pending' (P0 remediation) so a request can never be
+      // self-created already 'approved' — actual approval, and the real
+      // commission-paid batch write, only ever happen via the admin/staff
+      // `update` path below. A Cloud Function (onPayoutRequestCreated)
+      // independently re-verifies the amount/ownership/commission status
+      // server-side the instant a request is created and auto-rejects any
+      // mismatch before an admin ever sees it in the queue.
       allow create: if isAuth() && hasStandardFields()
-                    && request.resource.data.agentId == request.auth.uid;
+                    && request.resource.data.agentId == request.auth.uid
+                    && request.resource.data.status == 'pending';
       // Admin/staff can approve or reject; the requesting agent may only
       // cancel their own still-pending request (not approve it, not
       // change the amount) — a plain document update, so unlike list
@@ -236,10 +260,20 @@ service cloud.firestore {
     }
 
     match /invoices/{id} {
+      // P0 remediation: same shape of gap as commissions above — any
+      // authenticated user could previously create an invoice already
+      // marked 'paid' or 'refunded', polluting revenue records. Every
+      // legitimate client creation path (manual Accounting invoices via
+      // submitInvoice(), referral/partner payout invoices) only ever
+      // writes 'draft' or 'sent'; 'paid'/'refunded' only ever happen via
+      // the admin/staff-only `update` rule below. Cloud Functions
+      // (deal-close and subscription-renewal invoices) use the Admin SDK
+      // and bypass rules entirely.
       allow read:   if isAdminOrStaff()
                     || (isAuth() && resource.data.billedTo == request.auth.uid)
                     || (isAuth() && resource.data.clientId == request.auth.uid);
-      allow create: if isAuth() && hasStandardFields();
+      allow create: if isAuth() && hasStandardFields()
+                    && request.resource.data.status in ['draft', 'sent'];
       allow update: if isAdminOrStaff();
       allow delete: if false;
     }
