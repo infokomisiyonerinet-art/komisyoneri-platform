@@ -90,7 +90,7 @@ service cloud.firestore {
                     || isSelfAgentApplication()
                     || (isAuth() && request.auth.uid == uid
                         && request.resource.data.diff(resource.data).affectedKeys()
-                           .hasOnly(['phone','location','preference','photoURL',
+                           .hasOnly(['phone','location','preference','photoURL','themePref',
                                      'referralCode','favorites','updatedAt','updatedBy']));
       allow delete: if false;
     }
