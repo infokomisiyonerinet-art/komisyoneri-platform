@@ -139,6 +139,25 @@ exports.onDealClosedWon = onDocumentUpdated({ document: 'deals/{dealId}', region
   const db = getFirestore();
   const actingUid = deal.updatedBy || 'system';
 
+  // P0.1 security closure: rules/firestore.rules now restrict the
+  // closed_won transition to admin/staff, so this should be unreachable
+  // by anyone else — but this trigger is the one place that actually
+  // creates money, so it independently re-verifies the actor rather than
+  // trusting the rules layer alone. A rules bug, a future admin-SDK script
+  // writing on someone's behalf, or any other path that reaches this
+  // trigger without going through the client rule should not silently
+  // mint a commission — it logs a flagged audit entry and stops instead.
+  if (actingUid !== 'system') {
+    const actorDoc = await db.collection('users').doc(actingUid).get();
+    const actorRole = actorDoc.exists ? String(actorDoc.data().role || '').toLowerCase() : '';
+    if (!STAFF_ROLES.map((r) => r.toLowerCase()).includes(actorRole)) {
+      logger.warn('onDealClosedWon: deal closed by a non-staff actor — skipping commission/invoice generation', { dealId, actingUid, actorRole });
+      await logAudit(db, 'deal.closed_won.rejected_untrusted_actor', 'deals', dealId,
+        { pipelineStage: before.pipelineStage || 'new' }, { actingUid, actorRole }, 'system');
+      return;
+    }
+  }
+
   const dealType = deal.dealType || 'sale';
   const dealValue = Number(deal.agreedPrice || deal.price || 0);
   const rate = (COMMISSION_RATES[dealType] && COMMISSION_RATES[dealType].default) || 0.04;
@@ -781,36 +800,22 @@ exports.onSubscriptionActivated = onDocumentWritten({ document: 'subscriptions/{
  * showing an Approve action); on any mismatch it auto-rejects the request
  * and notifies the agent, exactly as if an admin had rejected it by hand.
  */
-exports.onPayoutRequestCreated = onDocumentCreated({ document: 'payout_requests/{requestId}', region: REGION }, async (event) => {
-  const db = getFirestore();
-  const requestId = event.params.requestId;
-  const ref = event.data.ref;
-  const req = event.data.data() || {};
-  if (req.status !== 'pending') return; // rules pin creation to 'pending' — defensive only
-
-  async function autoReject(reason) {
-    await ref.update({
-      status: 'rejected',
-      rejectedReason: reason,
-      updatedAt: FieldValue.serverTimestamp(),
-      updatedBy: 'system'
-    });
-    await logAudit(db, 'payout_request.auto_rejected', 'payout_requests', requestId, null, { reason: reason }, 'system');
-    if (req.agentId) {
-      await notifyUser(db, req.agentId, 'Payout Request Rejected',
-        'Your payout request was automatically rejected: ' + reason,
-        'payout_rejected', 'payout_requests', requestId, 'system');
-    }
-    logger.info('Payout request auto-rejected', { requestId: requestId, reason: reason });
-  }
-
+/**
+ * Shared verification core for a payout request — used both at creation
+ * time (onPayoutRequestCreated) and again at approval time
+ * (onPayoutRequestApproved). Re-running the exact same checks at approval
+ * time matters because "verified" state can go stale between the two: a
+ * referenced commission could be paid out via a different, concurrently-
+ * approved request in the window between them, which only a fresh
+ * duplicate-claim check (excluding the request being verified) catches.
+ */
+async function verifyPayoutRequest(db, requestId, req) {
   const commissionIds = Array.isArray(req.commissionIds) ? req.commissionIds : [];
   if (!req.agentId || !commissionIds.length) {
-    await autoReject('No commissions were referenced.');
-    return;
+    return { ok: false, reason: 'No commissions were referenced.' };
   }
 
-  // No other pending/approved request by this agent may already claim any
+  // No OTHER pending/approved request by this agent may already claim any
   // of the same commission IDs — prevents duplicate/double-spent requests.
   const existingSnap = await db.collection('payout_requests')
     .where('agentId', '==', req.agentId)
@@ -822,8 +827,7 @@ exports.onPayoutRequestCreated = onDocumentCreated({ document: 'payout_requests/
     (d.data().commissionIds || []).forEach((cid) => claimed.add(cid));
   });
   if (commissionIds.some((cid) => claimed.has(cid))) {
-    await autoReject('One or more commissions are already referenced by another payout request.');
-    return;
+    return { ok: false, reason: 'One or more commissions are already referenced by another payout request.' };
   }
 
   // Recompute the real total from the actual commission documents — the
@@ -831,23 +835,119 @@ exports.onPayoutRequestCreated = onDocumentCreated({ document: 'payout_requests/
   let recomputedTotal = 0;
   for (const cid of commissionIds) {
     const cDoc = await db.collection('commissions').doc(cid).get();
-    if (!cDoc.exists) { await autoReject('A referenced commission does not exist.'); return; }
+    if (!cDoc.exists) return { ok: false, reason: 'A referenced commission does not exist.' };
     const c = cDoc.data();
-    if (c.agentId !== req.agentId) { await autoReject('A referenced commission does not belong to you.'); return; }
-    if (c.status !== 'approved') { await autoReject('A referenced commission is not in an approved, payable state.'); return; }
+    if (c.agentId !== req.agentId) return { ok: false, reason: 'A referenced commission does not belong to you.' };
+    if (c.status !== 'approved') return { ok: false, reason: 'A referenced commission is not in an approved, payable state.' };
     recomputedTotal += Number(c.agentShare) || 0;
   }
   if (Math.round(recomputedTotal) !== Math.round(Number(req.amount) || 0)) {
-    await autoReject('The requested amount does not match the referenced commissions.');
+    return { ok: false, reason: 'The requested amount does not match the referenced commissions.' };
+  }
+
+  return { ok: true, total: recomputedTotal, commissionIds: commissionIds };
+}
+
+exports.onPayoutRequestCreated = onDocumentCreated({ document: 'payout_requests/{requestId}', region: REGION }, async (event) => {
+  const db = getFirestore();
+  const requestId = event.params.requestId;
+  const ref = event.data.ref;
+  const req = event.data.data() || {};
+  if (req.status !== 'pending') return; // rules pin creation to 'pending' — defensive only
+
+  const result = await verifyPayoutRequest(db, requestId, req);
+  if (!result.ok) {
+    await ref.update({
+      status: 'rejected',
+      rejectedReason: result.reason,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: 'system'
+    });
+    await logAudit(db, 'payout_request.auto_rejected', 'payout_requests', requestId, null, { reason: result.reason }, 'system');
+    if (req.agentId) {
+      await notifyUser(db, req.agentId, 'Payout Request Rejected',
+        'Your payout request was automatically rejected: ' + result.reason,
+        'payout_rejected', 'payout_requests', requestId, 'system');
+    }
+    logger.info('Payout request auto-rejected', { requestId: requestId, reason: result.reason });
     return;
   }
 
   await ref.update({
     serverVerified: true,
-    verifiedAmount: recomputedTotal,
+    verifiedAmount: result.total,
     verifiedAt: FieldValue.serverTimestamp()
   });
-  logger.info('Payout request verified', { requestId: requestId, agentId: req.agentId, amount: recomputedTotal });
+  logger.info('Payout request verified', { requestId: requestId, agentId: req.agentId, amount: result.total });
+});
+
+/**
+ * P0.1 security closure: approvePayoutRequest() in index.html used to mark
+ * the referenced commissions 'paid' directly from the client, trusting
+ * whatever `serverVerified` said at whatever moment the admin's browser
+ * last read it. This is the actual money-movement step now — it fires the
+ * instant a payout_requests doc transitions into 'approved' (which rules
+ * only allow from a genuinely 'pending' + already-server-verified state,
+ * closing the forgery path at the rules layer), and independently
+ * re-verifies everything a second time before touching a single
+ * commission, since "verified a moment ago" and "still true right now"
+ * are different claims — see verifyPayoutRequest()'s doc comment.
+ */
+exports.onPayoutRequestApproved = onDocumentUpdated({ document: 'payout_requests/{requestId}', region: REGION }, async (event) => {
+  const before = event.data.before.data() || {};
+  const after = event.data.after.data() || {};
+  if (before.status === 'approved' || after.status !== 'approved') return;
+
+  const db = getFirestore();
+  const requestId = event.params.requestId;
+  const ref = event.data.after.ref;
+  const approvedBy = after.approvedBy || after.updatedBy || 'system';
+
+  const result = await verifyPayoutRequest(db, requestId, after);
+  if (!result.ok) {
+    await ref.update({
+      status: 'rejected',
+      rejectedReason: 'Re-verification failed at approval time: ' + result.reason,
+      approvedBy: null,
+      approvedAt: null,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: 'system'
+    });
+    await logAudit(db, 'payout_request.approval_reverted', 'payout_requests', requestId,
+      { status: 'approved' }, { status: 'rejected', reason: result.reason }, 'system');
+    if (after.agentId) {
+      await notifyUser(db, after.agentId, 'Payout Approval Could Not Be Completed',
+        'Your payout could not be completed on re-verification: ' + result.reason,
+        'payout_rejected', 'payout_requests', requestId, 'system');
+    }
+    if (approvedBy && approvedBy !== 'system') {
+      await notifyUser(db, approvedBy, 'Payout Approval Reverted',
+        'A payout you approved failed re-verification and was reverted: ' + result.reason,
+        'system', 'payout_requests', requestId, 'system');
+    }
+    logger.warn('Payout approval reverted on re-verification failure', { requestId, reason: result.reason });
+    return;
+  }
+
+  const batch = db.batch();
+  result.commissionIds.forEach((cid) => {
+    batch.update(db.collection('commissions').doc(cid), {
+      status: 'paid',
+      paidAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: 'system'
+    });
+  });
+  await batch.commit();
+
+  await logAudit(db, 'payout_request.paid', 'payout_requests', requestId, null,
+    { agentId: after.agentId, amount: result.total, approvedBy: approvedBy }, 'system');
+  if (after.agentId) {
+    await notifyUser(db, after.agentId, 'Payout Approved',
+      'Your payout request has been approved and ' + result.total.toLocaleString() + ' RWF marked paid.',
+      'payout_approved', 'payout_requests', requestId, 'system');
+  }
+  logger.info('Payout request paid', { requestId, agentId: after.agentId, amount: result.total });
 });
 
 /**
