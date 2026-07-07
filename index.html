@@ -2577,10 +2577,50 @@ html,body{overscroll-behavior-x:none}
 
 /* ── loading / empty states (used everywhere) ── */
 .off-loading,.exec-loading{padding:1.5rem;text-align:center;color:var(--muted);font-size:.82rem;font-style:italic}
-.off-empty,.exec-empty,.crm-empty{padding:2.2rem 1rem;text-align:center;color:var(--muted)}
-.crm-empty-icon{font-size:2rem;margin-bottom:.4rem;opacity:.7}
-.crm-empty-title{font-size:.88rem;font-weight:700;color:var(--dark)}
-.crm-empty-sub{font-size:.76rem;color:var(--muted);margin-top:.25rem}
+.off-empty,.exec-empty,.crm-empty,.cust-empty{padding:2.2rem 1rem;text-align:center;color:var(--muted)}
+.crm-empty-icon,.cust-empty-icon{font-size:2rem;margin-bottom:.4rem;opacity:.7}
+.crm-empty-title,.cust-empty-title{font-size:.88rem;font-weight:700;color:var(--dark)}
+.crm-empty-sub,.cust-empty-sub{font-size:.76rem;color:var(--muted);margin-top:.25rem}
+
+/* ── Customer Portal ── */
+.cust-hero{background:linear-gradient(135deg,var(--navy),var(--blue));padding:2.2rem 4% 1.8rem;padding-left:max(4%,env(safe-area-inset-left));padding-right:max(4%,env(safe-area-inset-right))}
+.cust-hero-inner{display:flex;align-items:center;gap:1.1rem;max-width:1080px;margin:0 auto}
+.cust-avatar{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.35);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.5rem;flex-shrink:0;background-size:cover;background-position:center}
+.cust-hero-name{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.5rem;color:#fff}
+.cust-hero-sub{display:flex;align-items:center;gap:.6rem;margin-top:.3rem;flex-wrap:wrap}
+.cust-role-chip{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:100px;padding:.2rem .8rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#fff}
+.cust-wrap{max-width:1080px;margin:0 auto;padding:1.6rem 4% 3rem;padding-left:max(4%,env(safe-area-inset-left));padding-right:max(4%,env(safe-area-inset-right))}
+.cust-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;margin-bottom:1.6rem}
+.cust-stat-card{background:var(--surface);border-radius:var(--r);padding:1.1rem;border:1.5px solid var(--border);box-shadow:var(--sh);text-align:center}
+.cust-stat-val{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.7rem;color:var(--navy);font-variant-numeric:tabular-nums}
+.cust-stat-lbl{font-size:.72rem;color:var(--muted);margin-top:.2rem}
+.cust-tabs-nav{display:flex;gap:.3rem;overflow-x:auto;border-bottom:2px solid var(--border);margin-bottom:1.2rem;padding-bottom:0}
+.cust-tab{background:transparent;border:none;padding:.6rem 1rem;font-size:.8rem;font-weight:700;color:var(--muted);white-space:nowrap;border-bottom:2.5px solid transparent;margin-bottom:-2px;transition:var(--tr);cursor:pointer;font-family:'DM Sans',sans-serif}
+.cust-tab:hover{color:var(--navy)}
+.cust-tab.active{color:var(--navy);border-bottom-color:var(--navy)}
+@media(max-width:560px){
+  .cust-stats{grid-template-columns:1fr 1fr}
+  .cust-hero-name{font-size:1.25rem}
+  .cust-avatar{width:52px;height:52px;font-size:1.2rem}
+}
+
+/* ── Testimonials ── */
+.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.4rem}
+.testi-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:1.6rem;box-shadow:var(--sh);display:flex;flex-direction:column;gap:1rem}
+.testi-stars{color:var(--gold);font-size:.92rem;letter-spacing:.15rem}
+.testi-text{font-size:.9rem;color:var(--dark);line-height:1.75;flex:1;font-style:italic}
+.testi-author{display:flex;align-items:center;gap:.8rem}
+.testi-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.82rem;flex-shrink:0}
+.testi-author strong{display:block;font-size:.86rem;color:var(--navy);font-weight:700}
+.testi-author span{font-size:.73rem;color:var(--muted)}
+
+/* ── Star-rating widgets ── */
+.sr-star,.star-btn{display:inline-block}
+.sr-star:hover,.star-btn:hover{transform:scale(1.12)}
+.interest-stars{display:flex;gap:.4rem}
+.interest-stars span{font-size:1.5rem;line-height:1;cursor:pointer;opacity:.3;filter:grayscale(1);transition:var(--tr)}
+.interest-stars span:hover{opacity:.7}
+.interest-stars span.active{opacity:1;filter:none}
 
 /* ── generic status chip (Office tasks/leave) ── */
 .off-status-chip,.off-priority-badge{display:inline-block;padding:.2rem .6rem;border-radius:var(--r-full);color:#fff;font-size:.68rem;font-weight:700;text-transform:capitalize;white-space:nowrap}
@@ -3381,7 +3421,7 @@ html,body{overscroll-behavior-x:none}
     <!-- Admin (hidden unless admin) -->
     <button id="hm-admin-btn" onclick="openAdmin();closeHamburger()" class="hm-item" style="display:none;color:var(--navy);font-weight:700">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-      ⚙️ Admin Panel
+      <span data-rw="Admin Panel" data-en="Admin Panel">Admin Panel</span>
     </button>
 
     <!-- Logout -->
