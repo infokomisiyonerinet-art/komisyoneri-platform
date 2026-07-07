@@ -262,6 +262,14 @@ if(typeof Sentry!=='undefined'&&_sentryDsn.indexOf('YOUR_')!==0){Sentry.init({ds
      color:var(--dark) against a permanently-bright gold fill would go
      from 8.4:1 contrast to 1.7:1 the moment dark mode is on. */
   --on-gold:#0F1B35;
+  /* Fixed dark surface for panels that are deliberately dark regardless of
+     page theme (ticker strip, footer, virtual-tour placeholder, the
+     .section-dark utility) — same failure mode as --on-gold above: these
+     were written as background:var(--dark) back when --dark only ever
+     meant "near-black", so they'd otherwise flip to a near-white
+     background in dark mode while their white/translucent-white text
+     stays white, going invisible. */
+  --dark-fixed:#0F1B35;
   color-scheme:light;
   /* Semantic states */
   --error:#dc2626;    --error-bg:#fee2e2;  --error-dark:#991b1b;
@@ -375,7 +383,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .wrap{max-width:1240px;margin:0 auto;padding:0 4%}
 .section{padding:5.5rem 0}
 .section-light{background:var(--light)}
-.section-dark{background:var(--dark)}
+.section-dark{background:var(--dark-fixed)}
 
 /* ══════════════════════════════════════
    COMPONENTS
@@ -497,7 +505,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 /* ══════════════════════════════════════
    TICKER STRIP
 ══════════════════════════════════════ */
-.ticker-strip{background:var(--dark);height:32px;display:flex;align-items:center;overflow:hidden}
+.ticker-strip{background:var(--dark-fixed);height:32px;display:flex;align-items:center;overflow:hidden}
 .ticker-track{display:flex;gap:2.8rem;animation:tick 28s linear infinite;white-space:nowrap;align-items:center;padding:0 1rem}
 .t-item{display:flex;align-items:center;gap:.45rem;font-size:.72rem;color:rgba(255,255,255,.55);font-family:'JetBrains Mono',monospace}
 .t-up{color:#4ade80}.t-dn{color:#f87171}
@@ -825,7 +833,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .det-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
 
 /* 3D TOUR VIEWER */
-.tour-box{background:var(--dark);border-radius:var(--r);height:370px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.tour-box{background:var(--dark-fixed);border-radius:var(--r);height:370px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .tour-scene{position:absolute;inset:0;background:linear-gradient(160deg,#0d2055 0%,#0e3a6e 50%,#0a2a50 100%)}
 .tour-grid{position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,rgba(255,255,255,.04),transparent);transform:perspective(350px) rotateX(16deg);transform-origin:bottom}
 .tour-walls{position:absolute;top:0;left:0;right:0;height:50%;overflow:hidden}
@@ -1210,7 +1218,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 /* ══════════════════════════════════════
    FOOTER
 ══════════════════════════════════════ */
-footer{background:var(--dark);color:rgba(255,255,255,.5);padding:3.8rem 4% calc(1.8rem + env(safe-area-inset-bottom));padding-left:max(4%,env(safe-area-inset-left));padding-right:max(4%,env(safe-area-inset-right))}
+footer{background:var(--dark-fixed);color:rgba(255,255,255,.5);padding:3.8rem 4% calc(1.8rem + env(safe-area-inset-bottom));padding-left:max(4%,env(safe-area-inset-left));padding-right:max(4%,env(safe-area-inset-right))}
 .ft-inner{max-width:1240px;margin:0 auto}
 .ft-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1.3fr;gap:3.5rem;margin-bottom:2.8rem}
 .ft-brand p{font-size:.82rem;line-height:1.78;margin-top:.7rem;max-width:260px}
