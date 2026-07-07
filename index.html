@@ -82,18 +82,9 @@
 
 <link rel="manifest" href="/manifest.json">
 
-<!-- ── FAVICON ──
-     Real files, not a data-URI, and not the old placeholder house glyph —
-     Google's favicon crawler needs a genuinely fetchable, cacheable image
-     URL to index and show next to search results; a data: URI can't be
-     crawled as a resource, which is why search results fell back to
-     Google's own generic globe icon instead of the KOMISIYONERI logo. -->
-<link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<!-- ── FAVICON ── -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230D3B8C'/><path d='M20 70 L50 30 L80 70 M35 70 L35 52 L65 52 L65 70' stroke='white' stroke-width='7' fill='none' stroke-linejoin='round' stroke-linecap='round'/></svg>">
+<link rel="apple-touch-icon" href="/icon-192.svg">
 
 <!-- ── STRUCTURED DATA (Google Rich Results) ── -->
 <script type="application/ld+json">
@@ -16762,7 +16753,7 @@ document.addEventListener('securitypolicyviolation', function(e) {
 
     function kmNotify(title, body, tag) {
       if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-        try { new Notification(title, { body: body, icon: '/icon-192.png', badge: '/icon-192.png', tag: tag||'km' }); } catch(e){}
+        try { new Notification(title, { body: body, icon: '/icon-192.svg', badge: '/icon-192.svg', tag: tag||'km' }); } catch(e){}
       }
       _kmNotifList.unshift({ title: title, body: body, time: Date.now() });
       if (_kmNotifList.length > 20) _kmNotifList.length = 20;
