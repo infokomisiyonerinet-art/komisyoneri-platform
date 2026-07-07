@@ -270,6 +270,12 @@ if(typeof Sentry!=='undefined'&&_sentryDsn.indexOf('YOUR_')!==0){Sentry.init({ds
   --whatsapp:#25D366; --whatsapp-hover:#1da851;
   /* Radius scale */
   --r-xs:4px; --r-sm:8px; --r:14px; --r-lg:20px; --r-full:100px;
+  /* Spacing scale — codifies the rem values already in de facto use
+     throughout the app (chip padding, card gaps, section spacing) rather
+     than imposing an unrelated generic grid. Use for new CSS going
+     forward; not a retroactive migration of existing inline spacing. */
+  --sp-1:.25rem; --sp-2:.4rem; --sp-3:.6rem; --sp-4:.8rem;
+  --sp-5:1.2rem; --sp-6:1.6rem; --sp-7:2.4rem; --sp-8:3.6rem;
   /* Shadow scale */
   --sh:0 2px 16px rgba(13,59,140,.09);
   --sh-lg:0 12px 48px rgba(13,59,140,.15);
@@ -366,6 +372,7 @@ h1,h2,h3,.h1,.h2,.h3{font-family:'Cormorant Garamond',serif;font-weight:700;line
 .h2{font-size:clamp(1.8rem,3vw,2.6rem)}
 .h3{font-size:clamp(1.2rem,2vw,1.55rem)}
 .eyebrow{font-size:.68rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--blue)}
+.eyebrow.tag-green{color:var(--green)}
 .eyebrow-gold{color:#7A5500}
 
 /* ══════════════════════════════════════
@@ -905,6 +912,13 @@ textarea.form-control{min-height:80px;resize:vertical}
 .modal{background:var(--surface);border-radius:22px;padding:2.1rem;width:100%;max-width:510px;box-shadow:0 24px 90px rgba(0,0,0,.28);animation:mIn .28s ease}
 @keyframes mIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
 .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+/* This is the one modal whose header is meant to bleed edge-to-edge
+   (colored bar, corners matching the modal's own radius) rather than sit
+   inset inside .modal's normal 2.1rem padding — without this, the navy
+   bar floats in the middle of a white margin instead of looking like a
+   proper title bar. */
+#mortgage-calc-modal .modal{padding:0}
+#mortgage-calc-modal .modal-body{padding:1.4rem 2.1rem 2.1rem}
 .modal-title{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:700}
 .modal-x{background:var(--light);border:none;width:44px;height:44px;flex-shrink:0;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
 .modal-x:hover{background:var(--border)}
@@ -3030,6 +3044,36 @@ html,body{overscroll-behavior-x:none}
 .exec-ring-val{font-size:2.2rem;font-weight:800}
 .exec-ring-lbl{font-size:.78rem;color:var(--dark);margin-top:.3rem}
 .exec-ring-sub{font-size:.68rem;color:var(--muted);margin-top:.1rem}
+.exec-alert-msg{flex:1}
+.exec-act-action{color:var(--dark)}
+.exec-dv-stage{color:var(--dark)}
+
+/* ── CRM: lead priority badges + stage tracker + contact log ── */
+.crm-priority{display:inline-block;padding:var(--sp-1) var(--sp-3);border-radius:var(--r-full);font-size:.68rem;font-weight:700}
+.crm-priority-hot{background:rgba(220,38,38,.12);color:var(--error)}
+.crm-priority-warm{background:rgba(245,166,35,.15);color:#946800}
+.crm-priority-cold{background:rgba(22,87,204,.1);color:var(--blue)}
+.lead-stage-track{display:flex;gap:var(--sp-2);overflow-x:auto;padding-bottom:var(--sp-2);scrollbar-width:none}
+.lead-stage-track::-webkit-scrollbar{display:none}
+.lst-step{flex-shrink:0;padding:var(--sp-2) var(--sp-4);border-radius:var(--r-full);font-size:.68rem;font-weight:600;background:var(--light);color:var(--muted);white-space:nowrap;transition:var(--tr)}
+.lst-step.done{background:var(--hover-bg);color:var(--blue)}
+.lst-step.active{font-weight:700;box-shadow:var(--sh-sm)}
+.contact-log{display:flex;flex-direction:column;gap:var(--sp-3);max-height:260px;overflow-y:auto}
+.clog-entry{background:var(--light);border-radius:var(--r-sm);padding:var(--sp-3) var(--sp-4)}
+.clog-type{font-size:.62rem;font-weight:800;letter-spacing:.06em;color:var(--blue);margin-bottom:.15rem}
+.clog-note{font-size:.82rem;color:var(--dark)}
+.clog-date{font-size:.68rem;color:var(--muted);margin-top:.25rem}
+
+/* ── Finance/HR/Branch/Invoice line items ── */
+.fin-card-row{display:flex;justify-content:space-between;padding:var(--sp-3) 0;border-bottom:1px solid var(--border);font-size:.85rem}
+.fin-card-row:last-child{border-bottom:none}
+.hr-perf-metric{background:var(--light);border-radius:var(--r-sm);padding:var(--sp-4) var(--sp-2)}
+.br-detail-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:var(--sp-3)}
+.ac-inv-number{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums}
+
+/* ── Multi-step wizard chips ── */
+.prop-step-bar,.agent-step-bar{transition:var(--tr)}
+.off-leave-type-chip,.asd-type-chip{display:inline-block;padding:var(--sp-1) var(--sp-3);border-radius:var(--r-full);background:var(--hover-bg);color:var(--navy);font-size:.72rem;font-weight:700}
 
 /* ══════════════════════════════════════════════════════════════
    BI — Business Intelligence
