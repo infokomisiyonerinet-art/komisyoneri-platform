@@ -1,0 +1,102 @@
+/* ══════════════════════════════════════════════════════════
+   KOMISIYONERI — FLOATING ACTION BUTTONS
+   Chat FAB + WhatsApp FAB + the chat panel's floating position.
+
+   Audit note: no floating "+ Add Property" button exists anywhere in
+   this codebase — every "Add Property" entry point is an inline
+   button (topnav, hamburger menu, dashboard card, listings page), not
+   position:fixed. The only real FABs are chat + WhatsApp, and their
+   relative spacing (chat at bottom:2rem, WhatsApp stacked 4.6rem above
+   it) was already deliberately tuned in a prior fix — preserved as-is
+   here, just centralized into its own file.
+
+   The only functional change: every bottom offset now adds
+   var(--bn-h) (see bottom-nav.css — 0 normally, 64px when the mobile
+   bottom nav is actually showing on the current page), so these FABs
+   never sit behind the new bottom nav. On pages/viewports where the
+   bottom nav is hidden, --bn-h is 0 and nothing changes.
+══════════════════════════════════════════════════════════ */
+
+.chat-fab{
+  position:fixed;
+  bottom:calc(var(--bn-h, 0px) + 2rem + env(safe-area-inset-bottom));
+  right:2rem;width:58px;height:58px;
+  border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--blue));
+  border:none;cursor:pointer;
+  box-shadow:0 6px 28px rgba(13,59,140,.42);
+  display:flex;align-items:center;justify-content:center;
+  z-index:900;transition:bottom .25s ease,transform .2s ease,box-shadow .2s ease;
+}
+.chat-fab:hover{transform:scale(1.1);box-shadow:0 10px 38px rgba(13,59,140,.5)}
+.chat-fab svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:1.9}
+.chat-notif{
+  position:absolute;top:-3px;right:-3px;width:20px;height:20px;
+  border-radius:50%;background:var(--gold);color:var(--on-gold);
+  font-size:.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;
+  border:2px solid #fff;animation:pulse 2s infinite;
+}
+
+.chat-panel{
+  position:fixed;
+  bottom:calc(var(--bn-h, 0px) + 6.8rem + env(safe-area-inset-bottom));
+  right:2rem;width:340px;
+  background:var(--surface);border-radius:22px;
+  box-shadow:0 20px 80px rgba(13,59,140,.22);
+  z-index:900;display:none;flex-direction:column;
+  max-height:88vh;overflow:visible;
+  border:1.5px solid var(--border);
+}
+.chat-panel.open{
+  display:flex;
+  animation:chatIn .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes chatIn{
+  from{opacity:0;transform:translateY(20px) scale(.94)}
+  to{opacity:1;transform:none}
+}
+
+.wa-fab{
+  position:fixed;
+  bottom:calc(var(--bn-h, 0px) + 6.6rem + env(safe-area-inset-bottom));
+  right:max(2rem,env(safe-area-inset-right));
+  width:56px;height:56px;border-radius:50%;
+  background:var(--whatsapp);border:none;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 24px rgba(37,211,102,.5);
+  cursor:pointer;z-index:899;
+  transition:bottom .25s ease,transform .22s ease;
+  animation:waFabFloat 3s ease-in-out infinite;
+}
+@keyframes waFabFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-5px)}
+}
+.wa-fab:hover{transform:scale(1.12) !important;animation:none}
+.wa-fab svg{width:27px;height:27px;fill:#fff}
+.wa-fab-ring{
+  position:absolute;inset:-4px;border-radius:50%;
+  border:2px solid rgba(37,211,102,.4);
+  animation:waRing 2.5s ease-out infinite;
+}
+@keyframes waRing{
+  0%{transform:scale(1);opacity:1}
+  100%{transform:scale(1.55);opacity:0}
+}
+
+/* Small screens: keep FABs within viewport horizontally */
+@media(max-width:360px){
+  .chat-fab{right:1rem}
+  .wa-fab{right:1rem}
+  .chat-panel{right:.75rem;width:calc(100vw - 1.5rem)}
+}
+
+/* Property Details already has its own Chat/Call/WhatsApp buttons in the
+   agent card's contact row (.ag-acts) — the global floating FABs are
+   redundant there and, on a stacked single-column mobile layout, sit
+   directly over that row instead of the empty page corner they're
+   designed for. Hide them while this page is open rather than just
+   padding around an overlap that serves no purpose on this page. */
+@media(max-width:1024px){
+  #page-detail.page.active ~ .chat-fab,
+  #page-detail.page.active ~ .wa-fab{display:none}
+}
