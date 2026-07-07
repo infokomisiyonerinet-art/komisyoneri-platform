@@ -14306,7 +14306,21 @@ var BOTTOM_NAV_SETS = {
   ]
 };
 var BOTTOM_NAV_CONTEXT = { crm:'crm', deals:'crm', commissions:'crm' };
-var BOTTOM_NAV_HIDDEN  = ['detail','auth'];
+// Phase 3 (HR/Payroll/Accounting/Exec/Branch Network/Document Vault/
+// Investor Portal/Partner Portal): these are staff-only, desktop-
+// oriented, data-dense back-office tools that already have full
+// navigation via the existing #dash-sidebar drawer (~25 items covering
+// every one of them). None reduce naturally to 4 equally-weighted
+// mobile tabs the way CRM did, so rather than invent a plausible-
+// looking but arbitrary tab set per module, the bar stays hidden here
+// and the sidebar remains the real nav for this work — same treatment
+// as detail/auth already get.
+var BOTTOM_NAV_HIDDEN = [
+  'detail', 'auth',
+  'hr', 'hr-mgr', 'accounting', 'exec', 'bi',
+  'branches', 'branch-mgr', 'ops-mgr',
+  'documents', 'investors', 'partners'
+];
 var _bnCurPage = 'home';
 
 function bnProfileIcon(defaultIcon) {
@@ -14359,11 +14373,17 @@ window.addEventListener('resize', function(){
   }, 150);
 });
 
-// Sync bottom nav with page navigation
+// Sync bottom nav with page navigation. go() can silently redirect (e.g.
+// go('dashboard') sends logged-out users to 'auth' instead) — read the
+// page that's actually visible afterward rather than trusting the
+// argument, so the bar's visibility/highlighting never falls out of
+// sync with what's really on screen.
 var _origGoBN = go;
 go = function(page) {
   _origGoBN(page);
-  renderBottomNav(page);
+  var activeEl = document.querySelector('.page.active');
+  var actualPage = activeEl ? activeEl.id.replace(/^page-/, '') : page;
+  renderBottomNav(actualPage);
 };
 
 
