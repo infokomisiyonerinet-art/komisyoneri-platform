@@ -1,0 +1,55 @@
+/* ══════════════════════════════════════════════════════════
+   KOMISIYONERI — BOTTOM NAVIGATION
+   Mobile-only tab bar (≤1024px, matching the header's hamburger
+   breakpoint). Desktop keeps the topnav + dashboard sidebar as
+   primary navigation — a bottom tab bar is a mobile pattern and stays
+   hidden at desktop widths regardless of page context.
+
+   There was no bottom nav shipped before this: index.html already
+   contained JS (`bnGo`, `bnProfile`, a `go()` override) written for
+   one, referencing #bottom-nav/.bn-item/#bn-avatar — but the matching
+   HTML/CSS was never built, so it was fully dead code. This file (plus
+   the rewritten JS in index.html) completes that half-finished feature
+   rather than leaving a second, competing implementation next to it.
+
+   Content-swapping is handled in JS (renderBottomNav in index.html):
+   the same 4 slots relabel for the current app area — 'public'
+   (Home/Properties/My Properties/Profile) or 'crm'
+   (Leads/Deals/Commissions/Profile) — since deciding which tab set
+   currently applies isn't something pure CSS can do.
+
+   --bn-h is 0 by default and only becomes 64px (in JS) when the bar is
+   actually visible for the current page+viewport — fab.css and the
+   shared .page rule both read it to keep floating buttons and page
+   content clear of the bar, without hard-coding a height that may not
+   even be showing.
+══════════════════════════════════════════════════════════ */
+:root{ --bn-h: 0px; }
+
+.bottom-nav{
+  display:none;
+  position:fixed;left:0;right:0;bottom:0;
+  z-index:950; /* above page content; below the hamburger drawer (999) and its backdrop (998) */
+  background:var(--nav-bg);
+  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  border-top:1.5px solid var(--border);
+  box-shadow:0 -2px 20px rgba(13,59,140,.06);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+@media(max-width:1024px){
+  .bottom-nav.show{display:flex}
+}
+
+.bn-items{display:flex;align-items:stretch;justify-content:space-around;height:64px;width:100%}
+.bn-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;
+  min-width:48px;min-height:48px;background:none;border:none;cursor:pointer;
+  font-family:'DM Sans',sans-serif;color:var(--muted);transition:color .15s ease;
+  padding:.3rem .2rem;
+}
+.bn-item svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9}
+.bn-item span{font-size:.64rem;font-weight:600;letter-spacing:.01em;white-space:nowrap}
+.bn-item.active{color:var(--blue)}
+.bn-item:active{opacity:.65}
+.bn-avatar{width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:.62rem;font-weight:800;display:flex;align-items:center;justify-content:center}
+.bn-item.active .bn-avatar{background:var(--blue)}

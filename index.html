@@ -198,6 +198,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap">
 
+<!-- ── SHARED CHROME COMPONENTS (header, bottom nav, FABs) ── -->
+<link rel="stylesheet" href="/css/header.css">
+<link rel="stylesheet" href="/css/bottom-nav.css">
+<link rel="stylesheet" href="/css/fab.css">
+
 <!-- ── GOOGLE ANALYTICS (GA4) ── -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-NE0PHMB885"></script>
 <script>
@@ -467,36 +472,14 @@ textarea.form-control{min-height:80px;resize:vertical}
 /* ══════════════════════════════════════
    PAGE SYSTEM
 ══════════════════════════════════════ */
-.page{display:none;min-height:calc(100vh - 64px);padding-top:64px;animation:fadeIn .28s ease}
+.page{display:none;min-height:calc(100vh - 64px);padding-top:64px;padding-bottom:var(--bn-h,0px);animation:fadeIn .28s ease}
 .page.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 
-/* ══════════════════════════════════════
-   TOP NAV
-══════════════════════════════════════ */
-.topnav{
-  position:fixed;top:0;left:0;right:0;height:64px;z-index:1000;
-  display:flex;align-items:center;justify-content:space-between;padding:0 3.5%;
-  background:var(--nav-bg);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
-  border-bottom:1.5px solid var(--border);
-  box-shadow:0 2px 20px rgba(13,59,140,.06);
-  padding-left:max(3.5%,env(safe-area-inset-left));
-  padding-right:max(3.5%,env(safe-area-inset-right));
-}
-.topnav-logo{display:flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0}
-.logo-mark{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--navy),var(--blue));display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(13,59,140,.3)}
-.logo-mark svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.9}
-.logo-text strong{display:block;font-family:'Cormorant Garamond',serif;font-size:1.12rem;font-weight:700;color:var(--navy);line-height:1}
-.logo-text span{font-size:.62rem;color:var(--muted);letter-spacing:.16em;text-transform:uppercase}
-.topnav-links{display:flex;gap:.4rem}
-.nl{background:none;border:none;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;color:var(--muted);padding:.4rem .9rem;border-radius:8px;transition:var(--tr)}
-.nl:hover,.nl.active{background:var(--light);color:var(--blue);font-weight:600}
-/* Mobile hamburger dropdown rows — same hover language as .nl above, laid
-   out as a full-width icon+label row instead of an inline pill. */
-.hm-item{display:flex;align-items:center;gap:.8rem;width:100%;padding:.7rem 1.1rem;background:none;border:none;font-family:'DM Sans',sans-serif;font-size:.86rem;font-weight:600;color:var(--dark);text-align:left;cursor:pointer;transition:var(--tr)}
-.hm-item svg{width:19px;height:19px;flex-shrink:0;stroke:currentColor}
-.hm-item span{flex:1}
-.hm-item:hover{background:var(--light);color:var(--blue)}
+/* Top nav, hamburger drawer, bottom nav and FABs now live in
+   /css/header.css, /css/bottom-nav.css and /css/fab.css (linked in
+   <head>) — centralized there instead of inline so they're not
+   duplicated as the app grows. */
 .topnav-right{display:flex;align-items:center;gap:.6rem;flex-shrink:0;position:relative}
 .lang-sw{display:flex;background:var(--light);border-radius:100px;padding:3px}
 .lang-btn{background:none;border:none;font-size:.69rem;font-weight:700;letter-spacing:.08em;padding:.26rem .72rem;border-radius:100px;color:var(--muted);transition:var(--tr);font-family:'DM Sans',sans-serif;cursor:pointer}
@@ -1079,39 +1062,10 @@ textarea.form-control{min-height:80px;resize:vertical}
 
 /* ══════════════════════════════════════
    LIVE CHAT WIDGET — v2 robust
+   .chat-fab / .chat-notif / .chat-panel's floating position now live in
+   /css/fab.css alongside the WhatsApp FAB — only the chat window's
+   internal content styling (header, messages, input) stays here.
 ══════════════════════════════════════ */
-.chat-fab{
-  position:fixed;bottom:2rem;right:2rem;width:58px;height:58px;
-  border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--blue));
-  border:none;cursor:pointer;
-  box-shadow:0 6px 28px rgba(13,59,140,.42);
-  display:flex;align-items:center;justify-content:center;
-  z-index:900;transition:var(--tr);
-}
-.chat-fab:hover{transform:scale(1.1);box-shadow:0 10px 38px rgba(13,59,140,.5)}
-.chat-fab svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:1.9}
-.chat-notif{
-  position:absolute;top:-3px;right:-3px;width:20px;height:20px;
-  border-radius:50%;background:var(--gold);color:var(--on-gold);
-  font-size:.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;
-  border:2px solid #fff;animation:pulse 2s infinite;
-}
-.chat-panel{
-  position:fixed;bottom:6.8rem;right:2rem;width:340px;
-  background:var(--surface);border-radius:22px;
-  box-shadow:0 20px 80px rgba(13,59,140,.22);
-  z-index:900;display:none;flex-direction:column;
-  max-height:88vh;overflow:visible;
-  border:1.5px solid var(--border);
-}
-.chat-panel.open{
-  display:flex;
-  animation:chatIn .3s cubic-bezier(.34,1.56,.64,1);
-}
-@keyframes chatIn{
-  from{opacity:0;transform:translateY(20px) scale(.94)}
-  to{opacity:1;transform:none}
-}
 .chat-hdr{
   background:linear-gradient(135deg,var(--navy),var(--blue));
   padding:1rem 1.2rem;
@@ -2030,32 +1984,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .p-btn-wa:hover { background: var(--whatsapp-hover); transform: translateY(-1px); box-shadow: 0 5px 16px rgba(37,211,102,.4); }
 .p-btn-wa svg { width: 14px; height: 14px; fill: #fff; flex-shrink: 0; }
 
-/* ── FLOATING WHATSAPP BUTTON ── */
-.wa-fab {
-  position: fixed; bottom: calc(5.5rem + env(safe-area-inset-bottom)); right: max(2rem, env(safe-area-inset-right));
-  width: 56px; height: 56px; border-radius: 50%;
-  background: var(--whatsapp); border: none;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 6px 24px rgba(37,211,102,.5);
-  cursor: pointer; z-index: 899;
-  transition: transform .22s ease;
-  animation: waFabFloat 3s ease-in-out infinite;
-}
-@keyframes waFabFloat {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-.wa-fab:hover { transform: scale(1.12) !important; animation: none; }
-.wa-fab svg { width: 27px; height: 27px; fill: #fff; }
-.wa-fab-ring {
-  position: absolute; inset: -4px; border-radius: 50%;
-  border: 2px solid rgba(37,211,102,.4);
-  animation: waRing 2.5s ease-out infinite;
-}
-@keyframes waRing {
-  0% { transform: scale(1); opacity: 1; }
-  100% { transform: scale(1.55); opacity: 0; }
-}
+/* .wa-fab and its ring/animation now live in /css/fab.css */
 
 /* ── FILTER CHIPS ROW (hero section) ── */
 .hero-chips {
@@ -2148,9 +2077,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   .p-btn-wa { justify-content: center; }
 }
 
-/* ── HAMBURGER: hide on desktop, show on mobile ── */
-@media(min-width:1025px){ #hamburger-btn{display:none!important} }
-@media(max-width:1024px){ #hamburger-btn{display:flex!important} }
+/* Hamburger show/hide by breakpoint now lives in /css/header.css */
 
 /* ── FOOTER: single column on small phones ── */
 @media(max-width:480px){
@@ -2258,11 +2185,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 /* 3 ── Scrolling smoothness in dashboard panes */
 .dash-sidebar,.dash-content{scroll-behavior:smooth}
 
-/* 4 ── Chat FAB & panel: respect bottom notch/home-indicator */
-@supports(padding:env(safe-area-inset-bottom)){
-  .chat-fab{bottom:calc(2rem + env(safe-area-inset-bottom))}
-  .chat-panel{bottom:calc(6.8rem + env(safe-area-inset-bottom))}
-}
+/* 4 ── Chat FAB & panel safe-area handling now lives in /css/fab.css */
 
 /* 5 ── Keyboard-aware modal heights using dynamic viewport units */
 @supports(height:100dvh){
@@ -2273,8 +2196,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   .modal-wrap>.modal{max-height:85svh;max-height:85dvh}
 }
 
-/* 6 ── Hamburger dropdown: right safe-area offset for notched phones */
-#hamburger-menu{padding-right:max(.6rem,env(safe-area-inset-right))!important}
+/* 6 ── Hamburger dropdown safe-area offset now lives in /css/header.css */
 
 /* 7 ── Horizontal scroll snap for property image thumbnails */
 .det-thumbs{scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
@@ -2364,51 +2286,9 @@ html,body{overscroll-behavior-x:none}
   .hero{padding:1.2rem 3.5% 1.2rem}
 }
 
-/* ── 3. FLOATING ACTION BUTTONS — separate WhatsApp & Chat ── */
-/*
-   Layout (bottom of screen, right side):
-   ┌──────────────┐  ← top
-   │  wa-fab 56px │  bottom: 8.4rem (safe)
-   │              │
-   │  [16px gap]  │
-   │              │
-   │  chat-fab    │  bottom: 2rem (unchanged)
-   │  58px        │
-   └──────────────┘  ← safe-area-inset-bottom
-*/
-
-/* Chat FAB stays at bottom:2rem — already correct */
-/* Raise WhatsApp FAB to create guaranteed 16px clearance above chat FAB */
-/* chat-fab top edge = 2rem + 58px ≈ 90px from bottom                    */
-/* wa-fab should sit at: 90px + 16px gap = 106px → ~6.6rem               */
-/* Add env() for notched phones                                           */
-.wa-fab{
-  bottom:calc(6.6rem + env(safe-area-inset-bottom));
-}
-
-/* Honour the safe-area rule for chat-fab too */
-@supports(padding:env(safe-area-inset-bottom)){
-  .chat-fab{bottom:calc(2rem + env(safe-area-inset-bottom))}
-  .wa-fab  {bottom:calc(6.6rem + env(safe-area-inset-bottom))}
-}
-
-/* On small screens keep them within viewport horizontally */
-@media(max-width:360px){
-  .chat-fab{right:1rem}
-  .wa-fab  {right:1rem;bottom:calc(6.4rem + env(safe-area-inset-bottom))}
-  .chat-panel{right:.75rem;width:calc(100vw - 1.5rem)}
-}
-
-/* Property Details already has its own Chat/Call/WhatsApp buttons in the
-   agent card's contact row (.ag-acts) — the global floating FABs are
-   redundant there and, on a stacked single-column mobile layout, sit
-   directly over that row instead of the empty page corner they're
-   designed for. Hide them while this page is open rather than just
-   padding around an overlap that serves no purpose on this page. */
-@media(max-width:1024px){
-  #page-detail.page.active ~ .chat-fab,
-  #page-detail.page.active ~ .wa-fab{display:none}
-}
+/* ── 3. FLOATING ACTION BUTTONS — now fully defined in /css/fab.css,
+   including the WhatsApp/Chat relative spacing and the Property
+   Details page's FAB-hide rule. */
 
 /* ── 4. RESPONSIVENESS AUDIT — 320px / 360px / 375px / 390px / 414px ── */
 
@@ -9827,6 +9707,15 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- ═══════════════════════════════════
+     BOTTOM NAVIGATION (mobile, ≤1024px)
+     Tabs are rendered/relabeled by renderBottomNav() in JS — same 4
+     slots, different tab set depending on app area (see index.html).
+════════════════════════════════════ -->
+<nav class="bottom-nav" id="bottom-nav" aria-label="Primary">
+  <div class="bn-items" id="bn-items"></div>
+</nav>
+
+<!-- ═══════════════════════════════════
      LIVE CHAT WIDGET
 ════════════════════════════════════ -->
 <button class="chat-fab" onclick="toggleChat()" id="chat-fab-btn">
@@ -9941,6 +9830,7 @@ function setLang(lang) {
   document.getElementById('lb-rw').classList.toggle('active', lang === 'rw');
   document.getElementById('lb-en').classList.toggle('active', lang === 'en');
   if (typeof renderAiSearchChips === 'function') renderAiSearchChips();
+  if (typeof renderBottomNav === 'function') renderBottomNav(_bnCurPage);
   // Re-render dynamic content so hardcoded strings also update
   loadApprovedProperties();
 }
@@ -14375,60 +14265,105 @@ go = function(page) {
 };
 
 
-// === BOTTOM NAVIGATION ===
-function bnGo(page) {
-  go(page);
-  // Update active state
-  document.querySelectorAll('.bn-item').forEach(function(btn) {
-    btn.classList.remove('active');
-  });
-  var btn = document.getElementById('bn-' + page);
-  if (btn) btn.classList.add('active');
-}
-
-function bnProfile() {
-  if (currentUser) {
-    openProfile();
-  } else {
-    go('auth');
-  }
-  document.querySelectorAll('.bn-item').forEach(function(b){ b.classList.remove('active'); });
-  document.getElementById('bn-profile').classList.add('active');
-}
-
-// Update bottom nav avatar when user logs in
-var _origSaveUser = saveUser;
-saveUser = function(user) {
-  _origSaveUser(user);
-  var av = document.getElementById('bn-avatar');
-  if (av && user) {
-    var ini = (user.name||'U').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
-    av.textContent = ini;
-    av.style.background = 'var(--navy)';
-    av.style.color = '#fff';
-    av.style.fontSize = '.65rem';
-  }
+// ══════════════════════════════════════
+// BOTTOM NAVIGATION — mobile tab bar (≤1024px, see bottom-nav.css)
+//
+// Two tab sets sharing the same 4 slots: 'public' (Home/Properties/My
+// Properties/Profile) everywhere, and 'crm' (Leads/Deals/Commissions/
+// Profile) inside the CRM/Deals/Commissions pages. Hidden entirely on
+// pages with their own dedicated action bar (detail) or full-screen
+// flows (auth) — matching the same pages the chat/WhatsApp FABs are
+// already hidden on.
+// ══════════════════════════════════════
+var BOTTOM_NAV_SETS = {
+  public: [
+    { id:'home', rw:'Ahabanza', en:'Home', pages:['home'],
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>',
+      go:function(){ go('home'); } },
+    { id:'listings', rw:'Imitungo', en:'Properties', pages:['listings'],
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>',
+      go:function(){ go('listings'); } },
+    { id:'mylistings', rw:'Imitungo Yanjye', en:'My Properties', pages:['dashboard'],
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+      go:function(){ if (typeof goMyListings === 'function') goMyListings(); else go('dashboard'); } },
+    { id:'profile', rw:'Profil', en:'Profile', pages:['auth'],
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+      go:function(){ if (typeof currentUser !== 'undefined' && currentUser) { if (typeof openProfile === 'function') openProfile(); } else { go('auth'); } } }
+  ],
+  crm: [
+    { id:'leads', rw:'Leads', en:'Leads', pages:['crm'],
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>',
+      go:function(){ go('crm'); } },
+    { id:'deals', rw:'Deals', en:'Deals', pages:['deals'],
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12c.552 0 1-.448 1-1V5a1 1 0 00-1-1H3a1 1 0 00-1 1v6c0 .552.448 1 1 1"/><path d="M3 12v6a1 1 0 001 1h16a1 1 0 001-1v-6"/></svg>',
+      go:function(){ go('deals'); } },
+    { id:'commissions', rw:'Komisiyoni', en:'Commissions', pages:['commissions'],
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',
+      go:function(){ go('commissions'); } },
+    { id:'profile', rw:'Profil', en:'Profile', pages:[],
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+      go:function(){ if (typeof openProfile === 'function') openProfile(); } }
+  ]
 };
+var BOTTOM_NAV_CONTEXT = { crm:'crm', deals:'crm', commissions:'crm' };
+var BOTTOM_NAV_HIDDEN  = ['detail','auth'];
+var _bnCurPage = 'home';
+
+function bnProfileIcon(defaultIcon) {
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.name) {
+    var ini = currentUser.name.split(' ').map(function(w){ return w[0] || ''; }).join('').toUpperCase().slice(0, 2);
+    return '<span class="bn-avatar">' + escapeHtml(ini) + '</span>';
+  }
+  return defaultIcon;
+}
+
+function renderBottomNav(pageName) {
+  var nav = document.getElementById('bottom-nav');
+  var box = document.getElementById('bn-items');
+  if (!nav || !box) return;
+  _bnCurPage = pageName;
+
+  if (BOTTOM_NAV_HIDDEN.indexOf(pageName) > -1) {
+    nav.classList.remove('show');
+    document.documentElement.style.setProperty('--bn-h', '0px');
+    return;
+  }
+
+  var setKey = BOTTOM_NAV_CONTEXT[pageName] || 'public';
+  var tabs = BOTTOM_NAV_SETS[setKey];
+  var rw = (typeof curLang !== 'undefined' && curLang === 'rw');
+  box.innerHTML = tabs.map(function(t){
+    var active = t.pages.indexOf(pageName) > -1;
+    var icon = (t.id === 'profile') ? bnProfileIcon(t.icon) : t.icon;
+    return '<button type="button" class="bn-item' + (active ? ' active' : '') + '" onclick="bnTabGo(\'' + setKey + '\',\'' + t.id + '\')">'
+      + icon + '<span>' + escapeHtml(rw ? t.rw : t.en) + '</span></button>';
+  }).join('');
+
+  nav.classList.add('show');
+  document.documentElement.style.setProperty('--bn-h', (window.innerWidth <= 1024) ? '64px' : '0px');
+}
+
+function bnTabGo(setKey, tabId) {
+  var tab = (BOTTOM_NAV_SETS[setKey] || []).filter(function(t){ return t.id === tabId; })[0];
+  if (tab && typeof tab.go === 'function') tab.go();
+}
+
+var _bnResizeT;
+window.addEventListener('resize', function(){
+  clearTimeout(_bnResizeT);
+  _bnResizeT = setTimeout(function(){
+    var nav = document.getElementById('bottom-nav');
+    if (nav && nav.classList.contains('show')) {
+      document.documentElement.style.setProperty('--bn-h', (window.innerWidth <= 1024) ? '64px' : '0px');
+    }
+  }, 150);
+});
 
 // Sync bottom nav with page navigation
 var _origGoBN = go;
 go = function(page) {
   _origGoBN(page);
-  var pageMap = {home:'home',listings:'listings',analytics:'analytics',dashboard:'profile',auth:'profile',detail:'listings'};
-  var activeBtn = pageMap[page] || 'home';
-  document.querySelectorAll('.bn-item').forEach(function(b){ b.classList.remove('active'); });
-  var btn = document.getElementById('bn-' + activeBtn);
-  if (btn) btn.classList.add('active');
-};
-
-// Hide bottom nav on dashboard (has its own nav)
-var _origGoFinal = go;
-go = function(page) {
-  _origGoFinal(page);
-  var nav = document.getElementById('bottom-nav');
-  if (nav) {
-    nav.style.display = page === 'dashboard' ? 'none' : 'flex';
-  }
+  renderBottomNav(page);
 };
 
 
@@ -15100,20 +15035,9 @@ function convertFileToBase64(file, callback) {
   reader.readAsDataURL(file);
 }
 
-// === BOTTOM NAV ACTIVE STATE ===
-function updateBottomNav(page) {
-  var map = {home:'home',listings:'listings',analytics:'analytics'};
-  document.querySelectorAll('.bn-item').forEach(function(b){
-    b.querySelectorAll('svg').forEach(function(s){ s.style.stroke='var(--muted)'; });
-    b.querySelectorAll('span').forEach(function(s){ s.style.color='var(--muted)'; });
-  });
-  var activeId = 'bn-' + (map[page] || 'home');
-  var active = document.getElementById(activeId);
-  if(active) {
-    active.querySelectorAll('svg').forEach(function(s){ s.style.stroke='var(--navy)'; });
-    active.querySelectorAll('span').forEach(function(s){ s.style.color='var(--navy)'; });
-  }
-}
+// (bottom nav active-state syncing lives in renderBottomNav(), above —
+// this file used to carry a second, uncalled implementation here as
+// dead code left over from an earlier unfinished attempt.)
 
 // Initialize demos immediately — must run before loadApprovedProperties
 document.addEventListener('DOMContentLoaded', function() {
