@@ -789,37 +789,6 @@ textarea.form-control{min-height:80px;resize:vertical}
 .cta-box::before{width:380px;height:380px;top:-130px;right:-100px}
 .cta-box::after{width:220px;height:220px;bottom:-70px;left:-50px;background:rgba(245,166,35,.06)}
 
-/* AI SEARCH ASSISTANT */
-.ai-search-wrap{position:relative;max-width:640px;margin:0 auto}
-.ai-search-bar{display:flex;align-items:center;gap:.6rem;background:#fff;border-radius:16px;
-  padding:.5rem .5rem .5rem 1.15rem;box-shadow:0 16px 44px rgba(3,12,40,.28)}
-.ai-search-icon{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.ai-search-icon svg{width:100%;height:100%;fill:var(--gold);stroke:none}
-.ai-search-input{flex:1;min-width:0;border:none;outline:none;background:none;
-  font-family:'DM Sans',sans-serif;font-size:.95rem;color:var(--dark);padding:.65rem 0}
-.ai-search-submit{width:44px;height:44px;flex-shrink:0;border:none;border-radius:12px;cursor:pointer;
-  background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;
-  display:flex;align-items:center;justify-content:center;transition:transform .15s}
-.ai-search-submit:hover{transform:scale(1.06)}
-.ai-search-submit svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2.2}
-.ai-search-chips{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-top:1.25rem}
-.ai-chip{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#fff;
-  font-size:.76rem;font-weight:600;padding:.4rem .9rem;border-radius:100px;cursor:pointer;
-  transition:.15s;display:inline-flex;align-items:center;gap:.4rem;font-family:inherit}
-.ai-chip:hover{background:rgba(255,255,255,.24);transform:translateY(-1px)}
-.ai-search-results{position:absolute;top:calc(100% + 10px);left:0;right:0;background:var(--surface);
-  border-radius:16px;box-shadow:0 22px 56px rgba(3,12,40,.32),0 2px 8px rgba(0,0,0,.12);
-  border:1.5px solid var(--border);z-index:1600;overflow:hidden;max-height:420px;overflow-y:auto;
-  text-align:left;animation:smFade .18s ease}
-.ai-res-section-lbl{padding:.65rem 1.1rem .3rem;font-size:.66rem;font-weight:700;
-  letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
-.ai-cat-item{display:flex;align-items:center;gap:.85rem;padding:.6rem 1.1rem;cursor:pointer;
-  transition:background .12s;border-bottom:1px solid var(--light)}
-.ai-cat-item:hover{background:var(--hover-bg)}
-.ai-cat-icon{width:38px;height:38px;border-radius:10px;background:var(--light);flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;font-size:1.05rem}
-.ai-cat-label{font-size:.84rem;font-weight:600;color:var(--dark)}
-
 /* MARKET TICKER ITEMS */
 .t-arrow-up{display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:6px solid #4ade80;margin-right:2px}
 .t-arrow-dn{display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid #f87171;margin-right:2px}
@@ -1363,8 +1332,6 @@ footer{background:var(--dark-fixed);color:rgba(255,255,255,.5);padding:3.8rem 4%
   .topnav-links{display:none}
   .chat-panel{width:calc(100vw - 2rem);right:1rem}
   .cta-box{padding:2.5rem 1.5rem}
-  .ai-search-bar{padding:.4rem .4rem .4rem .9rem}
-  .ai-search-input{font-size:.88rem}
   .hero{padding:3rem 4% 2.5rem}
   .section{padding:3.8rem 0}
 }
@@ -1606,6 +1573,90 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   .sm-overlay{padding:0}
   .sm-box{border-radius:24px 24px 0 0;margin-top:auto;max-height:92vh;overflow-y:auto}
   .sm-2col{grid-template-columns:1fr}
+}
+
+/* ══════════════════════════════════════
+   UNIVERSAL SEARCH — hero bar + overlay
+   Cross-ecosystem search (properties, agents, services,
+   projects, jobs, FAQ/help). Replaces the old "Start Now"
+   hero CTA. Reuses .sm-overlay/.qs-item's visual language
+   (same tokens/shadows) under a new namespace.
+══════════════════════════════════════ */
+.usearch-bar{
+  display:flex;align-items:center;gap:.7rem;
+  background:rgba(255,255,255,.97);border-radius:16px;
+  padding:.3rem .3rem .3rem 1.1rem;box-shadow:0 20px 56px rgba(8,20,58,.28);
+  max-width:560px;width:100%;min-width:0;margin-bottom:1.6rem;cursor:text;
+  border:1.5px solid rgba(255,255,255,.5);transition:var(--tr);
+  overflow:hidden;box-sizing:border-box;
+}
+.usearch-bar:hover,.usearch-bar:focus-within{box-shadow:0 24px 64px rgba(8,20,58,.36)}
+.usearch-bar svg{width:20px;height:20px;fill:none;stroke:var(--muted);stroke-width:2;flex-shrink:0}
+.usearch-bar input{
+  flex:1;width:0;border:none;outline:none;background:none;min-width:0;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-size:.92rem;color:var(--dark);padding:.85rem 0;
+}
+.usearch-bar input::placeholder{color:var(--muted)}
+.usearch-bar-btn{
+  background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;border:none;
+  border-radius:12px;padding:.75rem 1.3rem;font-family:'DM Sans',sans-serif;
+  font-size:.86rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.4rem;
+  flex-shrink:0;transition:var(--tr);min-height:44px;
+}
+.usearch-bar-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(13,59,140,.35)}
+.usearch-bar-btn svg{width:16px;height:16px;stroke:#fff}
+
+.usearch-overlay{
+  position:fixed;inset:0;background:rgba(8,20,58,.72);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  z-index:1700;display:none;align-items:flex-start;justify-content:center;
+  padding:64px 1rem 1rem;overflow-y:auto;
+}
+.usearch-overlay.open{display:flex;animation:smFade .2s ease}
+.usearch-box{
+  background:var(--surface);border-radius:24px;width:100%;max-width:680px;
+  box-shadow:0 32px 100px rgba(0,0,0,.35);animation:smUp .25s cubic-bezier(.34,1.56,.64,1);
+  overflow:hidden;display:flex;flex-direction:column;max-height:min(88vh,760px);
+}
+.usearch-hdr{background:linear-gradient(135deg,var(--navy),var(--blue));padding:1rem 1.2rem;display:flex;align-items:center;gap:.7rem;flex-shrink:0}
+.usearch-hdr svg{width:20px;height:20px;fill:none;stroke:rgba(255,255,255,.7);stroke-width:2;flex-shrink:0}
+.usearch-hdr input{flex:1;border:none;outline:none;background:none;min-width:0;font-family:'DM Sans',sans-serif;font-size:1rem;color:#fff;padding:.3rem 0}
+.usearch-hdr input::placeholder{color:rgba(255,255,255,.55)}
+.usearch-hdr-close{background:rgba(255,255,255,.14);border:none;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--tr)}
+.usearch-hdr-close:hover{background:rgba(255,255,255,.28)}
+.usearch-hdr-close svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2.2}
+
+.usearch-cats{display:flex;gap:.45rem;padding:.75rem 1.2rem;overflow-x:auto;flex-shrink:0;border-bottom:1.5px solid var(--border)}
+.usearch-cat{flex-shrink:0;padding:.45rem 1rem;border-radius:100px;font-size:.78rem;font-weight:700;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:var(--tr);white-space:nowrap;font-family:'DM Sans',sans-serif;min-height:36px}
+.usearch-cat.on{border-color:var(--blue);background:var(--blue);color:#fff}
+
+.usearch-body{padding:.6rem 1.2rem 1.2rem;overflow-y:auto;flex:1}
+.usearch-section{margin-top:1.1rem}
+.usearch-section:first-child{margin-top:.4rem}
+.usearch-section-hdr{display:flex;align-items:center;justify-content:space-between;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}
+.usearch-section-hdr button{background:none;border:none;color:var(--blue);font-size:.72rem;font-weight:700;cursor:pointer;text-transform:none;letter-spacing:0}
+.usearch-chips{display:flex;gap:.5rem;flex-wrap:wrap}
+.usearch-recent-item{display:inline-flex;align-items:center;gap:.35rem;padding:.5rem .9rem;border-radius:100px;background:var(--light);color:var(--dark);font-size:.78rem;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:var(--tr);min-height:36px}
+.usearch-recent-item:hover{border-color:var(--blue)}
+.usearch-tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.7rem}
+.usearch-tile{display:flex;flex-direction:column;align-items:center;gap:.4rem;text-align:center;padding:1rem .6rem;border:1.5px solid var(--border);border-radius:14px;background:var(--surface);cursor:pointer;transition:var(--tr);min-height:44px}
+.usearch-tile:hover{border-color:var(--blue);box-shadow:0 8px 20px rgba(8,20,58,.1)}
+.usearch-tile-emoji{font-size:1.5rem}
+.usearch-tile-label{font-size:.78rem;font-weight:600;color:var(--dark)}
+
+.usearch-result{display:flex;align-items:center;gap:.85rem;padding:.7rem .5rem;border-radius:12px;cursor:pointer;transition:background .12s;min-height:44px}
+.usearch-result:hover{background:var(--hover-bg)}
+.usearch-result-ic{width:44px;height:40px;border-radius:8px;flex-shrink:0;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:1.15rem;background:linear-gradient(135deg,#0D3B8C,#1657CC)}
+.usearch-result-info{flex:1;min-width:0}
+.usearch-result-title{font-size:.86rem;font-weight:600;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.usearch-result-meta{font-size:.72rem;color:var(--muted);margin-top:.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.usearch-result-price{font-size:.8rem;font-weight:700;color:var(--blue);flex-shrink:0}
+.usearch-badge{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--light);border-radius:6px;padding:.15rem .45rem;flex-shrink:0}
+.usearch-empty{padding:1.5rem 1rem;text-align:center;color:var(--muted);font-size:.85rem}
+
+@media(max-width:640px){
+  .usearch-overlay{padding:0}
+  .usearch-box{border-radius:24px 24px 0 0;margin-top:auto;max-height:94vh}
+  .usearch-bar{max-width:100%}
 }
 
 /* ══════════════════════════════
@@ -2129,9 +2180,6 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   .topnav{padding:0 3%;padding-left:max(3%,env(safe-area-inset-left));padding-right:max(3%,env(safe-area-inset-right))}
   .auth-box{padding:1.2rem}
   .cta-box{padding:2rem 1.2rem}
-  .ai-search-submit{width:38px;height:38px;border-radius:10px}
-  .ai-search-submit svg{width:16px;height:16px}
-  .ai-chip{font-size:.7rem;padding:.35rem .75rem}
 }
 
 /* ── UX STEP 5: BUTTON LOADING STATE ── */
@@ -3329,6 +3377,28 @@ html,body{overscroll-behavior-x:none}
   </div>
 </div>
 
+<!-- ═══════════════════════════════════
+     UNIVERSAL SEARCH — cross-ecosystem search overlay
+     (Properties, Agents, Services, Projects, Jobs, FAQ/Help, News).
+     NOT an AI chatbot — deterministic, ranked, client-side + Firestore
+     search. Deliberately modular: usearchRunQuery()/usearchRenderResults()
+     are the only two functions a future AI-assistant upgrade would need
+     to touch — this markup/CSS would not need to change.
+════════════════════════════════════ -->
+<div class="usearch-overlay" id="usearch-overlay" onclick="if(event.target===this)usearchClose()">
+  <div class="usearch-box">
+    <div class="usearch-hdr">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="usearch-input" autocomplete="off" oninput="usearchHandleInput()" onkeydown="if(event.key==='Enter')usearchSubmit()" placeholder="Search properties, agents, services, jobs, help...">
+      <button class="usearch-hdr-close" onclick="usearchClose()" aria-label="Close search">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="usearch-cats" id="usearch-cats"></div>
+    <div class="usearch-body" id="usearch-body"></div>
+  </div>
+</div>
+
 <a class="skip-link" href="#main-content">Jya ku birimo by'ingenzi</a>
 
 <!-- Offline / Online Bar -->
@@ -3828,6 +3898,21 @@ html,body{overscroll-behavior-x:none}
         <h1><span data-rw="Urubuga Rutanga Serivisi" data-en="Rwanda's Real Estate">Urubuga Rutanga Serivisi</span><br><em data-rw="zose z'Imitungo mu Rwanda 🇷🇼" data-en="One-Stop Center 🇷🇼">zose z'Imitungo mu Rwanda 🇷🇼</em></h1>
         <p class="hero-sub" data-rw="Gura, Kugurisha, Gukodesha, Kubona Inguzanyo no Gucunga Imitungo hamwe n'inzobere zizewe — byose ahantu hamwe." data-en="Buy, Sell, Rent, Finance and Manage Property with trusted professionals — all in one place.">Gura, Kugurisha, Gukodesha, Kubona Inguzanyo no Gucunga Imitungo hamwe n'inzobere zizewe — byose ahantu hamwe.</p>
 
+        <!-- UNIVERSAL PLATFORM SEARCH — the primary CTA: one box searches the
+             entire KOMISIYONERI ecosystem (properties, agents, services,
+             projects, jobs, help). Replaces the old "Start Now" AI-chat
+             button; the AI assistant remains available via the persistent
+             chat-fab bubble. This is a deterministic search engine, not a
+             chatbot — see usearchRunQuery() below. -->
+        <div class="usearch-bar" onclick="usearchOpen()" role="button" tabindex="0" aria-label="Search the KOMISIYONERI ecosystem">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" readonly tabindex="-1" data-rw="Shakisha imitungo, agents, serivisi, akazi..." data-en="Search properties, agents, services, jobs..." placeholder="Search properties, agents, services, jobs...">
+          <button class="usearch-bar-btn" type="button" onclick="event.stopPropagation();usearchOpen()">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <span data-rw="Shakisha" data-en="Search">Search</span>
+          </button>
+        </div>
+
         <!-- FOUR PRIMARY ACTIONS — the only decision a first-time visitor needs to make -->
         <div class="hero-actions-grid">
           <div class="hero-action-card" onclick="openSearch({tab:'buy'})" role="button" tabindex="0">
@@ -3861,12 +3946,10 @@ html,body{overscroll-behavior-x:none}
           </div>
         </div>
 
-        <!-- ONE dominant primary action + one secondary — no competing buttons -->
+        <!-- Secondary action — the Universal Search bar above is now the
+             hero's dominant primary CTA; WhatsApp remains the one direct
+             human-contact option. -->
         <div class="hero-btns">
-          <button class="btn btn-gold btn-lg" onclick="toggleChat()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            <span data-rw="Tangira Ubu" data-en="Start Now">Start Now</span>
-          </button>
           <button class="btn btn-ghost btn-lg" onclick="window.open('https://wa.me/250783177254?text=Muraho!%20Nshaka%20ubufasha%20kuri%20KOMISIYONERI.','_blank')">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
             <span data-rw="Vugana n'Itsinda Ryacu — WhatsApp" data-en="Talk to Our Team — WhatsApp">Talk to Our Team — WhatsApp</span>
@@ -4081,7 +4164,7 @@ html,body{overscroll-behavior-x:none}
 
 
   <!-- FAQ -->
-  <section class="section" id="faq">
+  <section class="section" id="home-faq-section">
     <div class="wrap">
       <div class="eyebrow" style="text-align:center" data-rw="Ibibazo Bikunze Kubazwa" data-en="Frequently Asked Questions">Ibibazo Bikunze Kubazwa</div>
       <h2 class="h2" style="margin-top:.35rem;text-align:center" data-rw="Ibibazo Bikunze Kubazwa" data-en="Got Questions? We've Got Answers">Ibibazo Bikunze Kubazwa</h2>
@@ -4143,33 +4226,29 @@ html,body{overscroll-behavior-x:none}
   }
   </script>
 
-  <!-- AI SEARCH ASSISTANT -->
+  <!-- UNIVERSAL SEARCH CTA — a second entry point into the same
+       usearchOpen() overlay defined earlier (see the hero), not a
+       separate search implementation. Keeping one real search engine
+       rather than two competing ones. -->
   <section class="section">
     <div class="wrap">
       <div class="cta-box">
         <div style="position:relative;z-index:1">
-          <div class="eyebrow" style="color:rgba(255,255,255,.82)" data-rw="Ubwenge Bwa AI" data-en="AI-Powered Search">Ubwenge Bwa AI</div>
-          <h2 class="h2" style="color:#fff;margin-top:.35rem;margin-bottom:.75rem" data-rw="Baza AI Icyo Ushaka Cyose" data-en="Ask AI Anything, Find It Instantly">Baza AI Icyo Ushaka Cyose</h2>
+          <div class="eyebrow" style="color:rgba(255,255,255,.82)" data-rw="Shakisha Byose" data-en="Search Everything">Shakisha Byose</div>
+          <h2 class="h2" style="color:#fff;margin-top:.35rem;margin-bottom:.75rem" data-rw="Shakisha Icyo Ushaka Cyose Ahantu Hamwe" data-en="Find Anything, All in One Place">Find Anything, All in One Place</h2>
           <p style="color:rgba(255,255,255,.82);font-size:.95rem;max-width:520px;margin:0 auto 1.8rem" data-rw="Shakisha imitungo, abajyanama, serivisi n'amahirwe yo gushora imari — byose ahantu hamwe." data-en="Search properties, agents, services, and investment opportunities across the entire KOMISIYONERI ecosystem — all in one place.">Search properties, agents, services, and investment opportunities across the entire KOMISIYONERI ecosystem — all in one place.</p>
 
-          <div class="ai-search-wrap" id="ai-search-wrap">
-            <div class="ai-search-bar">
-              <div class="ai-search-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.9L19 9.5l-5.2 1.6L12 16l-1.8-4.9L5 9.5l5.2-1.6z"/><path d="M19 15l.9 2.4L22 18l-2.1.6L19 21l-.9-2.4L16 18l2.1-.6z"/></svg>
-              </div>
-              <input type="text" id="ai-search-input" class="ai-search-input" autocomplete="off"
-                data-rw="Baza AI icyo ushaka... Imitungo, abajyanama, serivisi, ishoramari..."
-                data-en="Ask AI anything... Find properties, agents, services, investments..."
-                placeholder="Ask AI anything... Find properties, agents, services, investments..."
-                oninput="aiSearchHandleInput()" onkeydown="aiSearchKeydown(event)" onfocus="aiSearchHandleInput()">
-              <button class="ai-search-submit" onclick="aiSearchSubmit()" aria-label="Search">
-                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              </button>
-            </div>
-            <div id="ai-search-results" class="ai-search-results" style="display:none"></div>
-          </div>
+          <button class="btn btn-gold btn-lg" style="margin:0 auto" onclick="usearchOpen()" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <span data-rw="Tangira Gushakisha" data-en="Start Searching">Start Searching</span>
+          </button>
 
-          <div class="ai-search-chips" id="ai-search-chips"></div>
+          <div class="usearch-chips" style="justify-content:center;margin-top:1.25rem">
+            <span class="usearch-recent-item" style="background:rgba(255,255,255,.12);color:#fff" onclick="usearchOpen();usearchSetCategory('properties')" role="button" tabindex="0">🏠 <span data-rw="Imitungo" data-en="Properties">Properties</span></span>
+            <span class="usearch-recent-item" style="background:rgba(255,255,255,.12);color:#fff" onclick="usearchOpen();usearchSetCategory('agents')" role="button" tabindex="0">👤 <span data-rw="Agents" data-en="Agents">Agents</span></span>
+            <span class="usearch-recent-item" style="background:rgba(255,255,255,.12);color:#fff" onclick="usearchOpen();usearchSetCategory('services')" role="button" tabindex="0">🏦 <span data-rw="Serivisi" data-en="Services">Services</span></span>
+            <span class="usearch-recent-item" style="background:rgba(255,255,255,.12);color:#fff" onclick="usearchOpen();usearchSetCategory('jobs')" role="button" tabindex="0">💼 <span data-rw="Akazi" data-en="Jobs">Jobs</span></span>
+          </div>
         </div>
       </div>
     </div>
@@ -12122,260 +12201,410 @@ function qs_search() {
   applyAndSearch();
 }
 
-// ══════════════════════════════════════════════
-//  AI SEARCH ASSISTANT — homepage universal search
+// ══════════════════════════════════════════════════════════════════════
+// UNIVERSAL SEARCH — cross-ecosystem search (replaces the old hero
+// "Start Now" CTA). NOT an AI assistant: deterministic, ranked search
+// across every publicly-searchable collection. Deliberately modular —
+// usearchRunQuery() gathers results, usearchRenderResults() draws them —
+// so a future AI-assistant upgrade can swap the gathering step without
+// touching the panel markup/CSS.
 //
-//  Modular by design: performAISearch() is the single entry point. Point
-//  AI_SEARCH_CONFIG.endpoint at a KOMISIYONERI Cloud Function (a
-//  server-side proxy that itself talks to OpenAI/Gemini/Claude) to switch
-//  the bar over to live AI answers — never call an AI vendor directly
-//  from the browser, since that would ship the API key to every visitor.
-//  With no endpoint configured, it falls back to localIntelligentSearch(),
-//  a real, live search across properties, agents, and every platform
-//  service — nothing here is a placeholder.
-// ══════════════════════════════════════════════
+// Scope note: Agents and Partner/Service-provider profiles are NOT
+// live-queried here. Their own pages (loadAgentsPage(), loadPartners())
+// have pre-existing, separate data-access issues for anonymous visitors
+// (see PROJECT_HEALTH_SCAN_2026-07-07.md) — rather than duplicate a
+// query that doesn't work for guests, or return real results that then
+// redirect-to-login on click, those two categories deep-link to their
+// existing pages/actions instead.
+//
+// i18n note: this file's real language switch is setLang() (line ~9899),
+// which re-scans the whole document for [data-rw]/[data-en] on toggle —
+// the differently-named switchLang() called elsewhere in this file after
+// dynamic re-renders was never defined, so those calls silently no-op.
+// To avoid relying on that dead convention, every dynamic string below is
+// resolved inline via curLang ternary, matching loadAgentsPage()'s
+// working pattern rather than the broken one.
+// ══════════════════════════════════════════════════════════════════════
 
-var AI_SEARCH_CONFIG = {
-  endpoint: null // e.g. 'https://us-central1-<project>.cloudfunctions.net/aiSearch'
-};
-
-var AI_SEARCH_CATEGORIES = [
-  { key:'rentals',    icon:'🔑', rw:'Ubukode',                      en:'Rentals',
-    kw:['rent','rental','kodesh','lease'],               go:function(){ openSearch({tab:'rent'}); } },
-  { key:'land',       icon:'🌍', rw:'Ubutaka',                      en:'Land',
-    kw:['land','plot','ubutaka','kibanza'],              go:function(){ openSearch({type:'Ubutaka'}); } },
-  { key:'commercial', icon:'🏢', rw:'Imitungo y\'Ubucuruzi',        en:'Commercial Properties',
-    kw:['commercial','office','shop','warehouse','ubucuruzi'], go:function(){ openSearch({type:'Commercial'}); } },
-  { key:'agents',     icon:'🧑', rw:'Abajyanama n\'Amasosiyete',    en:'Agents & Agencies',
-    kw:['agent','agency','agencies','broker','umujyanama'], go:function(){ go('agents'); } },
-  { key:'projects',   icon:'🏗️', rw:'Ibikorwa n\'Abatunganya',     en:'Projects & Developers',
-    kw:['project','developer','estate','site','umushinga'], go:function(){ go('sites'); } },
-  { key:'valuation',  icon:'💰', rw:'Kugereranya Igiciro',         en:'Valuation Services',
-    kw:['valuation','appraisal','value','igiciro'],      go:function(){ openVerificationRequest('valuation'); } },
-  { key:'management', icon:'🗂️', rw:'Gucunga Imitungo',            en:'Property Management',
-    kw:['management','manage','maintenance','gucunga'],  go:function(){ openLead(); } },
-  { key:'mortgage',   icon:'🏦', rw:'Inguzanyo z\'Imitungo',       en:'Mortgage Services',
-    kw:['mortgage','loan','financing','inguzanyo'],      go:function(){ openMortgageCalc(); } },
-  { key:'legal',      icon:'⚖️', rw:'Serivisi z\'Amategeko',       en:'Legal Services',
-    kw:['legal','lawyer','notary','contract','amategeko'], go:function(){ openVerificationRequest('legal'); } },
-  { key:'investment', icon:'📈', rw:'Ishoramari',                   en:'Investment Opportunities',
-    kw:['invest','investor','roi','gushora'],            go:function(){ go('investors'); } },
-  { key:'jobs',       icon:'💼', rw:'Akazi',                        en:'Jobs',
-    kw:['job','career','akazi','hire','vacancy'],        go:function(){ go('careers'); } },
-  { key:'insights',   icon:'📰', rw:'Amakuru n\'Isesengura',       en:'News & Insights',
-    kw:['news','insight','blog','article','market','isesengura','amakuru'], go:function(){ go('analytics'); } },
-  { key:'help',       icon:'❓', rw:'Ubufasha n\'Ibibazo',         en:'Help Center & FAQs',
-    kw:['help','faq','question','ubufasha','ibibazo'],   go:function(){ scrollToFaq(); } },
-  { key:'support',    icon:'💬', rw:'Ubufasha Bwihuse',            en:'Support',
-    kw:['support','contact','chat','call','whatsapp'],   go:function(){ toggleChat(); } }
+var USEARCH_CATEGORIES = [
+  { key:'all',        rw:'Byose',      en:'All' },
+  { key:'properties', rw:'Imitungo',   en:'Properties' },
+  { key:'agents',     rw:'Agents',     en:'Agents' },
+  { key:'services',   rw:'Serivisi',   en:'Services' },
+  { key:'projects',   rw:'Imishinga',  en:'Projects' },
+  { key:'jobs',       rw:'Akazi',      en:'Jobs' },
+  { key:'news',       rw:'Amakuru',   en:'News' }
 ];
 
-function scrollToFaq() {
-  go('home');
-  setTimeout(function(){
-    var el = document.getElementById('faq');
-    if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
-  }, 60);
+// Shared with the homepage "More Services" network-strip taxonomy — one
+// source of truth here avoids the kind of drift that caused the
+// duplicate-fmtRWF() bug documented in the health scan.
+var USEARCH_SERVICE_INDEX = [
+  { label:'Mortgage & Financing',    emoji:'🏦', keywords:'mortgage financing loan inguzanyo imari bank mfi', action:function(){ openMortgage(); } },
+  { label:'Lawyers & Notaries',      emoji:'⚖️', keywords:'lawyer notary legal avoka noteri', action:function(){ go('partners'); } },
+  { label:'Surveyors & Valuers',     emoji:'📐', keywords:'surveyor valuer valuation survey gupima igiciro', action:function(){ go('partners'); } },
+  { label:'Construction Services',   emoji:'🏗️', keywords:'construction builder ubwubatsi contractor', action:function(){ go('partners'); } },
+  { label:'Investment Opportunities',emoji:'📈', keywords:'investment invest gushora imari roi', action:function(){ go('investors'); } },
+  { label:'Property Management',     emoji:'🏢', keywords:'property management imicungire after sale', action:function(){ openAfterSaleRequest(); } }
+];
+
+// Curated starter list, not live analytics — this app's analytics wiring
+// (PostHog/Sentry) is still on placeholder credentials per the health
+// scan. Swap usearchGetTrending() for a real aggregated-query-log source
+// once that's live; nothing else in this module needs to change.
+var USEARCH_TRENDING = [
+  '3 bedroom house Kigali','Land in Musanze','Apartments for rent',
+  'Verified agents in Gasabo','Commercial property Kigali','Mortgage financing'
+];
+
+var _usearchActiveCategory = 'all';
+var _usearchQueryTimer = null;
+var _usearchSitesCache = null, _usearchSitesCacheTime = 0;
+var _usearchJobsCache = null, _usearchJobsCacheTime = 0;
+var _usearchFaqIndex = null;
+var USEARCH_CACHE_TTL_MS = 60000;
+
+function usearchOpen() {
+  var overlay = document.getElementById('usearch-overlay');
+  if (!overlay) return;
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  usearchRenderCats();
+  var input = document.getElementById('usearch-input');
+  if (input) { input.value = ''; setTimeout(function(){ input.focus(); }, 60); }
+  usearchRenderEmptyState();
+}
+function usearchClose() {
+  var overlay = document.getElementById('usearch-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+function usearchRenderCats() {
+  var wrap = document.getElementById('usearch-cats');
+  if (!wrap) return;
+  var rw = typeof curLang !== 'undefined' && curLang === 'rw';
+  wrap.innerHTML = USEARCH_CATEGORIES.map(function(c) {
+    return '<button class="usearch-cat' + (c.key === _usearchActiveCategory ? ' on' : '') + '" onclick="usearchSetCategory(\'' + c.key + '\')" type="button">' + escapeHtml(rw ? c.rw : c.en) + '</button>';
+  }).join('');
+}
+function usearchSetCategory(key) {
+  _usearchActiveCategory = key;
+  usearchRenderCats();
+  var input = document.getElementById('usearch-input');
+  var q = input ? input.value.trim() : '';
+  if (q) usearchRunQuery(q); else usearchRenderEmptyState();
+}
+function usearchHandleInput() {
+  clearTimeout(_usearchQueryTimer);
+  var input = document.getElementById('usearch-input');
+  var q = input ? input.value.trim() : '';
+  if (!q) { usearchRenderEmptyState(); return; }
+  _usearchQueryTimer = setTimeout(function(){ usearchRunQuery(q); }, 180);
+}
+function usearchSubmit() {
+  var input = document.getElementById('usearch-input');
+  var q = input ? input.value.trim() : '';
+  if (!q) return;
+  usearchRecordRecentSearch(q);
+  usearchRunQuery(q);
 }
 
-// ── Score an agent 0–100 against free-text query (mirrors kmScore) ──
-function kmScoreAgent(query, agent) {
+// ── Recent searches (real, localStorage-backed) ──
+function usearchGetRecentSearches() {
+  try { return JSON.parse(localStorage.getItem('km_recent_searches') || '[]'); } catch(e) { return []; }
+}
+function usearchRecordRecentSearch(q) {
+  q = (q || '').trim();
+  if (!q) return;
+  var list = usearchGetRecentSearches().filter(function(x){ return x.toLowerCase() !== q.toLowerCase(); });
+  list.unshift(q);
+  list = list.slice(0, 8);
+  try { localStorage.setItem('km_recent_searches', JSON.stringify(list)); } catch(e) {}
+}
+function usearchClearRecentSearches() {
+  try { localStorage.removeItem('km_recent_searches'); } catch(e) {}
+  usearchRenderEmptyState();
+}
+function usearchQuickFill(q) {
+  var input = document.getElementById('usearch-input');
+  if (input) input.value = q;
+  usearchRecordRecentSearch(q);
+  usearchRunQuery(q);
+}
+
+// ── FAQ index — scraped once from the real homepage FAQ markup so it can
+// never drift out of sync with the actual, visible FAQ content. ──
+function usearchGetFaqIndex() {
+  if (_usearchFaqIndex) return _usearchFaqIndex;
+  var items = [];
+  document.querySelectorAll('#home-faq-section .faq-item').forEach(function(el, i) {
+    var qEl = el.querySelector('.faq-q span');
+    var aEl = el.querySelector('.faq-a p');
+    var q = qEl ? (qEl.getAttribute('data-en') || qEl.textContent) : '';
+    var a = aEl ? (aEl.getAttribute('data-en') || aEl.textContent) : '';
+    if (q) items.push({ index: i, question: q, answer: a, el: el });
+  });
+  _usearchFaqIndex = items;
+  return items;
+}
+
+// ── Generic relevance scorer — same word-match/typo-tolerance engine
+// kmScore() uses for properties (kmNorm/kmWordMatch, defined above),
+// generalized to arbitrary text fields so Sites/Jobs/FAQ don't need
+// their own scoring logic. ──
+function usearchScoreFields(query, fields) {
   var q = kmNorm(query);
-  if (!q) return 0;
+  if (!q) return 100;
   var words = q.split(' ').filter(function(w){ return w.length > 1; });
-  if (!words.length) return 0;
-  var text = kmNorm([agent.name, agent.zone, (agent.languages||[]).join(' ')].join(' '));
+  if (!words.length) return 100;
+  var text = kmNorm(fields.filter(Boolean).join(' '));
   var matched = 0;
-  for (var i = 0; i < words.length; i++) {
-    if (kmWordMatch(words[i], text)) matched++;
-  }
+  for (var i = 0; i < words.length; i++) { if (kmWordMatch(words[i], text)) matched++; }
   return Math.round(matched / words.length * 100);
 }
 
-function getCachedAgents() {
-  if (typeof _fsAgents !== 'undefined' && _fsAgents.length) return _fsAgents;
-  try { return JSON.parse(localStorage.getItem('km_agents') || '[]'); } catch(e) { return []; }
-}
-
-// ── Local, intelligent fallback search across the whole platform ──
-function localIntelligentSearch(query) {
-  var q = kmNorm(query);
-  var out = { categories: [], properties: [], agents: [] };
-  if (!q) {
-    out.categories = AI_SEARCH_CATEGORIES.slice(0, 8);
-    return out;
+// ── Data fetchers — publicly-readable collections only, reusing whatever
+// cache the real page (Sites/Careers) already populated this session. ──
+function usearchFetchSites() {
+  var now = Date.now();
+  if (_usearchSitesCache && (now - _usearchSitesCacheTime) < USEARCH_CACHE_TTL_MS) return Promise.resolve(_usearchSitesCache);
+  if (typeof _sitesCache !== 'undefined' && Array.isArray(_sitesCache) && _sitesCache.length) {
+    _usearchSitesCache = _sitesCache; _usearchSitesCacheTime = now;
+    return Promise.resolve(_usearchSitesCache);
   }
-  var words = q.split(' ').filter(function(w){ return w.length > 1; });
-
-  out.categories = AI_SEARCH_CATEGORIES
-    .map(function(c){
-      var hits = 0;
-      words.forEach(function(w){
-        if (c.kw.some(function(k){ return w.indexOf(k) === 0 || k.indexOf(w) === 0; })) hits++;
-      });
-      return { c:c, s:hits };
+  if (typeof db === 'undefined') return Promise.resolve([]);
+  return db.collection('sites').where('isActive', '==', true).limit(30).get()
+    .then(function(snap) {
+      var out = [];
+      snap.forEach(function(d){ var s = d.data(); s.id = d.id; out.push(s); });
+      _usearchSitesCache = out; _usearchSitesCacheTime = now;
+      return out;
     })
-    .filter(function(x){ return x.s > 0; })
-    .sort(function(a,b){ return b.s - a.s; })
-    .slice(0, 4)
-    .map(function(x){ return x.c; });
-
-  out.properties = getApprovedProps()
-    .map(function(p){ return { p:p, s:kmScore(query, p) }; })
-    .filter(function(x){ return x.s >= 30; })
-    .sort(function(a,b){ return b.s - a.s; })
-    .slice(0, 4)
-    .map(function(x){ return x.p; });
-
-  out.agents = getCachedAgents()
-    .map(function(a){ return { a:a, s:kmScoreAgent(query, a) }; })
-    .filter(function(x){ return x.s >= 30; })
-    .sort(function(a,b){ return b.s - a.s; })
-    .slice(0, 3)
-    .map(function(x){ return x.a; });
-
-  return out;
+    .catch(function(err) { console.warn('[UniversalSearch] sites fetch error:', err); return []; });
 }
-
-// ── Modular AI entry point — swap in a real AI backend with zero UI changes ──
-function performAISearch(query) {
-  if (AI_SEARCH_CONFIG.endpoint) {
-    return fetch(AI_SEARCH_CONFIG.endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: query })
-    })
-      .then(function(res){ return res.json(); })
-      .catch(function(){ return localIntelligentSearch(query); });
+function usearchFetchJobs() {
+  var now = Date.now();
+  if (_usearchJobsCache && (now - _usearchJobsCacheTime) < USEARCH_CACHE_TTL_MS) return Promise.resolve(_usearchJobsCache);
+  if (typeof _jobPostings !== 'undefined' && Array.isArray(_jobPostings) && _jobPostings.length) {
+    _usearchJobsCache = _jobPostings.filter(function(p){ return p.status === 'open'; });
+    _usearchJobsCacheTime = now;
+    return Promise.resolve(_usearchJobsCache);
   }
-  return Promise.resolve(localIntelligentSearch(query));
+  if (typeof db === 'undefined') return Promise.resolve([]);
+  return db.collection('job_postings').where('isActive', '==', true).orderBy('createdAt', 'desc').limit(100).get()
+    .then(function(snap) {
+      var out = [];
+      snap.forEach(function(d){ var j = d.data(); j.id = d.id; if (j.status === 'open') out.push(j); });
+      _usearchJobsCache = out; _usearchJobsCacheTime = now;
+      return out;
+    })
+    .catch(function(err) { console.warn('[UniversalSearch] jobs fetch error:', err); return []; });
 }
 
-function renderAiSearchChips() {
-  var box = document.getElementById('ai-search-chips');
-  if (!box) return;
-  var rw = (typeof curLang !== 'undefined' && curLang === 'rw');
-  box.innerHTML = AI_SEARCH_CATEGORIES.slice(0, 6).map(function(c){
-    return '<button type="button" class="ai-chip" onclick="aiSearchRunCategory(\''+c.key+'\')">'
-      + '<span>'+c.icon+'</span><span>'+escapeHtml(rw ? c.rw : c.en)+'</span></button>';
-  }).join('');
+// ── Orchestrator ──
+function usearchRunQuery(query) {
+  var body = document.getElementById('usearch-body');
+  if (!body) return;
+  var rw = typeof curLang !== 'undefined' && curLang === 'rw';
+  body.innerHTML = '<div class="usearch-empty">' + (rw ? 'Gushakisha...' : 'Searching...') + '</div>';
+
+  var cat = _usearchActiveCategory;
+  var wantsAll = cat === 'all';
+  var perCatLimit = wantsAll ? 4 : 24;
+  var tasks = [];
+
+  if (wantsAll || cat === 'properties') {
+    var props = getApprovedProps();
+    var scored = props.map(function(p){ return { item:p, score:kmScore(query, p) }; })
+      .filter(function(x){ return x.score >= 30; }).sort(function(a,b){ return b.score - a.score; });
+    tasks.push(Promise.resolve({ category:'properties', results: scored.slice(0, perCatLimit) }));
+  }
+  if (wantsAll || cat === 'projects') {
+    tasks.push(usearchFetchSites().then(function(sites){
+      var scored = sites.map(function(s){ return { item:s, score:usearchScoreFields(query, [s.name, s.district, s.sector, s.description]) }; })
+        .filter(function(x){ return x.score >= 30; }).sort(function(a,b){ return b.score - a.score; });
+      return { category:'projects', results: scored.slice(0, perCatLimit) };
+    }));
+  }
+  if (wantsAll || cat === 'jobs') {
+    tasks.push(usearchFetchJobs().then(function(jobs){
+      var scored = jobs.map(function(j){ return { item:j, score:usearchScoreFields(query, [j.title, j.location, j.description]) }; })
+        .filter(function(x){ return x.score >= 30; }).sort(function(a,b){ return b.score - a.score; });
+      return { category:'jobs', results: scored.slice(0, perCatLimit) };
+    }));
+  }
+
+  Promise.all(tasks).then(function(groups) {
+    if (document.getElementById('usearch-input').value.trim() !== query) return; // stale response, a newer query already fired
+    usearchRenderResults(query, groups);
+  });
 }
 
-function renderAiCatItem(c) {
-  var label = (typeof curLang !== 'undefined' && curLang === 'rw') ? c.rw : c.en;
-  return '<div class="ai-cat-item" onclick="aiSearchRunCategory(\''+c.key+'\')" role="button" tabindex="0">'
-    + '<div class="ai-cat-icon">'+c.icon+'</div>'
-    + '<div class="ai-cat-label">'+escapeHtml(label)+'</div></div>';
+function usearchSectionHtml(catKey, rwTitle, enTitle, itemsHtml) {
+  var rw = typeof curLang !== 'undefined' && curLang === 'rw';
+  return '<div class="usearch-section"><div class="usearch-section-hdr"><span>' + escapeHtml(rw ? rwTitle : enTitle) + '</span>'
+    + '<button onclick="usearchSetCategory(\'' + catKey + '\')" type="button">' + (rw ? 'Reba byose →' : 'View all →') + '</button></div>'
+    + itemsHtml + '</div>';
+}
+function usearchPropertyItemHtml(x) {
+  var p = x.item;
+  var loc = escapeHtml([p.district, p.sector].filter(Boolean).join(', '));
+  return '<div class="usearch-result" onclick="usearchSelectProperty(\'' + String(p.id) + '\')" role="button" tabindex="0">'
+    + (p.img1 ? '<img class="usearch-result-ic" src="' + escapeHtml(p.img1) + '" loading="lazy" alt="">' : '<div class="usearch-result-ic">🏠</div>')
+    + '<div class="usearch-result-info"><div class="usearch-result-title">' + escapeHtml(p.title || p.type || 'Property') + '</div>'
+    + '<div class="usearch-result-meta">' + (loc || 'Rwanda') + (p.type ? ' · ' + escapeHtml(p.type) : '') + '</div></div>'
+    + (p.price ? '<div class="usearch-result-price">' + fmtPriceSh(p.price) + '</div>' : '')
+    + '<span class="usearch-badge">Property</span></div>';
+}
+function usearchSiteItemHtml(x) {
+  var s = x.item;
+  var loc = escapeHtml([s.district, s.sector].filter(Boolean).join(', '));
+  return '<div class="usearch-result" onclick="usearchSelectSite(\'' + String(s.id) + '\')" role="button" tabindex="0">'
+    + '<div class="usearch-result-ic">🏗️</div><div class="usearch-result-info">'
+    + '<div class="usearch-result-title">' + escapeHtml(s.name || 'Development Site') + '</div>'
+    + '<div class="usearch-result-meta">' + (loc || 'Rwanda') + '</div></div><span class="usearch-badge">Project</span></div>';
+}
+function usearchJobItemHtml(x) {
+  var j = x.item;
+  return '<div class="usearch-result" onclick="usearchSelectJob(\'' + String(j.id) + '\',\'' + escapeHtml(j.title || '').replace(/'/g, "\\'") + '\')" role="button" tabindex="0">'
+    + '<div class="usearch-result-ic">💼</div><div class="usearch-result-info">'
+    + '<div class="usearch-result-title">' + escapeHtml(j.title || 'Job Opening') + '</div>'
+    + '<div class="usearch-result-meta">' + escapeHtml(j.location || '') + '</div></div><span class="usearch-badge">Job</span></div>';
 }
 
-function aiSearchRunCategory(key) {
-  var c = AI_SEARCH_CATEGORIES.filter(function(x){ return x.key === key; })[0];
-  closeAiSearchResults();
-  if (c && typeof c.go === 'function') c.go();
-}
-
-function renderAiSearchResults(result, query) {
-  var box = document.getElementById('ai-search-results');
-  if (!box) return;
-  var rw = (typeof curLang !== 'undefined' && curLang === 'rw');
+function usearchRenderResults(query, groups) {
+  var body = document.getElementById('usearch-body');
+  if (!body) return;
+  var rw = typeof curLang !== 'undefined' && curLang === 'rw';
+  var wantsAll = _usearchActiveCategory === 'all';
+  var byCat = {};
+  groups.forEach(function(g){ byCat[g.category] = g.results; });
   var html = '';
 
-  if (result.categories && result.categories.length) {
-    html += '<div class="ai-res-section-lbl">'+(rw?'Serivisi':'Services')+'</div>';
-    html += result.categories.map(renderAiCatItem).join('');
+  if (byCat.properties && byCat.properties.length) {
+    html += usearchSectionHtml('properties', 'Imitungo', 'Properties', byCat.properties.map(usearchPropertyItemHtml).join(''));
+  }
+  if (byCat.projects && byCat.projects.length) {
+    html += usearchSectionHtml('projects', 'Imishinga', 'Projects', byCat.projects.map(usearchSiteItemHtml).join(''));
+  }
+  if (byCat.jobs && byCat.jobs.length) {
+    html += usearchSectionHtml('jobs', 'Akazi', 'Jobs', byCat.jobs.map(usearchJobItemHtml).join(''));
   }
 
-  if (result.properties && result.properties.length) {
-    html += '<div class="ai-res-section-lbl">'+(rw?'Imitungo':'Properties')+'</div>';
-    html += result.properties.map(function(p){
-      var hasImg = p.img1 && p.img1.length > 10;
-      var thumb = hasImg
-        ? '<img class="qs-thumb" src="'+escapeHtml(p.img1)+'" loading="lazy" alt="'+escapeHtml(p.title)+'" onerror="this.style.display=\'none\'">'
-        : '<div class="qs-thumb-ph">🏠</div>';
-      var loc = escapeHtml([p.district,p.sector].filter(Boolean).join(', '));
-      return '<div class="qs-item" onclick="aiSearchOpenProp(\''+String(p.id)+'\')" role="button" tabindex="0">'+thumb
-        +'<div class="qs-info"><div class="qs-title">'+escapeHtml(p.title||p.type||'Imitungo')+'</div>'
-        +'<div class="qs-meta">'+(loc||'Rwanda')+(p.type?' &middot; '+escapeHtml(p.type):'')+'</div></div>'
-        +(p.price?'<div class="qs-price">'+fmtPriceSh(p.price)+'</div>':'')+'</div>';
-    }).join('');
+  if (wantsAll || _usearchActiveCategory === 'services') {
+    var q = kmNorm(query);
+    var qWords = q.split(' ').filter(function(w){ return w.length > 2; });
+    var matchedServices = USEARCH_SERVICE_INDEX.filter(function(s){
+      if (!q) return true;
+      if (kmNorm(s.label).indexOf(q) !== -1 || s.keywords.indexOf(q) !== -1) return true;
+      return qWords.some(function(w){ return s.keywords.indexOf(w) !== -1; });
+    });
+    if (matchedServices.length) {
+      html += '<div class="usearch-section"><div class="usearch-section-hdr"><span>' + (rw ? 'Serivisi' : 'Services') + '</span></div><div class="usearch-tile-grid">'
+        + matchedServices.map(function(s){ var idx = USEARCH_SERVICE_INDEX.indexOf(s); return '<div class="usearch-tile" onclick="usearchRunServiceAction(' + idx + ')" role="button" tabindex="0"><span class="usearch-tile-emoji">' + s.emoji + '</span><span class="usearch-tile-label">' + escapeHtml(s.label) + '</span></div>'; }).join('')
+        + '</div></div>';
+    }
   }
 
-  if (result.agents && result.agents.length) {
-    html += '<div class="ai-res-section-lbl">'+(rw?'Abajyanama':'Agents')+'</div>';
-    html += result.agents.map(function(a){
-      return '<div class="qs-item" onclick="aiSearchOpenAgent()" role="button" tabindex="0">'
-        + '<div class="qs-thumb-ph">🧑</div>'
-        + '<div class="qs-info"><div class="qs-title">'+escapeHtml(a.name||'Agent')+'</div>'
-        + '<div class="qs-meta">'+escapeHtml(a.zone||'Rwanda')+'</div></div></div>';
-    }).join('');
+  if (wantsAll || _usearchActiveCategory === 'agents') {
+    var agentPool = (typeof _fsAgents !== 'undefined' && Array.isArray(_fsAgents)) ? _fsAgents : [];
+    var agentMatches = query ? agentPool.filter(function(a){ return usearchScoreFields(query, [a.name, a.zone]) >= 40; }).slice(0, 3) : agentPool.slice(0, 3);
+    var qEsc = escapeHtml(query).replace(/'/g, "\\'");
+    html += '<div class="usearch-section"><div class="usearch-section-hdr"><span>' + (rw ? 'Abakomisiyoneri Bemewe' : 'Verified Agents') + '</span></div>'
+      + agentMatches.map(function(a){
+          return '<div class="usearch-result" onclick="usearchOpenAgents(\'' + qEsc + '\')" role="button" tabindex="0">'
+            + '<div class="usearch-result-ic">👤</div><div class="usearch-result-info">'
+            + '<div class="usearch-result-title">' + escapeHtml(a.name || 'Agent') + '</div>'
+            + '<div class="usearch-result-meta">' + escapeHtml(a.zone || '') + '</div></div></div>';
+        }).join('')
+      + '<div class="usearch-result" onclick="usearchOpenAgents(\'' + qEsc + '\')" role="button" tabindex="0">'
+      + '<div class="usearch-result-ic">🔍</div><div class="usearch-result-info"><div class="usearch-result-title">'
+      + (query ? (rw ? 'Shakisha Agents kuri “' + escapeHtml(query) + '”' : 'Search Verified Agents for “' + escapeHtml(query) + '”') : (rw ? 'Reba Agents Bemewe' : 'Browse Verified Agents'))
+      + '</div><div class="usearch-result-meta">' + (rw ? 'Ifungura urutonde rw\'agents →' : 'Opens the Agents directory →') + '</div></div></div>'
+      + '</div>';
+  }
+
+  if (!wantsAll && _usearchActiveCategory === 'news') {
+    html += '<div class="usearch-empty">' + (rw ? 'Nta makuru ahari ubu — ongera ugaruke vuba.' : 'No news articles yet — check back soon.') + '</div>';
+  }
+
+  var faqMatches = query ? usearchGetFaqIndex().filter(function(f){ return usearchScoreFields(query, [f.question, f.answer]) >= 35; }).slice(0, 3) : [];
+  if (faqMatches.length) {
+    html += '<div class="usearch-section"><div class="usearch-section-hdr"><span>' + (rw ? 'Ubufasha n\'Ibibazo' : 'Help & FAQ') + '</span></div>'
+      + faqMatches.map(function(f){
+          return '<div class="usearch-result" onclick="usearchOpenFaq(' + f.index + ')" role="button" tabindex="0"><div class="usearch-result-ic">❓</div>'
+            + '<div class="usearch-result-info"><div class="usearch-result-title">' + escapeHtml(f.question) + '</div></div></div>';
+        }).join('')
+      + '</div>';
   }
 
   if (!html) {
-    html = '<div class="qs-no-results">'+(rw
-      ? 'Nta bisubizo bihuye na "'+escapeHtml(query)+'". Kanda "Reba Byose" duhuze n\'itsinda ryacu.'
-      : 'No matches for "'+escapeHtml(query)+'". Try "View All" to reach our team directly.')+'</div>';
+    html = '<div class="usearch-empty">' + (rw ? ('Nta bisubizo bihuye na “' + escapeHtml(query) + '”.') : ('No results for “' + escapeHtml(query) + '”.')) + '</div>';
   }
-
-  html += '<div class="qs-footer" onclick="aiSearchViewAll()" role="button" tabindex="0">'
-    + '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> '
-    + (rw ? 'Reba Ibisubizo Byose' : 'View All Results') + '</div>';
-
-  box.innerHTML = html;
-  box.style.display = 'block';
+  body.innerHTML = html;
 }
 
-function aiSearchOpenProp(id) {
-  closeAiSearchResults();
-  qs_openProp(id, 'ai-search-results');
+function usearchRenderEmptyState() {
+  var body = document.getElementById('usearch-body');
+  if (!body) return;
+  var rw = typeof curLang !== 'undefined' && curLang === 'rw';
+  var recents = usearchGetRecentSearches();
+  var html = '';
+  if (recents.length) {
+    html += '<div class="usearch-section"><div class="usearch-section-hdr"><span>' + (rw ? 'Ubushakashatsi Buheruka' : 'Recent Searches') + '</span>'
+      + '<button onclick="usearchClearRecentSearches()" type="button">' + (rw ? 'Siba' : 'Clear') + '</button></div><div class="usearch-chips">'
+      + recents.map(function(q){ return '<span class="usearch-recent-item" onclick="usearchQuickFill(\'' + escapeHtml(q).replace(/'/g, "\\'") + '\')" role="button" tabindex="0">🕐 ' + escapeHtml(q) + '</span>'; }).join('')
+      + '</div></div>';
+  }
+  html += '<div class="usearch-section"><div class="usearch-section-hdr"><span>' + (rw ? 'Ubushakashatsi Bukunzwe' : 'Trending Searches') + '</span></div><div class="usearch-chips">'
+    + USEARCH_TRENDING.map(function(q){ return '<span class="usearch-recent-item" onclick="usearchQuickFill(\'' + escapeHtml(q).replace(/'/g, "\\'") + '\')" role="button" tabindex="0">🔥 ' + escapeHtml(q) + '</span>'; }).join('')
+    + '</div></div>';
+  html += '<div class="usearch-section"><div class="usearch-section-hdr"><span>' + (rw ? 'Serivisi Zikunzwe' : 'Popular Services') + '</span></div><div class="usearch-tile-grid">'
+    + USEARCH_SERVICE_INDEX.map(function(s, i){ return '<div class="usearch-tile" onclick="usearchRunServiceAction(' + i + ')" role="button" tabindex="0"><span class="usearch-tile-emoji">' + s.emoji + '</span><span class="usearch-tile-label">' + escapeHtml(s.label) + '</span></div>'; }).join('')
+    + '</div></div>';
+  body.innerHTML = html;
 }
 
-function aiSearchOpenAgent() {
-  closeAiSearchResults();
+// ── Result selection / routing ──
+function usearchSelectProperty(id) {
+  var input = document.getElementById('usearch-input');
+  if (input && input.value.trim()) usearchRecordRecentSearch(input.value.trim());
+  usearchClose();
+  qs_openProp(id, 'usearch-body');
+}
+function usearchSelectSite(id) {
+  usearchClose();
+  go('sites');
+  setTimeout(function(){ if (typeof loadSitePlan === 'function') loadSitePlan(id); }, 500);
+}
+function usearchSelectJob(id, title) {
+  usearchClose();
+  go('careers');
+  setTimeout(function(){ if (typeof openJobApply === 'function') openJobApply(id, title); }, 500);
+}
+function usearchRunServiceAction(i) {
+  var svc = USEARCH_SERVICE_INDEX[i];
+  usearchClose();
+  if (svc && typeof svc.action === 'function') svc.action();
+}
+function usearchOpenAgents(query) {
+  usearchClose();
   go('agents');
+  setTimeout(function(){
+    var inp = document.getElementById('agent-search-inp');
+    if (inp) { inp.value = query || ''; if (typeof filterAgentsPage === 'function') filterAgentsPage(); }
+  }, 500);
 }
-
-function closeAiSearchResults() {
-  var box = document.getElementById('ai-search-results');
-  if (box) box.style.display = 'none';
+function usearchOpenFaq(index) {
+  usearchClose();
+  go('home');
+  setTimeout(function(){
+    var faqs = usearchGetFaqIndex();
+    var f = faqs[index];
+    if (f && f.el) { f.el.scrollIntoView({ behavior:'smooth', block:'center' }); f.el.classList.add('open'); }
+  }, 300);
 }
-
-var _aiSearchT;
-function aiSearchHandleInput() {
-  clearTimeout(_aiSearchT);
-  var inp = document.getElementById('ai-search-input');
-  var q = inp ? inp.value.trim() : '';
-  _aiSearchT = setTimeout(function(){
-    performAISearch(q).then(function(result){ renderAiSearchResults(result, q); });
-  }, 180);
-}
-
-function aiSearchKeydown(e) {
-  if (e.key === 'Enter') { e.preventDefault(); aiSearchSubmit(); }
-  if (e.key === 'Escape') { closeAiSearchResults(); }
-}
-
-function aiSearchSubmit() {
-  clearTimeout(_aiSearchT);
-  var inp = document.getElementById('ai-search-input');
-  var q = inp ? inp.value.trim() : '';
-  performAISearch(q).then(function(result){ renderAiSearchResults(result, q); });
-}
-
-function aiSearchViewAll() {
-  var inp = document.getElementById('ai-search-input');
-  var q = inp ? inp.value.trim() : '';
-  closeAiSearchResults();
-  window._qs_query = q;
-  var mq = document.getElementById('sm-quick-search');
-  if (mq) mq.value = q;
-  go('listings');
-  setTimeout(applyAndSearch, 80);
-}
-
-document.addEventListener('click', function(e){
-  var wrap = document.getElementById('ai-search-wrap');
-  if (wrap && !wrap.contains(e.target)) closeAiSearchResults();
-});
 
 // ── openSearch: accepts optional pre-fill {type, district, tab, chip, query} ──
 function openSearch(opts) {
