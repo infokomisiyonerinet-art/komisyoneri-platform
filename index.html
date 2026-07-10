@@ -15718,6 +15718,16 @@ window.addEventListener('DOMContentLoaded', function() {
     'dashboard','auth','about','privacy','terms'
   ];
   var page = pathPage || (validPages.indexOf(hash) > -1 ? hash : 'home');
+  // staff./partners. are internal-team subdomains sharing this same app/
+  // Firebase project — a public marketing homepage doesn't make sense to
+  // land on there. Only overrides the *fallback* (no explicit path/hash
+  // was requested); an explicit link to any page still wins.
+  if (page === 'home' && !pathPage && validPages.indexOf(hash) === -1) {
+    var host = window.location.hostname;
+    if (host.indexOf('staff.') === 0 || host.indexOf('partners.') === 0) {
+      page = 'auth';
+    }
+  }
   if (window.history && window.history.replaceState) {
     var CLEAN_PATHS = {
       home: '/', listings: '/listings', analytics: '/analytics', about: '/about',
@@ -19771,12 +19781,13 @@ function switchAccountingTab(tab) {
 function loadInvoices() {
   if (typeof db === 'undefined' || !currentUser) return;
   var el = g('ac-invoices-list'); if (el) el.innerHTML = '<div class="off-loading">Loading invoices...</div>';
-  db.collection('invoices').where('isActive','==',true).orderBy('createdAt','desc').limit(100).get().then(function(snap) {
+  var unsub = db.collection('invoices').where('isActive','==',true).orderBy('createdAt','desc').limit(100).onSnapshot(function(snap) {
     _invoices = [];
     snap.forEach(function(d) { var inv = d.data(); inv.id = d.id; _invoices.push(inv); });
     checkOverdueInvoices();
     filterInvoices();
-  }).catch(function() { if (el) el.innerHTML = '<div class="off-empty">Unable to load invoices.</div>'; });
+  }, function() { if (el) el.innerHTML = '<div class="off-empty">Unable to load invoices.</div>'; });
+  registerListener('invoices', unsub);
 }
 
 function checkOverdueInvoices() {
@@ -21263,7 +21274,7 @@ function loadPayroll() {
   var q = isAdmin
     ? db.collection('payroll').where('period','==',mv).where('isActive','==',true).orderBy('createdAt','desc').limit(200)
     : db.collection('payroll').where('period','==',mv).where('userId','==',currentUser.uid).where('isActive','==',true).limit(5);
-  q.get().then(function(snap) {
+  var unsub = q.onSnapshot(function(snap) {
     _payrollList = [];
     var totalGross = 0, totalRssb = 0, totalPaye = 0, totalNet = 0;
     snap.forEach(function(d) {
@@ -21283,9 +21294,10 @@ function loadPayroll() {
       if (g('ps-total-net'))   g('ps-total-net').textContent   = fmtRwfHR(totalNet);
     } else if (sumEl) { sumEl.style.display = 'none'; }
     renderPayrollList(_payrollList);
-  }).catch(function() {
+  }, function() {
     if (el) el.innerHTML = '<div class="off-empty">Unable to load payroll data.</div>';
   });
+  registerListener('payroll', unsub);
 }
 
 function renderPayrollList(list) {
@@ -25403,7 +25415,7 @@ function loadCommissions() {
               .orderBy('createdAt','desc').limit(200);
   } else { return; }
 
-  query.get().then(function(snap) {
+  var unsub = query.onSnapshot(function(snap) {
     _commissions = [];
     snap.forEach(function(doc) {
       var d = doc.data();
@@ -25413,10 +25425,11 @@ function loadCommissions() {
     renderCommissionList();
     updateCommissionStats();
     renderWalletSection();
-  }).catch(function(err) {
+  }, function(err) {
     list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⚠️</div><div class="crm-empty-title">Error loading</div></div>';
     console.error('[Commissions] load error:', err);
   });
+  registerListener('commissions', unsub);
 }
 
 function updateCommissionStats() {
@@ -26197,17 +26210,18 @@ function loadDeals() {
     _loadDealsFallback(); return;
   }
 
-  query.get().then(function(snap) {
+  var unsub = query.onSnapshot(function(snap) {
     _deals = [];
     snap.forEach(function(doc) {
       var d = doc.data(); d._docId = doc.id; _deals.push(d);
     });
     renderDealList();
     updateDealStats();
-  }).catch(function(err) {
+  }, function(err) {
     console.warn('[Deals] Firestore failed, fallback:', err);
     _loadDealsFallback();
   });
+  registerListener('deals', unsub);
 }
 
 function _loadDealsFallback() {
@@ -32109,6 +32123,35 @@ function shareRefWhatsApp() {
         loadReferralStats();
       }, 200);
     }
+  };
+})();
+
+// ══════════════════════════════════════
+// PAGE-SCOPED LISTENER REGISTRY
+// Firestore onSnapshot() listeners keep running (and billing reads) until
+// explicitly detached — none of that happened automatically on navigation
+// before this. registerListener(key, unsub) stores one unsubscribe fn per
+// key, detaching any previous listener under that same key first;
+// teardownListeners() detaches everything and is hooked into go() below so
+// navigating to a new page always tears down the previous page's live
+// listeners, not just re-visits of the same page.
+// ══════════════════════════════════════
+var _pageListeners = {};
+function registerListener(key, unsubscribeFn) {
+  if (_pageListeners[key]) { try { _pageListeners[key](); } catch (e) {} }
+  _pageListeners[key] = unsubscribeFn;
+}
+function teardownListeners() {
+  Object.keys(_pageListeners).forEach(function(k) {
+    try { _pageListeners[k](); } catch (e) {}
+  });
+  _pageListeners = {};
+}
+(function() {
+  var _origGoListeners = go;
+  go = function(name) {
+    teardownListeners();
+    _origGoListeners(name);
   };
 })();
 
