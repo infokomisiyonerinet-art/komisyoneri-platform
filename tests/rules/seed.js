@@ -20,7 +20,14 @@ const UIDS = {
   // "senior manager" fixtures for the isSeniorManager() carve-out, since
   // hr_manager/accountant/marketing_manager are all in that literal list.
   ceo: 'ceo_test_user',
-  director: 'director_test_user'
+  director: 'director_test_user',
+  // Final Management Org Chart fixtures — 'finance' above (role 'accountant')
+  // doubles as the real "Director of Finance"; extended below with
+  // budgetApprovalLimit + reportsTo. The other 3 are net-new roles.
+  chiefBroker: 'chief_broker_test_user',
+  csManager: 'cs_manager_test_user',
+  itManager: 'it_manager_test_user',
+  legalAdviser: 'legal_adviser_test_user'
 };
 
 const DOC_IDS = {
@@ -46,13 +53,26 @@ const DOC_IDS = {
   approvalPending: 'approval_pending_test_doc',
   approvalUnverified: 'approval_unverified_test_doc',
   budgetRequestWithinLimit: 'budget_request_within_test_doc',
-  budgetRequestAboveLimit: 'budget_request_above_test_doc'
+  budgetRequestAboveLimit: 'budget_request_above_test_doc',
+  // Final Management Org Chart fixtures
+  employeeRecord: 'employee_record_test_doc',
+  legalComplianceDoc: 'legal_compliance_test_doc',
+  contractReview: 'contract_review_test_doc',
+  financeTxnWithin: 'finance_txn_within_test_doc',
+  financeTxnAbove: 'finance_txn_above_test_doc',
+  bankAccount: 'bank_account_test_doc',
+  reportFromChiefBroker: 'report_from_chief_broker_test_doc',
+  reportFromFinanceDirector: 'report_from_finance_director_test_doc',
+  payrollApprovalVerified: 'payroll_approval_verified_test_doc'
 };
 
 // Director's budgetApprovalLimit fixture — budgetRequestWithinLimit's amount
 // sits under this, budgetRequestAboveLimit's sits over it, so the boundary
 // tests have real fixtures to assert against on both sides.
 const DIRECTOR_BUDGET_LIMIT = 1000000;
+// Director of Finance's own budgetApprovalLimit — used by financeTransactions'
+// spend-limit boundary tests, same pattern as DIRECTOR_BUDGET_LIMIT above.
+const FINANCE_BUDGET_LIMIT = 2000000;
 
 function standardFields(overrides) {
   const now = new Date().toISOString();
@@ -87,12 +107,17 @@ async function seed(testEnv) {
     // Three DIFFERENT staff-tier roles — used to prove they share identical
     // trust level (rules/firestore.rules' isAdminOrStaff() makes no
     // distinction between them; see 03-staff-tier-uniform-trust.spec.js).
-    await userDoc(UIDS.hr, 'hr_manager');
-    await userDoc(UIDS.finance, 'accountant');
-    await userDoc(UIDS.marketing, 'marketing_manager');
+    await userDoc(UIDS.hr, 'hr_manager', { department: 'HR', jobTitle: 'HR Manager', reportsTo: [UIDS.director, UIDS.ceo] });
+    await userDoc(UIDS.finance, 'accountant', { department: 'Finance', jobTitle: 'Director of Finance',
+      budgetApprovalLimit: FINANCE_BUDGET_LIMIT, reportsTo: [UIDS.ceo, UIDS.director] });
+    await userDoc(UIDS.marketing, 'marketing_manager', { department: 'Marketing', jobTitle: 'Marketing Manager', reportsTo: [UIDS.director] });
     await userDoc(UIDS.admin, 'admin');
     await userDoc(UIDS.ceo, 'ceo');
-    await userDoc(UIDS.director, 'director', { budgetApprovalLimit: DIRECTOR_BUDGET_LIMIT });
+    await userDoc(UIDS.director, 'director', { budgetApprovalLimit: DIRECTOR_BUDGET_LIMIT, department: 'Executive', jobTitle: 'Operations Director', reportsTo: [UIDS.ceo] });
+    await userDoc(UIDS.chiefBroker, 'chief_broker', { department: 'Brokerage', jobTitle: 'Chief Broker', reportsTo: [UIDS.director] });
+    await userDoc(UIDS.csManager, 'customer_support_manager', { department: 'CustomerSupport', jobTitle: 'Customer Support Manager', reportsTo: [UIDS.director] });
+    await userDoc(UIDS.itManager, 'it_manager', { department: 'IT', jobTitle: 'IT / Product Manager', reportsTo: [UIDS.ceo, UIDS.director] });
+    await userDoc(UIDS.legalAdviser, 'legal_adviser', { department: 'Legal', jobTitle: 'Legal Adviser', reportsTo: [UIDS.ceo] });
 
     // ── properties — agentA-owned
     await db.collection('properties').doc(DOC_IDS.property).set(standardFields({
@@ -217,7 +242,57 @@ async function seed(testEnv) {
       id: DOC_IDS.budgetRequestAboveLimit, requestedBy: UIDS.director,
       amount: DIRECTOR_BUDGET_LIMIT + 1, description: 'New office lease', status: 'pending'
     }));
+
+    // ── Final Management Org Chart fixtures ──
+    await db.collection('employeeRecords').doc(DOC_IDS.employeeRecord).set(standardFields({
+      id: DOC_IDS.employeeRecord, employeeUid: UIDS.marketing, note: 'Test employee record',
+      createdBy: UIDS.hr, updatedBy: UIDS.hr
+    }));
+    await db.collection('legalCompliance').doc(DOC_IDS.legalComplianceDoc).set(standardFields({
+      id: DOC_IDS.legalComplianceDoc, title: 'Data protection compliance note',
+      createdBy: UIDS.legalAdviser, updatedBy: UIDS.legalAdviser
+    }));
+    await db.collection('contractReviews').doc(DOC_IDS.contractReview).set(standardFields({
+      id: DOC_IDS.contractReview, contractRef: DOC_IDS.majorContract, notes: 'Reviewed, no issues',
+      createdBy: UIDS.legalAdviser, updatedBy: UIDS.legalAdviser
+    }));
+    await db.collection('financeTransactions').doc(DOC_IDS.financeTxnWithin).set(standardFields({
+      id: DOC_IDS.financeTxnWithin, amount: FINANCE_BUDGET_LIMIT - 1, description: 'Office supplies',
+      createdBy: UIDS.finance, updatedBy: UIDS.finance
+    }));
+    await db.collection('bankAccounts').doc(DOC_IDS.bankAccount).set(standardFields({
+      id: DOC_IDS.bankAccount, bankName: 'Test Bank', accountNumber: '000123456',
+      createdBy: UIDS.ceo, updatedBy: UIDS.ceo
+    }));
+
+    // ── Structured reports — Chief Broker's report routes to Operations
+    //    Director only; Director of Finance's routes to BOTH CEO and
+    //    Operations Director (reportsTo = [ceo, director] per the fixture
+    //    above) — the acceptance criterion this directly proves.
+    await db.collection('reports').doc(DOC_IDS.reportFromChiefBroker).set(standardFields({
+      id: DOC_IDS.reportFromChiefBroker, submittedBy: UIDS.chiefBroker, department: 'Brokerage',
+      reportType: 'Weekly', reportCategory: 'Weekly Brokerage Report', recipients: [UIDS.director],
+      content: 'Test content', status: 'submitted',
+      createdBy: UIDS.chiefBroker, updatedBy: UIDS.chiefBroker
+    }));
+    await db.collection('reports').doc(DOC_IDS.reportFromFinanceDirector).set(standardFields({
+      id: DOC_IDS.reportFromFinanceDirector, submittedBy: UIDS.finance, department: 'Finance',
+      reportType: 'Monthly', reportCategory: 'Monthly Financial Statements', recipients: [UIDS.ceo, UIDS.director],
+      content: 'Test content', status: 'submitted',
+      createdBy: UIDS.finance, updatedBy: UIDS.finance
+    }));
+
+    // ── An already server-verified approval routed to BOTH of HR's
+    //    reportsTo (director, ceo) — proves either listed superior (not
+    //    just isCEO()) can decide it, per the routedTo generalization.
+    await db.collection('approvals').doc(DOC_IDS.payrollApprovalVerified).set(standardFields({
+      id: DOC_IDS.payrollApprovalVerified, type: 'payroll', actionType: 'change_salaries_unapproved',
+      requestedBy: UIDS.hr, routedTo: [UIDS.director, UIDS.ceo], requiredApprover: 'director,ceo',
+      summaryFields: { title: 'Salary change for Marketing Manager' },
+      status: 'pending', serverVerified: true, decidedBy: null, decidedAt: null,
+      sourceDocRef: '', payload: {}
+    }));
   });
 }
 
-module.exports = { seed, UIDS, DOC_IDS, standardFields, DIRECTOR_BUDGET_LIMIT };
+module.exports = { seed, UIDS, DOC_IDS, standardFields, DIRECTOR_BUDGET_LIMIT, FINANCE_BUDGET_LIMIT };

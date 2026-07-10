@@ -6,13 +6,22 @@
 // Finance data" change doesn't get silently reverted by someone assuming
 // today's blanket access is a bug.
 //
-// One documented, deliberate exception since the CEO vs Operations Director
-// work (see 06-ceo-vs-operations-director.spec.js): the users/{uid} update
-// rule alone gives 'director' a narrower grant than the rest of the staff
-// tier (isSeniorManager(uid) blocks editing another senior manager's own
-// user doc) — every OTHER collection asserted uniform below (payroll,
-// expenses, assets) is completely unaffected by that carve-out and remains
-// uniform exactly as this file originally documented.
+// Two documented, deliberate exceptions layered on top since then:
+//
+// 1. CEO vs Operations Director work (06-ceo-vs-operations-director.spec.js):
+//    the users/{uid} update rule alone gives 'director' a narrower grant
+//    than the rest of the staff tier (isSeniorManager(uid) blocks editing
+//    another senior manager's own user doc).
+//
+// 2. Final Management Org Chart (07-org-chart-hr-legal-reports.spec.js): HR
+//    Manager's deniedActions includes "change_salaries_unapproved" — payroll
+//    is no longer fully uniform. READ stays uniform (asserted below,
+//    unchanged) since every staff-tier role can still see payroll data; only
+//    WRITE is now scoped to exclude hr_manager specifically (a salary change
+//    must go through /approvals instead — see 07-*.spec.js for the write-side
+//    assertions). expenses/assets below are unaffected by either exception
+//    and remain fully uniform (read AND write) exactly as this file
+//    originally documented.
 
 const { assertFails, assertSucceeds } = require('@firebase/rules-unit-testing');
 const { makeTestEnv } = require('../testenv');
