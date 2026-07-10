@@ -45,6 +45,29 @@ service cloud.firestore {
       return isAuth() && getRole() != null &&
         getRole().lower() in ['agent', 'staff', 'admin', 'super_admin', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker'];
     }
+    // CEO vs Operations Director governance boundary: both are staff-tier
+    // (isAdminOrStaff() above still covers their day-to-day access), but a
+    // narrow set of collections below (strategy, governance, shares, major
+    // contracts, senior-staff actions, loans/asset disposals) are CEO-only
+    // or CEO-write/director-read, and the 'director' role additionally gets
+    // a narrower users/{uid} update grant than the rest of the staff tier
+    // (see that match block below). 'director' is this app's real "Operations
+    // Director" role value — see ROLE_TIERS.STAFF in index.html.
+    function isCEO() {
+      return isRole('ceo');
+    }
+    function isDirector() {
+      return isRole('director');
+    }
+    // Reads the TARGET user's own role (not the caller's) — used only by the
+    // isDirector() carve-out on users/{uid} update, so a director can manage
+    // regular staff/agents but not reassign/edit other senior managers.
+    function isSeniorManager(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid))
+        && get(/databases/$(database)/documents/users/$(uid)).data.role.lower() in
+           ['ceo', 'company_owner', 'branch_manager', 'hr_manager', 'operations_manager',
+            'marketing_manager', 'director', 'accountant', 'chief_broker'];
+    }
     function hasStandardFields() {
       return request.resource.data.keys().hasAll([
         'id','createdAt','updatedAt','createdBy','updatedBy','status','isActive'
@@ -81,12 +104,27 @@ service cloud.firestore {
       // A non-admin may only ever touch their own doc, and only the handful
       // of fields the profile-edit UI actually writes (see saveEditProfile(),
       // favorites toggle, referral code generation) — never `role`, `status`,
-      // `isActive`, `isVerified`, or any other field that every isAdminOrStaff()
-      // check in this entire ruleset (and in the app itself) ultimately derives
-      // from. Without this allowlist, any signed-in user could self-escalate by
-      // writing role:'admin' to their own document. isSelfAgentApplication()
-      // is the one deliberate, tightly-scoped exception (see its own comment).
-      allow update: if isAdminOrStaff()
+      // `isActive`, `isVerified`, `budgetApprovalLimit`, or any other field
+      // that every isAdminOrStaff() check in this entire ruleset (and in the
+      // app itself) ultimately derives from. Without this allowlist, any
+      // signed-in user could self-escalate by writing role:'admin' to their
+      // own document — this is also why budgetApprovalLimit (CEO vs
+      // Operations Director governance, see approvals/budgetRequests below)
+      // is admin/CEO-settable only and never appears in this list: a
+      // director can never raise their own approval limit.
+      // isSelfAgentApplication() is the one deliberate, tightly-scoped
+      // exception (see its own comment).
+      //
+      // isDirector() gets a narrower grant than the rest of the staff tier:
+      // every other isAdminOrStaff() role keeps blanket update access to any
+      // user doc, but a director may not edit another senior manager's doc
+      // (isSeniorManager(uid), literal role-list check on the TARGET doc) —
+      // they can still edit their own doc and any regular staff/agent/client
+      // doc. This is a deliberate, scoped exception to the otherwise-uniform
+      // staff-tier trust model documented in
+      // tests/rules/test/03-staff-tier-uniform-trust.spec.js.
+      allow update: if (isAdminOrStaff() && !isDirector())
+                    || (isDirector() && (request.auth.uid == uid || !isSeniorManager(uid)))
                     || isSelfAgentApplication()
                     || (isAuth() && request.auth.uid == uid
                         && request.resource.data.diff(resource.data).affectedKeys()
@@ -565,6 +603,115 @@ service cloud.firestore {
       allow create: if isAuth() && hasStandardFields();
       allow update: if isAdminOrStaff()
                     || (isAuth() && resource.data.agentId == request.auth.uid);
+      allow delete: if false;
+    }
+
+    // ── CEO vs Operations Director governance ─────────
+    // See isCEO()/isDirector()/isSeniorManager() above. Two tiers below:
+    // CEO-write/staff-read (strategy + major contracts — director can VIEW
+    // but never write), and CEO-only with zero director involvement at all
+    // (shares, governance docs, registration, loans/asset disposals, senior
+    // staff actions) — matching the governance spec's own section 3 example
+    // (`allow read, write: if isCEO()`) exactly.
+
+    match /strategyDocuments/{id} {
+      allow read:   if isAdminOrStaff();
+      allow create: if isCEO() && hasStandardFields();
+      allow update: if isCEO();
+      allow delete: if false;
+    }
+
+    match /majorContracts/{id} {
+      allow read:   if isAdminOrStaff();
+      allow create: if isCEO() && hasStandardFields();
+      allow update: if isCEO();
+      allow delete: if false;
+    }
+
+    match /shareStructure/{id} {
+      allow read, write: if isCEO();
+    }
+
+    match /governanceDocuments/{id} {
+      allow read, write: if isCEO();
+    }
+
+    match /companyRegistration/{id} {
+      allow read, write: if isCEO();
+    }
+
+    match /loansAndAssetDisposals/{id} {
+      allow read, write: if isCEO();
+    }
+
+    match /seniorStaffActions/{id} {
+      allow read, write: if isCEO();
+    }
+
+    // Director's normal day-to-day operating scope — full access, no CEO
+    // gate. Distinct from the general isAdminOrStaff() tier: scoped to just
+    // CEO + Director per the governance spec, not every staff-tier role.
+    match /dailyOperations/{id} {
+      allow read:   if isCEO() || isDirector();
+      allow create: if (isCEO() || isDirector()) && hasStandardFields();
+      allow update: if isCEO() || isDirector();
+      allow delete: if false;
+    }
+
+    match /reports/{id} {
+      allow read:   if isCEO() || isDirector();
+      allow create: if (isCEO() || isDirector()) && hasStandardFields();
+      allow update: if isCEO() || isDirector();
+      allow delete: if false;
+    }
+
+    match /suggestions/{id} {
+      allow read:   if isCEO() || isDirector();
+      allow create: if (isCEO() || isDirector()) && hasStandardFields();
+      allow update: if isCEO() || isDirector();
+      allow delete: if false;
+    }
+
+    match /approvals/{id} {
+      // Director-facing escalation workflow for actions above their budget
+      // limit / outside their normal scope — modeled on payout_requests
+      // above, NOT the naive "client sets status freely" shape: create pins
+      // to safe unverified defaults, no client update (CEO included) may
+      // ever touch serverVerified, and the actual approve/reject transition
+      // requires serverVerified already true. onApprovalCreated
+      // (functions/index.js, Admin SDK) is the only path to
+      // serverVerified:true; onApprovalDecided performs the real privileged
+      // write to the target collection (via sourceDocRef/type) server-side
+      // once CEO approves. Same P0.1 security pattern already proven here.
+      allow read:   if isCEO()
+                    || (isAuth() && resource.data.requestedBy == request.auth.uid);
+      allow create: if isAuth() && hasStandardFields()
+                    && request.resource.data.requestedBy == request.auth.uid
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.serverVerified == false
+                    && request.resource.data.decidedBy == null
+                    && request.resource.data.decidedAt == null;
+      allow update: if request.resource.data.serverVerified == resource.data.serverVerified
+                    && isCEO()
+                    && resource.data.status == 'pending'
+                    && resource.data.serverVerified == true
+                    && request.resource.data.status in ['approved', 'rejected'];
+      allow delete: if false;
+    }
+
+    match /budgetRequests/{id} {
+      // Director may approve directly within their own budgetApprovalLimit
+      // (users/{uid}.budgetApprovalLimit, admin/CEO-settable only — see the
+      // users/{uid} update rule above); above the limit, direct update is
+      // denied here and the real UI routes the action through /approvals
+      // instead. CEO always has full access.
+      allow read:   if isAdminOrStaff();
+      allow create: if isAuth() && hasStandardFields()
+                    && request.resource.data.requestedBy == request.auth.uid
+                    && request.resource.data.status == 'pending';
+      allow update: if isCEO()
+                    || (isDirector()
+                        && resource.data.amount <= callerDoc().data.get('budgetApprovalLimit', 0));
       allow delete: if false;
     }
   }

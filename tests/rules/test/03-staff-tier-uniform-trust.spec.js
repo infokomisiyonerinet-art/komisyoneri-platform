@@ -5,6 +5,14 @@
 // behavior with real assertions, so a future "let's scope HR out of
 // Finance data" change doesn't get silently reverted by someone assuming
 // today's blanket access is a bug.
+//
+// One documented, deliberate exception since the CEO vs Operations Director
+// work (see 06-ceo-vs-operations-director.spec.js): the users/{uid} update
+// rule alone gives 'director' a narrower grant than the rest of the staff
+// tier (isSeniorManager(uid) blocks editing another senior manager's own
+// user doc) — every OTHER collection asserted uniform below (payroll,
+// expenses, assets) is completely unaffected by that carve-out and remains
+// uniform exactly as this file originally documented.
 
 const { assertFails, assertSucceeds } = require('@firebase/rules-unit-testing');
 const { makeTestEnv } = require('../testenv');
