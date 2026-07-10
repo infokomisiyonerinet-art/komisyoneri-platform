@@ -13,7 +13,14 @@ const UIDS = {
   hr: 'staff_hr_test_user',
   finance: 'staff_finance_test_user',
   marketing: 'staff_marketing_test_user',
-  admin: 'admin_test_user'
+  admin: 'admin_test_user',
+  // CEO vs Operations Director governance fixtures — 'director' is this
+  // app's real "Operations Director" role value (see rules/firestore.rules'
+  // isCEO()/isDirector()). hr/finance/marketing above double as
+  // "senior manager" fixtures for the isSeniorManager() carve-out, since
+  // hr_manager/accountant/marketing_manager are all in that literal list.
+  ceo: 'ceo_test_user',
+  director: 'director_test_user'
 };
 
 const DOC_IDS = {
@@ -24,8 +31,28 @@ const DOC_IDS = {
   partner: 'partner_test_doc',
   payroll: 'payroll_test_doc',
   review: 'review_test_doc',
-  staffReview: 'staff_review_test_doc'
+  staffReview: 'staff_review_test_doc',
+  // CEO vs Operations Director governance fixtures
+  strategyDoc: 'strategy_doc_test_doc',
+  majorContract: 'major_contract_test_doc',
+  shareStructure: 'share_structure_test_doc',
+  governanceDoc: 'governance_doc_test_doc',
+  companyRegistration: 'company_registration_test_doc',
+  loanDisposal: 'loan_disposal_test_doc',
+  seniorStaffAction: 'senior_staff_action_test_doc',
+  dailyOp: 'daily_op_test_doc',
+  report: 'report_test_doc',
+  suggestion: 'suggestion_test_doc',
+  approvalPending: 'approval_pending_test_doc',
+  approvalUnverified: 'approval_unverified_test_doc',
+  budgetRequestWithinLimit: 'budget_request_within_test_doc',
+  budgetRequestAboveLimit: 'budget_request_above_test_doc'
 };
+
+// Director's budgetApprovalLimit fixture — budgetRequestWithinLimit's amount
+// sits under this, budgetRequestAboveLimit's sits over it, so the boundary
+// tests have real fixtures to assert against on both sides.
+const DIRECTOR_BUDGET_LIMIT = 1000000;
 
 function standardFields(overrides) {
   const now = new Date().toISOString();
@@ -64,6 +91,8 @@ async function seed(testEnv) {
     await userDoc(UIDS.finance, 'accountant');
     await userDoc(UIDS.marketing, 'marketing_manager');
     await userDoc(UIDS.admin, 'admin');
+    await userDoc(UIDS.ceo, 'ceo');
+    await userDoc(UIDS.director, 'director', { budgetApprovalLimit: DIRECTOR_BUDGET_LIMIT });
 
     // ── properties — agentA-owned
     await db.collection('properties').doc(DOC_IDS.property).set(standardFields({
@@ -124,7 +153,71 @@ async function seed(testEnv) {
       id: DOC_IDS.staffReview, staffId: UIDS.hr, reviewerId: UIDS.admin,
       rating: 4, comment: 'Solid quarter'
     }));
+
+    // ── CEO vs Operations Director governance fixtures ──
+    await db.collection('strategyDocuments').doc(DOC_IDS.strategyDoc).set(standardFields({
+      id: DOC_IDS.strategyDoc, title: 'FY26 Strategy', createdBy: UIDS.ceo, updatedBy: UIDS.ceo
+    }));
+    await db.collection('majorContracts').doc(DOC_IDS.majorContract).set(standardFields({
+      id: DOC_IDS.majorContract, counterparty: 'Test Partner Ltd', value: 20000000,
+      createdBy: UIDS.ceo, updatedBy: UIDS.ceo
+    }));
+    await db.collection('shareStructure').doc(DOC_IDS.shareStructure).set(standardFields({
+      id: DOC_IDS.shareStructure, holder: 'Founder', percent: 100,
+      createdBy: UIDS.ceo, updatedBy: UIDS.ceo
+    }));
+    await db.collection('governanceDocuments').doc(DOC_IDS.governanceDoc).set(standardFields({
+      id: DOC_IDS.governanceDoc, title: 'Bylaws', createdBy: UIDS.ceo, updatedBy: UIDS.ceo
+    }));
+    await db.collection('companyRegistration').doc(DOC_IDS.companyRegistration).set(standardFields({
+      id: DOC_IDS.companyRegistration, regNumber: 'RW-0001', createdBy: UIDS.ceo, updatedBy: UIDS.ceo
+    }));
+    await db.collection('loansAndAssetDisposals').doc(DOC_IDS.loanDisposal).set(standardFields({
+      id: DOC_IDS.loanDisposal, kind: 'loan', amount: 10000000,
+      createdBy: UIDS.ceo, updatedBy: UIDS.ceo
+    }));
+    await db.collection('seniorStaffActions').doc(DOC_IDS.seniorStaffAction).set(standardFields({
+      id: DOC_IDS.seniorStaffAction, action: 'hire', targetUid: UIDS.marketing,
+      createdBy: UIDS.ceo, updatedBy: UIDS.ceo
+    }));
+    await db.collection('dailyOperations').doc(DOC_IDS.dailyOp).set(standardFields({
+      id: DOC_IDS.dailyOp, note: 'Daily ops log', createdBy: UIDS.director, updatedBy: UIDS.director
+    }));
+    await db.collection('reports').doc(DOC_IDS.report).set(standardFields({
+      id: DOC_IDS.report, title: 'Weekly Report', createdBy: UIDS.director, updatedBy: UIDS.director
+    }));
+    await db.collection('suggestions').doc(DOC_IDS.suggestion).set(standardFields({
+      id: DOC_IDS.suggestion, text: 'Improve onboarding flow',
+      createdBy: UIDS.director, updatedBy: UIDS.director
+    }));
+
+    // ── approvals — one already server-verified (ready for CEO to decide),
+    //    one still unverified (proves CEO can't approve before the
+    //    Cloud Function verifies it — same P0.1 shape as payout_requests)
+    await db.collection('approvals').doc(DOC_IDS.approvalPending).set(standardFields({
+      id: DOC_IDS.approvalPending, type: 'majorContracts', requestedBy: UIDS.director,
+      requiredApprover: 'CEO', summaryFields: { title: 'New vendor contract' },
+      status: 'pending', serverVerified: true, decidedBy: null, decidedAt: null,
+      sourceDocRef: '', payload: { title: 'New vendor contract' }
+    }));
+    await db.collection('approvals').doc(DOC_IDS.approvalUnverified).set(standardFields({
+      id: DOC_IDS.approvalUnverified, type: 'loansAndAssetDisposals', requestedBy: UIDS.director,
+      requiredApprover: 'CEO', summaryFields: { title: 'Asset disposal' },
+      status: 'pending', serverVerified: false, decidedBy: null, decidedAt: null,
+      sourceDocRef: '', payload: { title: 'Asset disposal' }
+    }));
+
+    // ── budgetRequests — one within the director's budgetApprovalLimit, one
+    //    above it, so the boundary is directly testable
+    await db.collection('budgetRequests').doc(DOC_IDS.budgetRequestWithinLimit).set(standardFields({
+      id: DOC_IDS.budgetRequestWithinLimit, requestedBy: UIDS.director,
+      amount: DIRECTOR_BUDGET_LIMIT - 1, description: 'Office supplies', status: 'pending'
+    }));
+    await db.collection('budgetRequests').doc(DOC_IDS.budgetRequestAboveLimit).set(standardFields({
+      id: DOC_IDS.budgetRequestAboveLimit, requestedBy: UIDS.director,
+      amount: DIRECTOR_BUDGET_LIMIT + 1, description: 'New office lease', status: 'pending'
+    }));
   });
 }
 
-module.exports = { seed, UIDS, DOC_IDS, standardFields };
+module.exports = { seed, UIDS, DOC_IDS, standardFields, DIRECTOR_BUDGET_LIMIT };

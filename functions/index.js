@@ -995,3 +995,128 @@ exports.onOfferCreated = onDocumentCreated({ document: 'offers/{offerId}', regio
     }
   }
 });
+
+/**
+ * CEO vs Operations Director governance (rules/firestore.rules' isCEO()/
+ * isDirector() section) — /approvals is the escalation path a Director uses
+ * for anything above their normal scope (budget above their limit, senior
+ * staff actions, major contracts, etc). Same P0.1 pattern already proven for
+ * payout_requests: the client can never set serverVerified itself (rules
+ * enforce this), so this trigger — and only this trigger — is the one path
+ * to serverVerified:true, after independently re-checking the request is
+ * real (requestedBy exists and is a genuine staff-tier account, type is one
+ * of the recognized governance target collections).
+ */
+const APPROVAL_TARGET_TYPES = [
+  'strategyDocuments', 'majorContracts', 'shareStructure', 'governanceDocuments',
+  'companyRegistration', 'loansAndAssetDisposals', 'seniorStaffActions', 'budgetRequests'
+];
+
+async function verifyApprovalRequest(db, req) {
+  if (!APPROVAL_TARGET_TYPES.includes(req.type)) {
+    return { ok: false, reason: 'Unrecognized approval type: ' + req.type };
+  }
+  if (!req.requestedBy) {
+    return { ok: false, reason: 'No requesting user was recorded.' };
+  }
+  const requesterDoc = await db.collection('users').doc(req.requestedBy).get();
+  if (!requesterDoc.exists) {
+    return { ok: false, reason: 'Requesting user does not exist.' };
+  }
+  const requesterRole = String(requesterDoc.data().role || '').toLowerCase();
+  if (!STAFF_ROLES.map((r) => r.toLowerCase()).includes(requesterRole)) {
+    return { ok: false, reason: 'Requesting user is not a staff-tier account.' };
+  }
+  return { ok: true };
+}
+
+exports.onApprovalCreated = onDocumentCreated({ document: 'approvals/{approvalId}', region: REGION }, async (event) => {
+  const db = getFirestore();
+  const approvalId = event.params.approvalId;
+  const ref = event.data.ref;
+  const req = event.data.data() || {};
+  if (req.status !== 'pending') return; // rules pin creation to 'pending' — defensive only
+
+  const result = await verifyApprovalRequest(db, req);
+  if (!result.ok) {
+    await ref.update({
+      status: 'rejected',
+      rejectedReason: result.reason,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: 'system'
+    });
+    await logAudit(db, 'approval.auto_rejected', 'approvals', approvalId, null, { reason: result.reason }, 'system');
+    if (req.requestedBy) {
+      await notifyUser(db, req.requestedBy, 'Approval Request Rejected',
+        'Your approval request was automatically rejected: ' + result.reason,
+        'approval_rejected', 'approvals', approvalId, 'system');
+    }
+    logger.info('Approval request auto-rejected', { approvalId, reason: result.reason });
+    return;
+  }
+
+  await ref.update({ serverVerified: true });
+  await notifyStaff(db, 'CEO Approval Requested',
+    (req.summaryFields && req.summaryFields.title) || ('A ' + req.type + ' request needs CEO approval.'),
+    'approval_requested', 'approvals', approvalId, req.requestedBy || 'system');
+  logger.info('Approval request verified', { approvalId, type: req.type, requestedBy: req.requestedBy });
+});
+
+/**
+ * Fires when a CEO's decision (rules require serverVerified already true —
+ * see rules/firestore.rules' /approvals match block) moves an approval to
+ * 'approved'. Re-verifies the actor is genuinely CEO — the actual privileged
+ * write to the target collection only ever happens here, server-side, never
+ * from the client directly, mirroring onPayoutRequestApproved's re-
+ * verification-before-money-moves pattern above.
+ */
+exports.onApprovalDecided = onDocumentUpdated({ document: 'approvals/{approvalId}', region: REGION }, async (event) => {
+  const before = event.data.before.data() || {};
+  const after = event.data.after.data() || {};
+  if (before.status === 'approved' || after.status !== 'approved') return;
+
+  const db = getFirestore();
+  const approvalId = event.params.approvalId;
+  const ref = event.data.after.ref;
+  const decidedBy = after.decidedBy || after.updatedBy || 'system';
+
+  if (decidedBy !== 'system') {
+    const actorDoc = await db.collection('users').doc(decidedBy).get();
+    const actorRole = actorDoc.exists ? String(actorDoc.data().role || '').toLowerCase() : '';
+    if (actorRole !== 'ceo') {
+      await ref.update({
+        status: 'rejected',
+        rejectedReason: 'Re-verification failed: approving actor is not CEO.',
+        decidedBy: null,
+        decidedAt: null,
+        updatedAt: FieldValue.serverTimestamp(),
+        updatedBy: 'system'
+      });
+      await logAudit(db, 'approval.decision_reverted', 'approvals', approvalId,
+        { status: 'approved' }, { status: 'rejected', decidedBy, actorRole }, 'system');
+      logger.warn('Approval decision reverted — actor not CEO', { approvalId, decidedBy, actorRole });
+      return;
+    }
+  }
+
+  const targetRef = db.collection(after.type).doc();
+  await targetRef.set(Object.assign({
+    id: targetRef.id,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+    createdBy: after.requestedBy || 'system',
+    updatedBy: decidedBy,
+    status: 'active',
+    isActive: true,
+    sourceApprovalId: approvalId
+  }, after.payload || {}));
+
+  await logAudit(db, 'approval.decided_approved', 'approvals', approvalId, null,
+    { type: after.type, targetId: targetRef.id, decidedBy }, decidedBy);
+  if (after.requestedBy) {
+    await notifyUser(db, after.requestedBy, 'Approval Granted',
+      'Your ' + after.type + ' request was approved by the CEO.',
+      'approval_approved', after.type, targetRef.id, decidedBy);
+  }
+  logger.info('Approval decided — target write complete', { approvalId, type: after.type, targetId: targetRef.id });
+});
