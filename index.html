@@ -2499,6 +2499,28 @@ html,body{overscroll-behavior-x:none}
 .img-uploader-add-more{border:1.5px dashed var(--border);border-radius:10px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);flex-direction:column;gap:.2rem;font-size:.62rem;font-weight:700;background:var(--surface)}
 .img-uploader-add-more:hover{border-color:var(--navy);color:var(--navy)}
 .img-uploader-count{font-size:.71rem;color:var(--muted);text-align:right}
+
+/* Profile photo upload — camera-hover affordance + in-progress spinner,
+   applied to the existing avatar divs (#profile-edit-avatar,
+   #agentreg-avatar) rather than a new wrapper element, since both already
+   have position:relative and an onclick-to-upload trigger. */
+#profile-edit-avatar::after, #agentreg-avatar::after{
+  content:'📷';position:absolute;inset:0;border-radius:50%;
+  background:rgba(13,59,140,.55);display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;opacity:0;transition:var(--tr);pointer-events:none;
+}
+#profile-edit-avatar:hover::after, #agentreg-avatar:hover::after,
+#profile-edit-avatar:focus-visible::after, #agentreg-avatar:focus-visible::after{opacity:1}
+@media(max-width:660px){
+  #profile-edit-avatar::after, #agentreg-avatar::after{opacity:1;background:rgba(13,59,140,.35)}
+}
+.avatar-uploading{opacity:.55;pointer-events:none}
+#profile-edit-avatar.avatar-uploading::after, #agentreg-avatar.avatar-uploading::after{
+  content:'';position:absolute;inset:0;margin:auto;width:24px;height:24px;
+  border:3px solid rgba(255,255,255,.4);border-top-color:var(--gold);border-radius:50%;
+  animation:avatarSpin .8s linear infinite;background:none;opacity:1;
+}
+@keyframes avatarSpin{to{transform:rotate(360deg)}}
 @media(max-width:480px){
   .img-uploader-grid{grid-template-columns:repeat(3,1fr)}
   .img-uploader-drop{padding:1.1rem .8rem}
@@ -7561,6 +7583,11 @@ html,body{overscroll-behavior-x:none}
       <div style="background:var(--light);border-radius:10px;padding:.8rem;font-size:.82rem;color:var(--navy);font-weight:600">
         📋 Intambwe 1/3 — Amakuru Yawe Bwite
       </div>
+      <div style="text-align:center;padding:.3rem 0 .2rem">
+        <div id="agentreg-avatar" onclick="document.getElementById('agentreg-photo-input').click()" style="width:64px;height:64px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.5rem;margin:0 auto .35rem;border:3px solid var(--gold);cursor:pointer;background-size:cover;background-position:center;position:relative" role="button" tabindex="0">👤</div>
+        <input type="file" id="agentreg-photo-input" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleProfilePhotoChange(this,'agentreg-avatar')" aria-label="Upload profile photo">
+        <div style="font-size:.68rem;color:var(--muted)" data-rw="Shyiraho Ifoto Yawe (Ntibisabwa)" data-en="Add Your Photo (Optional)">Shyiraho Ifoto Yawe (Ntibisabwa)</div>
+      </div>
       <div class="field"><label>Amazina Yuzuye</label><input type="text" id="ag-name" placeholder="Amazina na Nkunda"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
         <div class="field"><label>Telefoni</label><input type="tel" id="ag-phone" placeholder="+250 7XX XXX XXX"></div>
@@ -10942,8 +10969,14 @@ function closeEditProfile() {
 }
 
 function saveEditProfile() {
+  // Photo is no longer handled here — uploadProfilePhoto() (below) saves it
+  // to Storage/Firestore/Auth the instant a file is picked, independent of
+  // this form. That replaces the old behavior of staging a raw base64 data
+  // URI in window._profileNewPhoto and writing it straight into Firestore
+  // on Save, which silently failed for any real photo (Firestore's 1MiB
+  // per-document limit — a base64-encoded phone photo routinely exceeds
+  // that — combined with an empty .catch() that swallowed the failure).
   var gv = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
-  if (window._profileNewPhoto) currentUser.photo = window._profileNewPhoto;
   currentUser.phone    = gv('edit-phone');
   currentUser.location = gv('edit-location');
   var prefEl = document.getElementById('edit-preference');
@@ -10958,8 +10991,10 @@ function saveEditProfile() {
       updatedAt:  firebase.firestore.FieldValue.serverTimestamp(),
       updatedBy:  currentUser.uid
     };
-    if (currentUser.photo) fsUpdate.photoURL = currentUser.photo;
-    db.collection('users').doc(currentUser.uid).set(fsUpdate, { merge: true }).catch(function(){});
+    db.collection('users').doc(currentUser.uid).set(fsUpdate, { merge: true }).catch(function(e) {
+      console.error('[Profile] saveEditProfile: Firestore write failed:', e.code || '', e.message);
+      showToast(curLang==='rw' ? 'Ibindi byahinduwe ntibyabitswe — gerageza nanone' : 'Some changes could not be saved — please try again', 'error');
+    });
     logAudit('profile_updated', 'users', currentUser.uid, {}, fsUpdate);
   }
   /* Sync to km_users localStorage array */
@@ -10970,7 +11005,6 @@ function saveEditProfile() {
       u.phone = currentUser.phone;
       u.location = currentUser.location;
       u.preference = currentUser.preference;
-      if (currentUser.photo) u.photo = currentUser.photo;
     }
     return u;
   });
@@ -10979,14 +11013,173 @@ function saveEditProfile() {
   closeEditProfile();
 }
 
-function onProfilePhotoChange(input) {
+// ══════════════════════════════════════════════════════════════════════
+// PROFILE PHOTO UPLOAD — every authenticated user (client/agent/partner/
+// staff/admin) can upload their own avatar. Real pipeline: validate →
+// compress client-side (canvas) → Firebase Storage → Firestore
+// users/{uid}.photoURL → Firebase Auth profile → refresh every avatar on
+// the page immediately, no reload. Replaces the previous base64-into-
+// Firestore approach, which never actually used Storage and silently
+// failed for any real-sized photo.
+//
+// Multiple triggers share this one pipeline (Profile modal's edit avatar,
+// the Agent Registration wizard's optional photo) — each just passes its
+// own preview element's id so its local preview/spinner updates correctly
+// while the shared nav/profile avatars refresh via updateAllAvatars().
+// ══════════════════════════════════════════════════════════════════════
+
+var PROFILE_PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+var PROFILE_PHOTO_VALID_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+// Canvas-based resize — named distinctly from PropImageUploader's private
+// compressImage() (a different closure-scoped function for property
+// listing photos, larger dimensions/quality) to avoid the kind of
+// same-named-function confusion flagged elsewhere in this codebase.
+function compressProfilePhoto(file, maxWidth, maxHeight, quality, callback) {
+  var reader = new FileReader();
+  reader.onerror = function() { callback(file); };
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onerror = function() { callback(file); };
+    img.onload = function() {
+      try {
+        var width = img.naturalWidth || img.width, height = img.naturalHeight || img.height;
+        if (!width || !height) { callback(file); return; }
+        if (width > maxWidth || height > maxHeight) {
+          if (width / height > maxWidth / maxHeight) {
+            height = Math.round(height * maxWidth / width); width = maxWidth;
+          } else {
+            width = Math.round(width * maxHeight / height); height = maxHeight;
+          }
+        }
+        var canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        var ctx = canvas.getContext('2d');
+        if (!ctx || typeof canvas.toBlob !== 'function') { callback(file); return; }
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(function(blob) {
+          if (!blob) { callback(file); return; }
+          callback(new File([blob], 'avatar.jpg', { type: 'image/jpeg' }));
+        }, 'image/jpeg', quality);
+      } catch (err) {
+        console.error('[Profile] compressProfilePhoto: canvas processing failed, uploading original file instead:', err.message);
+        callback(file);
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// Refreshes every avatar surface that reflects the CURRENT signed-in
+// user's own photo. Delegates the nav avatar to updateNavForUser() (the
+// one place that already correctly branches photo-vs-initials) instead of
+// duplicating that logic here.
+function updateAllAvatars(photoURL) {
+  if (typeof updateNavForUser === 'function' && typeof currentUser !== 'undefined') updateNavForUser(currentUser);
+  ['profile-avatar-big', 'profile-edit-avatar', 'agentreg-avatar'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (photoURL) {
+      el.textContent = '';
+      el.style.backgroundImage = 'url(' + photoURL + ')';
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundPosition = 'center';
+    } else {
+      el.style.backgroundImage = '';
+    }
+  });
+}
+
+function showProfileUploadProgress(show, targetElId) {
+  var el = document.getElementById(targetElId || 'profile-edit-avatar');
+  if (el) el.classList.toggle('avatar-uploading', !!show);
+}
+
+function uploadProfilePhoto(file, previewElId) {
+  if (!currentUser || !currentUser.uid) {
+    showToast(curLang === 'rw' ? 'Injira mbere yo guhindura ifoto' : 'Please sign in to update your photo', 'error');
+    return;
+  }
+  if (PROFILE_PHOTO_VALID_TYPES.indexOf(file.type) === -1) {
+    showToast(curLang === 'rw' ? 'Hitamo ifoto ya JPEG, PNG, cyangwa WebP gusa' : 'Please select a JPEG, PNG, or WebP image only', 'error');
+    return;
+  }
+  if (file.size > PROFILE_PHOTO_MAX_BYTES) {
+    showToast(curLang === 'rw' ? 'Ifoto ingana cyane — max 5MB' : 'Photo too large — maximum 5MB', 'error');
+    return;
+  }
+  if (typeof storage === 'undefined' || !storage || typeof db === 'undefined') {
+    showToast(curLang === 'rw' ? 'Ifoto ntiyashyizwe — gerageza nanone' : 'Upload failed — please try again', 'error');
+    return;
+  }
+
+  var oldPhotoURL = currentUser.photo || null;
+  var localPreviewUrl = URL.createObjectURL(file);
+  var previewEl = previewElId ? document.getElementById(previewElId) : null;
+  if (previewEl) {
+    previewEl.textContent = '';
+    previewEl.style.backgroundImage = 'url(' + localPreviewUrl + ')';
+    previewEl.style.backgroundSize = 'cover';
+    previewEl.style.backgroundPosition = 'center';
+  }
+  showProfileUploadProgress(true, previewElId);
+  showToast(curLang === 'rw' ? 'Ifoto irashyirwa... ⏳' : 'Uploading photo... ⏳', 'info');
+
+  compressProfilePhoto(file, 400, 400, 0.85, function(compressedFile) {
+    var uid = currentUser.uid;
+    var ref = storage.ref('users/' + uid + '/profile/avatar.jpg');
+    ref.put(compressedFile, { contentType: 'image/jpeg' })
+      .then(function(snapshot) { return snapshot.ref.getDownloadURL(); })
+      .then(function(downloadURL) {
+        return db.collection('users').doc(uid).set({
+          photoURL:  downloadURL,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedBy: uid
+        }, { merge: true }).then(function() { return downloadURL; });
+      })
+      .then(function(downloadURL) {
+        if (firebaseAuth && firebaseAuth.currentUser) {
+          return firebaseAuth.currentUser.updateProfile({ photoURL: downloadURL })
+            .catch(function(e) { console.warn('[Profile] Auth profile photoURL sync failed (non-fatal):', e.code || '', e.message); })
+            .then(function() { return downloadURL; });
+        }
+        return downloadURL;
+      })
+      .then(function(downloadURL) {
+        currentUser.photo = downloadURL;
+        saveUser(currentUser);
+        try { URL.revokeObjectURL(localPreviewUrl); } catch(e) {}
+        updateAllAvatars(downloadURL);
+        showProfileUploadProgress(false, previewElId);
+        showToast(curLang === 'rw' ? 'Ifoto yawe yabitswe neza! ✅' : 'Profile photo updated successfully! ✅', 'success');
+        logAudit('user.photo.updated', 'users', uid, { photoURL: oldPhotoURL }, { photoURL: downloadURL });
+      })
+      .catch(function(error) {
+        try { URL.revokeObjectURL(localPreviewUrl); } catch(e) {}
+        showProfileUploadProgress(false, previewElId);
+        updateAllAvatars(oldPhotoURL);
+        console.error('[Profile] uploadProfilePhoto error:', error.code || '', error.message);
+        if (error.code === 'storage/unauthorized') {
+          showToast(curLang === 'rw' ? 'Ntwemerewe gushyira ifoto — injira nanone' : 'Not authorized to upload — please sign in again', 'error');
+        } else if (error.code === 'storage/canceled') {
+          showToast(curLang === 'rw' ? 'Upload yahagaritswe' : 'Upload canceled', 'info');
+        } else {
+          showToast(curLang === 'rw' ? 'Ifoto ntiyashyizwe — gerageza nanone' : 'Upload failed — please try again', 'error');
+        }
+      });
+  });
+}
+
+function handleProfilePhotoChange(input, previewElId) {
   var f = input.files && input.files[0];
   if (!f) return;
-  convertFileToBase64(f, function(data) {
-    window._profileNewPhoto = data;
-    var av = document.getElementById('profile-edit-avatar');
-    if (av) { av.textContent = ''; av.style.backgroundImage = 'url('+data+')'; av.style.backgroundSize='cover'; av.style.backgroundPosition='center'; }
-  });
+  uploadProfilePhoto(f, previewElId);
+  input.value = '';
+}
+
+function onProfilePhotoChange(input) {
+  handleProfilePhotoChange(input, 'profile-edit-avatar');
 }
 
 function logoutUser() {
@@ -15187,13 +15380,6 @@ function openAdminAddProp() {
   openAddProperty();
 }
 
-// === FILE UPLOAD HANDLER (for regular users) ===
-function convertFileToBase64(file, callback) {
-  var reader = new FileReader();
-  reader.onload = function(e) { callback(e.target.result); };
-  reader.readAsDataURL(file);
-}
-
 // (bottom nav active-state syncing lives in renderBottomNav(), above —
 // this file used to carry a second, uncalled implementation here as
 // dead code left over from an earlier unfinished attempt.)
@@ -16105,12 +16291,14 @@ function updateHamburgerAuth() {
     var em = document.getElementById('hm-user-email');
     if(nm) nm.textContent = currentUser.name || 'Umukoresha';
     if(em) em.textContent = currentUser.email || currentUser.phone || '';
-    // Update avatar in topnav
+    // Update avatar in topnav — delegates the photo-vs-initials branch to
+    // updateNavForUser() (the one place that already gets this right)
+    // instead of duplicating initials-only logic here, which previously
+    // stomped a real photo back to initials text every time this ran.
     var av = document.getElementById('nav-avatar');
     if(av) {
-      var ini = (currentUser.name||'U').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2)||'U';
-      av.textContent = ini;
       av.style.display = 'flex';
+      if (typeof updateNavForUser === 'function') updateNavForUser(currentUser);
     }
   } else {
     var av2 = document.getElementById('nav-avatar');
@@ -16225,11 +16413,14 @@ function renderAgentsGrid(agents) {
     var initials = (agent.name||'A').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
     var langs = (agent.languages||[]).join(' · ');
     var transport = agent.transport === 'car' ? '🚗 Imodoka' : agent.transport === 'boda' ? '🏍️ Boda' : '—';
+    var avatarHtml = agent.photo
+      ? '<div style="width:48px;height:48px;border-radius:50%;background-image:url(' + escapeHtml(agent.photo) + ');background-size:cover;background-position:center;flex-shrink:0;border:2px solid var(--gold)"></div>'
+      : '<div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0;border:2px solid var(--gold)">' + initials + '</div>';
 
     return '<div style="background:var(--surface);border-radius:14px;border:1.5px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)">'
       // Header
       + '<div style="background:linear-gradient(135deg,var(--navy),var(--blue));padding:1rem;display:flex;align-items:center;gap:.8rem">'
-      +   '<div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0;border:2px solid var(--gold)">' + initials + '</div>'
+      +   avatarHtml
       +   '<div style="flex:1;min-width:0">'
       +     '<div style="font-weight:700;color:#fff;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (agent.name||'Agent') + '</div>'
       +     '<div style="font-size:.72rem;color:rgba(255,255,255,.75);margin-top:.1rem">📍 ' + (agent.zone||'—') + '</div>'
@@ -21456,8 +21647,11 @@ function renderStaffDirectory(list) {
     var initials = (u.displayName||u.email||'U').substring(0,1).toUpperCase();
     var role = HR_ROLE_LABELS[u.role] || (u.role||'—');
     var verChip = u.isVerified ? '<span class="hr-verified-chip">Verified</span>' : '';
+    var avatarHtml = u.photoURL
+      ? '<div class="hr-staff-avatar" style="background-image:url(' + escapeHtml(u.photoURL) + ');background-size:cover;background-position:center"></div>'
+      : '<div class="hr-staff-avatar">' + initials + '</div>';
     return '<div class="hr-staff-card" onclick="openStaffProfile(\'' + u.id + '\')" role="button" tabindex="0">' +
-      '<div class="hr-staff-avatar">' + initials + '</div>' +
+      avatarHtml +
       '<div class="hr-staff-info">' +
         '<div class="hr-staff-name">' + (u.displayName||u.email||'—') + '</div>' +
         '<div style="display:flex;gap:.35rem;align-items:center;margin:.15rem 0">' +
@@ -21477,8 +21671,16 @@ function openStaffProfile(uid) {
   if (!u) return;
   var m = g('staff-profile-modal'); if (!m) return;
   var initials = (u.displayName||u.email||'U').substring(0,1).toUpperCase();
-  g('sp-avatar').textContent = initials;
-  g('sp-avatar').style.background = 'var(--navy)';
+  if (u.photoURL) {
+    g('sp-avatar').textContent = '';
+    g('sp-avatar').style.backgroundImage = 'url(' + u.photoURL + ')';
+    g('sp-avatar').style.backgroundSize = 'cover';
+    g('sp-avatar').style.backgroundPosition = 'center';
+  } else {
+    g('sp-avatar').textContent = initials;
+    g('sp-avatar').style.backgroundImage = '';
+    g('sp-avatar').style.background = 'var(--navy)';
+  }
   g('sp-name').textContent = u.displayName || u.email || '—';
   g('sp-role-chip').textContent = HR_ROLE_LABELS[u.role] || (u.role||'—');
   g('sp-verified-badge').innerHTML = u.isVerified ? '<span class="hr-verified-chip">Verified</span>' : '';
@@ -31108,6 +31310,7 @@ function _normalizeAgentDoc(data, docId) {
     name:         data.displayName || data.name || data.email || 'Agent',
     email:        data.email || '',
     phone:        data.phone || '',
+    photo:        data.photoURL || '',
     zone:         data.district || data.zone || data.branchId || '',
     experience:   String(data.experience || data.yearsExp || '0'),
     transport:    data.transport || '',
