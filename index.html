@@ -11190,7 +11190,14 @@ var PropImageUploader = (function() {
   var JPEG_QUALITY = 0.82;
   var MAX_FILE_BYTES = 10 * 1024 * 1024;
   var COMPRESS_TIMEOUT_MS = 8000;
-  var UPLOAD_TIMEOUT_MS = 45000;
+  // 45s was too tight for multi-MB photos on typical Rwandan mobile data
+  // (3G/limited 4G uplink) — raised per P0 investigation. Combined with the
+  // concurrency cap below (which stops photos from splitting the same
+  // limited uplink bandwidth N ways), this gives each upload a realistic
+  // amount of time to actually finish rather than just delaying the same
+  // failure.
+  var UPLOAD_TIMEOUT_MS = 60000;
+  var UPLOAD_CONCURRENCY = 2;
   var items = []; // {uid,file,previewUrl,url,status:'ready'|'uploading'|'done'|'error',progress,isExisting}
   var containerEl = null;
   var seq = 0;
@@ -11451,8 +11458,10 @@ var PropImageUploader = (function() {
 
   function hasAtLeastOne() { return items.length > 0; }
 
-  function uploadAll(pathPrefix) {
-    var tasks = items.map(function(it, idx) {
+  // Uploads a single item; identical body to what uploadAll() used to run
+  // inline for every item at once. Pulled out unchanged so uploadAll() can
+  // dispatch it through a concurrency limiter instead.
+  function uploadOne(it, idx, pathPrefix) {
       if (it.isExisting && it.url) return Promise.resolve(it.url);
       if (!it.file) return Promise.resolve(null);
       it.status = 'uploading'; it.progress = 0;
@@ -11514,8 +11523,34 @@ var PropImageUploader = (function() {
           });
         });
       });
-    });
-    return Promise.all(tasks).then(function(urls) { return urls.filter(Boolean); });
+  }
+
+  // Uploading every photo at once split the same limited mobile uplink
+  // bandwidth N ways, so each individual upload could take far longer than
+  // it would alone — a real, verified contributor to the 45s (now 60s)
+  // watchdog firing on constrained connections, independent of Storage
+  // rules or file size. Capping concurrency lets each in-flight upload use
+  // the full available bandwidth, while still uploading more than one at a
+  // time on a fast connection. Result order matches submission order
+  // exactly (img1/img2/img3 cover-photo assignment depends on this).
+  function uploadAll(pathPrefix) {
+    var results = new Array(items.length);
+    var nextIndex = 0;
+
+    function runNext() {
+      if (nextIndex >= items.length) return Promise.resolve();
+      var idx = nextIndex++;
+      return uploadOne(items[idx], idx, pathPrefix).then(function(url) {
+        results[idx] = url;
+        return runNext();
+      });
+    }
+
+    var workerCount = Math.min(UPLOAD_CONCURRENCY, items.length);
+    var workers = [];
+    for (var w = 0; w < workerCount; w++) workers.push(runNext());
+
+    return Promise.all(workers).then(function() { return results.filter(Boolean); });
   }
 
   return {
