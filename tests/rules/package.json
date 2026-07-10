@@ -1,0 +1,17 @@
+{
+  "name": "komisiyoneri-rules-tests",
+  "private": true,
+  "description": "Automated Firestore Security Rules test suite for K-REOS, run against the Firebase Emulator Suite. Isolated on purpose — no root package.json exists in this repo (it's a zero-build static site served by Vercel), so this package and its node_modules live entirely inside tests/rules and never touch how the production site is deployed.",
+  "scripts": {
+    "pretest": "rimraf out && mkdirp out",
+    "test": "mocha \"test/**/*.spec.js\" --reporter json --reporter-options output=./out/results.json --timeout 20000",
+    "report": "node generate-report.js",
+    "test:rbac": "npm test; node generate-report.js"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.4",
+    "mocha": "^10.7.3",
+    "mkdirp": "^3.0.1",
+    "rimraf": "^5.0.10"
+  }
+}
