@@ -91,7 +91,7 @@ async function notifyUser(db, targetUserId, title, body, type, relatedCollection
 // small; if either cap is ever hit for real, this should move to a
 // dedicated broadcast mechanism instead of fanning out individual
 // notification writes.
-const STAFF_ROLES = ['admin', 'Admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker'];
+const STAFF_ROLES = ['admin', 'Admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser'];
 async function notifyStaff(db, title, body, type, relatedCollection, relatedId, actingUid) {
   const roleBatches = [STAFF_ROLES.slice(0, 10), STAFF_ROLES.slice(10)];
   const snaps = await Promise.all(roleBatches.map((roles) =>
@@ -1009,7 +1009,14 @@ exports.onOfferCreated = onDocumentCreated({ document: 'offers/{offerId}', regio
  */
 const APPROVAL_TARGET_TYPES = [
   'strategyDocuments', 'majorContracts', 'shareStructure', 'governanceDocuments',
-  'companyRegistration', 'loansAndAssetDisposals', 'seniorStaffActions', 'budgetRequests'
+  'companyRegistration', 'loansAndAssetDisposals', 'seniorStaffActions', 'budgetRequests',
+  // Final Management Org Chart — deniedActions-triggered approval types
+  // (see index.html's requestApproval()): a salary change HR can't make
+  // directly, a Finance spend/new-account request above their scope, or a
+  // fired-director/major-contract-sign request that already has its own
+  // CEO-only collection above and is included here only so it can also be
+  // routed through /approvals rather than always assumed CEO-only.
+  'payroll', 'financeTransactions', 'bankAccounts'
 ];
 
 async function verifyApprovalRequest(db, req) {

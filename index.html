@@ -4810,6 +4810,19 @@ html,body{overscroll-behavior-x:none}
           <div id="dash-agenda-list" style="padding:.4rem .8rem 0"></div>
         </div>
       </div>
+      <!-- Final Management Org Chart: "My Reports" — visible to any of the
+           9 governance roles, not just executives. Real Submit + recent-
+           status list; a full due-date-cadence engine is flagged as
+           follow-up scope, not built here. -->
+      <div id="dash-myreports-wrap" style="display:none;margin-bottom:1.2rem">
+        <div class="dc">
+          <div class="dc-hdr">
+            <span class="dc-title" data-rw="Raporo Zanjye" data-en="My Reports">My Reports</span>
+            <button class="dc-action" onclick="openSubmitReportModal()" data-rw="Ohereza Raporo" data-en="Submit Report">Submit Report</button>
+          </div>
+          <div id="dash-myreports-list" style="padding:.4rem .8rem .6rem"></div>
+        </div>
+      </div>
 
       <div class="dash-grid">
         <!-- My Listings -->
@@ -6622,6 +6635,34 @@ html,body{overscroll-behavior-x:none}
     <div class="exec-panel" id="exec-approvals-panel" style="margin-top:16px;display:none">
       <div class="exec-panel-hdr" data-rw="Ibyemezo Bitegereje" data-en="Pending Approvals">Pending Approvals</div>
       <div id="exec-approvals-list"><div class="exec-empty">Loading...</div></div>
+    </div>
+    <!-- Reports Received — CEO/Operations Director (Final Management Org
+         Chart's structured reporting system, see /reports collection) -->
+    <div class="exec-panel" id="exec-reports-panel" style="margin-top:16px;display:none">
+      <div class="exec-panel-hdr" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+        <span data-rw="Raporo Zakiriwe" data-en="Reports Received">Reports Received</span>
+        <span style="display:flex;gap:.4rem">
+          <select id="exec-reports-dept-filter" class="off-filter" style="font-size:.72rem" onchange="loadExecReportsReceived()" aria-label="Filter by department">
+            <option value="" data-en="All Departments">All Departments</option>
+            <option value="Executive">Executive</option>
+            <option value="Finance">Finance</option>
+            <option value="Brokerage">Brokerage</option>
+            <option value="Marketing">Marketing</option>
+            <option value="CustomerSupport">Customer Support</option>
+            <option value="IT">IT</option>
+            <option value="HR">HR</option>
+            <option value="Legal">Legal</option>
+          </select>
+          <select id="exec-reports-type-filter" class="off-filter" style="font-size:.72rem" onchange="loadExecReportsReceived()" aria-label="Filter by report type">
+            <option value="" data-en="All Types">All Types</option>
+            <option value="Daily">Daily</option>
+            <option value="Weekly">Weekly</option>
+            <option value="Monthly">Monthly</option>
+            <option value="Quarterly">Quarterly</option>
+          </select>
+        </span>
+      </div>
+      <div id="exec-reports-list"><div class="exec-empty">Loading...</div></div>
     </div>
   </div>
 
@@ -9275,7 +9316,7 @@ html,body{overscroll-behavior-x:none}
       <div style="background:var(--light);border-radius:10px;padding:.75rem 1rem;margin-bottom:.75rem">
         <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.5rem" data-en="Admin Actions">Admin Actions</div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.5rem">
-          <select id="sp-role-select" class="form-control" style="flex:1;font-size:.8rem;padding:.4rem .6rem" aria-label="Change user role">
+          <select id="sp-role-select" class="form-control" style="flex:1;font-size:.8rem;padding:.4rem .6rem" aria-label="Change user role" onchange="renderOrgChartFields()">
             <option value="client">Client</option>
             <option value="owner">Property Owner</option>
             <option value="agent">Agent</option>
@@ -9289,12 +9330,32 @@ html,body{overscroll-behavior-x:none}
             <option value="director">Director</option>
             <option value="accountant">Accountant</option>
             <option value="chief_broker">Chief Broker</option>
+            <option value="customer_support_manager">Customer Support Manager</option>
+            <option value="it_manager">IT / Product Manager</option>
+            <option value="legal_adviser">Legal Adviser</option>
             <option value="developer">Developer</option>
             <option value="admin">Admin</option>
             <option value="ceo">CEO</option>
             <option value="company_owner">Company Owner</option>
           </select>
           <button class="btn btn-sm btn-navy" onclick="changeUserRole(_spProfileId)" style="font-size:.78rem" data-en="Change Role">Change Role</button>
+        </div>
+        <!-- Final Management Org Chart: department/jobTitle are derived
+             display-only (see ROLE_DEPARTMENT/ROLE_JOBTITLE, index.html) —
+             not independently editable, so they can never disagree with
+             role. reportsTo IS a real, editable multi-select: several
+             governance roles report to two people (e.g. Director of
+             Finance -> CEO & Operations Director), pre-filled from
+             ROLE_SUPERIOR_ROLES when the role dropdown changes, but
+             adjustable before saving. -->
+        <div id="sp-orgchart-fields" style="display:none;margin-bottom:.5rem">
+          <div style="font-size:.72rem;color:var(--muted);margin-bottom:.3rem">
+            <span data-en="Department:">Department:</span> <strong id="sp-orgchart-dept">—</strong>
+            &nbsp;&middot;&nbsp;
+            <span data-en="Job Title:">Job Title:</span> <strong id="sp-orgchart-title">—</strong>
+          </div>
+          <label style="font-size:.7rem;color:var(--muted);display:block;margin-bottom:.2rem" data-en="Reports To (select one or more)">Reports To (select one or more)</label>
+          <select id="sp-reportsto-select" class="form-control" multiple size="3" style="font-size:.78rem" aria-label="Reports to"></select>
         </div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap">
           <button class="btn btn-sm" onclick="toggleUserVerified(_spProfileId)" style="font-size:.75rem;background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0" id="sp-verify-btn" data-en="Verify">Verify</button>
@@ -9603,6 +9664,40 @@ html,body{overscroll-behavior-x:none}
     <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
       <button class="btn btn-outline" onclick="closeExpenseCreate()" data-rw="Reka" data-en="Cancel">Cancel</button>
       <button class="btn btn-primary" onclick="submitExpense()" data-rw="Bika Igisonerwa" data-en="Save Expense">Save Expense</button>
+    </div>
+  </div>
+</div>
+
+<!-- === FINAL MANAGEMENT ORG CHART: SUBMIT REPORT MODAL === -->
+<div class="modal-wrap" role="dialog" aria-modal="true" id="submit-report-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hdr">
+      <div class="modal-title" data-rw="Ohereza Raporo" data-en="Submit Report">Submit Report</div>
+      <button class="modal-close" onclick="closeSubmitReportModal()">&times;</button>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label data-en="Report Type" for="rpt-type">Report Type</label>
+        <select id="rpt-type" class="form-control">
+          <option value="Daily">Daily</option>
+          <option value="Weekly">Weekly</option>
+          <option value="Monthly">Monthly</option>
+          <option value="Quarterly">Quarterly</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label data-en="Category" for="rpt-category">Category</label>
+        <input type="text" id="rpt-category" placeholder="e.g. Daily Cash Report" class="form-control">
+      </div>
+    </div>
+    <div class="form-group">
+      <label data-en="Content">Content</label>
+      <textarea id="rpt-content" rows="5" placeholder="Report content..." class="form-control" style="resize:vertical"></textarea>
+    </div>
+    <div id="rpt-recipients-note" style="font-size:.72rem;color:var(--muted);margin-bottom:.5rem"></div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" onclick="closeSubmitReportModal()" data-rw="Reka" data-en="Cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitReport()" data-rw="Ohereza" data-en="Submit">Submit</button>
     </div>
   </div>
 </div>
@@ -10393,8 +10488,8 @@ var _pendingAction = null;
 var ROLE_TIERS = {
   ADMIN:         ['super_admin', 'admin'],
   EXEC:          ['super_admin', 'admin', 'ceo'],
-  STAFF:         ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker'],        // == firestore.rules isAdminOrStaff()
-  INTERNAL_TEAM: ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'agent'] // == firestore.rules isInternalTeam()
+  STAFF:         ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser'],        // == firestore.rules isAdminOrStaff()
+  INTERNAL_TEAM: ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser', 'agent'] // == firestore.rules isInternalTeam()
 };
 function _roleOf(user) { return ((user || currentUser || {}).role || '').toLowerCase(); }
 function isAdmin(user)        { return ROLE_TIERS.ADMIN.indexOf(_roleOf(user)) > -1; }
@@ -19335,6 +19430,7 @@ function loadExecOverview() {
   loadExecActivity();
   loadExecHealth();
   loadExecApprovals();
+  loadExecReportsReceived();
 }
 
 // CEO vs Operations Director governance — the one real UI entry point for
@@ -19377,6 +19473,37 @@ function loadExecApprovals() {
     });
 }
 
+// Final Management Org Chart — deniedActions approval routing. Any action
+// tagged in a role's ROLE_DENIED_ACTIONS (see index.html's org-chart maps)
+// must not be a direct write; this creates the /approvals doc instead,
+// exactly the payout_requests-style safe-defaults shape rules/firestore.rules
+// requires (serverVerified:false, decidedBy/decidedAt:null — the
+// onApprovalCreated Cloud Function is the only path to serverVerified:true).
+// routedTo is resolved from the REQUESTER's own reportsTo (already resolved
+// to real uids at role-assignment time — see resolveReportsTo() in the
+// admin panel), so either listed superior can decide it (rules/firestore.rules'
+// approvals update rule: isCEO() OR caller's uid in routedTo).
+function requestApproval(type, actionType, summaryTitle, payload) {
+  if (!currentUser || typeof db === 'undefined') return Promise.reject(new Error('Not signed in'));
+  var routedTo = Array.isArray(currentUser.reportsTo) ? currentUser.reportsTo : [];
+  if (!routedTo.length) {
+    showToast(curLang === 'rw' ? 'Nta muntu wakira ubu busabe wabonetse' : 'No approver is configured for your role — contact an admin', 'error');
+    return Promise.reject(new Error('No routedTo'));
+  }
+  var ref = db.collection('approvals').doc();
+  return ref.set({
+    id: ref.id, type: type, actionType: actionType, requestedBy: currentUser.uid,
+    routedTo: routedTo, requiredApprover: routedTo.join(','),
+    summaryFields: { title: summaryTitle }, payload: payload || {},
+    status: 'pending', serverVerified: false, decidedBy: null, decidedAt: null, sourceDocRef: '',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: currentUser.uid, updatedBy: currentUser.uid, isActive: true
+  }).then(function() {
+    showToast(curLang === 'rw' ? 'Ubusabe bwoherejwe kwemezwa' : 'Submitted for approval', 'success');
+  });
+}
+
 function decideApproval(id, decision) {
   if (!currentUser) return;
   db.collection('approvals').doc(id).update({
@@ -19392,6 +19519,125 @@ function decideApproval(id, decision) {
     showToast(err && err.message || 'Action failed', 'error');
   });
 }
+
+// Final Management Org Chart — structured reports system. "My Reports"
+// widget lives on the shared dashboard shell (page-dashboard) rather than
+// a per-role page, since all 9 governance roles land there — reports has
+// no per-role dashboard duplication to hook into. recipients is resolved
+// from the submitter's OWN reportsTo (already real, currently-active uids
+// — see resolveReportsTo()/renderOrgChartFields() in the admin panel), so
+// the "Reports Received" widget on the Executive dashboard (below) can
+// simply query `recipients array-contains currentUser.uid`.
+function loadMyReportsWidget() {
+  var wrap = g('dash-myreports-wrap');
+  if (!wrap || !currentUser) return;
+  var isGovRole = !!ROLE_DEPARTMENT[_roleOf(currentUser)];
+  wrap.style.display = isGovRole ? '' : 'none';
+  if (!isGovRole) return;
+  var list = g('dash-myreports-list');
+  if (!list) return;
+  list.innerHTML = '<div class="exec-empty">Loading...</div>';
+  db.collection('reports').where('submittedBy','==',currentUser.uid)
+    .orderBy('createdAt','desc').limit(5).get().then(function(snap) {
+      if (snap.empty) {
+        list.innerHTML = '<div class="exec-empty" data-en="No reports submitted yet">No reports submitted yet</div>';
+        if (typeof switchLang !== 'undefined') switchLang(currentLang);
+        return;
+      }
+      list.innerHTML = snap.docs.map(function(d) {
+        var r = d.data();
+        return '<div style="display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid var(--border);font-size:.8rem">'
+          + '<span>' + escapeHtml(r.reportCategory || r.reportType || '') + '</span>'
+          + '<span style="color:var(--muted)">' + escapeHtml(r.status || 'submitted') + '</span></div>';
+      }).join('');
+    }).catch(function() {
+      list.innerHTML = '<div class="exec-empty">Reports unavailable</div>';
+    });
+}
+
+function openSubmitReportModal() {
+  var m = g('submit-report-modal'); if (!m || !currentUser) return;
+  g('rpt-type').value = 'Daily';
+  g('rpt-category').value = '';
+  g('rpt-content').value = '';
+  var recipients = Array.isArray(currentUser.reportsTo) ? currentUser.reportsTo : [];
+  var note = g('rpt-recipients-note');
+  if (note) {
+    note.textContent = recipients.length
+      ? ('Will be sent to ' + recipients.length + ' recipient(s) per your reporting line.')
+      : 'No reportsTo configured for your role — ask an admin to set it before submitting.';
+  }
+  openModal('submit-report-modal');
+}
+function closeSubmitReportModal() { closeModal('submit-report-modal'); }
+
+function submitReport() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var reportType = g('rpt-type').value;
+  var reportCategory = (g('rpt-category').value || '').trim();
+  var content = (g('rpt-content').value || '').trim();
+  if (!reportCategory) { showToast('Report category is required', 'error'); return; }
+  var recipients = Array.isArray(currentUser.reportsTo) ? currentUser.reportsTo : [];
+  if (!recipients.length && _roleOf(currentUser) !== 'ceo') {
+    showToast('No recipients configured for your role — ask an admin to set reportsTo first', 'error');
+    return;
+  }
+  var now = new Date();
+  var ref = db.collection('reports').doc();
+  ref.set({
+    id: ref.id, submittedBy: currentUser.uid, department: ROLE_DEPARTMENT[_roleOf(currentUser)] || '',
+    reportType: reportType, reportCategory: reportCategory, recipients: recipients, content: content,
+    periodCovered: { start: now.toISOString(), end: now.toISOString() },
+    submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    status: 'submitted', isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: currentUser.uid, updatedBy: currentUser.uid
+  }).then(function() {
+    showToast('Report submitted', 'success');
+    closeSubmitReportModal();
+    loadMyReportsWidget();
+  }).catch(function(err) {
+    showToast(err && err.message || 'Failed to submit report', 'error');
+  });
+}
+
+// "Reports Received" — CEO/Operations Director only, filterable by
+// department/reportType (the acceptance-criteria widget).
+function loadExecReportsReceived() {
+  var panel = g('exec-reports-panel');
+  if (!panel || !currentUser) return;
+  if (!(isCEOClient(currentUser) || _roleOf(currentUser) === 'director')) { panel.style.display = 'none'; return; }
+  panel.style.display = '';
+  var list = g('exec-reports-list');
+  if (!list) return;
+  list.innerHTML = '<div class="exec-empty">Loading...</div>';
+  var deptFilter = (g('exec-reports-dept-filter')||{}).value || '';
+  var typeFilter = (g('exec-reports-type-filter')||{}).value || '';
+  var q = db.collection('reports').where('recipients','array-contains',currentUser.uid);
+  if (deptFilter) q = q.where('department','==',deptFilter);
+  if (typeFilter) q = q.where('reportType','==',typeFilter);
+  q.orderBy('createdAt','desc').limit(30).get().then(function(snap) {
+    if (snap.empty) {
+      list.innerHTML = '<div class="exec-empty">No reports received</div>';
+      return;
+    }
+    list.innerHTML = snap.docs.map(function(d) {
+      var r = d.data();
+      return '<div style="display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid var(--border);font-size:.8rem">'
+        + '<div><span style="font-weight:700">' + escapeHtml(r.department || '') + '</span> '
+        + '<span style="color:var(--muted)">' + escapeHtml(r.reportCategory || r.reportType || '') + '</span></div>'
+        + '<span style="color:var(--muted)">' + escapeHtml(r.reportType || '') + '</span></div>';
+    }).join('');
+  }).catch(function() {
+    list.innerHTML = '<div class="exec-empty">Reports unavailable</div>';
+  });
+}
+// Small local alias — this file's isCEO() (client-side) already exists as
+// part of isExec()/ROLE_TIERS.EXEC checks; kept explicit here since 'ceo'
+// is a literal role string check, not derived from ROLE_TIERS.EXEC (which
+// also includes admin/super_admin, who aren't the literal CEO).
+function isCEOClient(user) { return _roleOf(user) === 'ceo'; }
 
 function loadExecAlerts() {
   var container = g('exec-alerts-list');
@@ -20443,7 +20689,59 @@ var HR_ROLE_LABELS = {
   staff: 'Staff', branch_manager: 'Branch Manager', hr_manager: 'HR Manager', operations_manager: 'Operations Manager',
   marketing_manager: 'Marketing Manager', company_owner: 'Company Owner', agent: 'Agent', partner: 'Partner',
   owner: 'Owner', client: 'Client', investor: 'Investor',
-  director: 'Director', accountant: 'Accountant', chief_broker: 'Chief Broker'
+  director: 'Director', accountant: 'Accountant', chief_broker: 'Chief Broker',
+  customer_support_manager: 'Customer Support Manager', it_manager: 'IT / Product Manager', legal_adviser: 'Legal Adviser'
+};
+
+// ── Management Org Chart (final): department/jobTitle/reportsTo/
+// deniedActions are all DERIVED from role, not independently stored-and-
+// trusted fields — this app has exactly one management role per department,
+// so a second free-standing field would only be able to drift out of sync
+// with role, never add real information. Rules derive department the same
+// way (see rules/firestore.rules' deptOfRole()); this must stay in sync.
+// 'director' is the real Operations Director; 'accountant' is the real
+// Director of Finance (this app already used 'accountant' for that exact
+// person — see the CEO vs Operations Director work).
+var ROLE_DEPARTMENT = {
+  ceo: 'Executive', director: 'Executive',
+  accountant: 'Finance', chief_broker: 'Brokerage', marketing_manager: 'Marketing',
+  customer_support_manager: 'CustomerSupport', it_manager: 'IT',
+  hr_manager: 'HR', legal_adviser: 'Legal'
+};
+var ROLE_JOBTITLE = {
+  ceo: 'Founder & CEO', director: 'Operations Director',
+  accountant: 'Director of Finance', chief_broker: 'Chief Broker', marketing_manager: 'Marketing Manager',
+  customer_support_manager: 'Customer Support Manager', it_manager: 'IT / Product Manager',
+  hr_manager: 'HR Manager', legal_adviser: 'Legal Adviser'
+};
+// Superior ROLES (not literal uids) a given role reports to — resolved to
+// real, currently-active uids at assignment time by resolveReportsTo()
+// below, so this never goes stale if the CEO/Director account changes.
+var ROLE_SUPERIOR_ROLES = {
+  director: ['ceo'],
+  accountant: ['ceo', 'director'],
+  chief_broker: ['director'],
+  marketing_manager: ['director'],
+  customer_support_manager: ['director'],
+  it_manager: ['ceo', 'director'],
+  hr_manager: ['director', 'ceo'],
+  legal_adviser: ['ceo']
+};
+// Static, role-invariant restriction tags — display/UI-guard use only (e.g.
+// "Requires CEO Approval" badges, audit flagging). The actual enforcement
+// for every one of these lives in rules/firestore.rules as real collection-
+// level rules (e.g. payroll write excludes hr_manager outright), not as a
+// dynamic array check — a hardcoded rule can't silently drift the way a
+// mutable permissions array could.
+var ROLE_DENIED_ACTIONS = {
+  director: ['edit_shares', 'take_loan', 'sign_major_contract_unapproved'],
+  accountant: ['spend_above_limit', 'take_loan', 'open_new_account_unilaterally'],
+  chief_broker: ['set_company_pricing_unilaterally', 'sign_major_contract'],
+  marketing_manager: ['change_logo_unapproved', 'change_brand_strategy_unapproved'],
+  customer_support_manager: ['promise_unapproved_client_terms'],
+  it_manager: ['change_system_architecture_unapproved', 'delete_data_unapproved'],
+  hr_manager: ['change_salaries_unapproved', 'fire_director_unapproved'],
+  legal_adviser: ['sign_contracts_on_company_behalf']
 };
 
 /* Rwanda PAYE — monthly income brackets */
@@ -21191,6 +21489,7 @@ function openStaffProfile(uid) {
       /* Pre-select current role */
       var spRoleSel = g('sp-role-select');
       if (spRoleSel) spRoleSel.value = u.role || 'client';
+      renderOrgChartFields();
       /* Set verify/suspend button labels */
       var verBtn = g('sp-verify-btn');
       if (verBtn) verBtn.textContent = u.isVerified ? 'Unverify' : 'Verify';
@@ -21216,20 +21515,66 @@ function openStaffProfile(uid) {
 }
 function closeStaffProfile() { closeModal('staff-profile-modal'); }
 
+// Final Management Org Chart admin-panel wiring — shows the derived
+// department/jobTitle for the currently-selected role and pre-fills the
+// reportsTo multi-select from ROLE_SUPERIOR_ROLES (real, currently-active
+// staff, resolved by role rather than hardcoded uids so it never goes
+// stale). Called on sp-role-select's onchange.
+function renderOrgChartFields() {
+  var sel = g('sp-role-select');
+  var role = sel ? sel.value : '';
+  var panel = g('sp-orgchart-fields');
+  if (!panel) return;
+  var isGovRole = !!ROLE_DEPARTMENT[role];
+  panel.style.display = isGovRole ? '' : 'none';
+  if (!isGovRole) return;
+  g('sp-orgchart-dept').textContent = ROLE_DEPARTMENT[role] || '—';
+  g('sp-orgchart-title').textContent = ROLE_JOBTITLE[role] || '—';
+  var multi = g('sp-reportsto-select');
+  if (!multi) return;
+  var superiorRoles = ROLE_SUPERIOR_ROLES[role] || [];
+  var candidates = (_hrStaff || []).filter(function(u) {
+    return ROLE_TIERS.STAFF.indexOf((u.role||'').toLowerCase()) > -1 && u.id !== _spProfileId;
+  });
+  multi.innerHTML = candidates.map(function(u) {
+    var preselect = superiorRoles.indexOf((u.role||'').toLowerCase()) > -1;
+    return '<option value="' + u.id + '"' + (preselect ? ' selected' : '') + '>'
+      + escapeHtml(u.displayName || u.email || u.id) + ' (' + (HR_ROLE_LABELS[u.role] || u.role) + ')</option>';
+  }).join('');
+}
+
 function changeUserRole(uid) {
   if (!uid || typeof db === 'undefined') return;
   var sel = document.getElementById('sp-role-select');
   var newRole = sel ? sel.value : '';
   if (!newRole) return;
+  var isGovRole = !!ROLE_DEPARTMENT[newRole];
+  var reportsToUids = [];
+  if (isGovRole) {
+    var multi = g('sp-reportsto-select');
+    reportsToUids = multi ? Array.prototype.slice.call(multi.selectedOptions).map(function(o){ return o.value; }) : [];
+    // reportsTo cannot be empty for any non-CEO governance role (§8 validation)
+    if (newRole !== 'ceo' && !reportsToUids.length) {
+      showToast(curLang === 'rw' ? 'Hitamo nibura umuntu umwe wakira raporo' : 'Select at least one person this role reports to', 'error');
+      return;
+    }
+  }
   var adminUid = currentUser ? currentUser.uid : 'admin';
   var existingUser = _hrStaff.find(function(x){ return x.id === uid; });
   var wasStaffTier = ROLE_TIERS.STAFF.indexOf(((existingUser && existingUser.role) || '').toLowerCase()) > -1;
-  db.collection('users').doc(uid).update({
+  var updatePayload = {
     role:      newRole,
     status:    newRole === 'agent' ? 'active' : undefined,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    updatedBy: adminUid
-  }).then(function() {
+    updatedBy: adminUid,
+    // Derived org-chart metadata — see renderOrgChartFields()'s comment on
+    // why these are display copies of role, not independently trusted.
+    department:     isGovRole ? ROLE_DEPARTMENT[newRole] : null,
+    jobTitle:       isGovRole ? ROLE_JOBTITLE[newRole] : null,
+    deniedActions:  isGovRole ? (ROLE_DENIED_ACTIONS[newRole] || []) : [],
+    reportsTo:      isGovRole ? reportsToUids : []
+  };
+  db.collection('users').doc(uid).update(updatePayload).then(function() {
     logAudit('user.role.changed', 'users', uid, null, { newRole: newRole });
     var u = _hrStaff.find(function(x){ return x.id === uid; });
     if (u) { u.role = newRole; }
@@ -21482,6 +21827,19 @@ function submitPayslip() {
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     createdBy: currentUser.uid, updatedBy: currentUser.uid
   };
+  // Final Management Org Chart: HR Manager's deniedActions includes
+  // "change_salaries_unapproved" — rules/firestore.rules now blocks HR's
+  // direct payroll write, so an HR-initiated payslip routes through
+  // /approvals instead (either of HR's reportsTo — Operations Director or
+  // CEO — can approve it). Every other exec/admin role keeps the existing
+  // direct-write flow unchanged.
+  if (_roleOf(currentUser) === 'hr_manager') {
+    requestApproval('payroll', 'change_salaries_unapproved',
+      'Salary for ' + doc.staffName + ' (' + period + ')', doc)
+      .then(function() { closePayslipCreate(); })
+      .catch(function() {});
+    return;
+  }
   db.collection('payroll').add(doc).then(function(ref) { return ref.update({ id: ref.id }); })
     .then(function() {
       showToast('Payslip saved for ' + period, 'success');
@@ -29189,6 +29547,8 @@ function loadAgentDashboard() {
   // Personalize welcome
   var wn = document.getElementById('dash-welcome-name');
   if (wn) wn.textContent = (curLang==='rw' ? 'Murakaza neza, ' : 'Welcome back, ') + (cu.name || cu.displayName || 'User') + '!';
+
+  loadMyReportsWidget();
 
   var now = new Date();
   var thirtyDaysAgo = new Date(now.getTime() - 30*24*60*60*1000);

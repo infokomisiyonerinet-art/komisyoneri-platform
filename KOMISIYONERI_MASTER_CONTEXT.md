@@ -308,10 +308,21 @@ Triggers to automate server-side:
   photoURL:     string,    // Firebase Storage URL
   role:         string,    // 'admin'|'super_admin'|'ceo'|'staff'|'agent'|'owner'|'client'|'partner'|'investor'|
                             // 'company_owner'|'branch_manager'|'hr_manager'|'operations_manager'|
-                            // 'marketing_manager'|'director'|'accountant'|'chief_broker'
+                            // 'marketing_manager'|'director'|'accountant'|'chief_broker'|
+                            // 'customer_support_manager'|'it_manager'|'legal_adviser'
                             // (staff-tier roles — see ROLE_TIERS.STAFF in index.html /
                             // isAdminOrStaff() in rules/firestore.rules, which this must stay in sync with)
-  department:   string,    // for staff only
+  department:   string,    // staff only — DERIVED display copy of role (ROLE_DEPARTMENT
+                            // in index.html / deptOfRole() in rules/firestore.rules); role
+                            // is still the only field rules actually trust, so this can
+                            // never drift into a second, disagreeing source of authority
+  jobTitle:     string,    // staff only — derived display copy of role (ROLE_JOBTITLE)
+  reportsTo:    array,     // staff only — uids of the role's superior(s); auto-resolved
+                            // from ROLE_SUPERIOR_ROLES at role-assignment time, editable
+                            // by admin. Empty only for 'ceo' (reports to no one internally).
+  deniedActions: array,    // staff only — display/UI-guard tags only (ROLE_DENIED_ACTIONS);
+                            // actual enforcement is real Firestore rules, not this array
+  budgetApprovalLimit: 'number|null', // staff only — CEO/admin-settable spend ceiling
   agentId:      string,    // ref → agents (if role=agent)
   partnerId:    string,    // ref → partners (if role=partner)
   language:     string,    // 'rw'|'en'

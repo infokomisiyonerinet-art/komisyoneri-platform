@@ -39,11 +39,11 @@ service cloud.firestore {
       // has) — see ROLE_TIERS.STAFF in index.html, which this list must
       // stay in sync with.
       return isAuth() && getRole() != null &&
-        getRole().lower() in ['admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker'];
+        getRole().lower() in ['admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser'];
     }
     function isInternalTeam() {
       return isAuth() && getRole() != null &&
-        getRole().lower() in ['agent', 'staff', 'admin', 'super_admin', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker'];
+        getRole().lower() in ['agent', 'staff', 'admin', 'super_admin', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser'];
     }
     // CEO vs Operations Director governance boundary: both are staff-tier
     // (isAdminOrStaff() above still covers their day-to-day access), but a
@@ -59,6 +59,9 @@ service cloud.firestore {
     function isDirector() {
       return isRole('director');
     }
+    function isExecutive() {
+      return isCEO() || isDirector();
+    }
     // Reads the TARGET user's own role (not the caller's) — used only by the
     // isDirector() carve-out on users/{uid} update, so a director can manage
     // regular staff/agents but not reassign/edit other senior managers.
@@ -66,7 +69,27 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/users/$(uid))
         && get(/databases/$(database)/documents/users/$(uid)).data.role.lower() in
            ['ceo', 'company_owner', 'branch_manager', 'hr_manager', 'operations_manager',
-            'marketing_manager', 'director', 'accountant', 'chief_broker'];
+            'marketing_manager', 'director', 'accountant', 'chief_broker',
+            'customer_support_manager', 'it_manager', 'legal_adviser'];
+    }
+    // Final Management Org Chart — department is DERIVED from role (this app
+    // has exactly one management role per department; see ROLE_DEPARTMENT in
+    // index.html, which this must stay in sync with), not a second
+    // independently-trusted field. Avoids the drift risk of a stored
+    // department field disagreeing with the role that actually grants trust.
+    function deptOfRole(r) {
+      return r == 'ceo' || r == 'director' ? 'Executive'
+        : r == 'accountant' ? 'Finance'
+        : r == 'chief_broker' ? 'Brokerage'
+        : r == 'marketing_manager' ? 'Marketing'
+        : r == 'customer_support_manager' ? 'CustomerSupport'
+        : r == 'it_manager' ? 'IT'
+        : r == 'hr_manager' ? 'HR'
+        : r == 'legal_adviser' ? 'Legal'
+        : '';
+    }
+    function inDept(dept) {
+      return isAuth() && getRole() != null && deptOfRole(getRole().lower()) == dept;
     }
     function hasStandardFields() {
       return request.resource.data.keys().hasAll([
@@ -424,10 +447,18 @@ service cloud.firestore {
     }
 
     match /payroll/{id} {
+      // Final Management Org Chart: HR Manager's deniedActions includes
+      // "change_salaries_unapproved" — HR may still read payroll like every
+      // other staff-tier role, but can no longer write it directly; a salary
+      // change must go through /approvals instead (see index.html's salary-
+      // change flow). This is a deliberate, scoped exception to the
+      // otherwise-uniform staff-tier trust model documented in
+      // tests/rules/test/03-staff-tier-uniform-trust.spec.js (payroll is no
+      // longer part of that uniform set — expenses/assets still are).
       allow read:   if isAdminOrStaff()
                     || (isAuth() && resource.data.userId == request.auth.uid);
-      allow create: if isAdminOrStaff() && hasStandardFields();
-      allow update: if isAdminOrStaff();
+      allow create: if isAdminOrStaff() && !inDept('HR') && hasStandardFields();
+      allow update: if isAdminOrStaff() && !inDept('HR');
       allow delete: if false;
     }
 
@@ -622,6 +653,12 @@ service cloud.firestore {
     }
 
     match /majorContracts/{id} {
+      // Legal Adviser reviews/annotates contracts (via contractReviews
+      // below) but never holds signing authority — deniedActions:
+      // ["sign_contracts_on_company_behalf"]. Read access here is already
+      // covered by isAdminOrStaff() (Legal is staff-tier); write stays
+      // CEO-only, unchanged — this comment just documents why Legal is
+      // deliberately NOT added to the write side.
       allow read:   if isAdminOrStaff();
       allow create: if isCEO() && hasStandardFields();
       allow update: if isCEO();
@@ -659,9 +696,26 @@ service cloud.firestore {
     }
 
     match /reports/{id} {
-      allow read:   if isCEO() || isDirector();
-      allow create: if (isCEO() || isDirector()) && hasStandardFields();
-      allow update: if isCEO() || isDirector();
+      // Final Management Org Chart's structured reporting system extends
+      // this collection (create isn't duplicated as a second collection) —
+      // it started as a CEO/Director-only "our own internal notes" shape
+      // (PR before this one) and is broadened here to a real submittedBy/
+      // recipients-scoped model any staff-tier role can use: every one of
+      // the 9 governance roles must be able to submit reports up their own
+      // reportsTo chain, but a report's whole point is routed visibility,
+      // not company-wide — so read is scoped to the actual audience
+      // (submitter, a listed recipient, or an executive), not a blanket
+      // isAdminOrStaff() read. Old CEO/Director-authored docs (no
+      // submittedBy/recipients fields) remain readable via the
+      // isCEO()||isDirector() branch exactly as before.
+      allow read:   if isAdminOrStaff()
+                    && (isCEO() || isDirector()
+                        || resource.data.get('submittedBy', '') == request.auth.uid
+                        || request.auth.uid in resource.data.get('recipients', []));
+      allow create: if isAdminOrStaff() && hasStandardFields()
+                    && request.resource.data.get('submittedBy', request.auth.uid) == request.auth.uid;
+      allow update: if isCEO() || isDirector()
+                    || (isAuth() && resource.data.get('submittedBy', '') == request.auth.uid);
       allow delete: if false;
     }
 
@@ -691,8 +745,19 @@ service cloud.firestore {
                     && request.resource.data.serverVerified == false
                     && request.resource.data.decidedBy == null
                     && request.resource.data.decidedAt == null;
+      // Decision authority: isCEO() always (unchanged, covers every approval
+      // type that predates the Final Org Chart work), OR — new — the caller's
+      // uid is listed in the request's own `routedTo` array. routedTo lets a
+      // deniedActions-triggered request (see index.html's requestApproval())
+      // be routed to whichever of a role's reportsTo superiors should decide
+      // it (e.g. HR's routes to Operations Director OR CEO, either
+      // sufficient) without hardcoding CEO as the only possible approver.
+      // Purely additive: a doc with no routedTo field falls back to isCEO()
+      // exactly as before (resource.data.get('routedTo', []) is empty, so
+      // the `in` check can never match), so this doesn't change behavior for
+      // any of the existing CEO-only approval types.
       allow update: if request.resource.data.serverVerified == resource.data.serverVerified
-                    && isCEO()
+                    && (isCEO() || (isAuth() && request.auth.uid in resource.data.get('routedTo', [])))
                     && resource.data.status == 'pending'
                     && resource.data.serverVerified == true
                     && request.resource.data.status in ['approved', 'rejected'];
@@ -713,6 +778,62 @@ service cloud.firestore {
                     || (isDirector()
                         && resource.data.amount <= callerDoc().data.get('budgetApprovalLimit', 0));
       allow delete: if false;
+    }
+
+    // ── Final Management Org Chart — HR, Finance, Legal department
+    // collections (extends the CEO vs Operations Director governance work
+    // above with department-scoped access via inDept(), see deptOfRole()).
+    // "recruitment" from the org-chart spec isn't a separate collection —
+    // it's the existing job_postings/job_applications collections above,
+    // already isAdminOrStaff()-gated (HR already has that access as a
+    // staff-tier role); duplicating it here would just be a second,
+    // disconnected copy of the same data.
+
+    match /employeeRecords/{id} {
+      allow read:   if inDept('HR') || isExecutive();
+      allow create: if (inDept('HR') || isExecutive()) && hasStandardFields();
+      allow update: if inDept('HR') || isExecutive();
+      allow delete: if false;
+    }
+
+    match /legalCompliance/{id} {
+      allow read:   if inDept('Legal') || isExecutive();
+      allow create: if (inDept('Legal') || isExecutive()) && hasStandardFields();
+      allow update: if inDept('Legal') || isExecutive();
+      allow delete: if false;
+    }
+
+    match /contractReviews/{id} {
+      // Legal reviews/annotates contracts here — this is NOT signing
+      // authority, which stays on majorContracts (CEO-only write, above).
+      allow read:   if inDept('Legal') || isExecutive();
+      allow create: if (inDept('Legal') || isExecutive()) && hasStandardFields();
+      allow update: if inDept('Legal') || isExecutive();
+      allow delete: if false;
+    }
+
+    match /financeTransactions/{id} {
+      // Director of Finance's deniedActions includes "spend_above_limit" —
+      // same budgetApprovalLimit field/pattern as budgetRequests above:
+      // Finance can create directly only within their own limit; above it,
+      // the create is denied here and the real UI routes it through
+      // /approvals instead (routedTo resolved from their reportsTo, which
+      // for Director of Finance is [CEO, Operations Director]). Executive
+      // always bypasses the limit.
+      allow read:   if inDept('Finance') || isExecutive();
+      allow create: if isExecutive()
+                    || (inDept('Finance')
+                        && request.resource.data.amount <= callerDoc().data.get('budgetApprovalLimit', 0));
+      allow update: if isExecutive();
+      allow delete: if false;
+    }
+
+    match /bankAccounts/{id} {
+      // "open_new_account_unilaterally" — Finance can read account data but
+      // can never create or delete an account; that stays Executive-only.
+      allow read:   if inDept('Finance') || isExecutive();
+      allow create, delete: if isExecutive();
+      allow update: if isExecutive();
     }
   }
 }
