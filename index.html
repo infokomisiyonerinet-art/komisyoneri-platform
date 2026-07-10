@@ -9280,6 +9280,9 @@ html,body{overscroll-behavior-x:none}
             <option value="hr_manager">HR Manager</option>
             <option value="operations_manager">Operations Manager</option>
             <option value="marketing_manager">Marketing Manager</option>
+            <option value="director">Director</option>
+            <option value="accountant">Accountant</option>
+            <option value="chief_broker">Chief Broker</option>
             <option value="developer">Developer</option>
             <option value="admin">Admin</option>
             <option value="ceo">CEO</option>
@@ -10384,8 +10387,8 @@ var _pendingAction = null;
 var ROLE_TIERS = {
   ADMIN:         ['super_admin', 'admin'],
   EXEC:          ['super_admin', 'admin', 'ceo'],
-  STAFF:         ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner'],        // == firestore.rules isAdminOrStaff()
-  INTERNAL_TEAM: ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'agent'] // == firestore.rules isInternalTeam()
+  STAFF:         ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker'],        // == firestore.rules isAdminOrStaff()
+  INTERNAL_TEAM: ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'agent'] // == firestore.rules isInternalTeam()
 };
 function _roleOf(user) { return ((user || currentUser || {}).role || '').toLowerCase(); }
 function isAdmin(user)        { return ROLE_TIERS.ADMIN.indexOf(_roleOf(user)) > -1; }
@@ -20365,7 +20368,8 @@ var HR_ROLE_LABELS = {
   super_admin: 'Super Admin', admin: 'Admin', ceo: 'CEO',
   staff: 'Staff', branch_manager: 'Branch Manager', hr_manager: 'HR Manager', operations_manager: 'Operations Manager',
   marketing_manager: 'Marketing Manager', company_owner: 'Company Owner', agent: 'Agent', partner: 'Partner',
-  owner: 'Owner', client: 'Client', investor: 'Investor'
+  owner: 'Owner', client: 'Client', investor: 'Investor',
+  director: 'Director', accountant: 'Accountant', chief_broker: 'Chief Broker'
 };
 
 /* Rwanda PAYE — monthly income brackets */
@@ -20420,8 +20424,9 @@ function loadHRStats() {
     var total = 0, agents = 0;
     snap.forEach(function(d) {
       var u = d.data();
-      total++;
-      if (u.role === 'agent') agents++;
+      var role = (u.role || '').toLowerCase();
+      if (ROLE_TIERS.STAFF.indexOf(role) > -1) total++;
+      if (role === 'agent') agents++;
     });
     if (g('hr-stat-total'))  g('hr-stat-total').textContent  = total;
     if (g('hr-stat-agents')) g('hr-stat-agents').textContent = agents;

@@ -82,20 +82,23 @@ async function notifyUser(db, targetUserId, title, body, type, relatedCollection
 // 'Admin' (capitalized) is included alongside 'admin' because this
 // codebase stores that one role inconsistently-cased in a few older user
 // records (see the client-side isAdminOrStaff() checks elsewhere) — every
-// other role here is written consistently lowercase. That's exactly 10
-// entries, Firestore's cap for a single `in` query. Recipients are also
-// capped at 20 — a defensive limit, not a real one, since this codebase's
-// staff roster is small; if either cap is ever hit for real, this should
-// move to a dedicated broadcast mechanism instead of fanning out
-// individual notification writes.
-const STAFF_ROLES = ['admin', 'Admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner'];
+// other role here is written consistently lowercase. That's 13 entries,
+// over Firestore's 10-value cap for a single `in` query, so the lookup
+// below runs as two batched queries and merges the results — `role` is a
+// single field per user doc, so the two batches can never return the same
+// doc twice. Recipients are still capped at 20 total after merging — a
+// defensive limit, not a real one, since this codebase's staff roster is
+// small; if either cap is ever hit for real, this should move to a
+// dedicated broadcast mechanism instead of fanning out individual
+// notification writes.
+const STAFF_ROLES = ['admin', 'Admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker'];
 async function notifyStaff(db, title, body, type, relatedCollection, relatedId, actingUid) {
-  const snap = await db.collection('users')
-    .where('role', 'in', STAFF_ROLES)
-    .where('isActive', '==', true)
-    .limit(20)
-    .get();
-  await Promise.all(snap.docs.map((d) => notifyUser(db, d.id, title, body, type, relatedCollection, relatedId, actingUid)));
+  const roleBatches = [STAFF_ROLES.slice(0, 10), STAFF_ROLES.slice(10)];
+  const snaps = await Promise.all(roleBatches.map((roles) =>
+    db.collection('users').where('role', 'in', roles).where('isActive', '==', true).get()
+  ));
+  const docs = snaps.flatMap((snap) => snap.docs).slice(0, 20);
+  await Promise.all(docs.map((d) => notifyUser(db, d.id, title, body, type, relatedCollection, relatedId, actingUid)));
 }
 
 async function logAudit(db, action, collection, docId, oldValue, newValue, actingUid) {
