@@ -39,11 +39,11 @@ service cloud.firestore {
       // has) — see ROLE_TIERS.STAFF in index.html, which this list must
       // stay in sync with.
       return isAuth() && getRole() != null &&
-        getRole().lower() in ['admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner'];
+        getRole().lower() in ['admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker'];
     }
     function isInternalTeam() {
       return isAuth() && getRole() != null &&
-        getRole().lower() in ['agent', 'staff', 'admin', 'super_admin', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner'];
+        getRole().lower() in ['agent', 'staff', 'admin', 'super_admin', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker'];
     }
     function hasStandardFields() {
       return request.resource.data.keys().hasAll([

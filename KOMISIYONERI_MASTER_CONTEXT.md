@@ -306,7 +306,11 @@ Triggers to automate server-side:
   displayName:  string,
   phone:        string,    // +250 7XX XXX XXX
   photoURL:     string,    // Firebase Storage URL
-  role:         string,    // 'admin'|'ceo'|'staff'|'agent'|'owner'|'client'|'partner'|'investor'
+  role:         string,    // 'admin'|'super_admin'|'ceo'|'staff'|'agent'|'owner'|'client'|'partner'|'investor'|
+                            // 'company_owner'|'branch_manager'|'hr_manager'|'operations_manager'|
+                            // 'marketing_manager'|'director'|'accountant'|'chief_broker'
+                            // (staff-tier roles — see ROLE_TIERS.STAFF in index.html /
+                            // isAdminOrStaff() in rules/firestore.rules, which this must stay in sync with)
   department:   string,    // for staff only
   agentId:      string,    // ref → agents (if role=agent)
   partnerId:    string,    // ref → partners (if role=partner)
