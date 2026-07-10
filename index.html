@@ -16698,9 +16698,24 @@ function _loadFsPendingUsers() {
       // Surface the failure on-screen instead of silently rendering an empty
       // list — a permission-denied or failed-precondition (missing index)
       // error would otherwise look identical to "no pending agents".
+      //
+      // failed-precondition specifically means the composite index this
+      // query needs (isActive+status+createdAt — already correctly defined
+      // in firestore.indexes.json) hasn't actually been deployed to the live
+      // Firestore project yet (`firebase deploy --only firestore:indexes`,
+      // never run in this environment — no CI/CD step here does it either).
+      // Firestore's own error message embeds a direct Firebase Console link
+      // that creates the missing index in one click, so whoever is looking
+      // at this screen (not necessarily a developer with CLI access) can fix
+      // it themselves instead of waiting on a deploy.
+      var consoleLinkMatch = /https:\/\/console\.firebase\.google\.com\S*/.exec(err.message || '');
+      var fixHint = consoleLinkMatch
+        ? '<div style="margin-top:.5rem"><a href="' + escapeHtml(consoleLinkMatch[0]) + '" target="_blank" rel="noopener" style="color:#7c1d1d;font-weight:700;text-decoration:underline">'
+          + (curLang === 'rw' ? 'Kanda hano kugira ngo ukemure (Firebase Console)' : 'Click here to fix it (Firebase Console)') + '</a></div>'
+        : '';
       wrap.innerHTML = '<div style="background:#fde8e8;border:1.5px solid #e53e3e;border-radius:10px;padding:.75rem 1rem;color:#7c1d1d;font-size:.8rem">'
         + '&#9888; ' + (curLang === 'rw' ? 'Ntibyashobotse gushaka abategereje kwemezwa' : 'Could not load pending approvals')
-        + ' (' + escapeHtml(err.code || err.message || 'unknown error') + ')</div>';
+        + ' (' + escapeHtml(err.code || err.message || 'unknown error') + ')' + fixHint + '</div>';
     });
 }
 
