@@ -38,6 +38,17 @@ service firebase.storage {
       allow write: if isAuth() && request.auth.uid == uid && underSizeLimit(15);
     }
 
+    // Profile photos — every authenticated user (client/agent/partner/
+    // staff/admin) may upload their own avatar, at a path keyed by their
+    // own uid (storage.ref('users/'+uid+'/profile/avatar.jpg')). Publicly
+    // readable, matching every other avatar surface in the app (agent
+    // directory, staff directory, public listings) already being public.
+    match /users/{uid}/profile/{fileName} {
+      allow read:  if true;
+      allow write: if isAuth() && request.auth.uid == uid
+                   && isImage() && underSizeLimit(5);
+    }
+
     // Default-deny everything else. If a new upload feature is added,
     // add a matching rule above rather than relying on this fallback.
     match /{allPaths=**} {
