@@ -276,6 +276,39 @@ Hosting URL: https://komisiyoneri-rw.web.app</span></code></pre>
     <div class="warn">⚠️ DNS records zishobora gufata amasaa 24-48 kugira ngo zikorere. Birashoboka!</div>
   </div>
 
+  <!-- STEP 8b — MULTI-SUBDOMAIN SETUP (www / staff / partners) -->
+  <div class="step-card" style="border-color:#F5A623">
+    <div class="step-num" style="background:linear-gradient(135deg,#7A5500,#F5A623)">🌐</div>
+    <div class="step-title" style="color:#7A5500">Kongera Subdomains — www / staff / partners</div>
+    <div class="step-desc">
+      <strong>Icy'ingenzi:</strong> platform ya production ntabwo ikoreshwa kuri Firebase Hosting
+      nk'uko intambwe zo hejuru zibivuga — irakorera kuri <strong>Vercel</strong>
+      (auto-deploy uva kuri GitHub), Firebase ikoreshwa gusa kuri Auth/Firestore/Storage.
+      Niba ushaka kongera subdomains eshatu (<code>www.komisiyoneri.co.rw</code>,
+      <code>staff.komisiyoneri.co.rw</code>, <code>partners.komisiyoneri.co.rw</code>) zose
+      zikaba zerekeza kuri iyo application imwe (code imwe, database imwe), <strong>ntugakurikize
+      intambwe 8 hejuru</strong> (izo ni iza Firebase Hosting gusa) — ahubwo:
+    </div>
+    <ul class="check" style="margin-bottom:1rem">
+      <li><strong>Firebase Console → Authentication → Settings → Authorized domains</strong> —
+        ongeraho izi subdomain eshatu (bisabwa cyane cyane; udabikoze, login izahagarara
+        na error "unauthorized domain" kuri buri subdomain nshya):
+        <code>www.komisiyoneri.co.rw</code>, <code>staff.komisiyoneri.co.rw</code>,
+        <code>partners.komisiyoneri.co.rw</code></li>
+      <li><strong>Vercel Dashboard → project yawe → Settings → Domains</strong> — ongeraho
+        izo subdomain eshatu ZOSE kuri <em>iyi projet imwe iriho ubu</em> (ntukoreshe projet
+        eshatu zitandukanye — code ni imwe, database ni imwe, bityo projet igomba kuba imwe)</li>
+      <li>Emeza aho <code>komisiyoneri.co.rw</code> (apex domain) izajya yerekeza — akenshi
+        biba byiza kuyihuza na <code>www.</code>, ariko iryo ni ihitamo ryawe muri Vercel
+        Dashboard, ntabwo rishobora kugenwa muri code</li>
+    </ul>
+    <div class="tip">✅ Kuko ari code imwe/projet imwe, login (session) ku subdomain imwe
+      ntizigera ku indi subdomain byikora — ibi ni ibisanzwe kandi bikwiye ku mutekano
+      (Firebase Auth persistence isanzwe ari origin-scoped). Firestore Rules na zo
+      ziracyakora kimwe kuri buri subdomain, kuko zitareba domain ahubwo zireba gusa
+      role/uid y'uwinjiye.</div>
+  </div>
+
   <!-- STEP 9 — GOOGLE SEARCH CONSOLE -->
   <div class="step-card">
     <div class="step-num">9</div>
