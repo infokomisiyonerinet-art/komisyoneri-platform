@@ -31,6 +31,26 @@
 })();
 </script>
 
+<!-- Subdomain portal gate — set before any CSS/paint so #page-home never
+     flashes on staff./partners.komisiyoneri.co.rw (one Vercel deployment +
+     one index.html serves all three subdomains). The CSS rule keyed off
+     this attribute (see .page.active override below) hides the public
+     homepage instantly; getPortalContext() later in the app script re-
+     derives the same value from window.location.hostname as the single
+     source of truth for the actual routing/auth-gating decisions — this
+     early copy exists purely to drive CSS before that script has run. -->
+<script>
+(function(){
+  try {
+    var host = window.location.hostname;
+    var portal = 'public';
+    if (host.indexOf('staff.') === 0) portal = 'staff';
+    else if (host.indexOf('partners.') === 0) portal = 'partners';
+    document.documentElement.setAttribute('data-portal', portal);
+  } catch (e) {}
+})();
+</script>
+
 <!-- ── PRIMARY SEO ── -->
 <title>KOMISIYONERI — Rwanda's Real Estate Operating System</title>
 <meta name="description" content="KOMISIYONERI is Rwanda's Real Estate Operating System — search, buy, sell & rent verified property in Kigali and all 30 districts, with AI valuations, 3D tours & a vetted agent network.">
@@ -474,6 +494,11 @@ textarea.form-control{min-height:80px;resize:vertical}
 ══════════════════════════════════════ */
 .page{display:none;min-height:calc(100vh - 64px);padding-top:64px;padding-bottom:var(--bn-h,0px);animation:fadeIn .28s ease}
 .page.active{display:block}
+/* Portal gate: staff./partners. subdomains never show the public homepage,
+   not even for the instant between paint and the routing script deciding
+   the real target page (see the data-portal script in <head>). */
+html[data-portal="staff"] #page-home,
+html[data-portal="partners"] #page-home{display:none!important}
 @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 
 /* Top nav, hamburger drawer, bottom nav and FABs now live in
@@ -10536,6 +10561,46 @@ function isInternalTeam(user) { return ROLE_TIERS.INTERNAL_TEAM.indexOf(_roleOf(
 // larger gap this doesn't attempt to fully close).
 function canViewExecDash(user) { return isExec(user) || ['investor', 'company_owner'].indexOf(_roleOf(user)) > -1; }
 
+// ── Multi-subdomain portal gating ───────────────────────────────────────
+// K-REOS is one Vercel deployment (one index.html) + one Firebase project
+// behind three domain aliases: www./staff./partners.komisiyoneri.co.rw.
+// Each subdomain must only admit its own kind of account. This is a client-
+// side UX gate (fast rejection + a clear message) — the real security
+// boundary is still firestore.rules/storage.rules, unaffected by this.
+function getPortalContext() {
+  var host = window.location.hostname;
+  if (host.indexOf('staff.') === 0) return 'staff';
+  if (host.indexOf('partners.') === 0) return 'partners';
+  return 'public';
+}
+function portalAllowsUser(portal, user) {
+  if (portal === 'staff') return isAdminOrStaff(user);
+  if (portal === 'partners') return _roleOf(user) === 'partner';
+  return true; // www./public — unrestricted, unchanged behavior
+}
+function portalMismatchMessage(portal) {
+  if (portal === 'staff') return curLang === 'rw' ? 'Uru rubuga ni urw\'abakozi ba KOMISIYONERI gusa.' : 'This portal is for KOMISIYONERI staff only.';
+  return curLang === 'rw' ? 'Uru rubuga ni urw\'abafatanyabikorwa gusa.' : 'This portal is for partners only.';
+}
+// Rejects `user` from the current subdomain's portal if their role doesn't
+// belong there — clears the local session and signs out of Firebase Auth
+// so no half-authenticated state lingers. Returns true (no-op) when the
+// user is allowed, so callers can write `if (!enforcePortalRoleOrSignOut(user)) return;`.
+// Does NOT navigate — callers decide what to show next (the login page is
+// usually already on screen; the DOMContentLoaded router sets its own
+// `page` variable instead of double-navigating).
+function enforcePortalRoleOrSignOut(user) {
+  var portal = getPortalContext();
+  if (portal === 'public' || !user || portalAllowsUser(portal, user)) return true;
+  console.warn('[AUTH] enforcePortalRoleOrSignOut: role="' + (user.role || '') + '" rejected on portal="' + portal + '"');
+  currentUser = null;
+  try { localStorage.removeItem('km_current'); } catch (e) {}
+  if (typeof firebaseAuth !== 'undefined' && firebaseAuth && firebaseAuth.signOut) firebaseAuth.signOut().catch(function(){});
+  if (typeof updateNavForUser === 'function') updateNavForUser(null);
+  if (typeof showToast === 'function') showToast(portalMismatchMessage(portal), 'error');
+  return false;
+}
+
 // ── THEME SYSTEM (Light / Dark / System) ────────────────────────────────
 // Single source of truth for the whole app. Persistence precedence on load
 // is: Firestore users/{uid}.themePref (synced into localStorage the moment
@@ -10789,6 +10854,10 @@ function restoreUserSession(fbUser) {
       }, { merge: true })
         .then(function(){ console.log('[AUTH] restoreUserSession: new users/' + fbUser.uid + ' doc created successfully'); })
         .catch(function(e){ console.error('[AUTH] restoreUserSession: create user doc FAILED (likely a Firestore rules rejection):', e.code || '', e.message); });
+    }
+    if (!enforcePortalRoleOrSignOut(user)) {
+      if (typeof go === 'function') go('auth');
+      return;
     }
     console.log('[AUTH] restoreUserSession: calling saveUser() with role=' + user.role + ' provider=' + user.provider);
     saveUser(user);
@@ -11872,11 +11941,18 @@ async function handleLogin() {
         }
       } catch(e){ console.error('[AUTH] handleLogin: Firestore role sync FAILED (likely a rules rejection):', e.code || '', e.message); }
     }
+    // Portal gate: staff./partners.komisiyoneri.co.rw only admit their own
+    // role, even with correct credentials — reject and sign back out before
+    // any "login succeeded" UX (welcome toast, dashboard nav) happens.
+    if (!enforcePortalRoleOrSignOut(user)) {
+      return;
+    }
     console.log('[AUTH] handleLogin: calling saveUser() — final role=' + user.role);
     saveUser(user);
     kmTrack('login',{method:user.provider||'email'});
     showToast((curLang==='rw'?'Murakaza neza, ':'Welcome, ')+user.name+'! 🎉');
     var pa = _pendingAction; _pendingAction = null;
+    var _loginPortal = getPortalContext();
     if (pa === 'agent-reg') { go('home'); openAgentReg(); }
     else if (pa === 'job-apply' && _pendingJobApplyId) {
       var _resumeJobId = _pendingJobApplyId; _pendingJobApplyId = null;
@@ -11886,6 +11962,7 @@ async function handleLogin() {
         openJobApply(_resumeJobId, p ? p.title : '');
       }, 400);
     }
+    else if (_loginPortal !== 'public') { go('dashboard'); }
     else { go('home'); }
   } catch(err) {
     console.error('[AUTH] handleLogin FAILED — code:', err.code, 'message:', err.message);
@@ -14224,9 +14301,34 @@ function initGoogleSignIn() {
 // for popup and redirect sign-ins alike), so this only needs to cover the
 // post-sign-in UX — analytics, welcome toast, navigation — rather than also
 // racing its own separate Firestore read/write for the same event.
-function completeGoogleSignIn(fbUser) {
+async function completeGoogleSignIn(fbUser) {
   console.log('[AUTH] completeGoogleSignIn() — Google sign-in confirmed for uid=' + fbUser.uid);
   kmTrack('login',{method:'google'});
+  var portal = getPortalContext();
+  if (portal !== 'public') {
+    // Portal gate applies to Google sign-in too. Fetch the real role before
+    // deciding anything — a brand-new Google sign-in defaults to 'client'
+    // (see restoreUserSession()'s doc-missing branch), which never belongs
+    // on staff./partners. Done here (rather than relying on the separate
+    // onAuthStateChanged → restoreUserSession() path, which runs in
+    // parallel for its own purposes) so navigation isn't racing that path's
+    // own async Firestore read.
+    var role = 'client';
+    try {
+      if (typeof db !== 'undefined') {
+        var fsDoc = await db.collection('users').doc(fbUser.uid).get();
+        if (fsDoc.exists && fsDoc.data().role) role = fsDoc.data().role;
+      }
+    } catch (e) { console.error('[AUTH] completeGoogleSignIn: role fetch failed —', e.code || '', e.message); }
+    if (!portalAllowsUser(portal, { role: role })) {
+      enforcePortalRoleOrSignOut({ role: role });
+      go('auth');
+      return;
+    }
+    showToast('Murakaza neza ' + (fbUser.displayName || 'User') + '! (Google) 🎉');
+    setTimeout(function() { go('dashboard'); }, 800);
+    return;
+  }
   showToast('Murakaza neza ' + (fbUser.displayName || 'User') + '! (Google) 🎉');
   setTimeout(function() { go('home'); }, 800);
 }
@@ -16046,11 +16148,32 @@ window.addEventListener('DOMContentLoaded', function() {
   // staff./partners. are internal-team subdomains sharing this same app/
   // Firebase project — a public marketing homepage doesn't make sense to
   // land on there. Only overrides the *fallback* (no explicit path/hash
-  // was requested); an explicit link to any page still wins.
+  // was requested); an explicit link to any page still wins. currentUser
+  // may already be populated here from loadSavedUser()'s synchronous
+  // localStorage restore (called earlier, top-level, before this listener
+  // fires) — good enough to decide "already logged in" without waiting on
+  // the async Firestore-confirmed restoreUserSession(), which re-checks
+  // (and can still correct/reject) once it resolves.
   if (page === 'home' && !pathPage && validPages.indexOf(hash) === -1) {
-    var host = window.location.hostname;
-    if (host.indexOf('staff.') === 0 || host.indexOf('partners.') === 0) {
-      page = 'auth';
+    var portal = getPortalContext();
+    if (portal !== 'public') {
+      if (currentUser && !portalAllowsUser(portal, currentUser)) {
+        enforcePortalRoleOrSignOut(currentUser);
+        page = 'auth';
+      } else if (currentUser && currentUser.status === 'pending') {
+        // go('dashboard') would show a toast and return without touching
+        // page visibility at all for a pending account (see go()'s own
+        // pending branch) — harmless on the public site (the visitor just
+        // stays on whatever page they were on), but here #page-home is the
+        // only "active" page and is force-hidden by the portal-gate CSS
+        // rule, so that early return would leave a blank screen. Route to
+        // 'auth' instead, which is unaffected by that CSS rule.
+        page = 'auth';
+      } else if (currentUser) {
+        page = 'dashboard';
+      } else {
+        page = 'auth';
+      }
     }
   }
   if (window.history && window.history.replaceState) {
