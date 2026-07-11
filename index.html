@@ -1216,6 +1216,35 @@ html[data-portal="partners"] #page-home{display:none!important}
 .toast svg{width:17px;height:17px;fill:none;stroke:var(--green);stroke-width:2;flex-shrink:0}
 
 /* ══════════════════════════════════════
+   PWA INSTALL — bottom sheet + post-login toast
+   Mobile-first (320-414px), existing CSS vars only.
+══════════════════════════════════════ */
+.pwa-install-sheet{position:fixed;left:0;right:0;bottom:0;z-index:2600;display:flex;justify-content:center;pointer-events:none;padding:0 .6rem calc(.6rem + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .38s cubic-bezier(.32,.72,0,1);}
+.pwa-install-sheet.show{transform:translateY(0);pointer-events:auto}
+.pwa-sheet-card{position:relative;width:100%;max-width:440px;background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:0 -8px 40px rgba(8,20,58,.22);padding:1.1rem 1.2rem 1.2rem;display:flex;flex-direction:column;align-items:center;text-align:center;gap:.6rem}
+.pwa-sheet-close{position:absolute;top:.5rem;right:.6rem;background:none;border:none;font-size:1.3rem;line-height:1;color:var(--muted);cursor:pointer;padding:.2rem .5rem}
+.pwa-sheet-logo{width:56px;height:56px;border-radius:16px;overflow:hidden;box-shadow:0 4px 14px rgba(13,59,140,.25);margin-top:.2rem}
+.pwa-sheet-logo img{width:100%;height:100%;object-fit:cover;display:block}
+.pwa-sheet-title{font-size:1rem;font-weight:800;color:var(--navy);margin-bottom:.15rem}
+.pwa-sheet-desc{font-size:.8rem;color:var(--muted);line-height:1.5;max-width:340px}
+.pwa-sheet-actions{display:flex;gap:.6rem;width:100%;margin-top:.4rem}
+.pwa-sheet-btn{flex:1;border-radius:var(--r-full,999px);padding:.7rem 1rem;font-size:.85rem;font-weight:700;cursor:pointer;border:none;transition:var(--tr,.2s ease)}
+.pwa-sheet-later{background:var(--light,transparent);color:var(--muted);border:1.5px solid var(--border)!important}
+.pwa-sheet-install{background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;gap:.35rem;box-shadow:0 6px 18px rgba(13,59,140,.3)}
+.pwa-sheet-install:active{transform:scale(.97)}
+@media (min-width:415px){.pwa-sheet-card{padding:1.3rem 1.5rem 1.4rem}}
+
+.pwa-install-toast{position:fixed;left:.7rem;right:.7rem;bottom:calc(1rem + env(safe-area-inset-bottom));margin:0 auto;max-width:400px;z-index:3100;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 34px rgba(8,20,58,.22);padding:.9rem 2.2rem .9rem 1rem;display:flex;align-items:center;gap:.7rem;transform:translateY(140%);opacity:0;transition:transform .35s cubic-bezier(.32,.72,0,1),opacity .35s ease}
+.pwa-install-toast.show{transform:translateY(0);opacity:1}
+.pwa-toast-close{position:absolute;top:.3rem;right:.4rem;background:none;border:none;font-size:1.15rem;line-height:1;color:var(--muted);cursor:pointer;padding:.3rem .5rem}
+.pwa-toast-icon{font-size:1.4rem;flex-shrink:0}
+.pwa-toast-body{flex:1;min-width:0}
+.pwa-toast-msg{font-size:.78rem;color:var(--dark);line-height:1.4}
+.pwa-toast-install{flex-shrink:0;background:var(--navy);color:#fff;border:none;border-radius:var(--r-full,999px);padding:.5rem 1rem;font-size:.78rem;font-weight:700;cursor:pointer}
+.pwa-toast-install:active{transform:scale(.96)}
+@media (max-width:380px){.pwa-toast-msg{font-size:.74rem}.pwa-toast-install{padding:.45rem .8rem;font-size:.74rem}}
+
+/* ══════════════════════════════════════
    FOOTER
 ══════════════════════════════════════ */
 footer{background:var(--dark-fixed);color:rgba(255,255,255,.5);padding:3.8rem 4% calc(1.8rem + env(safe-area-inset-bottom));padding-left:max(4%,env(safe-area-inset-left));padding-right:max(4%,env(safe-area-inset-right))}
@@ -9917,6 +9946,32 @@ html,body{overscroll-behavior-x:none}
   <span id="toast-msg">Byagenze neza!</span>
 </div>
 
+<!-- PWA INSTALL — bottom sheet (first-visit, auto after 30s) -->
+<div class="pwa-install-sheet" id="pwa-install-sheet" role="dialog" aria-modal="false" aria-label="Install app">
+  <div class="pwa-sheet-card">
+    <button type="button" class="pwa-sheet-close" onclick="pwaSheetMaybeLater()" aria-label="Close">&times;</button>
+    <div class="pwa-sheet-logo"><img src="/icon-192.png" alt="KOMISIYONERI" width="52" height="52"></div>
+    <div class="pwa-sheet-body">
+      <div class="pwa-sheet-title" data-rw="Shyiraho KOMISIYONERI App" data-en="Install KOMISIYONERI App">Install KOMISIYONERI App</div>
+      <div class="pwa-sheet-desc" data-rw="Injira vuba, bona amakuru mashya, kandi ukoreshe nubwo utari kuri interineti." data-en="Faster access, instant notifications, and offline capability — a better experience.">Faster access, instant notifications, and offline capability — a better experience.</div>
+    </div>
+    <div class="pwa-sheet-actions">
+      <button type="button" class="pwa-sheet-btn pwa-sheet-later" onclick="pwaSheetMaybeLater()" data-rw="Vuba Aha" data-en="Maybe Later">Maybe Later</button>
+      <button type="button" class="pwa-sheet-btn pwa-sheet-install" onclick="pwaSheetInstallNow()">📲 <span data-rw="Shyira App" data-en="Install Now">Install Now</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- PWA INSTALL — post-login toast (once per session, 10s after login) -->
+<div class="pwa-install-toast" id="pwa-install-toast" role="status" aria-label="Install app">
+  <button type="button" class="pwa-toast-close" onclick="hidePostLoginInstallToast()" aria-label="Close">&times;</button>
+  <div class="pwa-toast-icon">📲</div>
+  <div class="pwa-toast-body">
+    <div class="pwa-toast-msg" data-rw="Shyira app kuri telephone yawe — fungura vuba buri gihe!" data-en="Install app on your phone — open instantly anytime!">Install app on your phone — open instantly anytime!</div>
+  </div>
+  <button type="button" class="pwa-toast-install" onclick="pwaToastInstallNow()" data-rw="Shyira" data-en="Install">Install</button>
+</div>
+
 <!-- ═══════════════════════════════════
      JAVASCRIPT
 ════════════════════════════════════ -->
@@ -11951,6 +12006,7 @@ async function handleLogin() {
     saveUser(user);
     kmTrack('login',{method:user.provider||'email'});
     showToast((curLang==='rw'?'Murakaza neza, ':'Welcome, ')+user.name+'! 🎉');
+    if (typeof schedulePostLoginInstallToast === 'function') schedulePostLoginInstallToast();
     var pa = _pendingAction; _pendingAction = null;
     var _loginPortal = getPortalContext();
     if (pa === 'agent-reg') { go('home'); openAgentReg(); }
@@ -14330,6 +14386,7 @@ async function completeGoogleSignIn(fbUser) {
     return;
   }
   showToast('Murakaza neza ' + (fbUser.displayName || 'User') + '! (Google) 🎉');
+  if (typeof schedulePostLoginInstallToast === 'function') schedulePostLoginInstallToast();
   setTimeout(function() { go('home'); }, 800);
 }
 
@@ -14660,6 +14717,7 @@ function verifyOTP() {
         saveUser(user);
         closePhoneAuth();
         showToast('Wainjiye neza! 🎉 ' + user.name);
+        if (typeof schedulePostLoginInstallToast === 'function') schedulePostLoginInstallToast();
         setTimeout(function() { go('home'); }, 800);
       })
       .catch(function(error) {
@@ -14681,6 +14739,7 @@ function verifyOTP() {
       saveUser(user);
       closePhoneAuth();
       showToast('Wainjiye neza! 🎉');
+      if (typeof schedulePostLoginInstallToast === 'function') schedulePostLoginInstallToast();
       setTimeout(function() { go('home'); }, 800);
     } else {
       showToast(curLang==='rw' ? 'Code sibyo! Gerageza nanone.' : 'Wrong code! Try again.');
@@ -16219,7 +16278,45 @@ if ('serviceWorker' in navigator) {
 
 // PWA Install Prompt
 var pwaInstallPrompt = null;
+var PWA_DISMISS_KEY = 'km_pwa_sheet_dismissed_at';
+var PWA_INSTALLED_KEY = 'km_pwa_installed';
+var PWA_DISMISS_DAYS = 7;
 
+// True once the OS/browser has actually installed the app (matchMedia is the
+// live signal on every subsequent load; the localStorage flag also catches
+// the 'appinstalled' event firing in the SAME session it was accepted, and
+// persists across visits without needing another matchMedia check).
+function isPwaInstalled() {
+  try {
+    if (window.matchMedia('(display-mode: standalone)').matches) return true;
+  } catch (e) {}
+  if (window.navigator.standalone === true) return true;
+  try { return localStorage.getItem(PWA_INSTALLED_KEY) === '1'; } catch (e) { return false; }
+}
+
+function _pwaSheetDismissedRecently() {
+  try {
+    var at = parseInt(localStorage.getItem(PWA_DISMISS_KEY) || '0', 10);
+    if (!at) return false;
+    return (Date.now() - at) < PWA_DISMISS_DAYS * 24 * 60 * 60 * 1000;
+  } catch (e) { return false; }
+}
+
+// Fires reliably regardless of which entry point (bottom sheet, post-login
+// toast, or the existing hm-install-btn/pwa-install-btn) triggered the
+// native prompt — the single source of truth for "the user just installed."
+window.addEventListener('appinstalled', function() {
+  try { localStorage.setItem(PWA_INSTALLED_KEY, '1'); } catch (e) {}
+  hidePwaInstallSheet();
+  hidePostLoginInstallToast();
+  var installBtn = document.getElementById('pwa-install-btn');
+  if (installBtn) installBtn.style.display = 'none';
+  var hmBtn = document.getElementById('hm-install-btn');
+  if (hmBtn) hmBtn.style.display = 'none';
+  console.log('[PWA] appinstalled fired — app installed');
+});
+
+var _pwaSheetTimer = null;
 window.addEventListener('beforeinstallprompt', function(e) {
   e.preventDefault();
   pwaInstallPrompt = e;
@@ -16227,7 +16324,35 @@ window.addEventListener('beforeinstallprompt', function(e) {
   var installBtn = document.getElementById('pwa-install-btn');
   if(installBtn) installBtn.style.display = 'flex';
   console.log('[PWA] Install prompt ready');
+
+  // Feature 1 — bottom sheet: only arm the 30s timer once we actually know
+  // this browser supports native install (beforeinstallprompt fired) — on
+  // browsers/platforms that never fire it (desktop Firefox, iOS Safari),
+  // the sheet must never appear at all, matching the requirement exactly.
+  if (isPwaInstalled() || _pwaSheetDismissedRecently()) return;
+  if (_pwaSheetTimer) return;
+  _pwaSheetTimer = setTimeout(showPwaInstallSheet, 30000);
 });
+
+function showPwaInstallSheet() {
+  if (isPwaInstalled() || _pwaSheetDismissedRecently() || !pwaInstallPrompt) return;
+  var el = document.getElementById('pwa-install-sheet');
+  if (!el) return;
+  el.classList.add('show');
+}
+function hidePwaInstallSheet() {
+  var el = document.getElementById('pwa-install-sheet');
+  if (el) el.classList.remove('show');
+  if (_pwaSheetTimer) { clearTimeout(_pwaSheetTimer); _pwaSheetTimer = null; }
+}
+function pwaSheetMaybeLater() {
+  try { localStorage.setItem(PWA_DISMISS_KEY, String(Date.now())); } catch (e) {}
+  hidePwaInstallSheet();
+}
+function pwaSheetInstallNow() {
+  hidePwaInstallSheet();
+  installPWA();
+}
 
 function installPWA() {
   // If we have the native prompt - use it!
@@ -16235,9 +16360,12 @@ function installPWA() {
     pwaInstallPrompt.prompt();
     pwaInstallPrompt.userChoice.then(function(result) {
       if(result.outcome === 'accepted') {
+        try { localStorage.setItem(PWA_INSTALLED_KEY, '1'); } catch (e) {}
         showToast('KOMISIYONERI yashyizweho! Reba Home Screen yawe.');
         var btn = document.getElementById('hm-install-btn');
         if(btn) btn.style.display = 'none';
+        hidePwaInstallSheet();
+        hidePostLoginInstallToast();
       }
       pwaInstallPrompt = null;
     });
@@ -16245,15 +16373,49 @@ function installPWA() {
   }
 
   // Detect if already installed as PWA
-  var isInstalled = window.matchMedia('(display-mode: standalone)').matches
-    || window.navigator.standalone === true;
-  if(isInstalled) {
+  if (isPwaInstalled()) {
     showToast('KOMISIYONERI iri installed kare! Ugiye kuyikoresha.');
     return;
   }
 
   // Show manual install instructions modal
   openPWAInstallModal();
+}
+
+// ── Feature 2: post-login install toast ─────────────────────────
+// Called from every real login-success path (handleLogin, completeGoogleSignIn,
+// verifyOTP) — NOT from passive session restore (loadSavedUser/restoreUserSession),
+// so it only ever fires right after an actual login action, once per session.
+var PWA_TOAST_SESSION_KEY = 'km_pwa_toast_shown';
+var _pwaToastTimer = null;
+
+function schedulePostLoginInstallToast() {
+  if (isPwaInstalled()) return;
+  try { if (sessionStorage.getItem(PWA_TOAST_SESSION_KEY) === '1') return; } catch (e) {}
+  if (_pwaToastTimer) return;
+  _pwaToastTimer = setTimeout(showPostLoginInstallToast, 10000);
+}
+
+function showPostLoginInstallToast() {
+  if (isPwaInstalled()) return;
+  try {
+    if (sessionStorage.getItem(PWA_TOAST_SESSION_KEY) === '1') return;
+    sessionStorage.setItem(PWA_TOAST_SESSION_KEY, '1');
+  } catch (e) {}
+  var el = document.getElementById('pwa-install-toast');
+  if (!el) return;
+  el.classList.add('show');
+}
+
+function hidePostLoginInstallToast() {
+  if (_pwaToastTimer) { clearTimeout(_pwaToastTimer); _pwaToastTimer = null; }
+  var el = document.getElementById('pwa-install-toast');
+  if (el) el.classList.remove('show');
+}
+
+function pwaToastInstallNow() {
+  hidePostLoginInstallToast();
+  installPWA();
 }
 
 function openPWAInstallModal() {
