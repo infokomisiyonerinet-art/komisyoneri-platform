@@ -10645,15 +10645,26 @@ function portalMismatchMessage(portal) {
 // usually already on screen; the DOMContentLoaded router sets its own
 // `page` variable instead of double-navigating).
 function enforcePortalRoleOrSignOut(user) {
-  var portal = getPortalContext();
-  if (portal === 'public' || !user || portalAllowsUser(portal, user)) return true;
-  console.warn('[AUTH] enforcePortalRoleOrSignOut: role="' + (user.role || '') + '" rejected on portal="' + portal + '"');
-  currentUser = null;
-  try { localStorage.removeItem('km_current'); } catch (e) {}
-  if (typeof firebaseAuth !== 'undefined' && firebaseAuth && firebaseAuth.signOut) firebaseAuth.signOut().catch(function(){});
-  if (typeof updateNavForUser === 'function') updateNavForUser(null);
-  if (typeof showToast === 'function') showToast(portalMismatchMessage(portal), 'error');
-  return false;
+  // Hardened end-to-end: every caller (restoreUserSession(), handleLogin(),
+  // completeGoogleSignIn(), the DOMContentLoaded router) treats a thrown
+  // exception here the same as an uncaught bug in its own routing decision —
+  // on staff./partners. that can leave the CSS-hidden #page-home as the
+  // only "active" page (a blank screen). This must never throw.
+  try {
+    var portal = getPortalContext();
+    if (portal === 'public' || !user || portalAllowsUser(portal, user)) return true;
+    console.warn('[AUTH] enforcePortalRoleOrSignOut: role="' + (user.role || '') + '" rejected on portal="' + portal + '"');
+    currentUser = null;
+    try { localStorage.removeItem('km_current'); } catch (e) {}
+    if (typeof firebaseAuth !== 'undefined' && firebaseAuth && firebaseAuth.signOut) firebaseAuth.signOut().catch(function(){});
+    if (typeof updateNavForUser === 'function') updateNavForUser(null);
+    if (typeof showToast === 'function') showToast(portalMismatchMessage(portal), 'error');
+    return false;
+  } catch (e) {
+    console.error('[AUTH] enforcePortalRoleOrSignOut: unexpected error — treating as rejected:', e);
+    currentUser = null;
+    return false;
+  }
 }
 
 // ── THEME SYSTEM (Light / Dark / System) ────────────────────────────────
@@ -16214,25 +16225,39 @@ window.addEventListener('DOMContentLoaded', function() {
   // the async Firestore-confirmed restoreUserSession(), which re-checks
   // (and can still correct/reject) once it resolves.
   if (page === 'home' && !pathPage && validPages.indexOf(hash) === -1) {
-    var portal = getPortalContext();
-    if (portal !== 'public') {
-      if (currentUser && !portalAllowsUser(portal, currentUser)) {
-        enforcePortalRoleOrSignOut(currentUser);
-        page = 'auth';
-      } else if (currentUser && currentUser.status === 'pending') {
-        // go('dashboard') would show a toast and return without touching
-        // page visibility at all for a pending account (see go()'s own
-        // pending branch) — harmless on the public site (the visitor just
-        // stays on whatever page they were on), but here #page-home is the
-        // only "active" page and is force-hidden by the portal-gate CSS
-        // rule, so that early return would leave a blank screen. Route to
-        // 'auth' instead, which is unaffected by that CSS rule.
-        page = 'auth';
-      } else if (currentUser) {
-        page = 'dashboard';
-      } else {
-        page = 'auth';
+    // Wrapped defensively: #page-home is force-hidden by CSS on staff./
+    // partners. (see the portal-gate rule next to .page.active), so if
+    // ANYTHING in this decision throws — a future bug in getPortalContext()/
+    // portalAllowsUser()/enforcePortalRoleOrSignOut(), or in something they
+    // call — falling through with `page` still 'home' would leave that CSS-
+    // hidden page as the only "active" one: a blank screen with header/
+    // bottom-nav/FABs still showing (they live outside .page). Always land
+    // on 'auth' instead, which is never CSS-hidden, rather than silently
+    // failing into a blank content area.
+    try {
+      var portal = getPortalContext();
+      if (portal !== 'public') {
+        if (currentUser && !portalAllowsUser(portal, currentUser)) {
+          enforcePortalRoleOrSignOut(currentUser);
+          page = 'auth';
+        } else if (currentUser && currentUser.status === 'pending') {
+          // go('dashboard') would show a toast and return without touching
+          // page visibility at all for a pending account (see go()'s own
+          // pending branch) — harmless on the public site (the visitor just
+          // stays on whatever page they were on), but here #page-home is the
+          // only "active" page and is force-hidden by the portal-gate CSS
+          // rule, so that early return would leave a blank screen. Route to
+          // 'auth' instead, which is unaffected by that CSS rule.
+          page = 'auth';
+        } else if (currentUser) {
+          page = 'dashboard';
+        } else {
+          page = 'auth';
+        }
       }
+    } catch (e) {
+      console.error('[PORTAL] routing decision threw — falling back to auth instead of a blank CSS-gated homepage:', e);
+      page = 'auth';
     }
   }
   if (window.history && window.history.replaceState) {
@@ -16255,7 +16280,25 @@ window.addEventListener('DOMContentLoaded', function() {
     applyAndSearch();
     return;
   }
-  go(page);
+  try {
+    go(page);
+  } catch (e) {
+    // Last-resort fallback: go(page) itself threw partway through (e.g. a
+    // dashboard widget's Firestore read failing before the page-visibility
+    // step it's chained after — see the bottom-nav/Google-signin wrappers
+    // around go()). Force a visible page directly, bypassing go() entirely,
+    // rather than leaving whatever was already "active" — #page-home on
+    // staff./partners. is force-hidden by CSS, so falling through silently
+    // here would be a blank screen.
+    console.error('[PORTAL] go(\'' + page + '\') threw — forcing a visible page directly:', e);
+    try {
+      document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+      var portalNow = (typeof getPortalContext === 'function') ? getPortalContext() : 'public';
+      var fallbackId = (portalNow !== 'public') ? 'page-auth' : 'page-home';
+      var fallbackEl = document.getElementById(fallbackId) || document.getElementById('page-home');
+      if (fallbackEl) fallbackEl.classList.add('active');
+    } catch (e2) { console.error('[PORTAL] fallback page-forcing also failed:', e2); }
+  }
 });
 
 
