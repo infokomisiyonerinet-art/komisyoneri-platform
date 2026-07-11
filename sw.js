@@ -1,8 +1,14 @@
-// KOMISIYONERI — Service Worker v4.0
+// KOMISIYONERI — Service Worker v4.1
 // PWA: Offline support + Fast loading (stale-while-revalidate)
-
-const CACHE = 'komisiyoneri-v6';
-const PRECACHE = ['/', '/index.html', '/manifest.json', '/icon-192.svg', '/icon-512.svg', '/images/kigali-skyline.webp'];
+//
+// v7: precache now includes the real icon-192.png/icon-512.png (manifest.json
+// was updated to reference these — they existed on disk but were never wired
+// into the manifest, which is the confirmed root cause of installs silently
+// failing/disappearing on some Android Chrome/WebView versions: an
+// SVG-only icon set with no 512 "any"-purpose entry has known installability
+// and WebAPK-icon-rendering issues on several OEM browsers).
+const CACHE = 'komisiyoneri-v7';
+const PRECACHE = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png', '/icon-192.svg', '/icon-512.svg', '/images/kigali-skyline.webp'];
 
 // INSTALL
 self.addEventListener('install', e => {
@@ -84,8 +90,8 @@ self.addEventListener('push', e => {
   e.waitUntil(
     self.registration.showNotification(data.title || 'KOMISIYONERI', {
       body: data.body || 'Fungura platform ubone amakuru mashya',
-      icon: '/icon-192.svg',
-      badge: '/icon-192.svg',
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
       tag: 'komisiyoneri',
       data: { url: data.url || '/' }
     })
