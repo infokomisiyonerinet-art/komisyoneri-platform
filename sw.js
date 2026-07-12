@@ -7,7 +7,15 @@
 // failing/disappearing on some Android Chrome/WebView versions: an
 // SVG-only icon set with no 512 "any"-purpose entry has known installability
 // and WebAPK-icon-rendering issues on several OEM browsers).
-const CACHE = 'komisiyoneri-v7';
+//
+// v8: icon-192.png/icon-512.png were, since some earlier point, an unrelated
+// blue/green two-people handshake graphic instead of the real navy/white-
+// house/gold-square brand mark (confirmed correct via icon-192.svg/
+// icon-512.svg, and via the actual PWA splash screen, which is generated
+// from those SVGs and already showed the right logo). Regenerated both PNGs
+// from the SVG source. Cache bumped so browsers that already precached the
+// wrong PNG fetch the corrected one instead of serving it from cache.
+const CACHE = 'komisiyoneri-v8';
 const PRECACHE = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png', '/icon-192.svg', '/icon-512.svg', '/images/kigali-skyline.webp'];
 
 // INSTALL
