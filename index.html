@@ -1260,18 +1260,21 @@ html[data-portal="partners"] #page-home{display:none!important}
 ══════════════════════════════════════ */
 .pwa-install-sheet{position:fixed;left:0;right:0;bottom:0;z-index:2600;display:flex;justify-content:center;pointer-events:none;padding:0 .6rem calc(.6rem + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .38s cubic-bezier(.32,.72,0,1);}
 .pwa-install-sheet.show{transform:translateY(0);pointer-events:auto}
-.pwa-sheet-card{position:relative;width:100%;max-width:440px;background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:0 -8px 40px rgba(8,20,58,.22);padding:1.1rem 1.2rem 1.2rem;display:flex;flex-direction:column;align-items:center;text-align:center;gap:.6rem}
+.pwa-sheet-card{position:relative;width:100%;max-width:440px;background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:0 -8px 40px rgba(8,20,58,.22);padding:1.3rem 1.2rem 1.1rem;display:flex;flex-direction:column;align-items:center;text-align:center;gap:.55rem;overflow:hidden}
+.pwa-sheet-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--navy),var(--gold))}
 .pwa-sheet-close{position:absolute;top:.5rem;right:.6rem;background:none;border:none;font-size:1.3rem;line-height:1;color:var(--muted);cursor:pointer;padding:.2rem .5rem}
-.pwa-sheet-logo{width:56px;height:56px;border-radius:16px;overflow:hidden;box-shadow:0 4px 14px rgba(13,59,140,.25);margin-top:.2rem}
+.pwa-sheet-logo-wrap{position:relative;margin-top:.3rem}
+.pwa-sheet-logo{width:56px;height:56px;border-radius:16px;overflow:hidden;box-shadow:0 4px 14px rgba(13,59,140,.25)}
 .pwa-sheet-logo img{width:100%;height:100%;object-fit:cover;display:block}
+.pwa-sheet-badge{position:absolute;bottom:-4px;right:-4px;width:24px;height:24px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2),0 0 0 3px var(--surface)}
 .pwa-sheet-title{font-size:1rem;font-weight:800;color:var(--navy);margin-bottom:.15rem}
 .pwa-sheet-desc{font-size:.8rem;color:var(--muted);line-height:1.5;max-width:340px}
-.pwa-sheet-actions{display:flex;gap:.6rem;width:100%;margin-top:.4rem}
-.pwa-sheet-btn{flex:1;border-radius:var(--r-full,999px);padding:.7rem 1rem;font-size:.85rem;font-weight:700;cursor:pointer;border:none;transition:var(--tr,.2s ease)}
-.pwa-sheet-later{background:var(--light,transparent);color:var(--muted);border:1.5px solid var(--border)!important}
-.pwa-sheet-install{background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;gap:.35rem;box-shadow:0 6px 18px rgba(13,59,140,.3)}
+.pwa-sheet-actions{display:flex;gap:.6rem;width:100%;margin-top:.5rem}
+.pwa-sheet-btn{flex:1;border-radius:var(--r-full,999px);padding:.75rem 1rem;font-size:.87rem;font-weight:700;cursor:pointer;border:none;transition:var(--tr,.2s ease)}
+.pwa-sheet-install{width:100%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;gap:.4rem;box-shadow:0 6px 18px rgba(13,59,140,.3)}
 .pwa-sheet-install:active{transform:scale(.97)}
-@media (min-width:415px){.pwa-sheet-card{padding:1.3rem 1.5rem 1.4rem}}
+.pwa-sheet-later{background:none;border:none;color:var(--muted);font-size:.78rem;font-weight:600;text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:.2rem;margin-top:-.1rem}
+@media (min-width:415px){.pwa-sheet-card{padding:1.4rem 1.5rem 1.2rem}}
 
 .pwa-install-toast{position:fixed;left:.7rem;right:.7rem;bottom:calc(1rem + env(safe-area-inset-bottom));margin:0 auto;max-width:400px;z-index:3100;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 34px rgba(8,20,58,.22);padding:.9rem 2.2rem .9rem 1rem;display:flex;align-items:center;gap:.7rem;transform:translateY(140%);opacity:0;transition:transform .35s cubic-bezier(.32,.72,0,1),opacity .35s ease}
 .pwa-install-toast.show{transform:translateY(0);opacity:1}
@@ -9989,15 +9992,23 @@ html,body{overscroll-behavior-x:none}
 <div class="pwa-install-sheet" id="pwa-install-sheet" role="dialog" aria-modal="false" aria-label="Install app">
   <div class="pwa-sheet-card">
     <button type="button" class="pwa-sheet-close" onclick="pwaSheetMaybeLater()" aria-label="Close">&times;</button>
-    <div class="pwa-sheet-logo"><img src="/icon-192.png" alt="KOMISIYONERI" width="52" height="52"></div>
+    <div class="pwa-sheet-logo-wrap">
+      <div class="pwa-sheet-logo"><img src="/icon-192.png" alt="KOMISIYONERI" width="56" height="56"></div>
+      <div class="pwa-sheet-badge" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#0D3B8C" stroke-width="3"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+    </div>
     <div class="pwa-sheet-body">
-      <div class="pwa-sheet-title" data-rw="Shyiraho KOMISIYONERI App" data-en="Install KOMISIYONERI App">Install KOMISIYONERI App</div>
-      <div class="pwa-sheet-desc" data-rw="Injira vuba, bona amakuru mashya, kandi ukoreshe nubwo utari kuri interineti." data-en="Faster access, instant notifications, and offline capability — a better experience.">Faster access, instant notifications, and offline capability — a better experience.</div>
+      <div class="pwa-sheet-title" data-rw="Shyira KOMISIYONERI kuri Telefoni" data-en="Get the KOMISIYONERI App">Get the KOMISIYONERI App</div>
+      <div class="pwa-sheet-desc" data-rw="Menya vuba imitungo mishya, wirinde kwandika URL — fungura ku mukanda umwe, byihuse kurusha bookmark." data-en="Instant alerts on new listings, one tap to open — no typing the URL, faster than any bookmark.">Instant alerts on new listings, one tap to open — no typing the URL, faster than any bookmark.</div>
     </div>
     <div class="pwa-sheet-actions">
-      <button type="button" class="pwa-sheet-btn pwa-sheet-later" onclick="pwaSheetMaybeLater()" data-rw="Vuba Aha" data-en="Maybe Later">Maybe Later</button>
-      <button type="button" class="pwa-sheet-btn pwa-sheet-install" onclick="pwaSheetInstallNow()">📲 <span data-rw="Shyira App" data-en="Install Now">Install Now</span></button>
+      <button type="button" class="pwa-sheet-btn pwa-sheet-install" onclick="pwaSheetInstallNow()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 3v13m0 0l-4.5-4.5M12 16l4.5-4.5M4 20h16"/></svg>
+        <span data-rw="Shyira Ubu" data-en="Install Now">Install Now</span>
+      </button>
     </div>
+    <button type="button" class="pwa-sheet-later" onclick="pwaSheetMaybeLater()" data-rw="Vuba Aha" data-en="Maybe Later">Maybe Later</button>
   </div>
 </div>
 
@@ -10010,6 +10021,27 @@ html,body{overscroll-behavior-x:none}
   </div>
   <button type="button" class="pwa-toast-install" onclick="pwaToastInstallNow()" data-rw="Shyira" data-en="Install">Install</button>
 </div>
+
+<!-- PWA install prompts are public-site (www.) only — staff./partners. are
+     internal, corporate-provisioned portals reached via staff-login.html/
+     partner-login.html, not a consumer install funnel. Removed from the DOM
+     outright (not just hidden via CSS) the moment the parser reaches them,
+     so there's no window where they exist as renderable elements at all on
+     a gated subdomain. The main script's _pwaAllowedOnThisPortal() guard
+     (same hostname check) additionally keeps every JS entry point —
+     beforeinstallprompt, the post-login toast — from ever activating them,
+     as defense in depth. -->
+<script>
+(function() {
+  var h = window.location.hostname;
+  if (h.indexOf('staff.') === 0 || h.indexOf('partners.') === 0) {
+    var sheet = document.getElementById('pwa-install-sheet');
+    if (sheet) sheet.remove();
+    var toast = document.getElementById('pwa-install-toast');
+    if (toast) toast.remove();
+  }
+})();
+</script>
 
 <!-- ═══════════════════════════════════
      JAVASCRIPT
@@ -16404,7 +16436,16 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// PWA Install Prompt
+// PWA Install Prompt — public site (www.) only. staff./partners. are
+// internal, corporate-provisioned portals reached via staff-login.html/
+// partner-login.html, not a consumer install funnel — a PWA install pitch
+// is out of place there. Checked once, up front, and used to gate every
+// entry point below (the beforeinstallprompt listener that arms the sheet
+// timer, and the post-login toast), not just left to CSS to hide.
+function _pwaAllowedOnThisPortal() {
+  var h = window.location.hostname;
+  return h.indexOf('staff.') !== 0 && h.indexOf('partners.') !== 0;
+}
 var pwaInstallPrompt = null;
 var PWA_DISMISS_KEY = 'km_pwa_sheet_dismissed_at';
 var PWA_INSTALLED_KEY = 'km_pwa_installed';
@@ -16447,6 +16488,7 @@ window.addEventListener('appinstalled', function() {
 var _pwaSheetTimer = null;
 window.addEventListener('beforeinstallprompt', function(e) {
   e.preventDefault();
+  if (!_pwaAllowedOnThisPortal()) return;
   pwaInstallPrompt = e;
   // Show install button
   var installBtn = document.getElementById('pwa-install-btn');
@@ -16518,6 +16560,7 @@ var PWA_TOAST_SESSION_KEY = 'km_pwa_toast_shown';
 var _pwaToastTimer = null;
 
 function schedulePostLoginInstallToast() {
+  if (!_pwaAllowedOnThisPortal()) return;
   if (isPwaInstalled()) return;
   try { if (sessionStorage.getItem(PWA_TOAST_SESSION_KEY) === '1') return; } catch (e) {}
   if (_pwaToastTimer) return;
