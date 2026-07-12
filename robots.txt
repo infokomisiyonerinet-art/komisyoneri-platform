@@ -16,6 +16,8 @@ Disallow: /auth
 Disallow: /admin
 Disallow: /profile
 Disallow: /api/
+Disallow: /staff-login.html
+Disallow: /partner-login.html
 
 # Sitemap location
 Sitemap: https://komisiyoneri.co.rw/sitemap.xml

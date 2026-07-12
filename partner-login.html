@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Partner Portal — KOMISIYONERI</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/icon-192.svg">
+<link rel="preload" as="image" href="/images/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/portal-login.css">
+</head>
+<body>
+
+<div class="pl-side">
+  <div class="pl-side-inner">
+    <img src="/images/logo.png" alt="KOMISIYONERI" width="64" height="48">
+    <h1>KOMISIYONERI ConnectPro</h1>
+    <p>Partner Portal — access for surveyors, notaries, banks, lawyers, and inspectors connected to K-REOS.</p>
+  </div>
+</div>
+
+<div class="pl-main">
+  <div class="pl-box">
+    <div class="pl-box-logo">
+      <img src="/images/logo.png" alt="KOMISIYONERI" width="34" height="34">
+      <span>KOMISIYONERI ConnectPro</span>
+    </div>
+    <h2 class="pl-title">Partner Portal</h2>
+    <p class="pl-sub">Urubuga rw'Abafatanyabikorwa — sign in with your partner account</p>
+
+    <div class="pl-error" id="pl-error" role="alert"></div>
+    <div class="pl-notice" id="pl-notice" role="status"></div>
+
+    <form id="pl-form" novalidate>
+      <div class="pl-field">
+        <label for="pl-email">Email</label>
+        <input type="email" id="pl-email" name="email" autocomplete="username" placeholder="you@example.com" required>
+      </div>
+      <div class="pl-field">
+        <label for="pl-pass">Password</label>
+        <input type="password" id="pl-pass" name="password" autocomplete="current-password" placeholder="••••••••" required>
+      </div>
+      <div class="pl-forgot-row">
+        <a href="#" id="pl-forgot">Forgot password?</a>
+      </div>
+      <button type="submit" class="pl-submit" id="pl-submit">Injira</button>
+    </form>
+
+    <div class="pl-footer">KOMISIYONERI ConnectPro Services Ltd</div>
+  </div>
+</div>
+
+<script>
+  window.PORTAL_LOGIN_CONFIG = {
+    expectedRole: 'partner',
+    rejectMessage: 'This portal is for partners only.',
+    submitLabel: 'Injira',
+    loadingLabel: 'Signing in…'
+  };
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="/js/portal-login.js"></script>
+</body>
+</html>
