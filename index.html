@@ -47,6 +47,47 @@
     if (host.indexOf('staff.') === 0) portal = 'staff';
     else if (host.indexOf('partners.') === 0) portal = 'partners';
     document.documentElement.setAttribute('data-portal', portal);
+
+    // Last-resort watchdog — deliberately independent of everything else
+    // in the app (getPortalContext()/go()/enforcePortalRoleOrSignOut() all
+    // live in the ~30,000-line main script much further down and have
+    // already been hardened with try/catch twice; this exists in case a
+    // THIRD, still-unknown failure mode leaves #page-home as the only
+    // "active" page on a gated subdomain). #page-home is CSS-forced
+    // invisible here (see the .page.active override below), so if nothing
+    // else has taken over within 2s, force #page-auth directly — pure DOM
+    // class manipulation, no dependency on any function defined elsewhere.
+    if (portal !== 'public') {
+      setTimeout(function() {
+        try {
+          var homeEl = document.getElementById('page-home');
+          var stillOnHome = homeEl && homeEl.classList.contains('active');
+          var anyOtherActive = document.querySelector('.page.active:not(#page-home)');
+          if (stillOnHome && !anyOtherActive) {
+            console.error('[PORTAL-WATCHDOG] routing never left #page-home after 2s on a gated subdomain (portal=' + portal + ') — forcing #page-auth directly.');
+            homeEl.classList.remove('active');
+            var authEl = document.getElementById('page-auth');
+            if (authEl) authEl.classList.add('active');
+            // Visible, self-contained notice (inline-styled — no dependency
+            // on any stylesheet or app CSS class, since this exists for the
+            // case where something upstream already failed) so a real user
+            // on a real phone sees an explanation instead of just landing
+            // on the login form with no context, and has an obvious next
+            // step if it doesn't clear up on its own.
+            var banner = document.createElement('div');
+            banner.setAttribute('style',
+              'position:fixed;top:0;left:0;right:0;z-index:99999;' +
+              'background:#B45309;color:#fff;font:14px/1.4 sans-serif;' +
+              'padding:10px 14px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.25)');
+            banner.innerHTML = 'This page took too long to load properly. ' +
+              '<button type="button" style="margin-left:8px;padding:4px 10px;border:1px solid #fff;' +
+              'border-radius:4px;background:transparent;color:#fff;font:inherit;cursor:pointer" ' +
+              'onclick="location.reload()">Reload</button>';
+            document.body.appendChild(banner);
+          }
+        } catch (e2) {}
+      }, 2000);
+    }
   } catch (e) {}
 })();
 </script>
@@ -16290,13 +16331,25 @@ window.addEventListener('DOMContentLoaded', function() {
     // rather than leaving whatever was already "active" — #page-home on
     // staff./partners. is force-hidden by CSS, so falling through silently
     // here would be a blank screen.
-    console.error('[PORTAL] go(\'' + page + '\') threw — forcing a visible page directly:', e);
+    console.error('[PORTAL] go(\'' + page + '\') threw — checking whether a visible page still needs forcing:', e);
     try {
-      document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
-      var portalNow = (typeof getPortalContext === 'function') ? getPortalContext() : 'public';
-      var fallbackId = (portalNow !== 'public') ? 'page-auth' : 'page-home';
-      var fallbackEl = document.getElementById(fallbackId) || document.getElementById('page-home');
-      if (fallbackEl) fallbackEl.classList.add('active');
+      // go() may have thrown from a wrapper that runs AFTER the real page
+      // switch already succeeded (e.g. renderBottomNav(), chained onto go()
+      // by the bottom-nav sync wrapper) — in that case #page-dashboard (or
+      // whatever the real target was) is already correctly showing, and
+      // clearing every .page's class here would wrongly replace it with
+      // the login form. Only force a fallback if nothing but the CSS-
+      // hidden #page-home ended up active.
+      var homeEl = document.getElementById('page-home');
+      var stillOnHome = homeEl && homeEl.classList.contains('active');
+      var anyOtherActive = document.querySelector('.page.active:not(#page-home)');
+      if (stillOnHome && !anyOtherActive) {
+        homeEl.classList.remove('active');
+        var portalNow = (typeof getPortalContext === 'function') ? getPortalContext() : 'public';
+        var fallbackId = (portalNow !== 'public') ? 'page-auth' : 'page-home';
+        var fallbackEl = document.getElementById(fallbackId) || homeEl;
+        if (fallbackEl) fallbackEl.classList.add('active');
+      }
     } catch (e2) { console.error('[PORTAL] fallback page-forcing also failed:', e2); }
   }
 });
