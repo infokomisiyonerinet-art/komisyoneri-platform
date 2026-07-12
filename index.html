@@ -49,14 +49,19 @@
     document.documentElement.setAttribute('data-portal', portal);
 
     // Last-resort watchdog — deliberately independent of everything else
-    // in the app (getPortalContext()/go()/enforcePortalRoleOrSignOut() all
-    // live in the ~30,000-line main script much further down and have
-    // already been hardened with try/catch twice; this exists in case a
-    // THIRD, still-unknown failure mode leaves #page-home as the only
-    // "active" page on a gated subdomain). #page-home is CSS-forced
-    // invisible here (see the .page.active override below), so if nothing
-    // else has taken over within 2s, force #page-auth directly — pure DOM
-    // class manipulation, no dependency on any function defined elsewhere.
+    // in the app (getPortalContext()/go()/enforcePortalRoleOrSignOut()/
+    // portalLoginUrl() all live in the ~30,000-line main script much
+    // further down and have already been hardened with try/catch twice;
+    // this exists in case a THIRD, still-unknown failure mode leaves
+    // #page-home as the only "active" page on a gated subdomain). #page-
+    // home is CSS-forced invisible here (see the .page.active override
+    // below), so if nothing else has taken over within 2s, navigate to the
+    // dedicated staff/partner login page directly — a real, independent
+    // browser navigation (not just a DOM class toggle), and deliberately
+    // NOT the SPA's own #page-auth (client/agent role tabs, wrong for a
+    // staff/partner portal) — with the URL inlined here rather than calling
+    // portalLoginUrl(), since that function's availability is exactly what
+    // this watchdog can't assume.
     if (portal !== 'public') {
       setTimeout(function() {
         try {
@@ -64,26 +69,19 @@
           var stillOnHome = homeEl && homeEl.classList.contains('active');
           var anyOtherActive = document.querySelector('.page.active:not(#page-home)');
           if (stillOnHome && !anyOtherActive) {
-            console.error('[PORTAL-WATCHDOG] routing never left #page-home after 2s on a gated subdomain (portal=' + portal + ') — forcing #page-auth directly.');
-            homeEl.classList.remove('active');
-            var authEl = document.getElementById('page-auth');
-            if (authEl) authEl.classList.add('active');
+            console.error('[PORTAL-WATCHDOG] routing never left #page-home after 2s on a gated subdomain (portal=' + portal + ') — redirecting to the dedicated login page.');
             // Visible, self-contained notice (inline-styled — no dependency
-            // on any stylesheet or app CSS class, since this exists for the
-            // case where something upstream already failed) so a real user
-            // on a real phone sees an explanation instead of just landing
-            // on the login form with no context, and has an obvious next
-            // step if it doesn't clear up on its own.
+            // on any stylesheet or app CSS class) shown briefly before the
+            // navigation actually completes, so a real user on a real phone
+            // sees an explanation rather than an unexplained jump.
             var banner = document.createElement('div');
             banner.setAttribute('style',
               'position:fixed;top:0;left:0;right:0;z-index:99999;' +
               'background:#B45309;color:#fff;font:14px/1.4 sans-serif;' +
               'padding:10px 14px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.25)');
-            banner.innerHTML = 'This page took too long to load properly. ' +
-              '<button type="button" style="margin-left:8px;padding:4px 10px;border:1px solid #fff;' +
-              'border-radius:4px;background:transparent;color:#fff;font:inherit;cursor:pointer" ' +
-              'onclick="location.reload()">Reload</button>';
+            banner.textContent = 'This page took too long to load properly. Redirecting to sign-in…';
             document.body.appendChild(banner);
+            window.location.replace(portal === 'staff' ? '/staff-login.html' : '/partner-login.html');
           }
         } catch (e2) {}
       }, 2000);
@@ -10678,6 +10676,12 @@ function portalMismatchMessage(portal) {
   if (portal === 'staff') return curLang === 'rw' ? 'Uru rubuga ni urw\'abakozi ba KOMISIYONERI gusa.' : 'This portal is for KOMISIYONERI staff only.';
   return curLang === 'rw' ? 'Uru rubuga ni urw\'abafatanyabikorwa gusa.' : 'This portal is for partners only.';
 }
+// Dedicated, standalone login pages for staff./partners. — NOT the SPA's
+// own #page-auth (which shows client/agent role tabs, inappropriate for
+// an internal portal). See staff-login.html/partner-login.html.
+function portalLoginUrl(portal) {
+  return portal === 'staff' ? '/staff-login.html' : '/partner-login.html';
+}
 // Rejects `user` from the current subdomain's portal if their role doesn't
 // belong there — clears the local session and signs out of Firebase Auth
 // so no half-authenticated state lingers. Returns true (no-op) when the
@@ -10963,6 +10967,15 @@ function restoreUserSession(fbUser) {
         .catch(function(e){ console.error('[AUTH] restoreUserSession: create user doc FAILED (likely a Firestore rules rejection):', e.code || '', e.message); });
     }
     if (!enforcePortalRoleOrSignOut(user)) {
+      // A session was restored (e.g. this device had a valid Firebase Auth
+      // session from before) but the role doesn't belong on this gated
+      // portal — send them to the dedicated staff/partner login page
+      // (never the SPA's own #page-auth, which shows client/agent tabs)
+      // instead of just calling go('auth').
+      try {
+        var portalR = getPortalContext();
+        if (portalR !== 'public') { window.location.replace(portalLoginUrl(portalR)); return; }
+      } catch (e) {}
       if (typeof go === 'function') go('auth');
       return;
     }
@@ -16237,6 +16250,51 @@ window.addEventListener('popstate', function(event) {
 // SPA initial load: read the clean path (public pages) or hash (everything
 // else), and set the first history entry accordingly.
 window.addEventListener('DOMContentLoaded', function() {
+  // ── Staff/Partner portal gate ────────────────────────────────────────
+  // Runs FIRST, unconditionally, before any path/hash routing below — and
+  // before the visitor can see ANY SPA content, including the public
+  // login form (which shows client/agent role tabs inappropriate for an
+  // internal staff/partner portal — see staff-login.html/partner-
+  // login.html, the dedicated pages built for this). Unlike the public
+  // site, nothing on a gated subdomain is meant to be reachable without a
+  // valid, active, correctly-scoped session, so — unlike the old fallback-
+  // only check this replaced — this applies regardless of what path/hash
+  // was requested; there is no "deep link should still work" concern here.
+  // currentUser may already be populated from loadSavedUser()'s
+  // synchronous localStorage restore (called earlier, top-level, before
+  // this listener fires) — good enough to decide "already logged in"
+  // without waiting on the async Firestore-confirmed restoreUserSession(),
+  // which re-checks (and can still correct/reject) once it resolves.
+  try {
+    var portalGate = getPortalContext();
+    if (portalGate !== 'public') {
+      var loginTarget = portalLoginUrl(portalGate);
+      if (!currentUser || currentUser.status === 'pending' || !portalAllowsUser(portalGate, currentUser)) {
+        if (currentUser && !portalAllowsUser(portalGate, currentUser)) enforcePortalRoleOrSignOut(currentUser);
+        window.location.replace(loginTarget);
+        return;
+      }
+      // Correct role, active status — an authorized visitor. Fall through
+      // to the normal routing below (e.g. so an explicit deep link like
+      // /crm still works for a logged-in staff member), just landing on
+      // 'dashboard' instead of 'home' for the bare-root case.
+    }
+  } catch (e) {
+    // #page-home is force-hidden by CSS on staff./partners. (see the
+    // portal-gate CSS rule), so if ANYTHING here throws — a future bug in
+    // getPortalContext()/portalAllowsUser()/enforcePortalRoleOrSignOut(),
+    // or in something they call — never fall through silently into that
+    // CSS-hidden page. Redirect to the dedicated login page instead.
+    console.error('[PORTAL] portal gate threw — falling back to the dedicated login page instead of a blank CSS-gated homepage:', e);
+    try {
+      var portalGateFallback = getPortalContext();
+      if (portalGateFallback !== 'public') {
+        window.location.replace(portalLoginUrl(portalGateFallback));
+        return;
+      }
+    } catch (e2) {}
+  }
+
   var PATH_TO_PAGE = {
     '/': 'home', '/listings': 'listings', '/analytics': 'analytics', '/about': 'about',
     '/agents': 'agents', '/careers': 'careers', '/privacy': 'privacy', '/terms': 'terms'
@@ -16256,50 +16314,18 @@ window.addEventListener('DOMContentLoaded', function() {
     'dashboard','auth','about','privacy','terms'
   ];
   var page = pathPage || (validPages.indexOf(hash) > -1 ? hash : 'home');
-  // staff./partners. are internal-team subdomains sharing this same app/
-  // Firebase project — a public marketing homepage doesn't make sense to
-  // land on there. Only overrides the *fallback* (no explicit path/hash
-  // was requested); an explicit link to any page still wins. currentUser
-  // may already be populated here from loadSavedUser()'s synchronous
-  // localStorage restore (called earlier, top-level, before this listener
-  // fires) — good enough to decide "already logged in" without waiting on
-  // the async Firestore-confirmed restoreUserSession(), which re-checks
-  // (and can still correct/reject) once it resolves.
-  if (page === 'home' && !pathPage && validPages.indexOf(hash) === -1) {
-    // Wrapped defensively: #page-home is force-hidden by CSS on staff./
-    // partners. (see the portal-gate rule next to .page.active), so if
-    // ANYTHING in this decision throws — a future bug in getPortalContext()/
-    // portalAllowsUser()/enforcePortalRoleOrSignOut(), or in something they
-    // call — falling through with `page` still 'home' would leave that CSS-
-    // hidden page as the only "active" one: a blank screen with header/
-    // bottom-nav/FABs still showing (they live outside .page). Always land
-    // on 'auth' instead, which is never CSS-hidden, rather than silently
-    // failing into a blank content area.
+  // Reached only when portalGate === 'public', or when it's a gated portal
+  // AND the visitor already passed the auth check above. 'home' means
+  // "authorized visitor landed on /" here (note: PATH_TO_PAGE maps '/'
+  // itself to pathPage === 'home', so this can't be narrowed to the
+  // no-pathPage fallback case the way the old check was — any resolution
+  // to 'home' on a gated portal should become 'dashboard', since the
+  // public homepage is both CSS-hidden and meaningless on this subdomain
+  // regardless of how 'home' was reached).
+  if (page === 'home') {
     try {
-      var portal = getPortalContext();
-      if (portal !== 'public') {
-        if (currentUser && !portalAllowsUser(portal, currentUser)) {
-          enforcePortalRoleOrSignOut(currentUser);
-          page = 'auth';
-        } else if (currentUser && currentUser.status === 'pending') {
-          // go('dashboard') would show a toast and return without touching
-          // page visibility at all for a pending account (see go()'s own
-          // pending branch) — harmless on the public site (the visitor just
-          // stays on whatever page they were on), but here #page-home is the
-          // only "active" page and is force-hidden by the portal-gate CSS
-          // rule, so that early return would leave a blank screen. Route to
-          // 'auth' instead, which is unaffected by that CSS rule.
-          page = 'auth';
-        } else if (currentUser) {
-          page = 'dashboard';
-        } else {
-          page = 'auth';
-        }
-      }
-    } catch (e) {
-      console.error('[PORTAL] routing decision threw — falling back to auth instead of a blank CSS-gated homepage:', e);
-      page = 'auth';
-    }
+      if (getPortalContext() !== 'public') page = 'dashboard';
+    } catch (e) { /* getPortalContext() already proven callable above if we got this far */ }
   }
   if (window.history && window.history.replaceState) {
     var CLEAN_PATHS = {
@@ -16344,10 +16370,16 @@ window.addEventListener('DOMContentLoaded', function() {
       var stillOnHome = homeEl && homeEl.classList.contains('active');
       var anyOtherActive = document.querySelector('.page.active:not(#page-home)');
       if (stillOnHome && !anyOtherActive) {
-        homeEl.classList.remove('active');
         var portalNow = (typeof getPortalContext === 'function') ? getPortalContext() : 'public';
-        var fallbackId = (portalNow !== 'public') ? 'page-auth' : 'page-home';
-        var fallbackEl = document.getElementById(fallbackId) || homeEl;
+        if (portalNow !== 'public') {
+          // On a gated portal, the SPA's own login form is the wrong thing
+          // to show (client/agent tabs) — send them to the dedicated
+          // staff/partner login page instead, same as the primary gate.
+          window.location.replace(portalLoginUrl(portalNow));
+          return;
+        }
+        homeEl.classList.remove('active');
+        var fallbackEl = document.getElementById('page-home') || homeEl;
         if (fallbackEl) fallbackEl.classList.add('active');
       }
     } catch (e2) { console.error('[PORTAL] fallback page-forcing also failed:', e2); }

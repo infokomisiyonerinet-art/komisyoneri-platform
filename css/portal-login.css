@@ -1,0 +1,231 @@
+/* KOMISIYONERI — Staff/Partner Portal Login
+   Shared styling for staff-login.html and partner-login.html. Deliberately
+   NOT the public site's design system (index.html's inline <style>) — these
+   are lightweight, standalone pages, not part of the SPA, so they carry
+   only what a corporate internal login screen needs: no consumer marketing
+   copy, no FABs, no role tabs. Colors match the brand variables defined in
+   index.html (--navy/--gold/etc.) so the two surfaces still feel like one
+   product, just a more subdued/corporate register of it. */
+
+:root {
+  --navy: #0D3B8C;
+  --navy-deep: #0A2E6E;
+  --gold: #F5A623;
+  --dark: #0F1B35;
+  --muted: #6B7A99;
+  --border: #DDE5F5;
+  --surface: #fff;
+  --light: #F4F7FC;
+  --danger: #C0392B;
+  --danger-bg: #FDECEA;
+  --r-sm: 8px;
+  --r: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --navy: #4874D6;
+    --navy-deep: #0A2E6E;
+    --dark: #E7ECF7;
+    --muted: #96A5C9;
+    --border: #26314A;
+    --surface: #16213A;
+    --light: #111B2E;
+    --danger-bg: #3A1F1E;
+  }
+  body { background: #0A1220; }
+}
+:root[data-theme="dark"] {
+  --navy: #4874D6;
+  --dark: #E7ECF7;
+  --muted: #96A5C9;
+  --border: #26314A;
+  --surface: #16213A;
+  --light: #111B2E;
+  --danger-bg: #3A1F1E;
+}
+:root[data-theme="dark"] body { background: #0A1220; }
+:root[data-theme="light"] { --navy:#0D3B8C; --dark:#0F1B35; --muted:#6B7A99; --border:#DDE5F5; --surface:#fff; --light:#F4F7FC; --danger-bg:#FDECEA; }
+:root[data-theme="light"] body { background: #fff; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--dark);
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 860px) {
+  body { grid-template-columns: 1fr; }
+  .pl-side { display: none; }
+}
+
+.pl-side {
+  background: linear-gradient(150deg, var(--navy-deep), var(--navy));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem;
+  position: relative;
+  overflow: hidden;
+}
+.pl-side::before {
+  content: '';
+  position: absolute;
+  width: 380px; height: 380px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.04);
+  top: -110px; left: -110px;
+}
+.pl-side::after {
+  content: '';
+  position: absolute;
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: rgba(245,166,35,.07);
+  bottom: -60px; right: -60px;
+}
+.pl-side-inner { position: relative; z-index: 1; }
+.pl-side-inner img { height: 48px; width: auto; object-fit: contain; margin-bottom: 1.6rem; }
+.pl-side-inner h1 {
+  font-family: 'Cormorant Garamond', serif;
+  color: #fff;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 700;
+  margin: 0 0 .6rem;
+}
+.pl-side-inner p {
+  color: rgba(255,255,255,.75);
+  font-size: .85rem;
+  line-height: 1.7;
+  max-width: 340px;
+  margin: 0;
+}
+
+.pl-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem;
+  background: var(--light);
+}
+.pl-box {
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 2.2rem;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 8px 40px rgba(13,59,140,.08);
+}
+.pl-box-logo { display: none; }
+@media (max-width: 860px) {
+  .pl-box-logo {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin-bottom: 1.4rem;
+  }
+  .pl-box-logo img { height: 34px; width: auto; }
+  .pl-box-logo span { font-weight: 700; letter-spacing: .02em; color: var(--navy); }
+}
+.pl-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 .25rem;
+}
+.pl-sub {
+  font-size: .82rem;
+  color: var(--muted);
+  margin: 0 0 1.6rem;
+}
+
+.pl-field { display: flex; flex-direction: column; gap: .4rem; margin-bottom: .9rem; }
+.pl-field label {
+  font-size: .68rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.pl-field input {
+  padding: .68rem .85rem;
+  min-height: 44px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  font-family: inherit;
+  font-size: .88rem;
+  color: var(--dark);
+  background: var(--surface);
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  width: 100%;
+}
+.pl-field input:focus {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(13,59,140,.1);
+}
+
+.pl-error {
+  display: none;
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: .8rem;
+  font-weight: 600;
+  padding: .65rem .8rem;
+  border-radius: var(--r-sm);
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+.pl-notice {
+  display: none;
+  background: rgba(13,59,140,.08);
+  color: var(--navy);
+  font-size: .8rem;
+  font-weight: 600;
+  padding: .65rem .8rem;
+  border-radius: var(--r-sm);
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.pl-submit {
+  width: 100%;
+  padding: .8rem 1.2rem;
+  border: none;
+  border-radius: var(--r-sm);
+  background: var(--navy);
+  color: #fff;
+  font-family: inherit;
+  font-size: .88rem;
+  font-weight: 700;
+  letter-spacing: .01em;
+  cursor: pointer;
+  transition: opacity .2s, transform .1s;
+  margin-top: .3rem;
+}
+.pl-submit:hover { opacity: .92; }
+.pl-submit:active { transform: scale(.99); }
+.pl-submit:disabled { opacity: .6; cursor: default; }
+
+.pl-forgot-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: -.35rem 0 1.1rem;
+}
+.pl-forgot-row a {
+  font-size: .78rem;
+  color: var(--navy);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+.pl-forgot-row a:hover { text-decoration: underline; }
+
+.pl-footer {
+  margin-top: 1.6rem;
+  text-align: center;
+  font-size: .72rem;
+  color: var(--muted);
+}
