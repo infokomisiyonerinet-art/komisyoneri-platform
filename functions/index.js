@@ -19,9 +19,12 @@
 
 const { onDocumentUpdated, onDocumentCreated, onDocumentWritten } = require('firebase-functions/v2/firestore');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
+const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { logger } = require('firebase-functions');
+const { randomBytes } = require('crypto');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
+const { getAuth } = require('firebase-admin/auth');
 
 initializeApp();
 
@@ -1126,4 +1129,176 @@ exports.onApprovalDecided = onDocumentUpdated({ document: 'approvals/{approvalId
       'approval_approved', after.type, targetRef.id, decidedBy);
   }
   logger.info('Approval decided — target write complete', { approvalId, type: after.type, targetId: targetRef.id });
+});
+
+/**
+ * ── Staff/Partner Admin Provisioning (createStaffOrPartnerAccount) ──────
+ *
+ * Callable (onCall), not the approvals/{id} async workflow above — that
+ * workflow is for a staff member REQUESTING something a CEO signs off on
+ * later; this is the CEO directly, immediately provisioning an account
+ * right now. Creating a Firebase Auth user needs Admin-SDK privileges the
+ * client doesn't have, which is the whole reason this exists server-side
+ * at all rather than as a client-side db.collection('users').add().
+ *
+ * department/jobTitle/reportsTo mirror index.html's own ROLE_DEPARTMENT/
+ * ROLE_JOBTITLE/ROLE_SUPERIOR_ROLES exactly (kept in sync manually, same
+ * as the COMMISSION_RATES constants at the top of this file) — this app
+ * has exactly one management role per department, and department/
+ * jobTitle are derived from role everywhere else (see index.html's own
+ * comment on ROLE_DEPARTMENT and rules/firestore.rules' deptOfRole()), so
+ * a provisioning form that let the caller set them independently would
+ * only ever be able to create an account that drifts out of sync with
+ * every other permission check in the app — e.g. a "CEO" stored as
+ * role:'staff' with some separate executiveLevel flag would silently
+ * fail every isExecutive()/role==='ceo' check elsewhere, despite having
+ * successfully logged in.
+ */
+const PROVISIONABLE_STAFF_ROLES = [
+  'ceo', 'director', 'accountant', 'chief_broker', 'marketing_manager',
+  'customer_support_manager', 'it_manager', 'hr_manager', 'legal_adviser', 'staff'
+];
+const ROLE_DEPARTMENT = {
+  ceo: 'Executive', director: 'Executive',
+  accountant: 'Finance', chief_broker: 'Brokerage', marketing_manager: 'Marketing',
+  customer_support_manager: 'CustomerSupport', it_manager: 'IT',
+  hr_manager: 'HR', legal_adviser: 'Legal'
+};
+const ROLE_JOBTITLE = {
+  ceo: 'Founder & CEO', director: 'Operations Director',
+  accountant: 'Director of Finance', chief_broker: 'Chief Broker', marketing_manager: 'Marketing Manager',
+  customer_support_manager: 'Customer Support Manager', it_manager: 'IT / Product Manager',
+  hr_manager: 'HR Manager', legal_adviser: 'Legal Adviser'
+};
+const ROLE_SUPERIOR_ROLES = {
+  director: ['ceo'],
+  accountant: ['ceo', 'director'],
+  chief_broker: ['director'],
+  marketing_manager: ['director'],
+  customer_support_manager: ['director'],
+  it_manager: ['ceo', 'director'],
+  hr_manager: ['director', 'ceo'],
+  legal_adviser: ['ceo']
+};
+
+// Never shown to anyone or emailed anywhere — the account's very first
+// useful action is the client calling sendPasswordResetEmail() right
+// after this succeeds (same mechanism the existing "Forgot password?"
+// links already use), so nobody ever needs to know or type this value.
+function randomTempPassword() {
+  return randomBytes(24).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 24) + 'Aa1!';
+}
+
+exports.createStaffOrPartnerAccount = onCall({ region: REGION }, async (request) => {
+  const auth = request.auth;
+  if (!auth || !auth.uid) {
+    throw new HttpsError('unauthenticated', 'You must be signed in.');
+  }
+  const db = getFirestore();
+
+  // Never trust the client's own role claim for this — re-verify against
+  // Firestore, the same source of truth every other privileged trigger in
+  // this file re-checks against (see onApprovalDecided above).
+  const callerDoc = await db.collection('users').doc(auth.uid).get();
+  const callerRole = callerDoc.exists ? String(callerDoc.data().role || '').toLowerCase() : '';
+  if (callerRole !== 'ceo') {
+    logger.warn('createStaffOrPartnerAccount: rejected — caller is not CEO', { callerUid: auth.uid, callerRole });
+    throw new HttpsError('permission-denied', 'Only the CEO can provision staff or partner accounts.');
+  }
+
+  const data = request.data || {};
+  const accountType = data.accountType === 'partner' ? 'partner' : 'staff';
+  const role = accountType === 'partner' ? 'partner' : String(data.role || '').toLowerCase();
+  const name = String(data.name || '').trim();
+  const email = String(data.email || '').trim().toLowerCase();
+
+  if (!name) throw new HttpsError('invalid-argument', 'Full name is required.');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new HttpsError('invalid-argument', 'A valid email is required.');
+  }
+  if (accountType === 'staff' && PROVISIONABLE_STAFF_ROLES.indexOf(role) === -1) {
+    throw new HttpsError('invalid-argument', 'Unrecognized role: ' + role);
+  }
+
+  // Exactly one CEO — block a second one outright, server-side (the client
+  // panel also warns before submitting, but this is the real gate).
+  if (role === 'ceo') {
+    const existingCeo = await db.collection('users')
+      .where('role', '==', 'ceo').where('isActive', '==', true).limit(1).get();
+    if (!existingCeo.empty) {
+      throw new HttpsError('already-exists', 'A CEO account already exists. Only one CEO is allowed.');
+    }
+  }
+
+  // Firebase Auth itself is the authoritative email-uniqueness check —
+  // createUser() below rejects a duplicate with auth/email-already-exists.
+  let userRecord;
+  try {
+    userRecord = await getAuth().createUser({
+      email,
+      password: randomTempPassword(),
+      displayName: name,
+      emailVerified: false
+    });
+  } catch (err) {
+    if (err && err.code === 'auth/email-already-exists') {
+      throw new HttpsError('already-exists', 'An account with this email already exists.');
+    }
+    logger.error('createStaffOrPartnerAccount: Auth user creation failed', { error: err && err.message });
+    throw new HttpsError('internal', 'Could not create the account. Please try again.');
+  }
+
+  const uid = userRecord.uid;
+  const department = accountType === 'staff' ? (ROLE_DEPARTMENT[role] || '') : '';
+  const jobTitle = accountType === 'staff' ? (ROLE_JOBTITLE[role] || '') : '';
+
+  // reportsTo: resolved to real, currently-active uids of the superior
+  // role(s) for this role — mirrors how changeUserRole()/
+  // renderOrgChartFields() already do this for an existing user's role
+  // change in index.html, so a freshly-provisioned account ends up with
+  // exactly the same reportsTo shape as one reassigned into this role.
+  let reportsTo = [];
+  const superiorRoles = ROLE_SUPERIOR_ROLES[role];
+  if (superiorRoles && superiorRoles.length) {
+    const superiors = await db.collection('users')
+      .where('role', 'in', superiorRoles)
+      .where('isActive', '==', true)
+      .get();
+    reportsTo = superiors.docs.map((d) => d.id);
+  }
+
+  const now = FieldValue.serverTimestamp();
+  await db.collection('users').doc(uid).set({
+    id: uid,
+    uid,
+    displayName: name,
+    email,
+    role,
+    department,
+    jobTitle,
+    reportsTo,
+    // 'pending_first_login' is deliberately NOT the 'pending' status value
+    // the agent-registration approval flow and the staff/partner login
+    // pages' own pending-approval check use — a CEO-provisioned account
+    // must land straight on its dashboard on first login (no extra
+    // approval screen, per the acceptance criteria), so it must never
+    // match either of those existing status === 'pending' checks. This
+    // flips to 'active' the first time restoreUserSession() sees it.
+    status: 'pending_first_login',
+    isActive: true,
+    createdAt: now,
+    updatedAt: now,
+    createdBy: auth.uid,
+    updatedBy: auth.uid
+  });
+
+  await logAudit(db, 'user.provisioned', 'users', uid, null,
+    { role, department, jobTitle, accountType }, auth.uid);
+  await notifyUser(db, auth.uid, 'Account Provisioned',
+    name + ' (' + (accountType === 'partner' ? 'Partner' : (ROLE_JOBTITLE[role] || role)) + ') has been added.',
+    'user_provisioned', 'users', uid, auth.uid);
+
+  logger.info('createStaffOrPartnerAccount: account created', { uid, role, accountType, createdBy: auth.uid });
+
+  return { ok: true, uid, email, name, role, department, jobTitle };
 });
