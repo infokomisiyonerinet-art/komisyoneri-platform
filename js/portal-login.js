@@ -72,13 +72,66 @@
     submitBtn.textContent = loading ? (CFG.loadingLabel || 'Signing in…') : (CFG.submitLabel || 'Injira');
   }
 
-  // Every session-establishing check in this app redirects here, whether
-  // it's this login page succeeding or index.html's own routing finding an
-  // already-valid session — '/' re-enters the SPA, which reads the same
-  // Firebase Auth session (persisted per-origin) and routes straight to
-  // 'dashboard' via its own getPortalContext()/portalAllowsUser() gate.
+  // ── Redirect-loop guard ──────────────────────────────────────────────
+  // index.html's own portal gate decides "already logged in" from
+  // localStorage('km_current') SYNCHRONOUSLY on DOMContentLoaded — it
+  // deliberately doesn't wait for Firebase's async session confirmation,
+  // to avoid a flash of the wrong page. That means this login page MUST
+  // write that same localStorage entry itself before redirecting back to
+  // '/' — otherwise index.html finds no synchronous session, the gate
+  // bounces straight back here, and (since the real Firebase Auth session
+  // IS valid) this page's own onAuthStateChanged immediately redirects to
+  // '/' again: an infinite loop between here and there, neither side ever
+  // erroring, because neither side has a bug in isolation — the bug was
+  // the missing handoff between them. redirectToAppAfterVerified() is the
+  // single place that performs that handoff; every success path below
+  // (explicit submit, and the already-signed-in onAuthStateChanged check)
+  // goes through it exactly once. A sessionStorage bounce counter is kept
+  // as a second, independent layer — if some *other*, still-unknown bug
+  // ever reintroduces a loop of this shape, it trips after a few rounds
+  // instead of spinning forever with nothing to look at.
+  var REDIRECT_LOOP_KEY = 'km_portal_login_redirect_count';
+  var REDIRECT_LOOP_MAX = 4;
+
+  function clearRedirectLoopGuard() {
+    try { sessionStorage.removeItem(REDIRECT_LOOP_KEY); } catch (e) {}
+  }
+
   function redirectToApp() {
+    var count = 0;
+    try { count = parseInt(sessionStorage.getItem(REDIRECT_LOOP_KEY) || '0', 10); } catch (e) {}
+    if (count >= REDIRECT_LOOP_MAX) {
+      console.error('[PORTAL-LOGIN] redirect-loop guard tripped after ' + count + ' bounces between here and index.html — stopping instead of redirecting again.');
+      clearRedirectLoopGuard();
+      showError('Something went wrong signing you in. Please refresh the page, or contact support if this keeps happening.');
+      return;
+    }
+    try { sessionStorage.setItem(REDIRECT_LOOP_KEY, String(count + 1)); } catch (e) {}
     window.location.replace('/');
+  }
+
+  // Persists the confirmed session into the SAME localStorage shape (and
+  // key) index.html's loadSavedUser()/saveUser() use, so its synchronous
+  // gate check recognizes this session immediately on the next load —
+  // this is the actual fix for the loop, not just the safety net below.
+  function redirectToAppAfterVerified(fbUser, role, data) {
+    try {
+      localStorage.setItem('km_current', JSON.stringify({
+        uid: fbUser.uid,
+        name: (data && data.displayName) || fbUser.displayName || 'User',
+        email: (data && data.email) || fbUser.email || '',
+        phone: (data && data.phone) || fbUser.phoneNumber || '',
+        role: role,
+        status: (data && data.status) || 'active',
+        photo: (data && data.photoURL) || fbUser.photoURL || '',
+        provider: 'email',
+        date: new Date().toISOString()
+      }));
+      console.log('[PORTAL-LOGIN] session written to localStorage before redirect, uid=' + fbUser.uid + ' role=' + role);
+    } catch (e) {
+      console.error('[PORTAL-LOGIN] failed to persist session to localStorage — index.html\'s gate may not recognize it synchronously:', e);
+    }
+    redirectToApp();
   }
 
   function handleSubmit(e) {
@@ -88,19 +141,25 @@
     var pass  = passEl ? passEl.value : '';
     if (!email || !pass) { showError('Enter your email and password.'); return; }
     setLoading(true);
+    var signedInUser = null;
     auth.signInWithEmailAndPassword(email, pass)
       .then(function (cred) {
+        signedInUser = cred.user;
+        console.log('[PORTAL-LOGIN] signInWithEmailAndPassword succeeded, uid=' + cred.user.uid + ' — fetching users/' + cred.user.uid + ' for role check');
         return db.collection('users').doc(cred.user.uid).get();
       })
       .then(function (doc) {
-        var role = doc.exists ? (doc.data().role || '') : '';
+        var data = doc.exists ? doc.data() : {};
+        var role = data.role || '';
+        console.log('[PORTAL-LOGIN] role check (submit): expectedRole=' + EXPECTED_ROLE + ' actualRole=' + role + ' status=' + (data.status || '(none)') + ' allowed=' + roleAllowed(role));
         if (!roleAllowed(role)) {
           auth.signOut().catch(function () {});
           setLoading(false);
           showError(REJECT_MESSAGE);
+          clearRedirectLoopGuard(); // terminal state reached, not a bounce
           return;
         }
-        redirectToApp();
+        redirectToAppAfterVerified(signedInUser, role, data);
       })
       .catch(function (err) {
         setLoading(false);
@@ -136,14 +195,17 @@
     db.collection('users').doc(fbUser.uid).get().then(function (doc) {
       var data = doc.exists ? doc.data() : {};
       var role = data.role || '';
+      console.log('[PORTAL-LOGIN] role check (already-authenticated): expectedRole=' + EXPECTED_ROLE + ' actualRole=' + role + ' status=' + (data.status || '(none)') + ' allowed=' + roleAllowed(role));
       if (roleAllowed(role) && data.status !== 'pending') {
-        redirectToApp();
+        redirectToAppAfterVerified(fbUser, role, data);
       } else if (roleAllowed(role) && data.status === 'pending') {
         auth.signOut().catch(function () {});
         showNotice('Your account is awaiting approval. You will be notified once it is active.');
+        clearRedirectLoopGuard(); // terminal state reached, not a bounce
       } else {
         auth.signOut().catch(function () {});
         showError(REJECT_MESSAGE);
+        clearRedirectLoopGuard(); // terminal state reached, not a bounce
       }
     }).catch(function () {});
   });

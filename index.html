@@ -10714,6 +10714,51 @@ function portalMismatchMessage(portal) {
 function portalLoginUrl(portal) {
   return portal === 'staff' ? '/staff-login.html' : '/partner-login.html';
 }
+
+// ── Redirect-loop guard ──────────────────────────────────────────────
+// Shared by every place in this file that redirects to a dedicated
+// staff/partner login page, AND with js/portal-login.js (same
+// sessionStorage key on both sides of the bounce). Root cause of the
+// infinite-loop class this guards against: the DOMContentLoaded portal
+// gate below decides "already logged in" from localStorage('km_current')
+// synchronously — so the login page MUST seed that entry before sending
+// the visitor back here (see redirectToAppAfterVerified() in portal-
+// login.js, which is the actual fix). If that handoff is ever missing —
+// a regression, or a future login entry point that forgets it — a valid
+// Firebase session gets treated as "not logged in" here, bounces to the
+// login page, which finds the SAME valid session and immediately bounces
+// back — forever, with neither side individually broken enough to error
+// on its own. This counter is the safety net for that failure class.
+var PORTAL_REDIRECT_LOOP_KEY = 'km_portal_login_redirect_count';
+var PORTAL_REDIRECT_LOOP_MAX = 4;
+function clearPortalRedirectLoopGuard() {
+  try { sessionStorage.removeItem(PORTAL_REDIRECT_LOOP_KEY); } catch (e) {}
+}
+function redirectToPortalLogin(loginTarget, reason) {
+  var count = 0;
+  try { count = parseInt(sessionStorage.getItem(PORTAL_REDIRECT_LOOP_KEY) || '0', 10); } catch (e) {}
+  console.log('[PORTAL] redirecting to ' + loginTarget + ' — reason: ' + reason + ' (bounce #' + (count + 1) + ')');
+  if (count >= PORTAL_REDIRECT_LOOP_MAX) {
+    console.error('[PORTAL] redirect-loop guard tripped after ' + count + ' bounces between here and ' + loginTarget + ' — stopping instead of redirecting again.');
+    clearPortalRedirectLoopGuard();
+    try {
+      document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+      var banner = document.createElement('div');
+      banner.setAttribute('style',
+        'position:fixed;top:0;left:0;right:0;z-index:99999;' +
+        'background:#B45309;color:#fff;font:14px/1.4 sans-serif;' +
+        'padding:14px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.25)');
+      banner.innerHTML = 'Something went wrong signing you in. ' +
+        '<button type="button" style="margin-left:8px;padding:4px 10px;border:1px solid #fff;' +
+        'border-radius:4px;background:transparent;color:#fff;font:inherit;cursor:pointer" ' +
+        'onclick="location.href=\'' + loginTarget + '\'">Return to sign-in</button>';
+      document.body.appendChild(banner);
+    } catch (e2) {}
+    return;
+  }
+  try { sessionStorage.setItem(PORTAL_REDIRECT_LOOP_KEY, String(count + 1)); } catch (e) {}
+  window.location.replace(loginTarget);
+}
 // Rejects `user` from the current subdomain's portal if their role doesn't
 // belong there — clears the local session and signs out of Firebase Auth
 // so no half-authenticated state lingers. Returns true (no-op) when the
@@ -11006,7 +11051,7 @@ function restoreUserSession(fbUser) {
       // instead of just calling go('auth').
       try {
         var portalR = getPortalContext();
-        if (portalR !== 'public') { window.location.replace(portalLoginUrl(portalR)); return; }
+        if (portalR !== 'public') { redirectToPortalLogin(portalLoginUrl(portalR), 'restoreUserSession: role rejected'); return; }
       } catch (e) {}
       if (typeof go === 'function') go('auth');
       return;
@@ -16301,15 +16346,19 @@ window.addEventListener('DOMContentLoaded', function() {
     var portalGate = getPortalContext();
     if (portalGate !== 'public') {
       var loginTarget = portalLoginUrl(portalGate);
-      if (!currentUser || currentUser.status === 'pending' || !portalAllowsUser(portalGate, currentUser)) {
-        if (currentUser && !portalAllowsUser(portalGate, currentUser)) enforcePortalRoleOrSignOut(currentUser);
-        window.location.replace(loginTarget);
+      var portalGateAllowed = currentUser ? portalAllowsUser(portalGate, currentUser) : false;
+      console.log('[PORTAL] gate check: portal=' + portalGate + ' currentUser=' + (currentUser ? currentUser.uid : '(none)') + ' role=' + (currentUser ? currentUser.role : '(n/a)') + ' status=' + (currentUser ? currentUser.status : '(n/a)') + ' allowed=' + portalGateAllowed);
+      if (!currentUser || currentUser.status === 'pending' || !portalGateAllowed) {
+        if (currentUser && !portalGateAllowed) enforcePortalRoleOrSignOut(currentUser);
+        redirectToPortalLogin(loginTarget, !currentUser ? 'no session' : (currentUser.status === 'pending' ? 'pending approval' : 'role not allowed'));
         return;
       }
       // Correct role, active status — an authorized visitor. Fall through
       // to the normal routing below (e.g. so an explicit deep link like
       // /crm still works for a logged-in staff member), just landing on
       // 'dashboard' instead of 'home' for the bare-root case.
+      console.log('[PORTAL] gate check passed — authorized visitor, proceeding into the app');
+      clearPortalRedirectLoopGuard();
     }
   } catch (e) {
     // #page-home is force-hidden by CSS on staff./partners. (see the
@@ -16321,7 +16370,7 @@ window.addEventListener('DOMContentLoaded', function() {
     try {
       var portalGateFallback = getPortalContext();
       if (portalGateFallback !== 'public') {
-        window.location.replace(portalLoginUrl(portalGateFallback));
+        redirectToPortalLogin(portalLoginUrl(portalGateFallback), 'gate threw: ' + (e && e.message));
         return;
       }
     } catch (e2) {}
@@ -16407,7 +16456,7 @@ window.addEventListener('DOMContentLoaded', function() {
           // On a gated portal, the SPA's own login form is the wrong thing
           // to show (client/agent tabs) — send them to the dedicated
           // staff/partner login page instead, same as the primary gate.
-          window.location.replace(portalLoginUrl(portalNow));
+          redirectToPortalLogin(portalLoginUrl(portalNow), 'go() threw');
           return;
         }
         homeEl.classList.remove('active');
