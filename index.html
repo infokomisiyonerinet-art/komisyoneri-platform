@@ -11046,6 +11046,20 @@ function loadSavedUser() {
           try { localStorage.setItem('km_current', JSON.stringify(currentUser)); } catch(e2){}
         }
       } catch(e2){}
+      // P0 security closure: this is a SYNCHRONOUS restore straight from the
+      // localStorage cache, running before Firebase Auth's own async
+      // onAuthStateChanged has fired. restoreUserSession() (the async path)
+      // has its own enforcePortalRoleOrSignOut() call, but it early-returns
+      // ("currentUser already matches uid, skipping redundant read") the
+      // instant currentUser is already set with a matching uid — which is
+      // exactly what the line above just did. Net effect without this check:
+      // a cached session from ANY subdomain (e.g. an Agent who last browsed
+      // www.) restores in full on staff./partners. with the portal/role gate
+      // never running at all. Must be checked here too, not just there.
+      if (!enforcePortalRoleOrSignOut(currentUser)) {
+        if (typeof go === 'function') go('auth');
+        return;
+      }
       updateNavForUser(currentUser);
       // Check for an interrupted Add Property draft as soon as we have a
       // usable session — don't wait on the slower async Firestore restore
@@ -20973,7 +20987,10 @@ function loadInvoices() {
     snap.forEach(function(d) { var inv = d.data(); inv.id = d.id; _invoices.push(inv); });
     checkOverdueInvoices();
     filterInvoices();
-  }, function() { if (el) el.innerHTML = '<div class="off-empty">Unable to load invoices.</div>'; });
+  }, function(err) {
+    console.error('[Invoices] load error — code:', err && err.code, 'message:', err && err.message);
+    if (el) el.innerHTML = '<div class="off-empty">Unable to load invoices.</div>';
+  });
   registerListener('invoices', unsub);
 }
 
@@ -25921,8 +25938,8 @@ function loadDocuments() {
     renderDocumentList();
     updateDocumentStats();
   }).catch(function(err) {
+    console.error('[Documents] load error — code:', err && err.code, 'message:', err && err.message);
     list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⚠️</div><div class="crm-empty-title">Error loading</div></div>';
-    console.error('[Documents] load error:', err);
   });
 }
 
@@ -26502,8 +26519,8 @@ function loadVerifications() {
     renderVerificationList();
     updateVerificationStats();
   }).catch(function(err) {
+    console.error('[Verification] load error — code:', err && err.code, 'message:', err && err.message);
     list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⚠️</div><div class="crm-empty-title">Error loading</div></div>';
-    console.error('[Verification] load error:', err);
   });
 }
 
@@ -26991,8 +27008,8 @@ function loadCommissions() {
     updateCommissionStats();
     renderWalletSection();
   }, function(err) {
+    console.error('[Commissions] load error — code:', err && err.code, 'message:', err && err.message);
     list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⚠️</div><div class="crm-empty-title">Error loading</div></div>';
-    console.error('[Commissions] load error:', err);
   });
   registerListener('commissions', unsub);
 }
@@ -32645,9 +32662,9 @@ function loadViewings() {
     _updateViewingsStats();
     renderViewingsList();
   }).catch(function(err) {
+    console.error('[Viewings] load error — code:', err && err.code, 'message:', err && err.message);
     list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#9888;</div>'
       + '<div class="crm-empty-title">' + (curLang==='rw'?'Habaye ikosa':'Error loading viewings') + '</div></div>';
-    console.error('[Viewings] load error:', err);
   });
 }
 
@@ -32944,7 +32961,8 @@ function loadClients() {
     /* Update sidebar badge */
     var sb = g('clients-sidebar-count');
     if (sb) sb.textContent = _clientsList.length > 0 ? _clientsList.length : '0';
-  }).catch(function() {
+  }).catch(function(err) {
+    console.error('[Clients] load error — code:', err && err.code, 'message:', err && err.message);
     if (el) el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#9888;</div><div class="crm-empty-title">Unable to load clients</div></div>';
   });
 }
