@@ -20348,11 +20348,15 @@ function biRevForecast() {
   var now = new Date();
   var threeMonthsAgo = new Date(now.getFullYear(), now.getMonth()-3, 1);
   var ts = firebase.firestore.Timestamp.fromDate(threeMonthsAgo);
-  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('createdAt','>=',ts).get().then(function(snap) {
+  // Bucketed by paidAt (matches loadAccountingStats()'s own revenue
+  // recognition rule) — was bucketing by createdAt, which could put a
+  // month's worth of revenue in the wrong bucket relative to every other
+  // revenue figure in the app.
+  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('paidAt','>=',ts).get().then(function(snap) {
     var monthly = {};
     snap.forEach(function(d) {
       var data = d.data();
-      var dt = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt)) : new Date();
+      var dt = data.paidAt ? (data.paidAt.toDate ? data.paidAt.toDate() : new Date(data.paidAt)) : new Date();
       var key = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
       monthly[key] = (monthly[key]||0) + (data.totalAmount||0);
     });
@@ -20432,8 +20436,10 @@ function biTargets() {
         return '<tr><td>'+m.label+'</td><td>'+m.fmt(m.last)+'</td><td style="font-weight:700">'+m.fmt(m.curr)+'</td><td style="color:'+color+';font-weight:700">'+arrow+' '+Math.abs(delta)+'%</td></tr>';
       }).join('') + '</tbody></table>';
   }
-  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('createdAt','>=',tsThis).get().then(function(s){ s.forEach(function(d){data.thisRev+=(d.data().totalAmount||0);}); finish(); }).catch(finish);
-  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('createdAt','>=',tsLast).where('createdAt','<',tsThis).get().then(function(s){ s.forEach(function(d){data.lastRev+=(d.data().totalAmount||0);}); finish(); }).catch(finish);
+  // Bucketed by paidAt, matching loadAccountingStats()'s revenue
+  // recognition rule (see loadExecKPIs's comment on the same fix).
+  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('paidAt','>=',tsThis).get().then(function(s){ s.forEach(function(d){data.thisRev+=(d.data().totalAmount||0);}); finish(); }).catch(finish);
+  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('paidAt','>=',tsLast).where('paidAt','<',tsThis).get().then(function(s){ s.forEach(function(d){data.lastRev+=(d.data().totalAmount||0);}); finish(); }).catch(finish);
   db.collection('leads').where('isActive','==',true).where('createdAt','>=',tsThis).get().then(function(s){ data.thisLeads=s.size; finish(); }).catch(finish);
   db.collection('leads').where('isActive','==',true).where('createdAt','>=',tsLast).where('createdAt','<',tsThis).get().then(function(s){ data.lastLeads=s.size; finish(); }).catch(finish);
   db.collection('deals').where('isActive','==',true).where('createdAt','>=',tsThis).get().then(function(s){ data.thisDeals=s.size; finish(); }).catch(finish);
@@ -20513,8 +20519,14 @@ function loadExecKPIs() {
   var monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   var ts = firebase.firestore.Timestamp.fromDate(monthStart);
 
+  // Buckets by paidAt (when the money was actually received), not
+  // createdAt — matches loadAccountingStats()'s own revenue bucketing
+  // exactly. Filtering on createdAt while requiring status=='paid' used
+  // to attribute an invoice's revenue to the month it was CREATED even
+  // when it was actually paid the following month, so this tile and
+  // Accounting's own revenue figure could disagree for the same invoice.
   db.collection('invoices').where('status','==','paid').where('isActive','==',true)
-    .where('createdAt','>=',ts).get().then(function(snap) {
+    .where('paidAt','>=',ts).get().then(function(snap) {
       var total = 0;
       snap.forEach(function(d) { total += (d.data().totalAmount || 0); });
       var el = g('exec-kpi-rev');
@@ -20983,10 +20995,13 @@ function loadExecRevChart() {
   }
   var yStart = firebase.firestore.Timestamp.fromDate(new Date(year, 0, 1));
   var yEnd   = firebase.firestore.Timestamp.fromDate(new Date(year + 1, 0, 1));
+  // Bucketed by paidAt — see loadExecKPIs's comment on why this must match
+  // loadAccountingStats()'s own revenue recognition rule rather than
+  // createdAt.
   db.collection('invoices').where('status','==','paid').where('isActive','==',true)
-    .where('createdAt','>=',yStart).where('createdAt','<',yEnd).get().then(function(snap) {
+    .where('paidAt','>=',yStart).where('paidAt','<',yEnd).get().then(function(snap) {
       snap.forEach(function(d) {
-        var dt = d.data().createdAt ? (d.data().createdAt.toDate ? d.data().createdAt.toDate() : new Date()) : new Date();
+        var dt = d.data().paidAt ? (d.data().paidAt.toDate ? d.data().paidAt.toDate() : new Date()) : new Date();
         revData[dt.getMonth()] += (d.data().totalAmount || 0);
       });
       renderChart();
