@@ -566,9 +566,28 @@ html[data-portal="partners"] #page-home{display:none!important}
    <head>) — centralized there instead of inline so they're not
    duplicated as the app grows. */
 .topnav-right{display:flex;align-items:center;gap:.6rem;flex-shrink:0;position:relative}
-.lang-sw{display:flex;background:var(--light);border-radius:100px;padding:3px}
-.lang-btn{background:none;border:none;font-size:.69rem;font-weight:700;letter-spacing:.08em;padding:.26rem .72rem;border-radius:100px;color:var(--muted);transition:var(--tr);font-family:'DM Sans',sans-serif;cursor:pointer}
-.lang-btn.active{background:var(--surface);color:var(--blue);box-shadow:0 1px 6px rgba(0,0,0,.11)}
+/* Language selector — same 38px icon-button footprint as notif-bell/
+   theme-toggle-btn, opening a dropdown menu (same pattern as #notif-panel)
+   instead of the old inline RW/EN two-button toggle, since a 4-language
+   set no longer fits comfortably as inline buttons on mobile. */
+.lang-selector-btn{position:relative;background:none;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;height:38px;padding:0 .55rem;display:flex;align-items:center;gap:.3rem;flex-shrink:0;color:var(--dark);font-family:'DM Sans',sans-serif}
+.lang-selector-btn:hover{border-color:var(--blue)}
+.lang-selector-flag{font-size:1.05rem;line-height:1}
+.lang-selector-code{font-size:.72rem;font-weight:700;letter-spacing:.04em;color:var(--muted)}
+.lang-selector-btn svg{color:var(--muted);flex-shrink:0}
+.lang-menu{display:none;position:absolute;top:46px;right:0;min-width:190px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.16);z-index:9999;overflow:hidden;padding:.35rem}
+.lang-menu-item{display:flex;align-items:center;gap:.6rem;width:100%;background:none;border:none;padding:.55rem .6rem;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;color:var(--dark);text-align:left}
+.lang-menu-item:hover{background:var(--light)}
+.lang-menu-item.active{background:var(--light);color:var(--blue)}
+.lang-menu-item .lm-flag{font-size:1.15rem;flex-shrink:0}
+.lang-menu-item .lm-check{margin-left:auto;color:var(--blue);flex-shrink:0;display:none}
+.lang-menu-item.active .lm-check{display:inline-flex}
+@media(max-width:480px){
+  .lang-selector-code{display:none}
+  .lang-selector-btn{width:38px;padding:0;justify-content:center}
+  .lang-selector-btn svg{display:none}
+  .lang-menu{right:-8px;min-width:180px}
+}
 /* Theme toggle — same 38x38 icon-button footprint as notif-bell/nav-fav-btn */
 .theme-toggle-btn{position:relative;background:none;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--navy)}
 .theme-toggle-btn svg{width:19px;height:19px;transition:opacity .2s ease,transform .3s ease}
@@ -2290,8 +2309,9 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   .p-btn-detail,.p-btn-wa{min-height:44px;padding:.72rem}
   /* Nav links invisible on mobile but set for safety */
   .nl{min-height:44px;display:inline-flex;align-items:center}
-  /* Language switcher pills: easier to tap */
-  .lang-btn{min-height:44px;padding:.44rem .8rem}
+  /* Language selector: easier to tap */
+  .lang-selector-btn{min-height:44px}
+  .lang-menu-item{min-height:44px}
 }
 
 /* 1b ── Stack inline 2-column form grids on narrow phones (form sections built
@@ -2360,10 +2380,6 @@ html,body{overscroll-behavior-x:none}
   .logo-text span{font-size:.54rem;letter-spacing:.1em;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:112px;display:block}
 
-  /* Lang switcher: tighten pill padding */
-  .lang-sw{padding:2px}
-  .lang-btn{padding:.24rem .58rem;font-size:.65rem}
-
   /* Notif bell + hamburger: tighten slightly */
   #notif-bell{width:36px!important;height:36px!important;padding:.32rem .42rem!important}
   #hamburger-btn{width:36px!important;height:36px!important;padding:.32rem .42rem!important}
@@ -2379,7 +2395,6 @@ html,body{overscroll-behavior-x:none}
   .logo-text strong{font-size:.92rem}
   .logo-text span{font-size:.5rem;max-width:94px}
   .topnav-right{gap:.28rem}
-  .lang-btn{padding:.22rem .48rem;font-size:.62rem}
   #notif-bell{width:34px!important;height:34px!important}
   #hamburger-btn{width:34px!important;height:34px!important}
 }
@@ -3441,18 +3456,27 @@ html,body{overscroll-behavior-x:none}
     <div class="logo-text"><strong>KOMISIYONERI</strong><span>Connectpro Services</span></div>
   </div>
   <div class="topnav-links">
-    <button class="nl active" id="nl-home" onclick="go('home')" aria-label="Ahabanza — Home page" aria-current="page" data-rw="Ahabanza" data-en="Home">Ahabanza</button>
-    <button class="nl" id="nl-listings" onclick="go('listings')" aria-label="Imitungo — Properties page" data-rw="Imitungo" data-en="Properties">Imitungo</button>
-    <button class="nl" id="nl-analytics" onclick="go('analytics')" aria-label="AI Analytics page" data-rw="AI Analytics" data-en="AI Analytics">AI Analytics</button>
-    <button class="nl" id="nl-sites" onclick="go('sites')" aria-label="New Developments page" data-rw="Sitey Nshya" data-en="New Sites">Sitey Nshya</button>
-    <button class="nl" id="nl-dashboard" onclick="go('dashboard')" aria-label="Dashboard page" data-rw="Dashboard" data-en="Dashboard" style="display:none">Dashboard</button>
-    <button class="btn btn-gold btn-sm" onclick="openAddProperty()" style="margin-left:.4rem" data-rw="Ongeramo Imitungo" data-en="List Property">Ongeramo Imitungo</button>
-    <button class="nl" id="nl-auth" onclick="go('auth')" data-rw="Injira" data-en="Sign In">Injira</button>
+    <button class="nl active" id="nl-home" onclick="go('home')" aria-label="Ahabanza — Home page" aria-current="page" data-rw="Ahabanza" data-en="Home" data-fr="Accueil" data-sw="Nyumbani">Home</button>
+    <button class="nl" id="nl-listings" onclick="go('listings')" aria-label="Imitungo — Properties page" data-rw="Imitungo" data-en="Properties" data-fr="Biens" data-sw="Mali">Properties</button>
+    <button class="nl" id="nl-analytics" onclick="go('analytics')" aria-label="AI Analytics page" data-rw="AI Analytics" data-en="AI Analytics" data-fr="IA Analytique" data-sw="Uchambuzi wa AI">AI Analytics</button>
+    <button class="nl" id="nl-sites" onclick="go('sites')" aria-label="New Developments page" data-rw="Sitey Nshya" data-en="New Sites" data-fr="Nouveaux Sites" data-sw="Maeneo Mapya">New Sites</button>
+    <button class="nl" id="nl-dashboard" onclick="go('dashboard')" aria-label="Dashboard page" data-rw="Dashboard" data-en="Dashboard" data-fr="Tableau de Bord" data-sw="Dashibodi" style="display:none">Dashboard</button>
+    <button class="btn btn-gold btn-sm" onclick="openAddProperty()" style="margin-left:.4rem" data-rw="Ongeramo Imitungo" data-en="List Property" data-fr="Publier un Bien" data-sw="Orodhesha Mali">List Property</button>
+    <button class="nl" id="nl-auth" onclick="go('auth')" data-rw="Injira" data-en="Sign In" data-fr="Connexion" data-sw="Ingia">Sign In</button>
   </div>
   <div class="topnav-right">
-    <div class="lang-sw">
-      <button class="lang-btn active" id="lb-rw" onclick="setLang('rw')">RW</button>
-      <button class="lang-btn" id="lb-en" onclick="setLang('en')">EN</button>
+    <div style="position:relative">
+      <button class="lang-selector-btn" id="lang-selector-btn" onclick="toggleLangMenu()" aria-haspopup="true" aria-expanded="false" aria-label="Change language / Hindura ururimi">
+        <span class="lang-selector-flag" id="lang-selector-flag">🇬🇧</span>
+        <span class="lang-selector-code" id="lang-selector-code">EN</span>
+        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="lang-menu" id="lang-menu" role="menu">
+        <button class="lang-menu-item" id="lm-en" data-lang="en" onclick="setLang('en')" role="menuitem"><span class="lm-flag">🇬🇧</span><span>English</span><svg class="lm-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>
+        <button class="lang-menu-item" id="lm-rw" data-lang="rw" onclick="setLang('rw')" role="menuitem"><span class="lm-flag">🇷🇼</span><span>Kinyarwanda</span><svg class="lm-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>
+        <button class="lang-menu-item" id="lm-fr" data-lang="fr" onclick="setLang('fr')" role="menuitem"><span class="lm-flag">🇫🇷</span><span>Français</span><svg class="lm-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>
+        <button class="lang-menu-item" id="lm-sw" data-lang="sw" onclick="setLang('sw')" role="menuitem"><span class="lm-flag">🇹🇿</span><span>Kiswahili</span><svg class="lm-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>
+      </div>
     </div>
     <!-- Theme toggle (Light/Dark) — full Light/Dark/System choice lives in Settings -->
     <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">
@@ -3883,15 +3907,15 @@ html,body{overscroll-behavior-x:none}
 <div class="search-trigger-bar" id="search-trigger-bar">
   <div class="stb-input" onclick="openSearch()" role="button" tabindex="0">
     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <span data-rw="Shakisha imitungo..." data-en="Search properties...">Shakisha imitungo...</span>
+    <span data-rw="Shakisha imitungo..." data-en="Search properties..." data-fr="Rechercher des biens..." data-sw="Tafuta mali...">Search properties...</span>
   </div>
   <div class="stb-filters">
-    <button class="stb-fc on" onclick="openSearch({tab:'buy'})" data-rw="Kugura" data-en="Buy">Kugura</button>
-    <button class="stb-fc" onclick="openSearch({tab:'rent'})" data-rw="Gukodesha" data-en="Rent">Gukodesha</button>
-    <button class="stb-fc" onclick="openSearch({district:'Kigali'})" data-rw="Kigali" data-en="Kigali">Kigali</button>
-    <button class="stb-fc" onclick="openSearch({type:'Villa'})" data-rw="Villa" data-en="Villa">Villa</button>
-    <button class="stb-fc" onclick="openSearch({type:'Apartimanı'})" data-rw="Apartimanı" data-en="Apartment">Apartimanı</button>
-    <button class="stb-fc" onclick="openSearch({type:'Ubutaka'})" data-rw="Ubutaka" data-en="Land">Ubutaka</button>
+    <button class="stb-fc on" onclick="openSearch({tab:'buy'})" data-rw="Kugura" data-en="Buy" data-fr="Acheter" data-sw="Nunua">Buy</button>
+    <button class="stb-fc" onclick="openSearch({tab:'rent'})" data-rw="Gukodesha" data-en="Rent" data-fr="Louer" data-sw="Kodisha">Rent</button>
+    <button class="stb-fc" onclick="openSearch({district:'Kigali'})" data-rw="Kigali" data-en="Kigali" data-fr="Kigali" data-sw="Kigali">Kigali</button>
+    <button class="stb-fc" onclick="openSearch({type:'Villa'})" data-rw="Villa" data-en="Villa" data-fr="Villa" data-sw="Villa">Villa</button>
+    <button class="stb-fc" onclick="openSearch({type:'Apartimanı'})" data-rw="Apartimanı" data-en="Apartment" data-fr="Appartement" data-sw="Ghorofa">Apartment</button>
+    <button class="stb-fc" onclick="openSearch({type:'Ubutaka'})" data-rw="Ubutaka" data-en="Land" data-fr="Terrain" data-sw="Ardhi">Land</button>
     <button class="stb-fc" onclick="openSearch({chip:'3D Tour'})">3D Tour</button>
   </div>
 </div>
@@ -3925,9 +3949,9 @@ html,body{overscroll-behavior-x:none}
     <div class="hero-grid-overlay"></div>
     <div class="hero-inner">
       <div>
-        <div class="hero-pill"><div class="h-pulse"></div><span data-rw="🇷🇼 KOMISIYONERI — Ikigo Cyuzuye cy'Imitungo" data-en="🇷🇼 KOMISIYONERI — Rwanda's Real Estate One-Stop Center">🇷🇼 KOMISIYONERI — Ikigo Cyuzuye cy'Imitungo</span></div>
-        <h1><span data-rw="Urubuga Rutanga Serivisi" data-en="Rwanda's Real Estate">Urubuga Rutanga Serivisi</span><br><em data-rw="zose z'Imitungo mu Rwanda 🇷🇼" data-en="One-Stop Center 🇷🇼">zose z'Imitungo mu Rwanda 🇷🇼</em></h1>
-        <p class="hero-sub" data-rw="Gura, Kugurisha, Gukodesha, Kubona Inguzanyo no Gucunga Imitungo hamwe n'inzobere zizewe — byose ahantu hamwe." data-en="Buy, Sell, Rent, Finance and Manage Property with trusted professionals — all in one place.">Gura, Kugurisha, Gukodesha, Kubona Inguzanyo no Gucunga Imitungo hamwe n'inzobere zizewe — byose ahantu hamwe.</p>
+        <div class="hero-pill"><div class="h-pulse"></div><span data-rw="🇷🇼 KOMISIYONERI — Ikigo Cyuzuye cy'Imitungo" data-en="🇷🇼 KOMISIYONERI — Rwanda's Real Estate One-Stop Center" data-fr="🇷🇼 KOMISIYONERI — Le Guichet Unique de l'Immobilier au Rwanda" data-sw="🇷🇼 KOMISIYONERI — Kituo cha Mali Isiyohamishika cha Rwanda">🇷🇼 KOMISIYONERI — Rwanda's Real Estate One-Stop Center</span></div>
+        <h1><span data-rw="Urubuga Rutanga Serivisi" data-en="Rwanda's Real Estate" data-fr="L'Immobilier du Rwanda" data-sw="Mali Isiyohamishika ya Rwanda">Rwanda's Real Estate</span><br><em data-rw="zose z'Imitungo mu Rwanda 🇷🇼" data-en="One-Stop Center 🇷🇼" data-fr="Guichet Unique 🇷🇼" data-sw="Kituo Kimoja 🇷🇼">One-Stop Center 🇷🇼</em></h1>
+        <p class="hero-sub" data-rw="Gura, Kugurisha, Gukodesha, Kubona Inguzanyo no Gucunga Imitungo hamwe n'inzobere zizewe — byose ahantu hamwe." data-en="Buy, Sell, Rent, Finance and Manage Property with trusted professionals — all in one place." data-fr="Achetez, vendez, louez, financez et gérez vos biens avec des professionnels de confiance — tout en un seul endroit." data-sw="Nunua, uza, kodisha, fadhili na simamia mali na wataalamu wanaoaminika — yote mahali pamoja.">Buy, Sell, Rent, Finance and Manage Property with trusted professionals — all in one place.</p>
 
         <!-- UNIVERSAL PLATFORM SEARCH — the primary CTA: one box searches the
              entire KOMISIYONERI ecosystem (properties, agents, services,
@@ -3937,10 +3961,10 @@ html,body{overscroll-behavior-x:none}
              chatbot — see usearchRunQuery() below. -->
         <div class="usearch-bar" onclick="usearchOpen()" role="button" tabindex="0" aria-label="Search the KOMISIYONERI ecosystem">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" readonly tabindex="-1" data-rw="Shakisha imitungo, agents, serivisi, akazi..." data-en="Search properties, agents, services, jobs..." placeholder="Search properties, agents, services, jobs...">
+          <input type="text" readonly tabindex="-1" data-rw="Shakisha imitungo, agents, serivisi, akazi..." data-en="Search properties, agents, services, jobs..." data-fr="Rechercher biens, agents, services, emplois..." data-sw="Tafuta mali, mawakala, huduma, kazi..." placeholder="Search properties, agents, services, jobs...">
           <button class="usearch-bar-btn" type="button" onclick="event.stopPropagation();usearchOpen()">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <span data-rw="Shakisha" data-en="Search">Search</span>
+            <span data-rw="Shakisha" data-en="Search" data-fr="Rechercher" data-sw="Tafuta">Search</span>
           </button>
         </div>
 
@@ -3948,23 +3972,23 @@ html,body{overscroll-behavior-x:none}
         <div class="hero-actions-grid">
           <div class="hero-action-card" onclick="openSearch({tab:'buy'})" role="button" tabindex="0">
             <span class="hac-emoji">🏠</span>
-            <span data-rw="Kugura" data-en="Buy Property">Buy Property</span>
+            <span data-rw="Kugura" data-en="Buy Property" data-fr="Acheter un Bien" data-sw="Nunua Mali">Buy Property</span>
           </div>
           <div class="hero-action-card" onclick="openAddProperty()" role="button" tabindex="0">
             <span class="hac-emoji">💰</span>
-            <span data-rw="Kugurisha" data-en="Sell Property">Sell Property</span>
+            <span data-rw="Kugurisha" data-en="Sell Property" data-fr="Vendre un Bien" data-sw="Uza Mali">Sell Property</span>
           </div>
           <div class="hero-action-card" onclick="openSearch({tab:'rent'})" role="button" tabindex="0">
             <span class="hac-emoji">🏢</span>
-            <span data-rw="Gukodesha" data-en="Rent Property">Rent Property</span>
+            <span data-rw="Gukodesha" data-en="Rent Property" data-fr="Louer un Bien" data-sw="Kodisha Mali">Rent Property</span>
           </div>
           <div class="hero-action-card" onclick="openLead()" role="button" tabindex="0">
             <span class="hac-emoji">👤</span>
-            <span data-rw="Saba Agent" data-en="Find an Agent">Find an Agent</span>
+            <span data-rw="Saba Agent" data-en="Find an Agent" data-fr="Trouver un Agent" data-sw="Tafuta Wakala">Find an Agent</span>
           </div>
           <div class="hero-action-card" onclick="goPlotsForSale()" role="button" tabindex="0">
             <span class="hac-emoji">📍</span>
-            <span data-rw="Ibibanza Bigurishwa" data-en="Plots for Sale">Plots for Sale</span>
+            <span data-rw="Ibibanza Bigurishwa" data-en="Plots for Sale" data-fr="Terrains à Vendre" data-sw="Viwanja vya Kuuza">Plots for Sale</span>
           </div>
         </div>
 
@@ -3972,12 +3996,12 @@ html,body{overscroll-behavior-x:none}
         <div class="hero-trust">
           <div class="trust-badge">
             <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span data-rw="Imitungo Yose Igenzurwa" data-en="Every Listing Verified">Every Listing Verified</span>
+            <span data-rw="Imitungo Yose Igenzurwa" data-en="Every Listing Verified" data-fr="Chaque Annonce Vérifiée" data-sw="Kila Orodha Imethibitishwa">Every Listing Verified</span>
           </div>
           <div class="trust-vline"></div>
           <div class="trust-badge">
             <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span data-rw="Abakomisiyoneri Bemewe" data-en="Verified Agents">Verified Agents</span>
+            <span data-rw="Abakomisiyoneri Bemewe" data-en="Verified Agents" data-fr="Agents Vérifiés" data-sw="Mawakala Waliothibitishwa">Verified Agents</span>
           </div>
         </div>
 
@@ -4325,24 +4349,24 @@ html,body{overscroll-behavior-x:none}
             <img src="/images/logo.png" width="52" height="52" loading="lazy" decoding="async" style="object-fit:contain" alt="KOMISIYONERI Logo">
             <div><strong style="color:#fff;font-family:'Cormorant Garamond',serif;font-size:1.05rem">KOMISIYONERI</strong><br><span style="font-size:.55rem;color:rgba(255,255,255,.35);letter-spacing:.16em;text-transform:uppercase">Connectpro Services</span></div>
           </div>
-          <p class="ft-brand" data-rw="Duhuza abantu n'imitungo itimurika mu Rwanda mu buryo bworoshye kandi bwizewe." data-en="Connecting people with quality properties in Rwanda simply and safely.">Duhuza abantu n'imitungo itimurika mu Rwanda mu buryo bworoshye kandi bwizewe.</p>
+          <p class="ft-brand" data-rw="Duhuza abantu n'imitungo itimurika mu Rwanda mu buryo bworoshye kandi bwizewe." data-en="Connecting people with quality properties in Rwanda simply and safely." data-fr="Nous connectons les gens à des biens de qualité au Rwanda, simplement et en toute sécurité." data-sw="Tunaunganisha watu na mali bora nchini Rwanda kwa urahisi na usalama.">Connecting people with quality properties in Rwanda simply and safely.</p>
         </div>
-        <div class="ft-col"><h5 data-rw="Serivisi" data-en="Services">Serivisi</h5><ul>
-          <li><a onclick="go('listings')" data-rw="Kugura Inzu" data-en="Buy Property">Kugura Inzu</a></li>
-          <li><a onclick="go('listings')" data-rw="Gukiranurisha" data-en="Kodeshas">Gukiranurisha</a></li>
-          <li><a onclick="go('analytics')" data-rw="AI Analytics" data-en="AI Analytics">AI Analytics</a></li>
-          <li><a onclick="go('detail')" data-rw="Virtual Tours" data-en="Virtual Tours">Virtual Tours</a></li>
-          <li><a onclick="go('dashboard')" data-rw="Agent Dashboard" data-en="Agent Dashboard">Agent Dashboard</a></li>
+        <div class="ft-col"><h5 data-rw="Serivisi" data-en="Services" data-fr="Services" data-sw="Huduma">Services</h5><ul>
+          <li><a onclick="go('listings')" data-rw="Kugura Inzu" data-en="Buy Property" data-fr="Acheter un Bien" data-sw="Nunua Mali">Buy Property</a></li>
+          <li><a onclick="go('listings')" data-rw="Gukiranurisha" data-en="Kodeshas" data-fr="Louer" data-sw="Kodisha">Rent</a></li>
+          <li><a onclick="go('analytics')" data-rw="AI Analytics" data-en="AI Analytics" data-fr="IA Analytique" data-sw="Uchambuzi wa AI">AI Analytics</a></li>
+          <li><a onclick="go('detail')" data-rw="Virtual Tours" data-en="Virtual Tours" data-fr="Visites Virtuelles" data-sw="Ziara za Kimtandao">Virtual Tours</a></li>
+          <li><a onclick="go('dashboard')" data-rw="Agent Dashboard" data-en="Agent Dashboard" data-fr="Tableau de Bord Agent" data-sw="Dashibodi ya Wakala">Agent Dashboard</a></li>
         </ul></div>
-        <div class="ft-col"><h5 data-rw="Sosiyete" data-en="Company">Sosiyete</h5><ul>
-          <li><a onclick="go('about')" style="cursor:pointer" data-rw="Abo Turi Bo" data-en="About Us">Abo Turi Bo</a></li>
-          <li><a onclick="go('agents')" style="cursor:pointer" data-rw="Abakomisiyoneri" data-en="Our Agents">Abakomisiyoneri</a></li>
-          <li><a onclick="go('careers')" style="cursor:pointer" data-rw="Akazi Kacu" data-en="Careers">Akazi Kacu</a></li>
-          <li><a onclick="go('analytics')" style="cursor:pointer" data-rw="Amakuru y'Isoko" data-en="Market News">Amakuru y'Isoko</a></li>
-          <li><a onclick="go('privacy')" style="cursor:pointer" data-rw="Politiki y'Ubucungezi" data-en="Privacy Policy">Politiki y'Ubucungezi</a></li>
-          <li><a onclick="go('terms')" style="cursor:pointer" data-rw="Amabwiriza" data-en="Terms of Service">Amabwiriza</a></li>
+        <div class="ft-col"><h5 data-rw="Sosiyete" data-en="Company" data-fr="Entreprise" data-sw="Kampuni">Company</h5><ul>
+          <li><a onclick="go('about')" style="cursor:pointer" data-rw="Abo Turi Bo" data-en="About Us" data-fr="À Propos" data-sw="Kuhusu Sisi">About Us</a></li>
+          <li><a onclick="go('agents')" style="cursor:pointer" data-rw="Abakomisiyoneri" data-en="Our Agents" data-fr="Nos Agents" data-sw="Mawakala Wetu">Our Agents</a></li>
+          <li><a onclick="go('careers')" style="cursor:pointer" data-rw="Akazi Kacu" data-en="Careers" data-fr="Carrières" data-sw="Kazi">Careers</a></li>
+          <li><a onclick="go('analytics')" style="cursor:pointer" data-rw="Amakuru y'Isoko" data-en="Market News" data-fr="Actualités du Marché" data-sw="Habari za Soko">Market News</a></li>
+          <li><a onclick="go('privacy')" style="cursor:pointer" data-rw="Politiki y'Ubucungezi" data-en="Privacy Policy" data-fr="Politique de Confidentialité" data-sw="Sera ya Faragha">Privacy Policy</a></li>
+          <li><a onclick="go('terms')" style="cursor:pointer" data-rw="Amabwiriza" data-en="Terms of Service" data-fr="Conditions d'Utilisation" data-sw="Masharti ya Huduma">Terms of Service</a></li>
         </ul></div>
-        <div class="ft-col"><h5 data-rw="Twandikire" data-en="Contact">Twandikire</h5>
+        <div class="ft-col"><h5 data-rw="Twandikire" data-en="Contact" data-fr="Contact" data-sw="Wasiliana">Contact</h5>
           <div class="ft-ct"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Kigali, Rwanda</div>
           <div class="ft-ct"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.13a16 16 0 006.73 6.73l1.35-1.35a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>+250 783 177 254</div>
           <div class="ft-ct"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5c35323a331c373331352f35253332392e35723f3331">[email&#160;protected]</a></div>
@@ -4367,15 +4391,15 @@ html,body{overscroll-behavior-x:none}
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> WhatsApp
           </a>
         </div>
-        <p data-rw="© 2026 Komisyoneri. Uburenganzira bwose burabitswe." data-en="© 2026 Komisyoneri. All rights reserved.">© 2026 Komisyoneri. All rights reserved.</p>
+        <p data-rw="© 2026 Komisyoneri. Uburenganzira bwose burabitswe." data-en="© 2026 Komisyoneri. All rights reserved." data-fr="© 2026 Komisyoneri. Tous droits réservés." data-sw="© 2026 Komisyoneri. Haki zote zimehifadhiwa.">© 2026 Komisyoneri. All rights reserved.</p>
         <div style="display:flex;gap:1.2rem;flex-wrap:wrap;margin-top:.4rem">
-          <a onclick="go('privacy')" style="cursor:pointer;color:rgba(255,255,255,.4);font-size:.75rem;text-decoration:none;transition:.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.4)'" data-rw="Politiki y'Ubucungezi" data-en="Privacy Policy">Politiki y'Ubucungezi</a>
+          <a onclick="go('privacy')" style="cursor:pointer;color:rgba(255,255,255,.4);font-size:.75rem;text-decoration:none;transition:.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.4)'" data-rw="Politiki y'Ubucungezi" data-en="Privacy Policy" data-fr="Politique de Confidentialité" data-sw="Sera ya Faragha">Privacy Policy</a>
           <span style="color:rgba(255,255,255,.2);font-size:.75rem">·</span>
-          <a onclick="go('terms')" style="cursor:pointer;color:rgba(255,255,255,.4);font-size:.75rem;text-decoration:none;transition:.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.4)'" data-rw="Amabwiriza" data-en="Terms of Service">Amabwiriza</a>
+          <a onclick="go('terms')" style="cursor:pointer;color:rgba(255,255,255,.4);font-size:.75rem;text-decoration:none;transition:.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.4)'" data-rw="Amabwiriza" data-en="Terms of Service" data-fr="Conditions d'Utilisation" data-sw="Masharti ya Huduma">Terms of Service</a>
           <span style="color:rgba(255,255,255,.2);font-size:.75rem">·</span>
-          <a onclick="go('about')" style="cursor:pointer;color:rgba(255,255,255,.4);font-size:.75rem;text-decoration:none;transition:.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.4)'" data-rw="Abo Turi Bo" data-en="About Us">Abo Turi Bo</a>
+          <a onclick="go('about')" style="cursor:pointer;color:rgba(255,255,255,.4);font-size:.75rem;text-decoration:none;transition:.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.4)'" data-rw="Abo Turi Bo" data-en="About Us" data-fr="À Propos" data-sw="Kuhusu Sisi">About Us</a>
         </div>
-        <p style="color:rgba(255,255,255,.3)" data-rw="Yakozwe mu Rwanda" data-en="Made with love in Rwanda">Yakozwe mu <span style="color:var(--green);font-weight:700">Rwanda</span></p>
+        <p style="color:rgba(255,255,255,.3)" data-rw="Yakozwe mu Rwanda" data-en="Made with love in Rwanda" data-fr="Fait avec amour au Rwanda" data-sw="Imetengenezwa kwa upendo Rwanda">Made with love in <span style="color:var(--green);font-weight:700">Rwanda</span></p>
       </div>
     </div>
   </footer>
@@ -5034,59 +5058,59 @@ html,body{overscroll-behavior-x:none}
     <div class="auth-left">
       <div style="position:relative;z-index:1">
         <img src="/images/logo.png" width="70" height="70" loading="lazy" decoding="async" style="object-fit:contain;margin-bottom:2rem" alt="KOMISIYONERI Logo">
-        <h1 style="color:#fff;font-size:clamp(2rem,4vw,3rem);margin-bottom:1rem" data-rw="Murakaza neza kuri KOMISIYONERI" data-en="Welcome to KOMISIYONERI">Murakaza neza kuri KOMISIYONERI</h1>
-        <p style="color:rgba(255,255,255,.82);font-size:.92rem;line-height:1.8;max-width:400px;margin-bottom:2rem" data-rw="Iyandikishe kuri platform y'imitungo nziza mu Rwanda — itangira ubuntu, ntukeneye karita ya banki." data-en="Register on Rwanda's leading real estate platform — start free, no credit card required.">Iyandikishe kuri platform y'imitungo nziza mu Rwanda — itangira ubuntu, ntukeneye karita ya banki.</p>
+        <h1 style="color:#fff;font-size:clamp(2rem,4vw,3rem);margin-bottom:1rem" data-rw="Murakaza neza kuri KOMISIYONERI" data-en="Welcome to KOMISIYONERI" data-fr="Bienvenue sur KOMISIYONERI" data-sw="Karibu KOMISIYONERI">Welcome to KOMISIYONERI</h1>
+        <p style="color:rgba(255,255,255,.82);font-size:.92rem;line-height:1.8;max-width:400px;margin-bottom:2rem" data-rw="Iyandikishe kuri platform y'imitungo nziza mu Rwanda — itangira ubuntu, ntukeneye karita ya banki." data-en="Register on Rwanda's leading real estate platform — start free, no credit card required." data-fr="Inscrivez-vous sur la principale plateforme immobilière du Rwanda — gratuit, sans carte bancaire." data-sw="Jisajili kwenye jukwaa kuu la mali isiyohamishika la Rwanda — anza bure, hakuna kadi ya benki inayohitajika.">Register on Rwanda's leading real estate platform — start free, no credit card required.</p>
         <div style="display:flex;flex-direction:column;gap:.85rem">
-          <div style="display:flex;align-items:center;gap:.75rem;color:rgba(255,255,255,.75);font-size:.88rem"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-rw="Imitungo Yose Igenzurwa n'Itsinda Ryacu" data-en="Every Listing Verified by Our Team">Imitungo Yose Igenzurwa n'Itsinda Ryacu</span></div>
-          <div style="display:flex;align-items:center;gap:.75rem;color:rgba(255,255,255,.75);font-size:.88rem"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-rw="Virtual Tours 3D/VR — Reba utajya ahandi" data-en="Virtual Tours 3D/VR — view without visiting">Virtual Tours 3D/VR — Reba utajya ahandi</span></div>
-          <div style="display:flex;align-items:center;gap:.75rem;color:rgba(255,255,255,.75);font-size:.88rem"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-rw="Market Analytics — Ibipimo Nyakuri" data-en="Market Analytics — Real, Live Figures">Market Analytics — Ibipimo Nyakuri</span></div>
-          <div style="display:flex;align-items:center;gap:.75rem;color:rgba(255,255,255,.75);font-size:.88rem"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-rw="Umufasha wa NOHERI AI 24/7" data-en="NOHERI AI Assistant, 24/7">NOHERI AI Assistant, 24/7</span></div>
+          <div style="display:flex;align-items:center;gap:.75rem;color:rgba(255,255,255,.75);font-size:.88rem"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-rw="Imitungo Yose Igenzurwa n'Itsinda Ryacu" data-en="Every Listing Verified by Our Team" data-fr="Chaque Annonce Vérifiée par Notre Équipe" data-sw="Kila Orodha Imethibitishwa na Timu Yetu">Every Listing Verified by Our Team</span></div>
+          <div style="display:flex;align-items:center;gap:.75rem;color:rgba(255,255,255,.75);font-size:.88rem"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-rw="Virtual Tours 3D/VR — Reba utajya ahandi" data-en="Virtual Tours 3D/VR — view without visiting" data-fr="Visites Virtuelles 3D/VR — sans vous déplacer" data-sw="Ziara za Kimtandao 3D/VR — angalia bila kutembelea">Virtual Tours 3D/VR — view without visiting</span></div>
+          <div style="display:flex;align-items:center;gap:.75rem;color:rgba(255,255,255,.75);font-size:.88rem"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-rw="Market Analytics — Ibipimo Nyakuri" data-en="Market Analytics — Real, Live Figures" data-fr="Analyse du Marché — Chiffres Réels en Direct" data-sw="Uchambuzi wa Soko — Takwimu za Kweli za Moja kwa Moja">Market Analytics — Real, Live Figures</span></div>
+          <div style="display:flex;align-items:center;gap:.75rem;color:rgba(255,255,255,.75);font-size:.88rem"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-rw="Umufasha wa NOHERI AI 24/7" data-en="NOHERI AI Assistant, 24/7" data-fr="Assistant NOHERI IA, 24/7" data-sw="Msaidizi wa NOHERI AI, 24/7">NOHERI AI Assistant, 24/7</span></div>
         </div>
       </div>
     </div>
     <div class="auth-right">
       <div class="auth-box">
-        <h2 class="auth-title" id="auth-title" data-rw="Injira mu Konti" data-en="Sign In">Injira mu Konti</h2>
-        <p class="auth-sub" id="auth-sub" data-rw="Uzuza amakuru yawe hasi kugira ngo winjire" data-en="Enter your details below to sign in">Uzuza amakuru yawe hasi kugira ngo winjire</p>
+        <h2 class="auth-title" id="auth-title" data-rw="Injira mu Konti" data-en="Sign In" data-fr="Connexion" data-sw="Ingia">Sign In</h2>
+        <p class="auth-sub" id="auth-sub" data-rw="Uzuza amakuru yawe hasi kugira ngo winjire" data-en="Enter your details below to sign in" data-fr="Saisissez vos informations ci-dessous pour vous connecter" data-sw="Jaza maelezo yako hapa chini kuingia">Enter your details below to sign in</p>
         <!-- Role tabs -->
         <div class="role-tabs" id="auth-roles">
-          <button class="rt active" data-rw="Umushaka Inzu" data-en="Buyer/Renter">Umushaka Inzu</button>
-          <button class="rt" data-rw="Nyir'Imitungo" data-en="Property Owner">Nyir'Imitungo</button>
-          <button class="rt" data-rw="Agent" data-en="Agent">Agent</button>
+          <button class="rt active" data-rw="Umushaka Inzu" data-en="Buyer/Renter" data-fr="Acheteur/Locataire" data-sw="Mnunuzi/Mpangaji">Buyer/Renter</button>
+          <button class="rt" data-rw="Nyir'Imitungo" data-en="Property Owner" data-fr="Propriétaire" data-sw="Mmiliki wa Mali">Property Owner</button>
+          <button class="rt" data-rw="Agent" data-en="Agent" data-fr="Agent" data-sw="Wakala">Agent</button>
         </div>
         <!-- Login form -->
         <div id="form-login">
           <div style="display:flex;flex-direction:column;gap:.8rem">
-            <div class="field"><label for="login-email" data-rw="Imeyili" data-en="Email">Imeyili</label><input type="email" id="login-email" placeholder="imeyili@gmail.com" aria-required="true"></div>
-            <div class="field"><label for="login-pass" data-rw="Ijambo Banga" data-en="Password">Ijambo Banga</label><input type="password" id="login-pass" placeholder="••••••••" aria-required="true"></div>
+            <div class="field"><label for="login-email" data-rw="Imeyili" data-en="Email" data-fr="E-mail" data-sw="Barua Pepe">Email</label><input type="email" id="login-email" placeholder="imeyili@gmail.com" aria-required="true"></div>
+            <div class="field"><label for="login-pass" data-rw="Ijambo Banga" data-en="Password" data-fr="Mot de Passe" data-sw="Nenosiri">Password</label><input type="password" id="login-pass" placeholder="••••••••" aria-required="true"></div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin:.9rem 0">
-            <label style="display:flex;align-items:center;gap:.45rem;font-size:.8rem;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--blue)"><span data-rw="Nyumba" data-en="Remember me">Nyumba</span></label>
-            <a style="font-size:.8rem;color:var(--blue);font-weight:600;cursor:pointer" data-rw="Wibagiwe ijambo banga?" data-en="Forgot password?" onclick="handleForgotPassword()">Wibagiwe ijambo banga?</a>
+            <label style="display:flex;align-items:center;gap:.45rem;font-size:.8rem;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--blue)"><span data-rw="Nyumba" data-en="Remember me" data-fr="Se souvenir de moi" data-sw="Nikumbuke">Remember me</span></label>
+            <a style="font-size:.8rem;color:var(--blue);font-weight:600;cursor:pointer" data-rw="Wibagiwe ijambo banga?" data-en="Forgot password?" data-fr="Mot de passe oublié ?" data-sw="Umesahau nenosiri?" onclick="handleForgotPassword()">Forgot password?</a>
           </div>
           <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="handleLogin()">
             <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            <span id="login-btn-label" data-rw="Injira" data-en="Sign In">Injira</span>
+            <span id="login-btn-label" data-rw="Injira" data-en="Sign In" data-fr="Connexion" data-sw="Ingia">Sign In</span>
           </button>
-          <div class="dvdr" data-rw="cyangwa" data-en="or">cyangwa</div>
+          <div class="dvdr" data-rw="cyangwa" data-en="or" data-fr="ou" data-sw="au">or</div>
           <!-- Google Sign-In Button (Real) -->
           <div id="google-signin-btn" style="width:100%;margin-bottom:.5rem"></div>
           <!-- Phone OTP Button -->
           <button class="soc-btn" onclick="openPhoneAuth()" style="width:100%;justify-content:center">
             <svg viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .5h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.37a16 16 0 006.29 6.29l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-            Injira na Telefoni (OTP)
+            <span data-rw="Injira na Telefoni (OTP)" data-en="Sign In with Phone (OTP)" data-fr="Connexion par Téléphone (OTP)" data-sw="Ingia kwa Simu (OTP)">Sign In with Phone (OTP)</span>
           </button>
           <div id="recaptcha-container"></div>
         </div>
         <!-- Register form (hidden by default) -->
         <div id="form-register" style="display:none;flex-direction:column;gap:.8rem">
-          <div class="field"><label for="reg-name" data-rw="Amazina Yose" data-en="Full Name">Amazina Yose</label><input type="text" id="reg-name" placeholder="Amazina na Nkunda" aria-required="true"></div>
-          <div class="field"><label for="reg-phone" data-rw="Telefoni" data-en="Phone Number">Telefoni</label><input type="tel" id="reg-phone" placeholder="+250 7XX XXX XXX" aria-required="true"></div>
-          <div class="field"><label for="reg-email" data-rw="Imeyili" data-en="Email">Imeyili</label><input type="email" id="reg-email" placeholder="imeyili@gmail.com" aria-required="true"></div>
-          <div class="field"><label for="reg-pass" data-rw="Ijambo Banga" data-en="Password">Ijambo Banga</label><input type="password" id="reg-pass" placeholder="Byibura inyuguti 8" aria-required="true" oninput="checkPwStrength(this.value)"><div class="pw-strength" id="pw-strength-bar"></div></div>
-          <div class="field"><label for="reg-pass2" data-rw="Emeza Ijambo Banga" data-en="Confirm Password">Emeza Ijambo Banga</label><input type="password" id="reg-pass2" placeholder="Subiramo ijambo banga" aria-required="true"></div>
-          <div class="field"><label for="reg-location" data-rw="Aho Utuye" data-en="Your Location">Aho Utuye</label><input type="text" id="reg-location" placeholder="urugero: Kigali, Gasabo" aria-required="true"></div>
-          <div class="field"><label for="reg-preference" data-rw="Icyo Ushaka" data-en="I want to">Icyo Ushaka</label>
+          <div class="field"><label for="reg-name" data-rw="Amazina Yose" data-en="Full Name" data-fr="Nom Complet" data-sw="Jina Kamili">Full Name</label><input type="text" id="reg-name" placeholder="Amazina na Nkunda" aria-required="true"></div>
+          <div class="field"><label for="reg-phone" data-rw="Telefoni" data-en="Phone Number" data-fr="Numéro de Téléphone" data-sw="Nambari ya Simu">Phone Number</label><input type="tel" id="reg-phone" placeholder="+250 7XX XXX XXX" aria-required="true"></div>
+          <div class="field"><label for="reg-email" data-rw="Imeyili" data-en="Email" data-fr="E-mail" data-sw="Barua Pepe">Email</label><input type="email" id="reg-email" placeholder="imeyili@gmail.com" aria-required="true"></div>
+          <div class="field"><label for="reg-pass" data-rw="Ijambo Banga" data-en="Password" data-fr="Mot de Passe" data-sw="Nenosiri">Password</label><input type="password" id="reg-pass" placeholder="Byibura inyuguti 8" aria-required="true" oninput="checkPwStrength(this.value)"><div class="pw-strength" id="pw-strength-bar"></div></div>
+          <div class="field"><label for="reg-pass2" data-rw="Emeza Ijambo Banga" data-en="Confirm Password" data-fr="Confirmer le Mot de Passe" data-sw="Thibitisha Nenosiri">Confirm Password</label><input type="password" id="reg-pass2" placeholder="Subiramo ijambo banga" aria-required="true"></div>
+          <div class="field"><label for="reg-location" data-rw="Aho Utuye" data-en="Your Location" data-fr="Votre Localisation" data-sw="Mahali Ulipo">Your Location</label><input type="text" id="reg-location" placeholder="urugero: Kigali, Gasabo" aria-required="true"></div>
+          <div class="field"><label for="reg-preference" data-rw="Icyo Ushaka" data-en="I want to" data-fr="Je veux" data-sw="Nataka">I want to</label>
             <select id="reg-preference" aria-required="true" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
               <option value="Kugura">🏠 Kugura Inzu</option>
               <option value="Gukodesha">🔑 Gukodesha Inzu</option>
@@ -5096,11 +5120,11 @@ html,body{overscroll-behavior-x:none}
           </div>
           <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center;margin-top:.4rem" onclick="handleRegister()">
             <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-            <span id="register-btn-label" data-rw="Iyandikishe Ubuntu" data-en="Register Free">Iyandikishe Ubuntu</span>
+            <span id="register-btn-label" data-rw="Iyandikishe Ubuntu" data-en="Register Free" data-fr="Inscription Gratuite" data-sw="Jisajili Bure">Register Free</span>
           </button>
-          <div style="text-align:center;font-size:.68rem;color:var(--muted)">🔒 <span data-rw="Amakuru yawe arinzwe." data-en="Your information is protected.">Your information is protected.</span> <a onclick="go('privacy')" style="color:var(--blue);cursor:pointer;text-decoration:underline" data-rw="Politiki y'Ubwigenge" data-en="Privacy Policy">Privacy Policy</a></div>
+          <div style="text-align:center;font-size:.68rem;color:var(--muted)">🔒 <span data-rw="Amakuru yawe arinzwe." data-en="Your information is protected." data-fr="Vos informations sont protégées." data-sw="Taarifa zako zimelindwa.">Your information is protected.</span> <a onclick="go('privacy')" style="color:var(--blue);cursor:pointer;text-decoration:underline" data-rw="Politiki y'Ubwigenge" data-en="Privacy Policy" data-fr="Politique de Confidentialité" data-sw="Sera ya Faragha">Privacy Policy</a></div>
         </div>
-        <div class="auth-switch"><span id="auth-switch-txt" data-rw="Nta konti ufite?" data-en="Don't have an account?">Nta konti ufite?</span> <button onclick="toggleAuthMode()" id="auth-switch-btn" data-rw="Iyandikishe hano" data-en="Register here">Iyandikishe hano</button></div>
+        <div class="auth-switch"><span id="auth-switch-txt" data-rw="Nta konti ufite?" data-en="Don't have an account?" data-fr="Vous n'avez pas de compte ?" data-sw="Huna akaunti?">Don't have an account?</span> <button onclick="toggleAuthMode()" id="auth-switch-btn" data-rw="Iyandikishe hano" data-en="Register here" data-fr="Inscrivez-vous ici" data-sw="Jisajili hapa">Register here</button></div>
       </div>
     </div>
   </div>
@@ -10309,7 +10333,39 @@ html,body{overscroll-behavior-x:none}
 // ── PAGE NAVIGATION (see unified go() at bottom of script)
 
 // ── LANGUAGE TOGGLE
-let curLang = 'rw';
+// ── LANGUAGE SYSTEM — 4 languages (en default, rw, fr, sw) ──────────────
+// Extends the original 2-language data-rw/data-en attribute architecture
+// rather than replacing it: every existing element keeps its data-rw/
+// data-en pair untouched, and data-fr/data-sw are added alongside where
+// translated. setLang() falls back to data-en for any element that has no
+// data-fr/data-sw yet, so an untranslated string shows English rather than
+// breaking or showing nothing — the same graceful-degradation approach
+// real i18n systems use for a default locale.
+var SUPPORTED_LANGS = ['en', 'rw', 'fr', 'sw'];
+var LANG_STORAGE_KEY = 'km_lang';
+var LANG_FLAGS = { en: '🇬🇧', rw: '🇷🇼', fr: '🇫🇷', sw: '🇹🇿' };
+var LANG_NAMES = { en: 'English', rw: 'Kinyarwanda', fr: 'Français', sw: 'Kiswahili' };
+var LANG_HTML_CODE = { en: 'en', rw: 'rw', fr: 'fr', sw: 'sw' };
+var LANG_TITLES = {
+  en: 'KOMISIYONERI — Buy & Sell Property in Rwanda | Real Estate Platform',
+  rw: 'KOMISIYONERI — Imitungo mu Rwanda | Rwanda Real Estate Platform',
+  fr: 'KOMISIYONERI — Acheter et Vendre des Biens au Rwanda | Plateforme Immobilière',
+  sw: 'KOMISIYONERI — Nunua na Uuze Mali Rwanda | Jukwaa la Mali Isiyohamishika'
+};
+
+// English is the default for first-time visitors (no saved preference yet);
+// a previously-saved choice (this device, or synced from the user's
+// profile on login — see restoreUserSession()) always wins over that
+// default. Falls back to 'en' for any unrecognized/corrupted stored value.
+function getInitialLang() {
+  try {
+    var saved = localStorage.getItem(LANG_STORAGE_KEY);
+    if (saved && SUPPORTED_LANGS.indexOf(saved) > -1) return saved;
+  } catch (e) {}
+  return 'en';
+}
+
+let curLang = 'en';
 
 var TX = {
   rw: {
@@ -10347,21 +10403,61 @@ var TX = {
     labApproved:   'Approved',
     labRejected:   'Rejected',
     labAll:        'All'
+  },
+  fr: {
+    verified:      'Vérifié',
+    viewDetail:    'Voir les Détails',
+    noListings:    'Aucune annonce pour le moment',
+    demoBtn:       '✦ Voir les Annonces Démo',
+    noPropsCat:    'Aucun bien dans cette catégorie',
+    noMyProps:     "Vous n'avez encore publié aucun bien.",
+    addProp:       '+ Ajouter un Bien',
+    waMsg:         'Bonjour ! Je recherche un bien : ',
+    waMsgEnd:      '. Pourriez-vous me donner plus de détails ?',
+    delConfirm:    'Êtes-vous sûr ? Ce bien sera supprimé définitivement.',
+    deleted:       '🗑️ Bien supprimé.',
+    delAllConfirm: 'Êtes-vous sûr ? TOUS les biens seront supprimés définitivement !',
+    delAllDone:    '🗑️ Tous les biens ont été supprimés. (',
+    labApproved:   'Approuvé',
+    labRejected:   'Refusé',
+    labAll:        'Tous'
+  },
+  sw: {
+    verified:      'Imethibitishwa',
+    viewDetail:    'Angalia Maelezo',
+    noListings:    'Hakuna orodha bado',
+    demoBtn:       '✦ Angalia Orodha za Mfano',
+    noPropsCat:    'Hakuna mali katika kundi hili',
+    noMyProps:     'Bado hujaorodhesha mali yoyote.',
+    addProp:       '+ Ongeza Mali',
+    waMsg:         'Habari! Ninatafuta mali: ',
+    waMsgEnd:      '. Unaweza kunipa maelezo zaidi?',
+    delConfirm:    'Una uhakika? Mali hii itafutwa kabisa.',
+    deleted:       '🗑️ Mali imefutwa.',
+    delAllConfirm: 'Una uhakika? Mali ZOTE zitafutwa kabisa!',
+    delAllDone:    '🗑️ Mali zote zimefutwa. (',
+    labApproved:   'Imeidhinishwa',
+    labRejected:   'Imekataliwa',
+    labAll:        'Zote'
   }
 };
 
 function t(key) {
-  return (TX[curLang] || TX.rw)[key] || key;
+  return (TX[curLang] || TX.en)[key] || (TX.en[key]) || key;
 }
 
+// Persists the choice locally, and — if signed in — to the user's Firestore
+// profile too (same pattern as setTheme()'s themePref sync just below),
+// so it follows them across devices after login. Only ever called with a
+// value already validated against SUPPORTED_LANGS by every caller (the
+// menu buttons, getInitialLang(), and restoreUserSession()'s profile sync).
 function setLang(lang) {
   curLang = lang;
-  document.documentElement.lang = lang === 'rw' ? 'rw' : 'en';
-  document.title = lang === 'rw'
-    ? 'KOMISIYONERI — Imitungo mu Rwanda | Rwanda Real Estate Platform'
-    : 'KOMISIYONERI — Buy & Sell Property in Rwanda | Real Estate Platform';
-  document.querySelectorAll('[data-rw],[data-en]').forEach(el => {
-    const val = el.getAttribute('data-' + lang);
+  try { localStorage.setItem(LANG_STORAGE_KEY, lang); } catch (e) {}
+  document.documentElement.lang = LANG_HTML_CODE[lang] || 'en';
+  document.title = LANG_TITLES[lang] || LANG_TITLES.en;
+  document.querySelectorAll('[data-rw],[data-en],[data-fr],[data-sw]').forEach(el => {
+    const val = el.getAttribute('data-' + lang) || el.getAttribute('data-en');
     if (val === null) return;
     if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
       el.placeholder = val;
@@ -10369,12 +10465,54 @@ function setLang(lang) {
       el.textContent = val;
     }
   });
-  document.getElementById('lb-rw').classList.toggle('active', lang === 'rw');
-  document.getElementById('lb-en').classList.toggle('active', lang === 'en');
+  var flagEl = document.getElementById('lang-selector-flag');
+  var codeEl = document.getElementById('lang-selector-code');
+  if (flagEl) flagEl.textContent = LANG_FLAGS[lang] || LANG_FLAGS.en;
+  if (codeEl) codeEl.textContent = lang.toUpperCase();
+  SUPPORTED_LANGS.forEach(function(l) {
+    var item = document.getElementById('lm-' + l);
+    if (item) item.classList.toggle('active', l === lang);
+  });
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.uid && typeof db !== 'undefined') {
+    db.collection('users').doc(currentUser.uid).update({
+      language: lang,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy: currentUser.uid
+    }).catch(function (e) { console.warn('[Lang] failed to sync language to Firestore:', e.code || '', e.message); });
+  }
   if (typeof renderAiSearchChips === 'function') renderAiSearchChips();
   if (typeof renderBottomNav === 'function') renderBottomNav(_bnCurPage);
   // Re-render dynamic content so hardcoded strings also update
   loadApprovedProperties();
+  closeLangMenu();
+}
+
+function toggleLangMenu() {
+  var menu = document.getElementById('lang-menu');
+  var btn = document.getElementById('lang-selector-btn');
+  if (!menu) return;
+  var opening = menu.style.display !== 'block';
+  menu.style.display = opening ? 'block' : 'none';
+  if (btn) btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  if (opening) {
+    setTimeout(function() {
+      document.addEventListener('click', _langMenuOutsideClose, { once: true });
+    }, 10);
+  }
+}
+function closeLangMenu() {
+  var menu = document.getElementById('lang-menu');
+  var btn = document.getElementById('lang-selector-btn');
+  if (menu) menu.style.display = 'none';
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+function _langMenuOutsideClose(e) {
+  var menu = document.getElementById('lang-menu');
+  var btn = document.getElementById('lang-selector-btn');
+  if (menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
+    menu.style.display = 'none';
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
 }
 
 // ── SEARCH TABS
@@ -11311,6 +11449,18 @@ function restoreUserSession(fbUser) {
           updatedBy: fbUser.uid
         }).catch(function (e) { console.warn('[Theme] failed to seed themePref on login:', e.code || '', e.message); });
       }
+      // Same cross-device sync pattern as themePref just above, for the
+      // language preference (requirement: "save language preference in the
+      // user profile so it syncs across devices after login").
+      if (fsData.language && SUPPORTED_LANGS.indexOf(fsData.language) > -1 && fsData.language !== curLang) {
+        setLang(fsData.language);
+      } else if (!fsData.language) {
+        db.collection('users').doc(fbUser.uid).update({
+          language: curLang,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedBy: fbUser.uid
+        }).catch(function (e) { console.warn('[Lang] failed to seed language on login:', e.code || '', e.message); });
+      }
     } else {
       console.log('[AUTH] restoreUserSession: users/' + fbUser.uid + ' doc does NOT exist — creating new profile (role=client)');
       user = {
@@ -11327,7 +11477,7 @@ function restoreUserSession(fbUser) {
       db.collection('users').doc(fbUser.uid).set({
         id: fbUser.uid, uid: fbUser.uid, displayName: user.name, email: user.email,
         phone: user.phone, role: 'client', isActive: true, status: 'active',
-        photoURL: user.photo || '',
+        photoURL: user.photo || '', language: curLang,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         createdBy: fbUser.uid, updatedBy: fbUser.uid
@@ -12420,7 +12570,7 @@ async function handleLogin() {
           console.log('[AUTH] handleLogin: users/' + fb.uid + ' doc missing — creating one (role=' + user.role + ')');
           db.collection('users').doc(fb.uid).set({
             id: fb.uid, uid: fb.uid, displayName: user.name, email: user.email,
-            phone: user.phone, role: user.role, isActive: true,
+            phone: user.phone, role: user.role, isActive: true, language: curLang,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
             createdBy: fb.uid, updatedBy: fb.uid, status: 'active'
@@ -13684,7 +13834,12 @@ window.addEventListener('DOMContentLoaded', function() {
   // it silently became home instead. That router already calls go(page)
   // itself for every case including home, so this call was both redundant
   // and actively wrong.
-  setLang('rw');
+  // English is the default for first-time visitors; a saved choice (this
+  // device, or synced from the profile on login) always wins — see
+  // getInitialLang(). Was unconditionally 'rw' here, with no persistence
+  // at all, so every single page load reset the language regardless of
+  // anything the visitor had chosen before.
+  setLang(getInitialLang());
   initChat();
   // The inline <head> script already set data-theme before first paint (no
   // flash of the wrong theme); this call just syncs the toggle icon and the
