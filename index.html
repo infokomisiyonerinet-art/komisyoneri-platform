@@ -10713,6 +10713,26 @@ function setLang(lang) {
   closeLangMenu();
 }
 
+// ~50 call sites across this file (dynamic dashboard/list re-renders)
+// call `switchLang(...)` expecting it to re-apply the current language to
+// newly-inserted DOM content — a function of that name was never defined,
+// so every one of those calls silently no-op'd via their own
+// `typeof switchLang === 'function'` guard. Separately, most of those same
+// call sites pass `currentLang` as the argument — also never declared
+// anywhere in this file (the real global is `curLang`) — which the dead
+// switchLang() guard was incidentally also shielding from ever throwing a
+// ReferenceError, since the guard short-circuits before the argument is
+// evaluated. Fixing only one half would have made things worse (defining
+// switchLang() alone would start evaluating `currentLang` and throw); this
+// commit renames every `currentLang` reference in the file to the real
+// `curLang` AND defines switchLang() as a thin wrapper around the real
+// setLang() (which does the actual document-wide [data-rw]/[data-en]/
+// [data-fr]/[data-sw] re-scan), so all ~50 existing call sites now do what
+// they were always written to do instead of silently no-op'ing.
+function switchLang(lang) {
+  return setLang(lang || curLang);
+}
+
 function toggleLangMenu() {
   var menu = document.getElementById('lang-menu');
   var btn = document.getElementById('lang-selector-btn');
@@ -13482,13 +13502,14 @@ function qs_search() {
 // redirect-to-login on click, those two categories deep-link to their
 // existing pages/actions instead.
 //
-// i18n note: this file's real language switch is setLang() (line ~9899),
-// which re-scans the whole document for [data-rw]/[data-en] on toggle —
-// the differently-named switchLang() called elsewhere in this file after
-// dynamic re-renders was never defined, so those calls silently no-op.
-// To avoid relying on that dead convention, every dynamic string below is
-// resolved inline via curLang ternary, matching loadAgentsPage()'s
-// working pattern rather than the broken one.
+// i18n note: this file's real language switch is setLang(), which
+// re-scans the whole document for [data-rw]/[data-en]/[data-fr]/[data-sw]
+// on toggle. switchLang() (called elsewhere in this file after dynamic
+// re-renders) used to be undefined — now a thin wrapper around setLang() —
+// but every dynamic string below still resolves inline via a curLang
+// ternary, matching loadAgentsPage()'s pattern; no need to also route
+// through switchLang() here since these strings are already
+// language-aware at render time.
 // ══════════════════════════════════════════════════════════════════════
 
 var USEARCH_CATEGORIES = [
@@ -19437,7 +19458,7 @@ function switchBranchTab(tab) {
   if (tab === 'staff')      loadBranchStaff();
   if (tab === 'performance') loadBranchPerformance();
   if (tab === 'coverage')   loadBranchCoverage();
-  if (typeof switchLang !== 'undefined') switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(curLang);
 }
 
 function loadBranchNetwork() {
@@ -19502,7 +19523,7 @@ function renderBranchCards() {
   var el = g('br-branches-grid'); if (!el) return;
   if (_branches.length === 0) {
     el.innerHTML = '<div class="exec-empty" style="padding:2rem" data-rw="Nta mashami yabonetse. Ongeraho ishami rya mbere." data-en="No branches yet. Add your first branch to get started.">No branches yet. Add your first branch to get started.</div>';
-    if (typeof switchLang !== 'undefined') switchLang(currentLang);
+    if (typeof switchLang !== 'undefined') switchLang(curLang);
     return;
   }
   var q = (_branchFilter.q || '').toLowerCase();
@@ -19514,7 +19535,7 @@ function renderBranchCards() {
   });
   if (filtered.length === 0) {
     el.innerHTML = '<div class="exec-empty" style="padding:2rem" data-rw="Nta mashami ahuye na filteri" data-en="No branches match your filter">No branches match your filter</div>';
-    if (typeof switchLang !== 'undefined') switchLang(currentLang);
+    if (typeof switchLang !== 'undefined') switchLang(curLang);
     return;
   }
   el.innerHTML = filtered.map(function(b) {
@@ -19545,7 +19566,7 @@ function renderBranchCards() {
       var el2 = g('br-stat-props-' + b.id); if (el2) el2.innerHTML = '<span>' + s.data().count + '</span> listings';
     }).catch(function(){});
   });
-  if (typeof switchLang !== 'undefined') switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(curLang);
 }
 
 function filterBranches() {
@@ -19581,7 +19602,7 @@ function openBranchCreate(branchId) {
     g('branch-status').value = 'active';
   }
   openModal('branch-create-modal');
-  if (typeof switchLang !== 'undefined') switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(curLang);
 }
 
 function closeBranchCreate() { closeModal('branch-create-modal'); }
@@ -19591,8 +19612,8 @@ function saveBranch() {
   if (!cu) return;
   var name = (g('branch-name').value||'').trim();
   var district = (g('branch-district').value||'').trim();
-  if (!name) { showToast(currentLang==='rw' ? 'Injiza izina ry\'ishami' : 'Branch name is required', 'error'); return; }
-  if (!district) { showToast(currentLang==='rw' ? 'Hitamo akarere' : 'District is required', 'error'); return; }
+  if (!name) { showToast(curLang==='rw' ? 'Injiza izina ry\'ishami' : 'Branch name is required', 'error'); return; }
+  if (!district) { showToast(curLang==='rw' ? 'Hitamo akarere' : 'District is required', 'error'); return; }
 
   var covRaw = (g('branch-districts').value||'').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
   if (covRaw.length === 0) covRaw = [district];
@@ -19629,14 +19650,14 @@ function saveBranch() {
   }
 
   ref.then(function() {
-    showToast(currentLang==='rw' ? 'Ishami ryabitswe!' : 'Branch saved!', 'success');
+    showToast(curLang==='rw' ? 'Ishami ryabitswe!' : 'Branch saved!', 'success');
     logAudit(editId ? 'branch_updated' : 'branch_created', 'branches', payload.id, null, payload);
     closeBranchCreate();
     fetchBranches(function() { renderBranchCards(); renderBranchDistrictKPIs(); });
     loadBranchKPIs();
     updateBranchSidebarBadge();
   }).catch(function(err) {
-    showToast(currentLang==='rw' ? 'Habaye ikosa' : 'Error saving branch', 'error');
+    showToast(curLang==='rw' ? 'Habaye ikosa' : 'Error saving branch', 'error');
     console.error('[Branch] save error:', err);
   });
 }
@@ -19673,7 +19694,7 @@ function openBranchDetail(branchId) {
     '<div class="br-detail-stats" id="br-detail-stats-' + b.id + '"><div class="exec-loading">Loading...</div></div>';
 
   openModal('branch-detail-modal');
-  if (typeof switchLang !== 'undefined') switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(curLang);
 
   /* Load live stats */
   var statsEl = g('br-detail-stats-' + b.id);
@@ -19726,14 +19747,14 @@ function loadBranchStaff() {
     });
     html += '</tbody></table>';
     el.innerHTML = html;
-    if (typeof switchLang !== 'undefined') switchLang(currentLang);
+    if (typeof switchLang !== 'undefined') switchLang(curLang);
   }).catch(function() {
     el.innerHTML = '<div class="exec-empty">Unable to load staff</div>';
   });
 }
 
 function openAssignBranch(userId, currentBranchId) {
-  if (_branches.length === 0) { showToast(currentLang==='rw' ? 'Nta mashami arabonetse' : 'No branches available', 'error'); return; }
+  if (_branches.length === 0) { showToast(curLang==='rw' ? 'Nta mashami arabonetse' : 'No branches available', 'error'); return; }
   var opts = '<option value="">-- Unassign --</option>' + _branches.map(function(b){ return '<option value="' + b.id + '"' + (b.id===currentBranchId?' selected':'') + '>' + b.name + '</option>'; }).join('');
   var select = document.createElement('select');
   select.innerHTML = opts;
@@ -19752,7 +19773,7 @@ function openAssignBranch(userId, currentBranchId) {
     var newBranch = select.value;
     var payload = { branchId: newBranch, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid };
     db.collection('users').doc(userId).update(payload).then(function() {
-      showToast(currentLang==='rw' ? 'Umukozi yagenwe' : 'Staff assigned', 'success');
+      showToast(curLang==='rw' ? 'Umukozi yagenwe' : 'Staff assigned', 'success');
       logAudit('staff_branch_assigned', 'users', userId, { branchId: currentBranchId }, { branchId: newBranch });
       document.body.removeChild(div);
       if (document.body.contains(overlay)) document.body.removeChild(overlay);
@@ -19777,7 +19798,7 @@ function loadBranchPerformance() {
   var el = g('br-perf-content'); if (!el) return;
   if (_branches.length === 0) {
     el.innerHTML = '<div class="exec-empty" style="padding:2rem" data-rw="Nta mashami abonetse" data-en="No branches to compare">No branches to compare</div>';
-    if (typeof switchLang !== 'undefined') switchLang(currentLang);
+    if (typeof switchLang !== 'undefined') switchLang(curLang);
     return;
   }
   el.innerHTML = '<div class="exec-loading">Loading performance data...</div>';
@@ -19809,7 +19830,7 @@ function renderBranchPerf(results, el) {
   }).join('');
   html += '</div>';
   el.innerHTML = html;
-  if (typeof switchLang !== 'undefined') switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(curLang);
 }
 
 /* ── COVERAGE TAB ── */
@@ -19856,7 +19877,7 @@ function loadBranchCoverage() {
       }).join('');
     }).catch(function(){ propsEl.innerHTML = '<div class="exec-empty">Unavailable</div>'; });
   }
-  if (typeof switchLang !== 'undefined') switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(curLang);
 }
 
 function updateBranchSidebarBadge() {
@@ -20610,7 +20631,7 @@ function switchBITab(tab) {
   if (tab === 'agents')   loadBIAgents();
   if (tab === 'insights') loadBIInsights();
   if (tab === 'forecast') loadBIForecast();
-  if (typeof switchLang !== 'undefined') switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(curLang);
 }
 
 /* ── entry point ── */
@@ -20889,7 +20910,7 @@ function renderBenchTable(agents, el) {
   });
   html += '</tbody></table></div>';
   el.innerHTML = html;
-  if (typeof switchLang !== 'undefined') switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(curLang);
 }
 
 function biDealVelocity() {
@@ -21259,7 +21280,7 @@ function switchExecTab(tab) {
   if (tab === 'revenue') loadExecRevenue();
   if (tab === 'pipeline') loadExecPipeline();
   if (tab === 'team') loadExecTeam();
-  if (typeof switchLang !== 'undefined') switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(curLang);
 }
 
 function loadExecDash() {
@@ -21290,7 +21311,7 @@ function loadExecDash() {
   }
   loadExecKPIs();
   switchExecTab(_execTabActive);
-  if (typeof switchLang !== 'undefined') switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(curLang);
 }
 
 function loadExecKPIs() {
@@ -21551,7 +21572,7 @@ function loadExecApprovals() {
   var unsub = q.limit(20).onSnapshot(function(snap) {
       if (snap.empty) {
         container.innerHTML = '<div class="exec-empty" data-rw="Nta bisabwa bitegereje" data-en="No pending approvals">No pending approvals</div>';
-        if (typeof switchLang !== 'undefined') switchLang(currentLang);
+        if (typeof switchLang !== 'undefined') switchLang(curLang);
         return;
       }
       var html = '';
@@ -21567,7 +21588,7 @@ function loadExecApprovals() {
           + '</div></div>';
       });
       container.innerHTML = html;
-      if (typeof switchLang !== 'undefined') switchLang(currentLang);
+      if (typeof switchLang !== 'undefined') switchLang(curLang);
     }, function(err) {
       console.error('[Approvals] loadExecApprovals error — code:', err && err.code, 'message:', err && err.message);
       container.innerHTML = '<div class="exec-empty">Approvals unavailable</div>';
@@ -21664,7 +21685,7 @@ function loadMyReportsWidget() {
     .orderBy('createdAt','desc').limit(5).onSnapshot(function(snap) {
       if (snap.empty) {
         list.innerHTML = '<div class="exec-empty" data-en="No reports submitted yet">No reports submitted yet</div>';
-        if (typeof switchLang !== 'undefined') switchLang(currentLang);
+        if (typeof switchLang !== 'undefined') switchLang(curLang);
         return;
       }
       list.innerHTML = snap.docs.map(function(d) {
@@ -21777,7 +21798,7 @@ function loadExecAlerts() {
     if (pending > 0) return;
     if (alerts.length === 0) {
       container.innerHTML = '<div class="exec-empty" data-rw="Nta makuru mashya" data-en="All clear">All clear</div>';
-      if (typeof switchLang !== 'undefined') switchLang(currentLang);
+      if (typeof switchLang !== 'undefined') switchLang(curLang);
       return;
     }
     container.innerHTML = alerts.map(function(a) {
@@ -21924,7 +21945,7 @@ function loadExecTopAgents() {
       });
       html += '</tbody></table>';
       container.innerHTML = html;
-      if (typeof switchLang !== 'undefined') switchLang(currentLang);
+      if (typeof switchLang !== 'undefined') switchLang(curLang);
     });
   }).catch(function() {
     container.innerHTML = '<div class="exec-empty">Unable to load agent data</div>';
@@ -21985,7 +22006,7 @@ function loadExecConversion() {
       });
       dv.innerHTML = dvHtml || '<div class="exec-empty">No deal data</div>';
     }
-    if (typeof switchLang !== 'undefined') switchLang(currentLang);
+    if (typeof switchLang !== 'undefined') switchLang(curLang);
   }
   db.collection('leads').where('isActive','==',true).count().get().then(function(snap) {
     totalLeads = snap.data().count; render();
@@ -22039,7 +22060,7 @@ function renderAgentPerf(agents, container) {
   });
   html += '</tbody></table></div>';
   container.innerHTML = html;
-  if (typeof switchLang !== 'undefined') switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(curLang);
 }
 
 function loadExecAttRate() {
@@ -22439,7 +22460,7 @@ function openInvoiceDetail(id) {
       }
     }
     actEl.innerHTML = html;
-    if (typeof switchLang !== 'undefined') switchLang(currentLang);
+    if (typeof switchLang !== 'undefined') switchLang(curLang);
   }
   openModal('invoice-detail-modal');
 }
@@ -22761,7 +22782,7 @@ function loadReports() {
     });
     html += '</div>';
     el.innerHTML = html;
-    if (typeof switchLang !== 'undefined') switchLang(currentLang);
+    if (typeof switchLang !== 'undefined') switchLang(curLang);
     var repRev = revByMonth.reduce(function(a,b){return a+b;},0);
     var repExp = expByMonth.reduce(function(a,b){return a+b;},0);
     var repNet = repRev - repExp;
@@ -24810,7 +24831,7 @@ function renderTasks(list) {
   if (!el) return;
   if (!list.length) {
     el.innerHTML = '<div class="off-empty" data-rw="Nta mirimo ibonetse" data-en="No tasks found">No tasks found</div>';
-    if (typeof switchLang !== 'undefined') switchLang(currentLang);
+    if (typeof switchLang !== 'undefined') switchLang(curLang);
     return;
   }
   el.innerHTML = list.map(function(t) {
@@ -25063,7 +25084,7 @@ function renderAttendance(list) {
         : '<span style="color:var(--success);font-size:.72rem">On Time</span>';
       return '<div class="off-att-row"><span>' + a.date + '</span><span>' + inT + '</span><span>' + outT + '</span><span>' + hrs + '</span><span>' + chip + '</span></div>';
     }).join('') + '</div>';
-  if (typeof switchLang !== 'undefined') switchLang(currentLang);
+  if (typeof switchLang !== 'undefined') switchLang(curLang);
 }
 
 function openCheckin() {
@@ -25277,7 +25298,7 @@ function openLeaveDetail(id) {
       html = '<div style="font-size:.8rem;color:var(--muted)">Processed by admin</div>';
     }
     actEl.innerHTML = html;
-    if (typeof switchLang !== 'undefined') switchLang(currentLang);
+    if (typeof switchLang !== 'undefined') switchLang(curLang);
   }
   openModal('leave-detail-modal');
 }
@@ -34526,7 +34547,7 @@ function renderClientsList() {
   if (!list.length) {
     el.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">&#128101;</div>'
       + '<div class="crm-empty-title" data-rw="Nta bakiliya bafite iki gipimo" data-en="No clients match this filter">No clients match this filter</div></div>';
-    if (typeof switchLang !== 'undefined') switchLang(currentLang);
+    if (typeof switchLang !== 'undefined') switchLang(curLang);
     return;
   }
 
