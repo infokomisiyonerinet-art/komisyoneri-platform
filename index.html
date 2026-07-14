@@ -55,13 +55,21 @@
     // this exists in case a THIRD, still-unknown failure mode leaves
     // #page-home as the only "active" page on a gated subdomain). #page-
     // home is CSS-forced invisible here (see the .page.active override
-    // below), so if nothing else has taken over within 2s, navigate to the
-    // dedicated staff/partner login page directly — a real, independent
-    // browser navigation (not just a DOM class toggle), and deliberately
-    // NOT the SPA's own #page-auth (client/agent role tabs, wrong for a
-    // staff/partner portal) — with the URL inlined here rather than calling
+    // below), so if nothing else has taken over within 5s, show a retry
+    // banner instead of auto-navigating away — a real network hiccup
+    // (slow Firestore read, flaky connection) used to get treated exactly
+    // like a genuinely broken session: this used to fire at 2s and
+    // silently window.location.replace() straight to the login page, which
+    // on a slow-but-working connection just meant "reload, wait 2s, get
+    // bounced to login, log back in, reload, wait 2s, get bounced again" —
+    // indistinguishable from an infinite loop to whoever's stuck in it,
+    // even though no single step was actually broken. Now the visitor
+    // decides: Retry (same page, most slow-network cases just need a
+    // second attempt) or Go to sign-in (deliberately NOT the SPA's own
+    // #page-auth — client/agent role tabs, wrong for a staff/partner
+    // portal — with the URL inlined here rather than calling
     // portalLoginUrl(), since that function's availability is exactly what
-    // this watchdog can't assume.
+    // this watchdog can't assume).
     if (portal !== 'public') {
       setTimeout(function() {
         try {
@@ -69,22 +77,35 @@
           var stillOnHome = homeEl && homeEl.classList.contains('active');
           var anyOtherActive = document.querySelector('.page.active:not(#page-home)');
           if (stillOnHome && !anyOtherActive) {
-            console.error('[PORTAL-WATCHDOG] routing never left #page-home after 2s on a gated subdomain (portal=' + portal + ') — redirecting to the dedicated login page.');
+            console.error('[PORTAL-WATCHDOG] routing never left #page-home after 5s on a gated subdomain (portal=' + portal + ') — showing retry banner instead of auto-redirecting.');
+            var loginUrl = portal === 'staff' ? '/staff-login.html' : '/partner-login.html';
             // Visible, self-contained notice (inline-styled — no dependency
-            // on any stylesheet or app CSS class) shown briefly before the
-            // navigation actually completes, so a real user on a real phone
-            // sees an explanation rather than an unexplained jump.
+            // on any stylesheet or app CSS class), with buttons wired via
+            // addEventListener rather than inline onclick= — this script
+            // runs before the page's CSP nonce/inline-handler posture is
+            // guaranteed further down, and addEventListener needs neither.
             var banner = document.createElement('div');
             banner.setAttribute('style',
               'position:fixed;top:0;left:0;right:0;z-index:99999;' +
               'background:#B45309;color:#fff;font:14px/1.4 sans-serif;' +
               'padding:10px 14px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.25)');
-            banner.textContent = 'This page took too long to load properly. Redirecting to sign-in…';
+            banner.textContent = 'This page is taking longer than expected to load. ';
+            var retryBtn = document.createElement('button');
+            retryBtn.type = 'button';
+            retryBtn.textContent = 'Retry';
+            retryBtn.setAttribute('style', 'margin-left:8px;padding:4px 10px;border:1px solid #fff;border-radius:4px;background:transparent;color:#fff;font:inherit;cursor:pointer');
+            retryBtn.addEventListener('click', function() { window.location.reload(); });
+            var signInBtn = document.createElement('button');
+            signInBtn.type = 'button';
+            signInBtn.textContent = 'Go to sign-in';
+            signInBtn.setAttribute('style', 'margin-left:8px;padding:4px 10px;border:1px solid #fff;border-radius:4px;background:transparent;color:#fff;font:inherit;cursor:pointer');
+            signInBtn.addEventListener('click', function() { window.location.replace(loginUrl); });
+            banner.appendChild(retryBtn);
+            banner.appendChild(signInBtn);
             document.body.appendChild(banner);
-            window.location.replace(portal === 'staff' ? '/staff-login.html' : '/partner-login.html');
           }
         } catch (e2) {}
-      }, 2000);
+      }, 5000);
     }
   } catch (e) {}
 })();
@@ -10857,8 +10878,13 @@ function isInternalTeam(user) { return ROLE_TIERS.INTERNAL_TEAM.indexOf(_roleOf(
 // a hard "Access restricted" wall — investors now get an actual dashboard,
 // though some of its underlying queries still return empty for them since
 // investor isn't part of ROLE_TIERS.STAFF (a separate, pre-existing,
-// larger gap this doesn't attempt to fully close).
-function canViewExecDash(user) { return isExec(user) || ['investor', 'company_owner'].indexOf(_roleOf(user)) > -1; }
+// larger gap this doesn't attempt to fully close). 'director' (the real
+// Operations Director — see ROLE_DEPARTMENT) also views this dashboard,
+// scoped down automatically: it's the same isExec()-vs-canViewExecDash()
+// split already used for investor/company_owner, and per-panel checks
+// like loadExecApprovals()'s (role==='ceo' exactly) already hide the
+// CEO-only pieces from a director viewing the same page.
+function canViewExecDash(user) { return isExec(user) || ['investor', 'company_owner', 'director'].indexOf(_roleOf(user)) > -1; }
 
 // ── Multi-subdomain portal gating ───────────────────────────────────────
 // K-REOS is one Vercel deployment (one index.html) + one Firebase project
@@ -12572,6 +12598,24 @@ function animateKPIs() {
   });
 }
 
+// Calls a dashboard loader from inside go()'s dashboard-redirect branch
+// without letting an exception escape. Those loaders normally guard their
+// own `typeof db === 'undefined'` case, but calling them inline (not via
+// setTimeout, so the redirect's own page still switches correctly — see
+// the comment in go() below) means ANY future loader that forgets that
+// guard, or throws for some other reason, would otherwise crash go()
+// itself. The DOMContentLoaded router's own catch treats a go() throw on a
+// gated portal as "role rejected, bounce to the login page" — so an
+// unrelated bug in a dashboard's data loading would wrongly look
+// indistinguishable from an auth failure, bouncing an already-authorized
+// session back to sign-in. Safe to just log and move on: the page-switch
+// logic below still runs either way, so the right page still shows, just
+// without data (matching what already happens if e.g. a Firestore read
+// inside the loader itself rejects asynchronously).
+function _callDashLoader(fn, label) {
+  try { fn(); } catch (e) { console.error('[DASH] ' + label + ' threw — page will still show, data may not load:', e); }
+}
+
 // ── UNIFIED go() — page navigation + title + analytics
 function go(name) {
   if (name === 'dashboard') {
@@ -12585,33 +12629,62 @@ function go(name) {
       return;
     } else {
       var _dr = (currentUser.role || '').toLowerCase();
-      /* Clients, investors, and partners have their own portals — redirect
-         transparently. Partners previously fell through to the generic
+      /* Clients, investors, partners, and every management role with its
+         own dedicated dashboard have their own portals — redirect
+         transparently instead of falling through to the generic
          loadAgentDashboard() below (My Properties, commission stats, buyer
-         referrals — none of which make sense for a surveyor/notary/bank/
-         lawyer partner account); they get their own dashboard now, same
-         as client/investor already did. */
+         referrals — none of which make sense for e.g. a CEO or a surveyor/
+         notary/bank/lawyer partner account). Each branch calls its loader
+         directly, inline, here — not via an outer go()-wrapper hook —
+         because this redirect reassigns the *local* `name` param of this
+         function only; outer wrapper closures still see the original
+         'dashboard' argument they were called with (see the bottom-nav
+         sync wrapper's comment elsewhere in this file for the same
+         gotcha). */
       if (_dr === 'client') {
         name = 'customer';
       } else if (_dr === 'investor') {
         name = 'investors';
       } else if (_dr === 'partner') {
         name = 'partner-dashboard';
-        // Called inline here (not via an outer go()-wrapper hook) because
-        // this redirect reassigns the *local* `name` param of this
-        // function only — outer wrapper closures still see the original
-        // 'dashboard' argument they were called with (see the bottom-nav
-        // sync wrapper's comment elsewhere in this file for the same
-        // gotcha) — mirrors how loadAgentDashboard() below is also
-        // called directly for the same reason.
-        loadPartnerDashboard();
+        _callDashLoader(loadPartnerDashboard, 'loadPartnerDashboard');
+      } else if (_dr === 'ceo' || _dr === 'director') {
+        // 'director' is the real Operations Director (see ROLE_DEPARTMENT
+        // comment) — shares the CEO's Executive dashboard, scoped down
+        // automatically (e.g. loadExecApprovals()'s own panel already
+        // hides itself unless role==='ceo' exactly).
+        name = 'exec';
+        _callDashLoader(loadExecDash, 'loadExecDash');
+      } else if (_dr === 'branch_manager') {
+        name = 'branch-mgr';
+        _callDashLoader(loadBranchMgrDash, 'loadBranchMgrDash');
+      } else if (_dr === 'hr_manager') {
+        name = 'hr-mgr';
+        _callDashLoader(loadHRMgrDash, 'loadHRMgrDash');
+      } else if (_dr === 'operations_manager') {
+        name = 'ops-mgr';
+        _callDashLoader(loadOpsMgrDash, 'loadOpsMgrDash');
       } else {
-        var _dAllowed = ['agent','admin','staff','ceo','super_admin','owner','partner','investor'];
+        // Was a hardcoded list missing most STAFF-tier roles (branch_manager,
+        // hr_manager, operations_manager, director, accountant, chief_broker,
+        // marketing_manager, customer_support_manager, it_manager,
+        // legal_adviser, company_owner) — any of those accounts hit the
+        // "Authorized accounts only!" rejection below and `return`ed out of
+        // go() entirely, leaving nothing marked active. On staff./partners.
+        // (where #page-home is force-hidden by CSS) that's a blank screen,
+        // which the portal watchdog then "fixes" by bouncing to the login
+        // page — which re-authenticates the same still-valid session and
+        // calls go('dashboard') again, hitting the exact same rejection: an
+        // infinite loop that looks like a random timeout, for any of those
+        // roles. Now derived from the same ROLE_TIERS.INTERNAL_TEAM allowlist
+        // the portal gate itself already uses, so a role that's allowed onto
+        // the staff portal can never be rejected again once actually on it.
+        var _dAllowed = ROLE_TIERS.INTERNAL_TEAM.concat(['owner', 'investor', 'partner']);
         if (_dAllowed.indexOf(_dr) === -1) {
           showToast(curLang==='rw' ? 'Injira nk\'umukozi wa KOMISIYONERI!' : 'Authorized accounts only!', 'warn');
           return;
         }
-        loadAgentDashboard();
+        _callDashLoader(loadAgentDashboard, 'loadAgentDashboard');
       }
     }
   }
@@ -20340,6 +20413,15 @@ function switchExecTab(tab) {
 function loadExecDash() {
   var cu = currentUser;
   if (!cu) { showToast('Injira kuri konti yawe', 'error'); return; }
+  // Unlike its sibling management-dashboard loaders (loadBranchMgrDash,
+  // loadHRMgrDash, loadOpsMgrDash, loadPartnerDashboard), this one had no
+  // guard against Firestore (db) not being ready yet. It's now called
+  // directly, inline, from go()'s dashboard-redirect branch (see there) —
+  // if db is undefined, loadExecKPIs() below throws synchronously,
+  // propagating out of go() entirely and getting treated by the
+  // DOMContentLoaded router as "must redirect to the login page", bouncing
+  // an otherwise legitimate CEO/director session back to sign-in.
+  if (typeof db === 'undefined') return;
   if (!canViewExecDash(cu)) {
     var pg = g('page-exec');
     if (pg) pg.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--muted)"><div style="font-size:2rem;margin-bottom:.5rem">&#128274;</div><div data-rw="Ntaburenganzira" data-en="Access restricted to executives">Access restricted to executives</div></div>';
@@ -30868,6 +30950,20 @@ function submitSiteForm() {
 /* Override loadAgentDashboard to use Firestore instead of localStorage */
 function loadAgentDashboard() {
   if (!currentUser) return;
+  // Unlike every sibling dashboard loader (loadPartnerDashboard,
+  // loadBranchMgrDash, loadHRMgrDash, loadOpsMgrDash), this one had no
+  // guard against firebase/db not being ready yet — it's called directly,
+  // inline, from go()'s dashboard-redirect branch, so if the Firebase SDK
+  // is still loading (or blocked by an ad-blocker/firewall/flaky network),
+  // firebase.firestore.Timestamp.fromDate() below throws synchronously,
+  // which propagates out of go() entirely and gets caught by the
+  // DOMContentLoaded router's catch block — which treats ANY go() throw
+  // on a gated portal as "must redirect to the login page" (see its own
+  // comment), bouncing an otherwise perfectly legitimate, already-
+  // authorized session back to sign-in. That's a real, reproducible cause
+  // of the "timeout/redirect-loop" symptom, unrelated to any actual auth
+  // problem — just a slow/blocked third-party script.
+  if (typeof db === 'undefined' || typeof firebase === 'undefined') return;
   var cu = currentUser;
   var _cuRoleLower = (cu.role || '').toLowerCase();
   var _isAgentRole = _cuRoleLower === 'agent';
@@ -34977,7 +35073,7 @@ function _autoCreateLead(opts) {
     { match: "go('office')",       roles: _STAFF },
     { match: "go('hr')",           roles: _ADMIN },
     { match: "go('add-staff')",    roles: ['ceo'] },
-    { match: "go('exec')",         roles: _EXEC.concat(['investor', 'company_owner']) },
+    { match: "go('exec')",         roles: _EXEC.concat(['investor', 'company_owner', 'director']) },
     { match: "go('bi')",           roles: _STAFF },
     { match: "go('branches')",     roles: _EXEC },
     { match: "go('branch-mgr')",   roles: ['branch_manager'] },
