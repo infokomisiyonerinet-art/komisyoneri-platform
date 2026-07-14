@@ -7,14 +7,18 @@
  * the status change, and survives the tab that made the change being
  * closed mid-chain.
  *
- * All business constants and arithmetic below are copied verbatim from
- * index.html's autoCalculateCommission() / generateDealInvoice() so this
- * is a behavior-preserving migration, not a rules change — including the
- * pre-existing quirks (e.g. the invoice description check compares
- * dealType against the string 'rent', while the commission-rate table
- * uses the key 'rental', so the ternary in practice always resolves to
- * "Sale"). Those are left exactly as they were; fixing them is a separate,
- * deliberate decision for later, not a side effect of this migration.
+ * All business constants and arithmetic below were originally copied
+ * verbatim from index.html's autoCalculateCommission() / generateDealInvoice().
+ * Two quirks from that copy have since been deliberately fixed here (see
+ * the full data-flow audit): COMMISSION_RATES.rental.default was `null`,
+ * so calcCommissionAmount()'s `rate = rates.default || 0.04` fallback
+ * silently charged the *sale* rate on every rental deal regardless of
+ * dealType — now set to 0.0833 (one month's rent as a fraction of the
+ * annual value), matching the client's own convertLeadToDeal()/
+ * createManualCommission() convention. And the invoice description below
+ * only matched the literal string 'rent' (only ever written by
+ * submitOffer()'s auto-created deal) while every other deal-creation path
+ * writes 'rental' — it now matches both spellings.
  */
 
 const { onDocumentUpdated, onDocumentCreated, onDocumentWritten } = require('firebase-functions/v2/firestore');
@@ -34,7 +38,7 @@ const KIGALI_OFFSET_MS = 2 * 60 * 60 * 1000; // Africa/Kigali is UTC+2 year-roun
 // ── Constants — copied verbatim from index.html ────────────────────────
 const COMMISSION_RATES = {
   sale: { default: 0.04, min: 0.03, max: 0.05 },
-  rental: { default: null, min: null, max: null },
+  rental: { default: 0.0833, min: null, max: null },
   property_management: { default: 0.10, min: 0.08, max: 0.12 },
   valuation: { flat: 80000 },
   surveying: { flat: 120000 },
@@ -234,7 +238,7 @@ exports.onDealClosedWon = onDocumentUpdated({ document: 'deals/{dealId}', region
     let invoiceCreated = false;
     const vatAmount = Math.round(dealValue * RWANDA_VAT);
     const totalAmount = dealValue + vatAmount;
-    const desc = (deal.dealType === 'rent' ? 'Rental' : 'Sale') + ' — ' + (deal.propertyTitle || deal.propTitle || 'Property');
+    const desc = ((deal.dealType === 'rent' || deal.dealType === 'rental') ? 'Rental' : 'Sale') + ' — ' + (deal.propertyTitle || deal.propTitle || 'Property');
     try {
       await invoiceRef.create({
         id: invoiceRef.id,
@@ -1093,10 +1097,21 @@ exports.onApprovalDecided = onDocumentUpdated({ document: 'approvals/{approvalId
   if (decidedBy !== 'system') {
     const actorDoc = await db.collection('users').doc(decidedBy).get();
     const actorRole = actorDoc.exists ? String(actorDoc.data().role || '').toLowerCase() : '';
-    if (actorRole !== 'ceo') {
+    // Mirrors rules/firestore.rules' own approvals-update permission
+    // exactly (isCEO() || caller's uid in routedTo) — a CEO can decide
+    // anything; anyone else must actually be one of the superiors this
+    // specific request was routed to (requestApproval()'s own
+    // currentUser.reportsTo at request time). This used to hardcode
+    // actorRole !== 'ceo' unconditionally, silently reverting even a
+    // legitimate routedTo Director's decision — the client-side UI,
+    // firestore.rules, and this re-verification disagreed about who was
+    // really allowed to decide.
+    const routedTo = Array.isArray(after.routedTo) ? after.routedTo : [];
+    const isAuthorized = actorRole === 'ceo' || routedTo.indexOf(decidedBy) > -1;
+    if (!isAuthorized) {
       await ref.update({
         status: 'rejected',
-        rejectedReason: 'Re-verification failed: approving actor is not CEO.',
+        rejectedReason: 'Re-verification failed: approving actor is not the CEO or a listed approver.',
         decidedBy: null,
         decidedAt: null,
         updatedAt: FieldValue.serverTimestamp(),
@@ -1104,7 +1119,7 @@ exports.onApprovalDecided = onDocumentUpdated({ document: 'approvals/{approvalId
       });
       await logAudit(db, 'approval.decision_reverted', 'approvals', approvalId,
         { status: 'approved' }, { status: 'rejected', decidedBy, actorRole }, 'system');
-      logger.warn('Approval decision reverted — actor not CEO', { approvalId, decidedBy, actorRole });
+      logger.warn('Approval decision reverted — actor not authorized', { approvalId, decidedBy, actorRole });
       return;
     }
   }
@@ -1125,7 +1140,7 @@ exports.onApprovalDecided = onDocumentUpdated({ document: 'approvals/{approvalId
     { type: after.type, targetId: targetRef.id, decidedBy }, decidedBy);
   if (after.requestedBy) {
     await notifyUser(db, after.requestedBy, 'Approval Granted',
-      'Your ' + after.type + ' request was approved by the CEO.',
+      'Your ' + after.type + ' request was approved.',
       'approval_approved', after.type, targetRef.id, decidedBy);
   }
   logger.info('Approval decided — target write complete', { approvalId, type: after.type, targetId: targetRef.id });

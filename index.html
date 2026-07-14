@@ -5136,7 +5136,6 @@ html,body{overscroll-behavior-x:none}
         <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.4rem">
           <button onclick="switchAdminTab('listings')" id="adm-tab-listings" class="btn btn-navy btn-sm" style="font-size:.75rem">🏠 Imitungo</button>
           <button onclick="switchAdminTab('agents')" id="adm-tab-agents" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">👔 Agents</button>
-          <button onclick="switchAdminTab('deals')" id="adm-tab-deals" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">💰 Deals</button>
           <button onclick="switchAdminTab('referrals')" id="adm-tab-referrals" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">🔗 Referrals <span id="adm-ref-badge" style="background:var(--gold);color:#fff;border-radius:8px;padding:0 5px;font-size:.65rem;margin-left:2px"></span></button>
           <button onclick="switchAdminTab('platform')" id="adm-tab-platform" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">⚙️ Platform</button>
         </div>
@@ -5157,7 +5156,6 @@ html,body{overscroll-behavior-x:none}
         </div>
         <div id="admin-agents-list"></div>
       </div>
-      <div id="admin-deals-panel" style="display:none;padding:.5rem 0"><div id="admin-deals-list"></div></div>
       <div id="admin-referrals-panel" style="display:none;padding:.5rem 0">
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.8rem">
           <select id="adm-ref-status-filter" onchange="loadAdminReferrals()" class="off-filter" style="font-size:.78rem" aria-label="Filter by referral status">
@@ -8505,8 +8503,10 @@ html,body{overscroll-behavior-x:none}
     </div>
     <div style="display:flex;flex-direction:column;gap:.7rem">
       <div class="vr-field">
-        <label data-rw="Izina ry'Umukomisiyoneri" data-en="Agent Name">Agent Name</label>
-        <input type="text" id="mc-agent-name" placeholder="Agent full name" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;box-sizing:border-box">
+        <label data-rw="Umukomisiyoneri" data-en="Agent">Agent</label>
+        <select id="mc-agent-select" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
+          <option value="">-- Select Agent --</option>
+        </select>
       </div>
       <div class="vr-field">
         <label data-rw="Izina ry'Imitungo" data-en="Property Title">Property Title</label>
@@ -17340,7 +17340,7 @@ function switchAdminTab(tab) {
   adminCurrentTab = tab;
 
   // Update tab buttons
-  ['listings','agents','deals','referrals','platform'].forEach(function(t) {
+  ['listings','agents','referrals','platform'].forEach(function(t) {
     var btn = document.getElementById('adm-tab-'+t);
     if(!btn) return;
     if(t === tab) {
@@ -17354,19 +17354,16 @@ function switchAdminTab(tab) {
   var listingsPanel = document.getElementById('admin-list');
   var listingsFilters = document.getElementById('adm-listings-filters');
   var agentsPanel = document.getElementById('admin-agents-panel');
-  var dealsPanel = document.getElementById('admin-deals-panel');
   var referralsPanel = document.getElementById('admin-referrals-panel');
   var platformPanel = document.getElementById('admin-platform-panel');
 
   if(listingsPanel) listingsPanel.style.display = tab === 'listings' ? 'block' : 'none';
   if(listingsFilters) listingsFilters.style.display = tab === 'listings' ? 'flex' : 'none';
   if(agentsPanel) agentsPanel.style.display = tab === 'agents' ? 'block' : 'none';
-  if(dealsPanel) dealsPanel.style.display = tab === 'deals' ? 'block' : 'none';
   if(referralsPanel) referralsPanel.style.display = tab === 'referrals' ? 'block' : 'none';
   if(platformPanel) platformPanel.style.display = tab === 'platform' ? 'block' : 'none';
 
   if(tab === 'agents') renderAdminAgents();
-  if(tab === 'deals') renderAdminDeals();
   if(tab === 'referrals') loadAdminReferrals();
   if(tab === 'platform') renderAdminPlatform();
 }
@@ -17988,100 +17985,6 @@ function adminAgentDelete(idx) {
   renderAdminAgents();
 }
 
-// ═══════════════════════════════════════════════════════════
-//  ADMIN — Deals / Completed Transactions
-// ═══════════════════════════════════════════════════════════
-
-function renderAdminDeals() {
-  var list = document.getElementById('admin-deals-list');
-  if(!list) return;
-  list.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:.82rem">⏳ Gutegura...</div>';
-
-  // Pull live leads from Firebase first, then render
-  try {
-    firebase.database().ref('leads').once('value').then(function(s) {
-      if(s.exists()) {
-        var fbLeads = [];
-        s.forEach(function(c){ fbLeads.push(c.val()); });
-        if(fbLeads.length > 0) localStorage.setItem('km_leads', JSON.stringify(fbLeads));
-      }
-      _renderAdminDealsList();
-    }).catch(function(){ _renderAdminDealsList(); });
-  } catch(e){ _renderAdminDealsList(); }
-}
-
-function _renderAdminDealsList() {
-  var list = document.getElementById('admin-deals-list');
-  if(!list) return;
-
-  var leads = [];
-  try { leads = JSON.parse(localStorage.getItem('km_leads')||'[]'); } catch(e){}
-  var closedLeads = leads.filter(function(l){ return l.status === 'Closed'; });
-
-  list.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.8rem">'
-    + '<div style="background:#27A84A;color:#fff;border-radius:8px;padding:.6rem;text-align:center"><div style="font-size:1.2rem;font-weight:700">' + closedLeads.length + '</div><div style="font-size:.68rem">Deals Zarangiye</div></div>'
-    + '<div style="background:var(--navy);color:#fff;border-radius:8px;padding:.6rem;text-align:center"><div style="font-size:1.2rem;font-weight:700">' + leads.filter(function(l){return l.status==='Active';}).length + '</div><div style="font-size:.68rem">Deals Zikorwa</div></div>'
-    + '</div>';
-
-  if(closedLeads.length === 0 && leads.length === 0) {
-    list.innerHTML += '<div style="text-align:center;padding:2rem;color:var(--muted)">'
-      + '<div style="font-size:2rem;margin-bottom:.5rem">💰</div>'
-      + '<div style="font-weight:600;color:var(--navy)">Nta deals irahari ubu</div>'
-      + '<div style="font-size:.8rem;margin-top:.3rem">Deals zizagaragara iyo leads zisojwe</div>'
-      + '</div>';
-    return;
-  }
-
-  // Show all leads with ability to mark as sold
-  list.innerHTML += leads.map(function(lead, idx) {
-    var statusColor = lead.status==='Closed'?'#27A84A':lead.status==='Active'?'var(--blue)':'#F5A623';
-    var commission = lead.budgetMax ? Math.round(parseInt(lead.budgetMax) * 0.04).toLocaleString() + ' RWF' : '—';
-
-    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.6rem;background:var(--surface)">'
-      + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
-      +   '<div>'
-      +     '<div style="font-weight:700;font-size:.85rem;color:var(--navy)">' + (lead.clientName||'—') + '</div>'
-      +     '<div style="font-size:.75rem;color:var(--muted)">📞 ' + (lead.clientPhone||'—') + ' | 📍 ' + (lead.zone||'—') + '</div>'
-      +     '<div style="font-size:.75rem;color:var(--muted)">' + (lead.action||'—') + '</div>'
-      +     (lead.agentName ? '<div style="font-size:.73rem;color:var(--blue)">👔 Agent: ' + lead.agentName + '</div>' : '')
-      +     '<div style="font-size:.72rem;color:var(--muted)">💰 Est. Commission: ' + commission + '</div>'
-      +   '</div>'
-      +   '<span style="background:'+statusColor+';color:#fff;border-radius:20px;padding:.15rem .5rem;font-size:.62rem;font-weight:700;flex-shrink:0">' + lead.status + '</span>'
-      + '</div>'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.35rem;margin-top:.6rem">'
-      +   '<button onclick="markDealSold('+idx+')" style="background:#27A84A;color:#fff;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.7rem;font-weight:700">✅ Yagurishijwe</button>'
-      +   '<button onclick="markDealActive('+idx+')" style="background:var(--blue);color:#fff;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.7rem">🔄 Active</button>'
-      +   '<a href="tel:' + (lead.clientPhone||'') + '" style="background:var(--navy);color:#fff;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.7rem;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center">📞</a>'
-      + '</div>'
-      + '</div>';
-  }).join('');
-}
-
-function markDealSold(idx) {
-  var leads = [];
-  try { leads = JSON.parse(localStorage.getItem('km_leads')||'[]'); } catch(e){}
-  if(leads[idx]) {
-    leads[idx].status = 'Closed';
-    leads[idx].closedAt = new Date().toISOString();
-    try { localStorage.setItem('km_leads', JSON.stringify(leads)); } catch(e){}
-    try { if(leads[idx].id) rtdb.ref('leads/'+leads[idx].id).update({ status: 'Closed', closedAt: leads[idx].closedAt }); } catch(e){}
-    showToast('Deal yemejwe nk\'igurishwa - Commission ibazwa!');
-    renderAdminDeals();
-  }
-}
-
-function markDealActive(idx) {
-  var leads = [];
-  try { leads = JSON.parse(localStorage.getItem('km_leads')||'[]'); } catch(e){}
-  if(leads[idx]) {
-    leads[idx].status = 'Active';
-    try { localStorage.setItem('km_leads', JSON.stringify(leads)); } catch(e){}
-    try { if(leads[idx].id) rtdb.ref('leads/'+leads[idx].id).update({ status: 'Active' }); } catch(e){}
-    showToast('🔄 Deal yasubijwe Active.');
-    renderAdminDeals();
-  }
-}
-
 // Load agents, CRM, and Deals when navigating to those pages
 var _goOrigAgents = go;
 go = function(page) {
@@ -18635,17 +18538,13 @@ document.addEventListener('securitypolicyviolation', function(e) {
         }
       });
 
-      // Leads — re-render admin deals tab if active + notify assigned agent
+      // Leads — notify assigned agent of a new lead in real time
       rtdb.ref('leads').on('value', function(s) {
         if (!s.exists()) return;
         var items = [];
         s.forEach(function(c){ items.push(c.val()); });
         if (!items.length) return;
         _set('km_leads', JSON.stringify(items));
-        var adminModal = document.getElementById('admin-modal');
-        if (adminModal && adminModal.style.display !== 'none' && adminCurrentTab === 'deals') {
-          if (typeof renderAdminDeals === 'function') renderAdminDeals();
-        }
         if (currentUser && ['agent','Agent'].indexOf(currentUser.role) !== -1 && currentUser.email) {
           items.forEach(function(lead) {
             var isMyLead = (lead.agentEmail === currentUser.email) || (lead.agentId === currentUser.uid);
@@ -20346,11 +20245,15 @@ function biRevForecast() {
   var now = new Date();
   var threeMonthsAgo = new Date(now.getFullYear(), now.getMonth()-3, 1);
   var ts = firebase.firestore.Timestamp.fromDate(threeMonthsAgo);
-  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('createdAt','>=',ts).get().then(function(snap) {
+  // Bucketed by paidAt (matches loadAccountingStats()'s own revenue
+  // recognition rule) — was bucketing by createdAt, which could put a
+  // month's worth of revenue in the wrong bucket relative to every other
+  // revenue figure in the app.
+  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('paidAt','>=',ts).get().then(function(snap) {
     var monthly = {};
     snap.forEach(function(d) {
       var data = d.data();
-      var dt = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt)) : new Date();
+      var dt = data.paidAt ? (data.paidAt.toDate ? data.paidAt.toDate() : new Date(data.paidAt)) : new Date();
       var key = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
       monthly[key] = (monthly[key]||0) + (data.totalAmount||0);
     });
@@ -20430,8 +20333,10 @@ function biTargets() {
         return '<tr><td>'+m.label+'</td><td>'+m.fmt(m.last)+'</td><td style="font-weight:700">'+m.fmt(m.curr)+'</td><td style="color:'+color+';font-weight:700">'+arrow+' '+Math.abs(delta)+'%</td></tr>';
       }).join('') + '</tbody></table>';
   }
-  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('createdAt','>=',tsThis).get().then(function(s){ s.forEach(function(d){data.thisRev+=(d.data().totalAmount||0);}); finish(); }).catch(finish);
-  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('createdAt','>=',tsLast).where('createdAt','<',tsThis).get().then(function(s){ s.forEach(function(d){data.lastRev+=(d.data().totalAmount||0);}); finish(); }).catch(finish);
+  // Bucketed by paidAt, matching loadAccountingStats()'s revenue
+  // recognition rule (see loadExecKPIs's comment on the same fix).
+  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('paidAt','>=',tsThis).get().then(function(s){ s.forEach(function(d){data.thisRev+=(d.data().totalAmount||0);}); finish(); }).catch(finish);
+  db.collection('invoices').where('status','==','paid').where('isActive','==',true).where('paidAt','>=',tsLast).where('paidAt','<',tsThis).get().then(function(s){ s.forEach(function(d){data.lastRev+=(d.data().totalAmount||0);}); finish(); }).catch(finish);
   db.collection('leads').where('isActive','==',true).where('createdAt','>=',tsThis).get().then(function(s){ data.thisLeads=s.size; finish(); }).catch(finish);
   db.collection('leads').where('isActive','==',true).where('createdAt','>=',tsLast).where('createdAt','<',tsThis).get().then(function(s){ data.lastLeads=s.size; finish(); }).catch(finish);
   db.collection('deals').where('isActive','==',true).where('createdAt','>=',tsThis).get().then(function(s){ data.thisDeals=s.size; finish(); }).catch(finish);
@@ -20511,8 +20416,14 @@ function loadExecKPIs() {
   var monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   var ts = firebase.firestore.Timestamp.fromDate(monthStart);
 
+  // Buckets by paidAt (when the money was actually received), not
+  // createdAt — matches loadAccountingStats()'s own revenue bucketing
+  // exactly. Filtering on createdAt while requiring status=='paid' used
+  // to attribute an invoice's revenue to the month it was CREATED even
+  // when it was actually paid the following month, so this tile and
+  // Accounting's own revenue figure could disagree for the same invoice.
   db.collection('invoices').where('status','==','paid').where('isActive','==',true)
-    .where('createdAt','>=',ts).get().then(function(snap) {
+    .where('paidAt','>=',ts).get().then(function(snap) {
       var total = 0;
       snap.forEach(function(d) { total += (d.data().totalAmount || 0); });
       var el = g('exec-kpi-rev');
@@ -20667,13 +20578,25 @@ function submitShareEntry() {
 function loadExecApprovals() {
   var panel = g('exec-approvals-panel');
   if (!panel) return;
-  if (_roleOf(currentUser) !== 'ceo') { panel.style.display = 'none'; return; }
+  var role = _roleOf(currentUser);
+  var isDirector = role === 'director';
+  if (role !== 'ceo' && !isDirector) { panel.style.display = 'none'; return; }
   panel.style.display = '';
   var container = g('exec-approvals-list');
   if (!container) return;
   container.innerHTML = '<div class="exec-empty">Loading...</div>';
-  db.collection('approvals').where('status','==','pending').where('serverVerified','==',true)
-    .limit(20).get().then(function(snap) {
+  // CEO sees every pending approval company-wide (the top of the org
+  // chart isn't necessarily listed in every role's routedTo — e.g.
+  // chief_broker/marketing_manager/customer_support_manager report only
+  // to 'director', not 'ceo', per ROLE_SUPERIOR_ROLES). A Director only
+  // sees requests actually routed to them, matching requestApproval()'s
+  // own routedTo targeting and firestore.rules' decide permission
+  // (isCEO() || caller's uid in routedTo).
+  var q = db.collection('approvals').where('status','==','pending').where('serverVerified','==',true);
+  if (isDirector) q = q.where('routedTo','array-contains',currentUser.uid);
+  // Real-time — a new approval request (or another approver deciding one
+  // first) used to need a manual page reload to show up here.
+  var unsub = q.limit(20).onSnapshot(function(snap) {
       if (snap.empty) {
         container.innerHTML = '<div class="exec-empty" data-rw="Nta bisabwa bitegereje" data-en="No pending approvals">No pending approvals</div>';
         if (typeof switchLang !== 'undefined') switchLang(currentLang);
@@ -20693,9 +20616,11 @@ function loadExecApprovals() {
       });
       container.innerHTML = html;
       if (typeof switchLang !== 'undefined') switchLang(currentLang);
-    }).catch(function() {
+    }, function(err) {
+      console.error('[Approvals] loadExecApprovals error — code:', err && err.code, 'message:', err && err.message);
       container.innerHTML = '<div class="exec-empty">Approvals unavailable</div>';
     });
+  registerListener('execApprovals', unsub);
 }
 
 // Final Management Org Chart — deniedActions approval routing. Any action
@@ -20731,12 +20656,33 @@ function requestApproval(type, actionType, summaryTitle, payload) {
 
 function decideApproval(id, decision) {
   if (!currentUser) return;
-  db.collection('approvals').doc(id).update({
-    status: decision,
-    decidedBy: currentUser.uid,
-    decidedAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    updatedBy: currentUser.uid
+  var approvalRef = db.collection('approvals').doc(id);
+  // Fetched before the update purely to notify the requester on rejection
+  // below — approval already gets a notification from the server-side
+  // onApprovalDecided trigger (which only fires on a transition TO
+  // 'approved'), but a manual reject has no server-side counterpart at
+  // all, so a rejected request used to be silently invisible to whoever
+  // submitted it.
+  approvalRef.get().then(function(doc) {
+    var requestedBy = doc.exists ? doc.data().requestedBy : null;
+    // decidedAt/updatedAt were client ISO strings while every other
+    // timestamp field on this same doc (createdAt, and every timestamp
+    // field on every other collection in the app) is a real Firestore
+    // Timestamp — any reader calling the codebase's usual
+    // `x.toDate ? x.toDate() : new Date(x)` pattern on decidedAt would get
+    // an actual Date either way, but the more common bare `.toDate()` call
+    // used elsewhere would throw on a decided approval specifically.
+    return approvalRef.update({
+      status: decision,
+      decidedBy: currentUser.uid,
+      decidedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy: currentUser.uid
+    }).then(function() {
+      if (decision === 'rejected' && requestedBy && typeof notifyUser === 'function') {
+        notifyUser(requestedBy, 'Approval Rejected', 'Your request was rejected.', 'approval_rejected', 'approvals', id);
+      }
+    });
   }).then(function() {
     showToast(decision === 'approved' ? 'Approved' : 'Rejected', 'success');
     loadExecApprovals();
@@ -20762,8 +20708,8 @@ function loadMyReportsWidget() {
   var list = g('dash-myreports-list');
   if (!list) return;
   list.innerHTML = '<div class="exec-empty">Loading...</div>';
-  db.collection('reports').where('submittedBy','==',currentUser.uid)
-    .orderBy('createdAt','desc').limit(5).get().then(function(snap) {
+  var unsub = db.collection('reports').where('submittedBy','==',currentUser.uid)
+    .orderBy('createdAt','desc').limit(5).onSnapshot(function(snap) {
       if (snap.empty) {
         list.innerHTML = '<div class="exec-empty" data-en="No reports submitted yet">No reports submitted yet</div>';
         if (typeof switchLang !== 'undefined') switchLang(currentLang);
@@ -20775,9 +20721,11 @@ function loadMyReportsWidget() {
           + '<span>' + escapeHtml(r.reportCategory || r.reportType || '') + '</span>'
           + '<span style="color:var(--muted)">' + escapeHtml(r.status || 'submitted') + '</span></div>';
       }).join('');
-    }).catch(function() {
+    }, function(err) {
+      console.error('[Reports] loadMyReportsWidget error — code:', err && err.code, 'message:', err && err.message);
       list.innerHTML = '<div class="exec-empty">Reports unavailable</div>';
     });
+  registerListener('myReports', unsub);
 }
 
 function openSubmitReportModal() {
@@ -20842,7 +20790,7 @@ function loadExecReportsReceived() {
   var q = db.collection('reports').where('recipients','array-contains',currentUser.uid);
   if (deptFilter) q = q.where('department','==',deptFilter);
   if (typeFilter) q = q.where('reportType','==',typeFilter);
-  q.orderBy('createdAt','desc').limit(30).get().then(function(snap) {
+  var unsub = q.orderBy('createdAt','desc').limit(30).onSnapshot(function(snap) {
     if (snap.empty) {
       list.innerHTML = '<div class="exec-empty">No reports received</div>';
       return;
@@ -20854,9 +20802,11 @@ function loadExecReportsReceived() {
         + '<span style="color:var(--muted)">' + escapeHtml(r.reportCategory || r.reportType || '') + '</span></div>'
         + '<span style="color:var(--muted)">' + escapeHtml(r.reportType || '') + '</span></div>';
     }).join('');
-  }).catch(function() {
+  }, function(err) {
+    console.error('[Reports] loadExecReportsReceived error — code:', err && err.code, 'message:', err && err.message);
     list.innerHTML = '<div class="exec-empty">Reports unavailable</div>';
   });
+  registerListener('execReportsReceived', unsub);
 }
 // Small local alias — this file's isCEO() (client-side) already exists as
 // part of isExec()/ROLE_TIERS.EXEC checks; kept explicit here since 'ceo'
@@ -20974,10 +20924,13 @@ function loadExecRevChart() {
   }
   var yStart = firebase.firestore.Timestamp.fromDate(new Date(year, 0, 1));
   var yEnd   = firebase.firestore.Timestamp.fromDate(new Date(year + 1, 0, 1));
+  // Bucketed by paidAt — see loadExecKPIs's comment on why this must match
+  // loadAccountingStats()'s own revenue recognition rule rather than
+  // createdAt.
   db.collection('invoices').where('status','==','paid').where('isActive','==',true)
-    .where('createdAt','>=',yStart).where('createdAt','<',yEnd).get().then(function(snap) {
+    .where('paidAt','>=',yStart).where('paidAt','<',yEnd).get().then(function(snap) {
       snap.forEach(function(d) {
-        var dt = d.data().createdAt ? (d.data().createdAt.toDate ? d.data().createdAt.toDate() : new Date()) : new Date();
+        var dt = d.data().paidAt ? (d.data().paidAt.toDate ? d.data().paidAt.toDate() : new Date()) : new Date();
         revData[dt.getMonth()] += (d.data().totalAmount || 0);
       });
       renderChart();
@@ -22803,7 +22756,6 @@ function changeUserRole(uid) {
   var wasStaffTier = ROLE_TIERS.STAFF.indexOf(((existingUser && existingUser.role) || '').toLowerCase()) > -1;
   var updatePayload = {
     role:      newRole,
-    status:    newRole === 'agent' ? 'active' : undefined,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedBy: adminUid,
     // Derived org-chart metadata — see renderOrgChartFields()'s comment on
@@ -22813,6 +22765,15 @@ function changeUserRole(uid) {
     deniedActions:  isGovRole ? (ROLE_DENIED_ACTIONS[newRole] || []) : [],
     reportsTo:      isGovRole ? reportsToUids : []
   };
+  // Only 'agent' gets an explicit status flip here — every other role
+  // change leaves status untouched. Firestore's compat SDK throws
+  // synchronously on update() when any payload field is literally
+  // `undefined` (as opposed to `null`, a real value it accepts), so the
+  // key must be omitted entirely rather than set to undefined — every
+  // non-agent role change (director, hr_manager, accountant, etc.) was
+  // throwing before this fix, silently breaking Org Chart role
+  // reassignment for every governance role.
+  if (newRole === 'agent') updatePayload.status = 'active';
   db.collection('users').doc(uid).update(updatePayload).then(function() {
     logAudit('user.role.changed', 'users', uid, null, { newRole: newRole });
     var u = _hrStaff.find(function(x){ return x.id === uid; });
@@ -23010,42 +22971,57 @@ function submitAddStaffForm() {
 // provisionable staff roles, plus 'partner'. Queried independently of
 // _hrStaff (the HR module's own cache) so this page works correctly
 // whether or not HR has been visited yet this session.
+// Real-time — a CEO watching this list while a newly-provisioned account
+// logs in for the first time (flipping status: pending_first_login ->
+// active in restoreUserSession()) used to only see it after leaving and
+// re-entering this page. Firestore's 'in' operator caps at 10 values, so
+// this is two independent live queries merged together; each fires on
+// its own schedule, so the merge+render happens after either one updates
+// rather than waiting for both like the old Promise.all did.
+var _asBatch1Docs = [];
+var _asBatch2Docs = [];
+function _mergeAddStaffList() {
+  var seen = {};
+  var list = [];
+  [_asBatch1Docs, _asBatch2Docs].forEach(function(docs) {
+    docs.forEach(function(d) {
+      if (seen[d.id]) return;
+      seen[d.id] = true;
+      var u = d.data();
+      list.push({
+        id: d.id,
+        name: u.displayName || u.name || '(no name)',
+        email: u.email || '',
+        role: u.role || '',
+        department: u.department || '',
+        jobTitle: u.jobTitle || '',
+        reportsTo: u.reportsTo || [],
+        status: u.status || 'active',
+        createdAt: u.createdAt && u.createdAt.toDate ? u.createdAt.toDate() : null
+      });
+    });
+  });
+  list.sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+  _asAccountsList = list;
+  renderAddStaffList();
+}
 function loadAddStaffList() {
   if (typeof db === 'undefined') return;
   var tbody = g('as-list-tbody');
   var roleBatch1 = AS_PROVISIONABLE_ROLES.slice(0, 10);
   var roleBatch2 = AS_PROVISIONABLE_ROLES.slice(10).concat(['partner']);
-  Promise.all([
-    db.collection('users').where('role', 'in', roleBatch1).get(),
-    db.collection('users').where('role', 'in', roleBatch2).get()
-  ]).then(function(snaps) {
-    var seen = {};
-    var list = [];
-    snaps.forEach(function(snap) {
-      snap.forEach(function(d) {
-        if (seen[d.id]) return;
-        seen[d.id] = true;
-        var u = d.data();
-        list.push({
-          id: d.id,
-          name: u.displayName || u.name || '(no name)',
-          email: u.email || '',
-          role: u.role || '',
-          department: u.department || '',
-          jobTitle: u.jobTitle || '',
-          reportsTo: u.reportsTo || [],
-          status: u.status || 'active',
-          createdAt: u.createdAt && u.createdAt.toDate ? u.createdAt.toDate() : null
-        });
-      });
-    });
-    list.sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-    _asAccountsList = list;
-    renderAddStaffList();
-  }).catch(function(e) {
+  function onErr(e) {
     console.error('[ADD-STAFF] loadAddStaffList failed:', e.code || '', e.message);
     if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.2rem">Could not load accounts.</td></tr>';
-  });
+  }
+  var unsub1 = db.collection('users').where('role', 'in', roleBatch1).onSnapshot(function(snap) {
+    _asBatch1Docs = snap.docs; _mergeAddStaffList();
+  }, onErr);
+  var unsub2 = db.collection('users').where('role', 'in', roleBatch2).onSnapshot(function(snap) {
+    _asBatch2Docs = snap.docs; _mergeAddStaffList();
+  }, onErr);
+  registerListener('addStaffList1', unsub1);
+  registerListener('addStaffList2', unsub2);
 }
 
 function renderAddStaffList() {
@@ -24208,7 +24184,10 @@ function loadLeaves() {
   var q = isAdmin
     ? db.collection('leaves').where('isActive','==',true).orderBy('createdAt','desc').limit(100)
     : db.collection('leaves').where('userId','==',currentUser.uid).where('isActive','==',true).orderBy('createdAt','desc').limit(50);
-  q.get().then(function(snap) {
+  // Real-time — an employee's own leave request getting approved/rejected
+  // via the HR Manager dashboard (hrMgrProcessLeave) or this same tab
+  // (processLeave) used to only show up here after a manual reload.
+  var unsub = q.onSnapshot(function(snap) {
     _leavesAll = [];
     var annualD = 0, sickD = 0, emergD = 0;
     snap.forEach(function(d) {
@@ -24225,7 +24204,11 @@ function loadLeaves() {
       if (g('lb-emergency')) g('lb-emergency').textContent = emergD + 'd';
     }
     filterLeaves();
-  }).catch(function() { if (el) el.innerHTML = '<div class="off-empty">Unable to load leave requests.</div>'; });
+  }, function(err) {
+    console.error('[Leaves] loadLeaves error — code:', err && err.code, 'message:', err && err.message);
+    if (el) el.innerHTML = '<div class="off-empty">Unable to load leave requests.</div>';
+  });
+  registerListener('leaves', unsub);
 }
 
 function filterLeaves() {
@@ -24849,7 +24832,11 @@ function populateAfterSalePartnerSelect(selectedUserId) {
   var sel = document.getElementById('asd-assign-partner');
   if (!sel || typeof db === 'undefined') return;
   sel.innerHTML = '<option value="">-- Select a verified partner --</option>';
-  db.collection('partners').where('isActive','==',true).where('status','==','verified')
+  // verifyPartner() writes status:'active' (never 'verified') — this
+  // filter matched zero documents ever, permanently emptying the dropdown
+  // even after an admin approved a partner. verified:true is the real
+  // approval signal.
+  db.collection('partners').where('isActive','==',true).where('verified','==',true)
     .limit(200).get().then(function(snap) {
       snap.forEach(function(doc) {
         var p = doc.data();
@@ -24858,7 +24845,7 @@ function populateAfterSalePartnerSelect(selectedUserId) {
         opt.value = p.userId;
         opt.setAttribute('data-name', p.companyName || p.userId);
         opt.setAttribute('data-partner-doc-id', doc.id);
-        opt.textContent = (p.companyName || 'Partner') + (PARTNER_TYPES[p.type] ? ' — ' + PARTNER_TYPES[p.type].label : '');
+        opt.textContent = (p.companyName || 'Partner') + (PARTNER_TYPES[p.partnerType] ? ' — ' + PARTNER_TYPES[p.partnerType].label : '');
         if (p.userId === selectedUserId) opt.selected = true;
         sel.appendChild(opt);
       });
@@ -25445,7 +25432,11 @@ function populateAssignBankSelect(selectedUserId) {
   var sel = document.getElementById('ld-assign-bank');
   if (!sel || typeof db === 'undefined') return;
   sel.innerHTML = '<option value="">-- Select a verified bank --</option>';
-  db.collection('partners').where('isActive','==',true).where('status','==','verified').where('type','==','bank')
+  // See populateAssignPartnerSelect's comment: verifyPartner() writes
+  // status:'active', never 'verified' — verified:true is the real
+  // approval signal. The field is partnerType, not type (type is never
+  // written on a partners doc — that's a properties-doc field name).
+  db.collection('partners').where('isActive','==',true).where('verified','==',true).where('partnerType','==','bank')
     .limit(200).get().then(function(snap) {
       snap.forEach(function(doc) {
         var p = doc.data();
@@ -25938,7 +25929,7 @@ function loadPartnerDashboard() {
     var pdoc = snap.docs[0];
     var p = pdoc.data();
     if (p.companyName && g('pdash-hero-name')) g('pdash-hero-name').textContent = p.companyName;
-    var typeLabel = (PARTNER_TYPES[p.type] || {}).label;
+    var typeLabel = (PARTNER_TYPES[p.partnerType] || {}).label;
     if (typeLabel && g('pdash-role-chip')) g('pdash-role-chip').textContent = typeLabel;
     var badgeEl = g('pdash-verify-badge');
     if (badgeEl) {
@@ -26062,7 +26053,24 @@ function generatePartnerPayoutInvoice(serviceId) {
   db.collection('services').doc(serviceId).get().then(function(doc) {
     if (!doc.exists) return;
     var s = doc.data();
-    if (!s.assignedToId || !s.quotedPrice) return; // nothing to pay out
+    if (!s.assignedToId) return; // never assigned to a real partner account — nothing to pay out
+    if (!s.quotedPrice) {
+      // quotedPrice is an optional field in assignServicePartner()'s modal
+      // (defaults to 0 if left blank) — used to just silently drop the
+      // payout invoice here with no error, which looked like a
+      // successful report submission but quietly dropped the accounting
+      // side-effect. Now at least surfaces to the partner and logs to
+      // console so staff can follow up and create the invoice manually
+      // once a price is set.
+      console.warn('[Partners] generatePartnerPayoutInvoice: service ' + serviceId + ' has no quotedPrice — no payout invoice created');
+      if (typeof notifyUser === 'function') {
+        notifyUser(s.assignedToId,
+          curLang==='rw' ? '&#9888;&#65039; Kwishyurwa Ntarahagurutswe' : '&#9888;&#65039; Payout Not Yet Generated',
+          curLang==='rw' ? 'Akazi kawe karangiye ariko nta giciro cyashyizweho — vugana n\'itsinda rya KOMISIYONERI.' : 'Your job is marked completed but has no price set, so no payout invoice was created yet — contact the KOMISIYONERI team.',
+          'partner_payout_missing_price', 'services', serviceId);
+      }
+      return;
+    }
     var uid = currentUser ? currentUser.uid : 'system';
     var vat = typeof RWANDA_VAT === 'number' ? RWANDA_VAT : 0;
     var subtotal = Number(s.quotedPrice) || 0;
@@ -26928,15 +26936,20 @@ function loadVerifications() {
               .where('requestedBy','==',currentUser.uid).orderBy('createdAt','desc').limit(200);
   } else { return; }
 
-  query.get().then(function(snap) {
+  // Real-time — staff assigning/updating a request and the requester
+  // watching their own Verification tab used to need a manual reload to
+  // see each other's changes; the only "push" was a separate notification
+  // bell that never re-ran this query.
+  var unsub = query.onSnapshot(function(snap) {
     _verifications = [];
     snap.forEach(function(doc) { var d = doc.data(); d._docId = doc.id; _verifications.push(d); });
     renderVerificationList();
     updateVerificationStats();
-  }).catch(function(err) {
+  }, function(err) {
     console.error('[Verification] load error — code:', err && err.code, 'message:', err && err.message);
     list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⚠️</div><div class="crm-empty-title">Error loading</div></div>';
   });
+  registerListener('verifications', unsub);
 }
 
 function updateVerificationStats() {
@@ -27181,7 +27194,11 @@ function populateAssignPartnerSelect(selectedUserId) {
   var sel = document.getElementById('vd-assign-partner');
   if (!sel || typeof db === 'undefined') return;
   sel.innerHTML = '<option value="">-- Select a verified partner --</option>';
-  db.collection('partners').where('isActive','==',true).where('status','==','verified')
+  // verifyPartner() writes status:'active' (never 'verified') — this
+  // filter matched zero documents ever, permanently emptying the dropdown
+  // even after an admin approved a partner. verified:true is the real
+  // approval signal; partnerType (not type) is the specialty field.
+  db.collection('partners').where('isActive','==',true).where('verified','==',true)
     .limit(200).get().then(function(snap) {
       snap.forEach(function(doc) {
         var p = doc.data();
@@ -27190,7 +27207,7 @@ function populateAssignPartnerSelect(selectedUserId) {
         opt.value = p.userId;
         opt.setAttribute('data-partner-doc-id', doc.id);
         opt.setAttribute('data-name', p.companyName || p.userId);
-        opt.textContent = (p.companyName || 'Partner') + ' — ' + (PARTNER_TYPES[p.type] ? PARTNER_TYPES[p.type].label : (p.type||''));
+        opt.textContent = (p.companyName || 'Partner') + ' — ' + (PARTNER_TYPES[p.partnerType] ? PARTNER_TYPES[p.partnerType].label : (p.partnerType||''));
         if (p.userId === selectedUserId) opt.selected = true;
         sel.appendChild(opt);
       });
@@ -27355,7 +27372,7 @@ function saveReportUrl() {
 // ── Commission Rates (configurable per deal type) ─────
 var COMMISSION_RATES = {
   sale:                { default: 0.04, min: 0.03, max: 0.05, label: 'Sale (3–5%)' },
-  rental:              { default: null, min: null, max: null, label: 'Rental (1 month rent)' },
+  rental:              { default: 0.0833, min: null, max: null, label: 'Rental (1 month rent)' },
   property_management: { default: 0.10, min: 0.08, max: 0.12, label: 'Mgmt (8–12% monthly)' },
   valuation:           { flat: 80000,  label: 'Valuation (flat 80,000 RWF)' },
   surveying:           { flat: 120000, label: 'Survey (flat 120,000 RWF)' },
@@ -28046,9 +28063,33 @@ function closePayslip() {
 }
 
 // ── Manual Commission Entry ───────────────────────────
+// The agent picker used to be a free-text name input, and
+// createManualCommission() wrote agentId: currentUser.uid (the staff
+// member filling out this form) alongside the free-text name — since
+// every commission read (loadCommissions, wallet balance, payout
+// eligibility) filters by agentId==uid, the actual named agent could
+// never see a commission entered on their behalf this way. Populating a
+// real agent picker here so the write can carry the correct agentId.
+function populateManualCommissionAgentSelect() {
+  var sel = document.getElementById('mc-agent-select');
+  if (!sel || typeof db === 'undefined') return;
+  sel.innerHTML = '<option value="">-- Select Agent --</option>';
+  db.collection('users').where('role','==','agent').where('isActive','==',true)
+    .orderBy('displayName').limit(500).get().then(function(snap) {
+      snap.forEach(function(doc) {
+        var u = doc.data();
+        var opt = document.createElement('option');
+        opt.value = doc.id;
+        opt.textContent = u.displayName || u.email || doc.id;
+        sel.appendChild(opt);
+      });
+    }).catch(function(e) { console.error('[Commission] populateManualCommissionAgentSelect', e); });
+}
+
 function openManualCommission() {
   var m = document.getElementById('manual-commission-modal');
   if (m) m.style.display = 'flex';
+  populateManualCommissionAgentSelect();
   var prv = document.getElementById('mc-preview');
   if (prv) prv.style.display = 'none';
   // Live preview on value / type change
@@ -28074,7 +28115,7 @@ function openManualCommission() {
 }
 
 function createManualCommission() {
-  var agentEl = document.getElementById('mc-agent-name');
+  var agentSel = document.getElementById('mc-agent-select');
   var propEl  = document.getElementById('mc-prop-title');
   var typeEl  = document.getElementById('mc-deal-type');
   var valEl   = document.getElementById('mc-deal-value');
@@ -28082,13 +28123,14 @@ function createManualCommission() {
   var btn     = document.getElementById('mc-submit-btn');
   var lbl     = document.getElementById('mc-submit-lbl');
 
-  var agentName = agentEl ? agentEl.value.trim() : '';
+  var selectedAgentId = agentSel ? agentSel.value : '';
+  var agentName = agentSel && agentSel.selectedIndex > 0 ? agentSel.options[agentSel.selectedIndex].textContent : '';
   var propTitle = propEl  ? propEl.value.trim()  : '';
   var dealType  = typeEl  ? typeEl.value          : 'sale';
   var dealValue = parseFloat(valEl ? valEl.value : 0) || 0;
   var customRate = parseFloat(rateEl ? rateEl.value : '') || null;
 
-  if (!agentName) { showToast(curLang === 'rw' ? 'Injiza izina ry\'umukomisiyoneri!' : 'Enter agent name!', 'error'); return; }
+  if (!selectedAgentId) { showToast(curLang === 'rw' ? 'Hitamo umukomisiyoneri!' : 'Select an agent!', 'error'); return; }
   if (!dealValue) { showToast(curLang === 'rw' ? 'Injiza agaciro ka deal!' : 'Enter deal value!', 'error'); return; }
   if (typeof db === 'undefined') { showToast('Firebase ntabwo ihuye', 'error'); return; }
 
@@ -28102,7 +28144,13 @@ function createManualCommission() {
   var uid   = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
 
   db.collection('commissions').add({
-    id: '', dealId: '', agentId: uid, agentName: agentName,
+    // agentId is the actual agent this commission belongs to (selected
+    // above) — createdBy/updatedBy below is the staff member who entered
+    // it, a separate concept. Every commission read (loadCommissions,
+    // wallet balance, payout eligibility) filters by agentId==uid, so this
+    // used to silently attribute manually-entered commissions to whichever
+    // staff member typed them in instead of the named agent.
+    id: '', dealId: '', agentId: selectedAgentId, agentName: agentName,
     propertyId: '', propertyTitle: propTitle, clientName: '',
     dealType: dealType, dealValue: dealValue,
     commissionRate: rate, totalCommission: total,
@@ -28118,7 +28166,7 @@ function createManualCommission() {
     logAudit('commission.manual.created', 'commissions', ref.id, null, { agentName: agentName, total: total });
     showToast(curLang === 'rw' ? 'Komisiyoni yabitswe!' : 'Commission saved!', 'success');
     document.getElementById('manual-commission-modal').style.display = 'none';
-    if (agentEl) agentEl.value = '';
+    if (agentSel) agentSel.value = '';
     if (propEl)  propEl.value  = '';
     if (valEl)   valEl.value   = '';
     if (rateEl)  rateEl.value  = '';
@@ -29085,7 +29133,8 @@ function logAudit(action, collection, docId, oldValue, newValue) {
       updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
       createdBy:   uid,
       updatedBy:   uid
-    });
+    }).then(function(ref) { return ref.update({ id: ref.id }); })
+      .catch(function(e) { console.warn('[logAudit] failed:', e); });
   } catch(e) { console.warn('[logAudit] failed:', e); }
 }
 
@@ -30783,11 +30832,29 @@ function calculatePlotCommission(plotId) {
         siteId:          p.siteId,
         plotId:          plotId,
         agentId:         s.managingAgentId || p.agentId || uid,
+        // agentName/clientName left blank — no cheap lookup available at
+        // this point without an extra users/{uid} read; every UI that
+        // renders these already falls back to '—' when empty.
+        agentName:       '',
+        propertyTitle:   (s.name || '') + (p.plotNumber ? (' — Plot ' + p.plotNumber) : ''),
+        clientName:      '',
         dealValue:       price,
         commissionRate:  s.commissionRate || 4,
         totalCommission: total,
         agentShare:      total * agSpl,
         companyShare:    total * coSpl,
+        // Recorded so a payslip/audit reader can tell which split ratio was
+        // actually applied — a plot-sale commission can legitimately use a
+        // non-standard per-site split (s.agentSplit/companySplit above),
+        // unlike every other commission-creation path which is always the
+        // hardcoded 60/40.
+        agentSplitPct:   agSpl,
+        companySplitPct: coSpl,
+        approvedBy:      '',
+        approvedAt:      null,
+        paidAt:          null,
+        paymentRef:      '',
+        notes:           '',
         status:          'pending',
         isActive:        true,
         createdAt:       now,
@@ -30795,6 +30862,7 @@ function calculatePlotCommission(plotId) {
         createdBy:       uid,
         updatedBy:       uid
       }).then(function(ref) {
+        ref.update({ id: ref.id });
         // Link commission back to plot
         db.collection('plots').doc(plotId).update({ commissionId: ref.id, updatedAt: now, updatedBy: uid });
         logAudit('commission.calculated', 'commissions', ref.id, {},
@@ -33785,6 +33853,21 @@ function adminDeleteAll(status) {
 })();
 
 /* Fix 5: convertLeadToDeal — creates deal + commission record from lead */
+// Leads created via the public "Request Agent" form (#lead-action) store an
+// emoji-prefixed dropdown label like "🔑 Gukodesha Inzu" in `lead.action` —
+// never the plain word "gukodesha"/"Gukodesha" that both call sites below
+// used to compare against exactly, which could never match and silently
+// defaulted every rental lead to a 'sale' deal type (wrong commission
+// rate — sale is 4%, rental is 8.33%). Leads created via the booking flow
+// instead carry `lead.type: 'Rental'|'Purchase'` with no `action` field at
+// all. This checks both shapes with a case-insensitive substring match
+// rather than an exact one.
+function _isRentalLead(lead) {
+  var action = (lead.action || '').toLowerCase();
+  var type   = (lead.type || '').toLowerCase();
+  return action.indexOf('gukodesha') > -1 || type === 'rental';
+}
+
 function convertLeadToDeal(leadId) {
   if (!leadId) return;
   var lead = null;
@@ -33798,7 +33881,7 @@ function convertLeadToDeal(leadId) {
   var agentName = currentUser ? (currentUser.displayName || currentUser.name || currentUser.email || '') : '';
   var clientName  = lead.clientName || lead.name || '';
   var clientPhone = lead.clientPhone || lead.phone || '';
-  var dealType    = (lead.action || lead.type || 'sale').toLowerCase() === 'gukodesha' ? 'rental' : 'sale';
+  var dealType    = _isRentalLead(lead) ? 'rental' : 'sale';
   var agreedPrice = parseInt(lead.budgetMax || lead.budgetMin || 0);
   var defaultRate = dealType === 'rental' ? 0.0833 : 0.04;
   var commAmt     = agreedPrice * defaultRate;
@@ -33806,8 +33889,8 @@ function convertLeadToDeal(leadId) {
   var coShare     = Math.round(commAmt * 0.40);
 
   if (!confirm((curLang === 'rw'
-    ? 'Gufungura Deal ya: ' + clientName + '\nAgaciro: ' + agreedPrice.toLocaleString() + ' RWF\nObutumwa bw\'Umukozi: ' + agentShare.toLocaleString() + ' RWF\nEmeza?'
-    : 'Open Deal for: ' + clientName + '\nValue: ' + agreedPrice.toLocaleString() + ' RWF\nAgent Share: ' + agentShare.toLocaleString() + ' RWF\nConfirm?'
+    ? 'Gufungura Deal ya: ' + clientName + '\nAgaciro: ' + agreedPrice.toLocaleString() + ' RWF\nObutumwa bw\'Umukozi (igihe idasoje): ' + agentShare.toLocaleString() + ' RWF\nEmeza?'
+    : 'Open Deal for: ' + clientName + '\nValue: ' + agreedPrice.toLocaleString() + ' RWF\nEstimated agent share once closed: ' + agentShare.toLocaleString() + ' RWF\nConfirm?'
   ))) return;
 
   db.collection('deals').add({
@@ -33840,31 +33923,15 @@ function convertLeadToDeal(leadId) {
     logAudit('deal.converted.from.lead', 'deals', dealRef.id, { leadId: leadId },
       { clientName: clientName, agreedPrice: agreedPrice });
 
-    db.collection('commissions').add({
-      id:              '',
-      dealId:          dealRef.id,
-      agentId:         uid,
-      agentName:       agentName,
-      clientName:      clientName,
-      dealType:        dealType,
-      dealValue:       agreedPrice,
-      commissionRate:  defaultRate,
-      totalCommission: Math.round(commAmt),
-      agentShare:      agentShare,
-      companyShare:    coShare,
-      approvedBy:      '',
-      paidAt:          null,
-      status:          'pending',
-      isActive:        true,
-      createdAt:       firebase.firestore.FieldValue.serverTimestamp(),
-      updatedAt:       firebase.firestore.FieldValue.serverTimestamp(),
-      createdBy:       uid,
-      updatedBy:       uid
-    }).then(function(commRef) {
-      commRef.update({ id: commRef.id });
-      logAudit('commission.created', 'commissions', commRef.id, null,
-        { dealId: dealRef.id, agentShare: agentShare });
-    }).catch(function(e) { console.warn('[Commission] create error:', e); });
+    // Commission creation deliberately does NOT happen here — a deal at
+    // 'contract' stage hasn't closed yet (it can still fall through). The
+    // server-side onDealClosedWon (functions/index.js) is the single,
+    // idempotent, authoritative place a commission is minted, firing only
+    // when this deal's own pipelineStage actually reaches 'closed_won' —
+    // matching the same rule advanceDealStage()/closeDealWon() already
+    // follow. Creating one here too used to double-count every deal that
+    // originated from a CRM lead: this doc plus the server's own
+    // deal_<dealId>_commission for the same dealId once it really closed.
 
     updateLeadStage(leadId, 'contract');
     showToast(curLang === 'rw' ? 'Deal ifunguwe neza!' : 'Deal opened successfully!', 'success');
@@ -34734,7 +34801,7 @@ function _convertLeadToDealData(lead) {
     var fields = {
       'cd-client-name':  lead.clientName || lead.name || '',
       'cd-client-phone': lead.clientPhone || lead.phone || '',
-      'cd-deal-type':    lead.action === 'Gukodesha' ? 'rental' : 'sale',
+      'cd-deal-type':    _isRentalLead(lead) ? 'rental' : 'sale',
       'cd-price':        lead.budgetMax || lead.budgetMin || '',
       'cd-lead-id':      lead._docId || lead.id || '',
       'cd-agent-id':     lead.agentId || '',
