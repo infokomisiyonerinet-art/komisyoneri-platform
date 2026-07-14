@@ -1097,10 +1097,21 @@ exports.onApprovalDecided = onDocumentUpdated({ document: 'approvals/{approvalId
   if (decidedBy !== 'system') {
     const actorDoc = await db.collection('users').doc(decidedBy).get();
     const actorRole = actorDoc.exists ? String(actorDoc.data().role || '').toLowerCase() : '';
-    if (actorRole !== 'ceo') {
+    // Mirrors rules/firestore.rules' own approvals-update permission
+    // exactly (isCEO() || caller's uid in routedTo) — a CEO can decide
+    // anything; anyone else must actually be one of the superiors this
+    // specific request was routed to (requestApproval()'s own
+    // currentUser.reportsTo at request time). This used to hardcode
+    // actorRole !== 'ceo' unconditionally, silently reverting even a
+    // legitimate routedTo Director's decision — the client-side UI,
+    // firestore.rules, and this re-verification disagreed about who was
+    // really allowed to decide.
+    const routedTo = Array.isArray(after.routedTo) ? after.routedTo : [];
+    const isAuthorized = actorRole === 'ceo' || routedTo.indexOf(decidedBy) > -1;
+    if (!isAuthorized) {
       await ref.update({
         status: 'rejected',
-        rejectedReason: 'Re-verification failed: approving actor is not CEO.',
+        rejectedReason: 'Re-verification failed: approving actor is not the CEO or a listed approver.',
         decidedBy: null,
         decidedAt: null,
         updatedAt: FieldValue.serverTimestamp(),
@@ -1108,7 +1119,7 @@ exports.onApprovalDecided = onDocumentUpdated({ document: 'approvals/{approvalId
       });
       await logAudit(db, 'approval.decision_reverted', 'approvals', approvalId,
         { status: 'approved' }, { status: 'rejected', decidedBy, actorRole }, 'system');
-      logger.warn('Approval decision reverted — actor not CEO', { approvalId, decidedBy, actorRole });
+      logger.warn('Approval decision reverted — actor not authorized', { approvalId, decidedBy, actorRole });
       return;
     }
   }
@@ -1129,7 +1140,7 @@ exports.onApprovalDecided = onDocumentUpdated({ document: 'approvals/{approvalId
     { type: after.type, targetId: targetRef.id, decidedBy }, decidedBy);
   if (after.requestedBy) {
     await notifyUser(db, after.requestedBy, 'Approval Granted',
-      'Your ' + after.type + ' request was approved by the CEO.',
+      'Your ' + after.type + ' request was approved.',
       'approval_approved', after.type, targetRef.id, decidedBy);
   }
   logger.info('Approval decided — target write complete', { approvalId, type: after.type, targetId: targetRef.id });

@@ -5136,7 +5136,6 @@ html,body{overscroll-behavior-x:none}
         <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.4rem">
           <button onclick="switchAdminTab('listings')" id="adm-tab-listings" class="btn btn-navy btn-sm" style="font-size:.75rem">🏠 Imitungo</button>
           <button onclick="switchAdminTab('agents')" id="adm-tab-agents" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">👔 Agents</button>
-          <button onclick="switchAdminTab('deals')" id="adm-tab-deals" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">💰 Deals</button>
           <button onclick="switchAdminTab('referrals')" id="adm-tab-referrals" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">🔗 Referrals <span id="adm-ref-badge" style="background:var(--gold);color:#fff;border-radius:8px;padding:0 5px;font-size:.65rem;margin-left:2px"></span></button>
           <button onclick="switchAdminTab('platform')" id="adm-tab-platform" class="btn btn-sm" style="font-size:.75rem;border:1.5px solid var(--border)">⚙️ Platform</button>
         </div>
@@ -5157,7 +5156,6 @@ html,body{overscroll-behavior-x:none}
         </div>
         <div id="admin-agents-list"></div>
       </div>
-      <div id="admin-deals-panel" style="display:none;padding:.5rem 0"><div id="admin-deals-list"></div></div>
       <div id="admin-referrals-panel" style="display:none;padding:.5rem 0">
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.8rem">
           <select id="adm-ref-status-filter" onchange="loadAdminReferrals()" class="off-filter" style="font-size:.78rem" aria-label="Filter by referral status">
@@ -17342,7 +17340,7 @@ function switchAdminTab(tab) {
   adminCurrentTab = tab;
 
   // Update tab buttons
-  ['listings','agents','deals','referrals','platform'].forEach(function(t) {
+  ['listings','agents','referrals','platform'].forEach(function(t) {
     var btn = document.getElementById('adm-tab-'+t);
     if(!btn) return;
     if(t === tab) {
@@ -17356,19 +17354,16 @@ function switchAdminTab(tab) {
   var listingsPanel = document.getElementById('admin-list');
   var listingsFilters = document.getElementById('adm-listings-filters');
   var agentsPanel = document.getElementById('admin-agents-panel');
-  var dealsPanel = document.getElementById('admin-deals-panel');
   var referralsPanel = document.getElementById('admin-referrals-panel');
   var platformPanel = document.getElementById('admin-platform-panel');
 
   if(listingsPanel) listingsPanel.style.display = tab === 'listings' ? 'block' : 'none';
   if(listingsFilters) listingsFilters.style.display = tab === 'listings' ? 'flex' : 'none';
   if(agentsPanel) agentsPanel.style.display = tab === 'agents' ? 'block' : 'none';
-  if(dealsPanel) dealsPanel.style.display = tab === 'deals' ? 'block' : 'none';
   if(referralsPanel) referralsPanel.style.display = tab === 'referrals' ? 'block' : 'none';
   if(platformPanel) platformPanel.style.display = tab === 'platform' ? 'block' : 'none';
 
   if(tab === 'agents') renderAdminAgents();
-  if(tab === 'deals') renderAdminDeals();
   if(tab === 'referrals') loadAdminReferrals();
   if(tab === 'platform') renderAdminPlatform();
 }
@@ -17990,100 +17985,6 @@ function adminAgentDelete(idx) {
   renderAdminAgents();
 }
 
-// ═══════════════════════════════════════════════════════════
-//  ADMIN — Deals / Completed Transactions
-// ═══════════════════════════════════════════════════════════
-
-function renderAdminDeals() {
-  var list = document.getElementById('admin-deals-list');
-  if(!list) return;
-  list.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:.82rem">⏳ Gutegura...</div>';
-
-  // Pull live leads from Firebase first, then render
-  try {
-    firebase.database().ref('leads').once('value').then(function(s) {
-      if(s.exists()) {
-        var fbLeads = [];
-        s.forEach(function(c){ fbLeads.push(c.val()); });
-        if(fbLeads.length > 0) localStorage.setItem('km_leads', JSON.stringify(fbLeads));
-      }
-      _renderAdminDealsList();
-    }).catch(function(){ _renderAdminDealsList(); });
-  } catch(e){ _renderAdminDealsList(); }
-}
-
-function _renderAdminDealsList() {
-  var list = document.getElementById('admin-deals-list');
-  if(!list) return;
-
-  var leads = [];
-  try { leads = JSON.parse(localStorage.getItem('km_leads')||'[]'); } catch(e){}
-  var closedLeads = leads.filter(function(l){ return l.status === 'Closed'; });
-
-  list.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.8rem">'
-    + '<div style="background:#27A84A;color:#fff;border-radius:8px;padding:.6rem;text-align:center"><div style="font-size:1.2rem;font-weight:700">' + closedLeads.length + '</div><div style="font-size:.68rem">Deals Zarangiye</div></div>'
-    + '<div style="background:var(--navy);color:#fff;border-radius:8px;padding:.6rem;text-align:center"><div style="font-size:1.2rem;font-weight:700">' + leads.filter(function(l){return l.status==='Active';}).length + '</div><div style="font-size:.68rem">Deals Zikorwa</div></div>'
-    + '</div>';
-
-  if(closedLeads.length === 0 && leads.length === 0) {
-    list.innerHTML += '<div style="text-align:center;padding:2rem;color:var(--muted)">'
-      + '<div style="font-size:2rem;margin-bottom:.5rem">💰</div>'
-      + '<div style="font-weight:600;color:var(--navy)">Nta deals irahari ubu</div>'
-      + '<div style="font-size:.8rem;margin-top:.3rem">Deals zizagaragara iyo leads zisojwe</div>'
-      + '</div>';
-    return;
-  }
-
-  // Show all leads with ability to mark as sold
-  list.innerHTML += leads.map(function(lead, idx) {
-    var statusColor = lead.status==='Closed'?'#27A84A':lead.status==='Active'?'var(--blue)':'#F5A623';
-    var commission = lead.budgetMax ? Math.round(parseInt(lead.budgetMax) * 0.04).toLocaleString() + ' RWF' : '—';
-
-    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.6rem;background:var(--surface)">'
-      + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
-      +   '<div>'
-      +     '<div style="font-weight:700;font-size:.85rem;color:var(--navy)">' + (lead.clientName||'—') + '</div>'
-      +     '<div style="font-size:.75rem;color:var(--muted)">📞 ' + (lead.clientPhone||'—') + ' | 📍 ' + (lead.zone||'—') + '</div>'
-      +     '<div style="font-size:.75rem;color:var(--muted)">' + (lead.action||'—') + '</div>'
-      +     (lead.agentName ? '<div style="font-size:.73rem;color:var(--blue)">👔 Agent: ' + lead.agentName + '</div>' : '')
-      +     '<div style="font-size:.72rem;color:var(--muted)">💰 Est. Commission: ' + commission + '</div>'
-      +   '</div>'
-      +   '<span style="background:'+statusColor+';color:#fff;border-radius:20px;padding:.15rem .5rem;font-size:.62rem;font-weight:700;flex-shrink:0">' + lead.status + '</span>'
-      + '</div>'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.35rem;margin-top:.6rem">'
-      +   '<button onclick="markDealSold('+idx+')" style="background:#27A84A;color:#fff;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.7rem;font-weight:700">✅ Yagurishijwe</button>'
-      +   '<button onclick="markDealActive('+idx+')" style="background:var(--blue);color:#fff;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.7rem">🔄 Active</button>'
-      +   '<a href="tel:' + (lead.clientPhone||'') + '" style="background:var(--navy);color:#fff;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.7rem;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center">📞</a>'
-      + '</div>'
-      + '</div>';
-  }).join('');
-}
-
-function markDealSold(idx) {
-  var leads = [];
-  try { leads = JSON.parse(localStorage.getItem('km_leads')||'[]'); } catch(e){}
-  if(leads[idx]) {
-    leads[idx].status = 'Closed';
-    leads[idx].closedAt = new Date().toISOString();
-    try { localStorage.setItem('km_leads', JSON.stringify(leads)); } catch(e){}
-    try { if(leads[idx].id) rtdb.ref('leads/'+leads[idx].id).update({ status: 'Closed', closedAt: leads[idx].closedAt }); } catch(e){}
-    showToast('Deal yemejwe nk\'igurishwa - Commission ibazwa!');
-    renderAdminDeals();
-  }
-}
-
-function markDealActive(idx) {
-  var leads = [];
-  try { leads = JSON.parse(localStorage.getItem('km_leads')||'[]'); } catch(e){}
-  if(leads[idx]) {
-    leads[idx].status = 'Active';
-    try { localStorage.setItem('km_leads', JSON.stringify(leads)); } catch(e){}
-    try { if(leads[idx].id) rtdb.ref('leads/'+leads[idx].id).update({ status: 'Active' }); } catch(e){}
-    showToast('🔄 Deal yasubijwe Active.');
-    renderAdminDeals();
-  }
-}
-
 // Load agents, CRM, and Deals when navigating to those pages
 var _goOrigAgents = go;
 go = function(page) {
@@ -18637,17 +18538,13 @@ document.addEventListener('securitypolicyviolation', function(e) {
         }
       });
 
-      // Leads — re-render admin deals tab if active + notify assigned agent
+      // Leads — notify assigned agent of a new lead in real time
       rtdb.ref('leads').on('value', function(s) {
         if (!s.exists()) return;
         var items = [];
         s.forEach(function(c){ items.push(c.val()); });
         if (!items.length) return;
         _set('km_leads', JSON.stringify(items));
-        var adminModal = document.getElementById('admin-modal');
-        if (adminModal && adminModal.style.display !== 'none' && adminCurrentTab === 'deals') {
-          if (typeof renderAdminDeals === 'function') renderAdminDeals();
-        }
         if (currentUser && ['agent','Agent'].indexOf(currentUser.role) !== -1 && currentUser.email) {
           items.forEach(function(lead) {
             var isMyLead = (lead.agentEmail === currentUser.email) || (lead.agentId === currentUser.uid);
@@ -20681,13 +20578,23 @@ function submitShareEntry() {
 function loadExecApprovals() {
   var panel = g('exec-approvals-panel');
   if (!panel) return;
-  if (_roleOf(currentUser) !== 'ceo') { panel.style.display = 'none'; return; }
+  var role = _roleOf(currentUser);
+  var isDirector = role === 'director';
+  if (role !== 'ceo' && !isDirector) { panel.style.display = 'none'; return; }
   panel.style.display = '';
   var container = g('exec-approvals-list');
   if (!container) return;
   container.innerHTML = '<div class="exec-empty">Loading...</div>';
-  db.collection('approvals').where('status','==','pending').where('serverVerified','==',true)
-    .limit(20).get().then(function(snap) {
+  // CEO sees every pending approval company-wide (the top of the org
+  // chart isn't necessarily listed in every role's routedTo — e.g.
+  // chief_broker/marketing_manager/customer_support_manager report only
+  // to 'director', not 'ceo', per ROLE_SUPERIOR_ROLES). A Director only
+  // sees requests actually routed to them, matching requestApproval()'s
+  // own routedTo targeting and firestore.rules' decide permission
+  // (isCEO() || caller's uid in routedTo).
+  var q = db.collection('approvals').where('status','==','pending').where('serverVerified','==',true);
+  if (isDirector) q = q.where('routedTo','array-contains',currentUser.uid);
+  q.limit(20).get().then(function(snap) {
       if (snap.empty) {
         container.innerHTML = '<div class="exec-empty" data-rw="Nta bisabwa bitegereje" data-en="No pending approvals">No pending approvals</div>';
         if (typeof switchLang !== 'undefined') switchLang(currentLang);
@@ -20745,19 +20652,33 @@ function requestApproval(type, actionType, summaryTitle, payload) {
 
 function decideApproval(id, decision) {
   if (!currentUser) return;
-  // decidedAt/updatedAt were client ISO strings while every other
-  // timestamp field on this same doc (createdAt, and every timestamp
-  // field on every other collection in the app) is a real Firestore
-  // Timestamp — any reader calling the codebase's usual
-  // `x.toDate ? x.toDate() : new Date(x)` pattern on decidedAt would get
-  // an actual Date either way, but the more common bare `.toDate()` call
-  // used elsewhere would throw on a decided approval specifically.
-  db.collection('approvals').doc(id).update({
-    status: decision,
-    decidedBy: currentUser.uid,
-    decidedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    updatedBy: currentUser.uid
+  var approvalRef = db.collection('approvals').doc(id);
+  // Fetched before the update purely to notify the requester on rejection
+  // below — approval already gets a notification from the server-side
+  // onApprovalDecided trigger (which only fires on a transition TO
+  // 'approved'), but a manual reject has no server-side counterpart at
+  // all, so a rejected request used to be silently invisible to whoever
+  // submitted it.
+  approvalRef.get().then(function(doc) {
+    var requestedBy = doc.exists ? doc.data().requestedBy : null;
+    // decidedAt/updatedAt were client ISO strings while every other
+    // timestamp field on this same doc (createdAt, and every timestamp
+    // field on every other collection in the app) is a real Firestore
+    // Timestamp — any reader calling the codebase's usual
+    // `x.toDate ? x.toDate() : new Date(x)` pattern on decidedAt would get
+    // an actual Date either way, but the more common bare `.toDate()` call
+    // used elsewhere would throw on a decided approval specifically.
+    return approvalRef.update({
+      status: decision,
+      decidedBy: currentUser.uid,
+      decidedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy: currentUser.uid
+    }).then(function() {
+      if (decision === 'rejected' && requestedBy && typeof notifyUser === 'function') {
+        notifyUser(requestedBy, 'Approval Rejected', 'Your request was rejected.', 'approval_rejected', 'approvals', id);
+      }
+    });
   }).then(function() {
     showToast(decision === 'approved' ? 'Approved' : 'Rejected', 'success');
     loadExecApprovals();
