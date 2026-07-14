@@ -6977,6 +6977,16 @@ html,body{overscroll-behavior-x:none}
       </div>
       <div id="exec-reports-list"><div class="exec-empty">Loading...</div></div>
     </div>
+    <!-- Quick Links — CEO-only governance sections (Admin Panel, Strategy
+         Documents, Share Structure; see rules/firestore.rules' isCEO()) -->
+    <div class="exec-panel" id="exec-quicklinks-panel" style="margin-top:16px;display:none">
+      <div class="exec-panel-hdr" data-rw="Ihuza Ryihuse" data-en="Quick Links">Quick Links</div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;padding:.3rem 0">
+        <button class="btn btn-sm btn-outline" onclick="openAdmin()">⚙️ <span data-rw="Igenzura rya Admin" data-en="Admin Panel">Admin Panel</span></button>
+        <button class="btn btn-sm btn-outline" onclick="openStrategyDocsPanel()">📁 <span data-rw="Inyandiko z'Ingamba" data-en="Strategy Documents">Strategy Documents</span></button>
+        <button class="btn btn-sm btn-outline" onclick="openShareStructurePanel()">📊 <span data-rw="Imiterere y'Imigabane" data-en="Share Structure">Share Structure</span></button>
+      </div>
+    </div>
   </div>
 
   <!-- REVENUE PANE -->
@@ -10017,6 +10027,48 @@ html,body{overscroll-behavior-x:none}
       <button class="btn btn-outline" onclick="closeSubmitReportModal()" data-rw="Reka" data-en="Cancel">Cancel</button>
       <button class="btn btn-primary" onclick="submitReport()" data-rw="Ohereza" data-en="Submit">Submit</button>
     </div>
+  </div>
+</div>
+
+<!-- === CEO-ONLY: STRATEGY DOCUMENTS === -->
+<div class="modal-wrap" role="dialog" aria-modal="true" id="strategy-docs-modal">
+  <div class="modal" style="max-width:520px;max-height:88vh;overflow-y:auto">
+    <div class="modal-hdr">
+      <div class="modal-title" data-rw="Inyandiko z'Ingamba" data-en="Strategy Documents">Strategy Documents</div>
+      <button class="modal-close" onclick="closeStrategyDocsPanel()">&times;</button>
+    </div>
+    <div class="form-group">
+      <label data-en="Title">Title</label>
+      <input type="text" id="sdoc-title" placeholder="e.g. FY26 Growth Strategy" class="form-control">
+    </div>
+    <div class="form-group">
+      <label data-en="Content">Content</label>
+      <textarea id="sdoc-content" rows="4" placeholder="Strategy notes..." class="form-control" style="resize:vertical"></textarea>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-bottom:1rem" onclick="submitStrategyDoc()" data-rw="Ongeramo" data-en="Add Document">Add Document</button>
+    <div id="strategy-docs-list"><div class="exec-empty">Loading...</div></div>
+  </div>
+</div>
+
+<!-- === CEO-ONLY: SHARE STRUCTURE === -->
+<div class="modal-wrap" role="dialog" aria-modal="true" id="share-structure-modal">
+  <div class="modal" style="max-width:480px;max-height:88vh;overflow-y:auto">
+    <div class="modal-hdr">
+      <div class="modal-title" data-rw="Imiterere y'Imigabane" data-en="Share Structure">Share Structure</div>
+      <button class="modal-close" onclick="closeShareStructurePanel()">&times;</button>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label data-en="Holder">Holder</label>
+        <input type="text" id="shr-holder" placeholder="e.g. Founder" class="form-control">
+      </div>
+      <div class="form-group">
+        <label data-en="Percent">Percent</label>
+        <input type="number" id="shr-percent" placeholder="0" min="0" max="100" class="form-control">
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-bottom:1rem" onclick="submitShareEntry()" data-rw="Ongeramo" data-en="Add Entry">Add Entry</button>
+    <div id="share-structure-list"><div class="exec-empty">Loading...</div></div>
   </div>
 </div>
 
@@ -20490,6 +20542,107 @@ function loadExecOverview() {
   loadExecHealth();
   loadExecApprovals();
   loadExecReportsReceived();
+  var qlPanel = g('exec-quicklinks-panel');
+  if (qlPanel) qlPanel.style.display = isCEOClient(currentUser) ? '' : 'none';
+}
+
+// ── CEO-only: Strategy Documents / Share Structure quick-access panels ──
+// Minimal real CRUD (list + add) for the two CEO-only governance
+// collections rules/firestore.rules already gates (isCEO()-only
+// read/write) — no dedicated page existed for either, only the rules
+// layer, so the Executive dashboard's "Quick Links" had nothing real to
+// point to until now.
+function openStrategyDocsPanel() {
+  var m = g('strategy-docs-modal'); if (!m) return;
+  g('sdoc-title').value = ''; g('sdoc-content').value = '';
+  openModal('strategy-docs-modal');
+  loadStrategyDocsList();
+}
+function closeStrategyDocsPanel() { closeModal('strategy-docs-modal'); }
+
+function loadStrategyDocsList() {
+  var list = g('strategy-docs-list'); if (!list || typeof db === 'undefined') return;
+  list.innerHTML = '<div class="exec-empty">Loading...</div>';
+  db.collection('strategyDocuments').where('isActive','==',true).orderBy('createdAt','desc').limit(50).get()
+    .then(function(snap) {
+      if (snap.empty) { list.innerHTML = '<div class="exec-empty">No strategy documents yet.</div>'; return; }
+      list.innerHTML = snap.docs.map(function(d) {
+        var s = d.data();
+        return '<div style="padding:.5rem 0;border-bottom:1px solid var(--border)">'
+          + '<div style="font-weight:700;font-size:.85rem">' + escapeHtml(s.title || '') + '</div>'
+          + '<div style="font-size:.78rem;color:var(--muted);white-space:pre-wrap">' + escapeHtml(s.content || '') + '</div></div>';
+      }).join('');
+    }).catch(function(err) {
+      console.error('[StrategyDocs] load error — code:', err && err.code, 'message:', err && err.message);
+      list.innerHTML = '<div class="exec-empty">Unable to load strategy documents.</div>';
+    });
+}
+
+function submitStrategyDoc() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var title = (g('sdoc-title').value || '').trim();
+  if (!title) { showToast('Title is required', 'error'); return; }
+  var content = (g('sdoc-content').value || '').trim();
+  var ref = db.collection('strategyDocuments').doc();
+  ref.set({
+    id: ref.id, title: title, content: content, status: 'active', isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: currentUser.uid, updatedBy: currentUser.uid
+  }).then(function() {
+    showToast('Strategy document added', 'success');
+    g('sdoc-title').value = ''; g('sdoc-content').value = '';
+    loadStrategyDocsList();
+  }).catch(function(err) {
+    console.error('[StrategyDocs] save error — code:', err && err.code, 'message:', err && err.message);
+    showToast(err && err.code === 'permission-denied' ? 'CEO access required' : 'Failed to save', 'error');
+  });
+}
+
+function openShareStructurePanel() {
+  var m = g('share-structure-modal'); if (!m) return;
+  g('shr-holder').value = ''; g('shr-percent').value = '';
+  openModal('share-structure-modal');
+  loadShareStructureList();
+}
+function closeShareStructurePanel() { closeModal('share-structure-modal'); }
+
+function loadShareStructureList() {
+  var list = g('share-structure-list'); if (!list || typeof db === 'undefined') return;
+  list.innerHTML = '<div class="exec-empty">Loading...</div>';
+  db.collection('shareStructure').where('isActive','==',true).orderBy('createdAt','desc').limit(50).get()
+    .then(function(snap) {
+      if (snap.empty) { list.innerHTML = '<div class="exec-empty">No share structure entries yet.</div>'; return; }
+      list.innerHTML = snap.docs.map(function(d) {
+        var s = d.data();
+        return '<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.85rem">'
+          + '<span>' + escapeHtml(s.holder || '') + '</span><span style="font-weight:700">' + (s.percent||0) + '%</span></div>';
+      }).join('');
+    }).catch(function(err) {
+      console.error('[ShareStructure] load error — code:', err && err.code, 'message:', err && err.message);
+      list.innerHTML = '<div class="exec-empty">Unable to load share structure.</div>';
+    });
+}
+
+function submitShareEntry() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var holder = (g('shr-holder').value || '').trim();
+  var percent = parseFloat(g('shr-percent').value) || 0;
+  if (!holder) { showToast('Holder is required', 'error'); return; }
+  var ref = db.collection('shareStructure').doc();
+  ref.set({
+    id: ref.id, holder: holder, percent: percent, status: 'active', isActive: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: currentUser.uid, updatedBy: currentUser.uid
+  }).then(function() {
+    showToast('Share entry added', 'success');
+    g('shr-holder').value = ''; g('shr-percent').value = '';
+    loadShareStructureList();
+  }).catch(function(err) {
+    console.error('[ShareStructure] save error — code:', err && err.code, 'message:', err && err.message);
+    showToast(err && err.code === 'permission-denied' ? 'CEO access required' : 'Failed to save', 'error');
+  });
 }
 
 // CEO vs Operations Director governance — the one real UI entry point for
