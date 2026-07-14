@@ -1942,9 +1942,9 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   .trust-vline { display: none; }
 }
 
-/* ── FOUR PRIMARY ACTIONS — the only decision a first-time visitor needs to
+/* ── PRIMARY ACTIONS — the only decision a first-time visitor needs to
    make. Bigger and fewer than the pillar-grid this replaces, on purpose. ── */
-.hero-actions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .7rem; margin: 1.6rem 0 1.6rem; max-width: 480px; }
+.hero-actions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; margin: 1.6rem 0 1.6rem; max-width: 480px; }
 .hero-action-card {
   display: flex; align-items: center; gap: .65rem;
   background: rgba(255,255,255,.09); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
@@ -1954,8 +1954,17 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .hero-action-card:hover, .hero-action-card:focus-visible { background: rgba(255,190,0,.16); border-color: rgba(255,190,0,.5); transform: translateY(-3px); outline: none; }
 .hac-emoji { font-size: 1.5rem; flex-shrink: 0; line-height: 1; }
 .hero-action-card span { font-size: .92rem; font-weight: 700; color: #fff; }
+/* 3×2 on mobile: a horizontal icon+label row (the desktop layout) doesn't
+   fit 3-to-a-row at phone widths, so each card stacks icon-over-label and
+   centers instead — colors/radius/hover/background are untouched, only the
+   internal arrangement and type scale adapt. */
+@media(max-width: 639px) {
+  .hero-action-card { flex-direction: column; text-align: center; gap: .4rem; padding: .85rem .5rem; }
+  .hac-emoji { font-size: 1.35rem; }
+  .hero-action-card span { font-size: .74rem; line-height: 1.25; }
+}
 @media(min-width: 640px) {
-  .hero-actions-grid { grid-template-columns: repeat(4, 1fr); max-width: 640px; }
+  .hero-actions-grid { grid-template-columns: repeat(5, 1fr); max-width: 780px; }
 }
 
 /* Hero CTA buttons — bigger, bolder */
@@ -3935,7 +3944,7 @@ html,body{overscroll-behavior-x:none}
           </button>
         </div>
 
-        <!-- FOUR PRIMARY ACTIONS — the only decision a first-time visitor needs to make -->
+        <!-- PRIMARY ACTIONS — the only decision a first-time visitor needs to make -->
         <div class="hero-actions-grid">
           <div class="hero-action-card" onclick="openSearch({tab:'buy'})" role="button" tabindex="0">
             <span class="hac-emoji">🏠</span>
@@ -3952,6 +3961,10 @@ html,body{overscroll-behavior-x:none}
           <div class="hero-action-card" onclick="openLead()" role="button" tabindex="0">
             <span class="hac-emoji">👤</span>
             <span data-rw="Saba Agent" data-en="Find an Agent">Find an Agent</span>
+          </div>
+          <div class="hero-action-card" onclick="goPlotsForSale()" role="button" tabindex="0">
+            <span class="hac-emoji">📍</span>
+            <span data-rw="Ibibanza Bigurishwa" data-en="Plots for Sale">Plots for Sale</span>
           </div>
         </div>
 
@@ -31992,6 +32005,23 @@ function sortListings(value) {
   _renderApprovedGrids(data);
 }
 
+// Homepage "Plots for Sale" quick action — navigates to the real Properties
+// page and pre-applies the sidebar's Property Type filter to Land/Ubutaka
+// only (unchecking Villa/Apartment, which are checked by default), reusing
+// applySidebarFilters()'s existing type-matching logic rather than
+// duplicating it.
+function goPlotsForSale() {
+  go('listings');
+  var secs = document.querySelectorAll('.filters .filt-sec');
+  if (secs[0]) {
+    secs[0].querySelectorAll('input[type=checkbox]').forEach(function(cb) {
+      var label = (cb.nextElementSibling.textContent || '').trim().toLowerCase();
+      cb.checked = label.indexOf('ubutaka') > -1 || label.indexOf('land') > -1;
+    });
+  }
+  applySidebarFilters();
+}
+
 /* Apply sidebar filters to the listings grid */
 function applySidebarFilters() {
   var fBtn = document.getElementById('filt-apply-btn');
@@ -32032,7 +32062,12 @@ function applySidebarFilters() {
         if (t.includes('commercial') || t.includes('inyubako')) {
           if (pt.includes('commercial') || pt.includes('office') || pt.includes('shop')) return true;
         }
-        if ((t.includes('land') || t.includes('ubutaka')) && (pt.includes('land') || pt.includes('plot'))) return true;
+        // pt is the raw type value submitted by submitProperty() (see the
+        // #prop-type select) — 'Ubutaka' (Kinyarwanda for "Land"), not the
+        // English words this heuristic otherwise checks for. Without this,
+        // the "Ubutaka" filter checkbox itself never matched a single real
+        // plot listing.
+        if ((t.includes('land') || t.includes('ubutaka')) && (pt.includes('land') || pt.includes('plot') || pt.includes('ubutaka'))) return true;
         return false;
       });
       if (!ok) return false;
