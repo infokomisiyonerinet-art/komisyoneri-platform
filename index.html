@@ -2192,6 +2192,8 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   .auth-box{max-width:100%;padding:1.6rem}
   /* listing filter panel: collapse but keep toggle accessible */
   .list-hdr .wrap{padding:1.5rem 4%}
+  /* partner dashboard: jobs + reviews stack instead of side-by-side */
+  .pdash-grid{grid-template-columns:1fr!important}
 }
 
 /* ── SMALL ANDROID (≤360px) ── */
@@ -6234,6 +6236,71 @@ html,body{overscroll-behavior-x:none}
           </button>
         </div>
         <div id="cust-aftersale-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === PAGE: PARTNER DASHBOARD ===
+     Dedicated portal for role:'partner' accounts (surveyors, notaries,
+     banks, lawyers, inspectors) — previously these accounts fell through
+     to the generic agent dashboard (My Properties, commission stats,
+     buyer referrals), none of which apply to a service-provider partner.
+     Mirrors page-customer's hero/stats/card layout for visual
+     consistency with the other role-specific portals. -->
+<div class="page" id="page-partner-dashboard">
+  <div class="cust-hero">
+    <div class="cust-hero-inner">
+      <div class="cust-avatar" id="pdash-avatar-initials">P</div>
+      <div>
+        <div class="cust-hero-name" id="pdash-hero-name" data-rw="Murakaza neza" data-en="Welcome back">Welcome back</div>
+        <div class="cust-hero-sub">
+          <span class="cust-role-chip" id="pdash-role-chip">Partner</span>
+          <span id="pdash-verify-badge" style="font-size:.72rem;color:rgba(255,255,255,.85);margin-left:.5rem;font-weight:700"></span>
+          <span id="pdash-member-since" style="font-size:.72rem;color:rgba(255,255,255,.7);margin-left:.5rem"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cust-wrap">
+    <div id="pdash-no-profile" style="display:none;background:var(--light);border:1px solid var(--border);border-radius:12px;padding:1.6rem;text-align:center;margin-bottom:1.6rem">
+      <div style="font-size:1.8rem;margin-bottom:.5rem">🤝</div>
+      <div style="font-weight:700;margin-bottom:.3rem" data-rw="Umwirondoro w'Ubucuruzi Ntabwo Warashyizweho" data-en="Business Profile Not Yet Set Up">Business Profile Not Yet Set Up</div>
+      <div style="font-size:.85rem;color:var(--muted)" data-rw="Twandikire itsinda rya KOMISIYONERI kugira ngo bandikishe umwirondoro w'ubucuruzi bwawe, ubone akazi." data-en="Contact the KOMISIYONERI team to register your business profile so you can start receiving jobs.">Contact the KOMISIYONERI team to register your business profile so you can start receiving jobs.</div>
+    </div>
+
+    <div class="cust-stats">
+      <div class="cust-stat-card">
+        <div class="cust-stat-val" id="pdash-stat-total">0</div>
+        <div class="cust-stat-lbl" data-rw="Akazi Kose" data-en="Total Jobs">Total Jobs</div>
+      </div>
+      <div class="cust-stat-card">
+        <div class="cust-stat-val" id="pdash-stat-inprogress">0</div>
+        <div class="cust-stat-lbl" data-rw="Birimo Gukorwa" data-en="In Progress">In Progress</div>
+      </div>
+      <div class="cust-stat-card">
+        <div class="cust-stat-val" id="pdash-stat-completed">0</div>
+        <div class="cust-stat-lbl" data-rw="Byarangiye" data-en="Completed">Completed</div>
+      </div>
+      <div class="cust-stat-card">
+        <div class="cust-stat-val" id="pdash-stat-earned">0</div>
+        <div class="cust-stat-lbl" data-rw="Amafaranga Yinjiye (RWF)" data-en="Total Earned (RWF)">Total Earned (RWF)</div>
+      </div>
+    </div>
+
+    <div class="pdash-grid" style="display:grid;grid-template-columns:1.3fr 1fr;gap:1.2rem">
+      <div class="dc">
+        <div class="dc-hdr"><span class="dc-title" data-rw="Akazi Kanjye" data-en="My Assigned Jobs">My Assigned Jobs</span></div>
+        <div style="padding:1rem 1.2rem">
+          <div id="partner-my-jobs-list" style="display:flex;flex-direction:column;gap:.6rem"></div>
+        </div>
+      </div>
+      <div class="dc">
+        <div class="dc-hdr"><span class="dc-title" data-rw="Ibitekerezo Byaje" data-en="Recent Reviews">Recent Reviews</span></div>
+        <div style="padding:1rem 1.2rem">
+          <div id="pd-reviews-list"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -12518,11 +12585,26 @@ function go(name) {
       return;
     } else {
       var _dr = (currentUser.role || '').toLowerCase();
-      /* Clients and investors have their own portals — redirect transparently */
+      /* Clients, investors, and partners have their own portals — redirect
+         transparently. Partners previously fell through to the generic
+         loadAgentDashboard() below (My Properties, commission stats, buyer
+         referrals — none of which make sense for a surveyor/notary/bank/
+         lawyer partner account); they get their own dashboard now, same
+         as client/investor already did. */
       if (_dr === 'client') {
         name = 'customer';
       } else if (_dr === 'investor') {
         name = 'investors';
+      } else if (_dr === 'partner') {
+        name = 'partner-dashboard';
+        // Called inline here (not via an outer go()-wrapper hook) because
+        // this redirect reassigns the *local* `name` param of this
+        // function only — outer wrapper closures still see the original
+        // 'dashboard' argument they were called with (see the bottom-nav
+        // sync wrapper's comment elsewhere in this file for the same
+        // gotcha) — mirrors how loadAgentDashboard() below is also
+        // called directly for the same reason.
+        loadPartnerDashboard();
       } else {
         var _dAllowed = ['agent','admin','staff','ceo','super_admin','owner','partner','investor'];
         if (_dAllowed.indexOf(_dr) === -1) {
@@ -16528,7 +16610,7 @@ window.addEventListener('DOMContentLoaded', function() {
     'home','listings','detail','analytics',
     'sites','site','crm','deals','commissions','subscription',
     'verification','documents','financing','partners','investors',
-    'customer','office','hr','accounting','add-staff',
+    'customer','partner-dashboard','office','hr','accounting','add-staff',
     'exec','bi','branches','branch-mgr','hr-mgr','ops-mgr','agents','careers',
     'dashboard','auth','about','privacy','terms'
   ];
@@ -17922,6 +18004,9 @@ go = function(page) {
   }
   if(page === 'add-staff') {
     setTimeout(loadAddStaffPage, 150);
+  }
+  if(page === 'partner-dashboard') {
+    setTimeout(loadPartnerDashboard, 150);
   }
   if(page === 'branches') {
     setTimeout(loadBranchNetwork, 150);
@@ -25558,28 +25643,110 @@ document.addEventListener('DOMContentLoaded', function() {
   }, 5500);
 });
 
+/* ── Partner Dashboard (page-partner-dashboard) ────────────────────────
+   Entry point for role:'partner' accounts, wired from go('dashboard')'s
+   redirect above. A 'partner' USER account (users/{uid}, what you log in
+   with) is a separate thing from a 'partners' COLLECTION document (the
+   business entity — company name/type/verification status, created via
+   openPartnerRegister(), linked by partners/{id}.userId == uid). Not
+   every partner login necessarily has a linked business profile yet
+   (e.g. one provisioned via the Add Staff/Partner panel, which only
+   creates the bare user account — see createStaffOrPartnerAccount's own
+   comment on why a real Organization model doesn't exist yet) — jobs/
+   earnings still work either way (services.assignedToId is keyed to the
+   user's own uid), but reviews/company-profile display need the linked
+   doc, so that part shows a friendly empty state instead when there isn't one. */
+function loadPartnerDashboard() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var cu = currentUser;
+  var initials = ((cu.name || cu.email || 'P').trim()[0] || 'P').toUpperCase();
+  var avatarEl = g('pdash-avatar-initials');
+  if (avatarEl) {
+    if (cu.photo) { avatarEl.textContent = ''; avatarEl.style.backgroundImage = 'url(' + cu.photo + ')'; }
+    else { avatarEl.style.backgroundImage = ''; avatarEl.textContent = initials; }
+  }
+  if (g('pdash-hero-name')) g('pdash-hero-name').textContent = cu.name || cu.email || 'Welcome';
+  if (g('pdash-role-chip')) g('pdash-role-chip').textContent = curLang === 'rw' ? 'Umufatanyabikorwa' : 'Partner';
+
+  var msSince = g('pdash-member-since');
+  if (msSince) {
+    var regDate = cu.date ? new Date(cu.date) : null;
+    if (regDate && !isNaN(regDate.getTime())) {
+      msSince.textContent = (curLang === 'rw' ? 'Nzanditse kuva: ' : 'Member since: ')
+        + regDate.toLocaleDateString(curLang === 'rw' ? 'fr-RW' : 'en-RW', { year: 'numeric', month: 'long' });
+    }
+  }
+
+  loadMyPartnerJobs();
+  loadPartnerDashboardStats(cu.uid);
+
+  db.collection('partners').where('userId', '==', cu.uid).limit(1).get().then(function(snap) {
+    var noProfileEl = g('pdash-no-profile');
+    if (snap.empty) {
+      if (noProfileEl) noProfileEl.style.display = '';
+      return;
+    }
+    if (noProfileEl) noProfileEl.style.display = 'none';
+    var pdoc = snap.docs[0];
+    var p = pdoc.data();
+    if (p.companyName && g('pdash-hero-name')) g('pdash-hero-name').textContent = p.companyName;
+    var typeLabel = (PARTNER_TYPES[p.type] || {}).label;
+    if (typeLabel && g('pdash-role-chip')) g('pdash-role-chip').textContent = typeLabel;
+    var badgeEl = g('pdash-verify-badge');
+    if (badgeEl) {
+      badgeEl.textContent = p.status === 'verified'
+        ? (curLang === 'rw' ? '✓ Byemejwe' : '✓ Verified')
+        : (curLang === 'rw' ? 'Bitegereje Kwemezwa' : 'Pending Verification');
+    }
+    loadPartnerReviews(pdoc.id);
+  }).catch(function(e) {
+    console.error('[PartnerDash] loadPartnerDashboard: partners lookup failed', e.code || '', e.message);
+  });
+}
+
+// Job-count/earnings KPIs — separate from loadMyPartnerJobs() (which
+// renders the actual job list) since these read a wider services query
+// (all statuses, not just the render-relevant ones) plus a second,
+// unrelated invoices query for real payout totals.
+function loadPartnerDashboardStats(uid) {
+  if (typeof db === 'undefined') return;
+  db.collection('services').where('assignedToId', '==', uid).where('isActive', '==', true).get()
+    .then(function(snap) {
+      var total = 0, inProgress = 0, completed = 0;
+      snap.forEach(function(d) {
+        var s = d.data();
+        total++;
+        if (s.status === 'in_progress' || s.status === 'assigned') inProgress++;
+        else if (s.status === 'completed') completed++;
+      });
+      if (g('pdash-stat-total')) g('pdash-stat-total').textContent = total;
+      if (g('pdash-stat-inprogress')) g('pdash-stat-inprogress').textContent = inProgress;
+      if (g('pdash-stat-completed')) g('pdash-stat-completed').textContent = completed;
+    }).catch(function(e) { console.error('[PartnerDash] stats(services)', e.code || '', e.message); });
+
+  // Real money actually received — matches generatePartnerPayoutInvoice()'s
+  // own field shape (billedTo/totalAmount), same fields every P&L/BI/Exec
+  // query in this codebase already sums by. 'paid' only, not 'draft' —
+  // this is "earned" (received), not "invoiced" (pending).
+  db.collection('invoices').where('billedTo', '==', uid).where('isActive', '==', true).get()
+    .then(function(snap) {
+      var earned = 0;
+      snap.forEach(function(d) {
+        var inv = d.data();
+        if (inv.status === 'paid') earned += Number(inv.totalAmount) || 0;
+      });
+      if (g('pdash-stat-earned')) g('pdash-stat-earned').textContent = earned.toLocaleString();
+    }).catch(function(e) { console.error('[PartnerDash] stats(invoices)', e.code || '', e.message); });
+}
+
 /* ── Partner self-service: "My Assigned Jobs" ──────────────
    Real ecosystem integration — a logged-in partner sees only the
    services.assignedToId == their own uid, can submit a report, and
-   sees a real payout invoice once the company marks the job paid. */
-function injectPartnerMyJobsSection() {
-  if (typeof db === 'undefined' || !currentUser) return;
-  var role = (currentUser.role || '').toLowerCase();
-  if (role !== 'partner') return;
-  var wrap = document.querySelector('#page-partners .crm-wrap');
-  if (!wrap) return;
-  var existing = document.getElementById('partner-my-jobs-section');
-  if (existing) { loadMyPartnerJobs(); return; }
-
-  var section = document.createElement('div');
-  section.id = 'partner-my-jobs-section';
-  section.style.cssText = 'margin-bottom:1.5rem;border-bottom:2px solid var(--border);padding-bottom:1.2rem';
-  section.innerHTML = '<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.08em;margin-bottom:.6rem" data-rw="AKAZI KANJYE" data-en="MY ASSIGNED JOBS">MY ASSIGNED JOBS</div>'
-    + '<div id="partner-my-jobs-list" style="display:flex;flex-direction:column;gap:.6rem"></div>';
-  wrap.insertBefore(section, wrap.firstChild);
-  loadMyPartnerJobs();
-}
-
+   sees a real payout invoice once the company marks the job paid.
+   Rendered into page-partner-dashboard (see loadPartnerDashboard()) —
+   previously injected into the staff-facing page-partners directory as
+   a stopgap before a real partner dashboard existed; that injection
+   point is gone now that partners land on their own dashboard instead. */
 function loadMyPartnerJobs() {
   var list = document.getElementById('partner-my-jobs-list');
   if (!list || typeof db === 'undefined' || !currentUser) return;
@@ -30673,7 +30840,7 @@ function submitSiteForm() {
       if (name === 'crm')         { setTimeout(loadCRM, 80); }
       if (name === 'deals')       { setTimeout(loadDeals, 80); }
       if (name === 'commissions') { setTimeout(loadCommissions, 80); }
-      if (name === 'partners')    { setTimeout(loadPartners, 80); setTimeout(function(){ if (typeof injectPartnerMyJobsSection === 'function') injectPartnerMyJobsSection(); }, 100); }
+      if (name === 'partners')    { setTimeout(loadPartners, 80); }
     };
   }
 })();
