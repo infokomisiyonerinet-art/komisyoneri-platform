@@ -152,7 +152,7 @@ service cloud.firestore {
                     || (isAuth() && request.auth.uid == uid
                         && request.resource.data.diff(resource.data).affectedKeys()
                            .hasOnly(['phone','location','preference','photoURL','themePref',
-                                     'referralCode','favorites','updatedAt','updatedBy']));
+                                     'referralCode','favorites','language','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
