@@ -20733,11 +20733,18 @@ function requestApproval(type, actionType, summaryTitle, payload) {
 
 function decideApproval(id, decision) {
   if (!currentUser) return;
+  // decidedAt/updatedAt were client ISO strings while every other
+  // timestamp field on this same doc (createdAt, and every timestamp
+  // field on every other collection in the app) is a real Firestore
+  // Timestamp — any reader calling the codebase's usual
+  // `x.toDate ? x.toDate() : new Date(x)` pattern on decidedAt would get
+  // an actual Date either way, but the more common bare `.toDate()` call
+  // used elsewhere would throw on a decided approval specifically.
   db.collection('approvals').doc(id).update({
     status: decision,
     decidedBy: currentUser.uid,
-    decidedAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    decidedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedBy: currentUser.uid
   }).then(function() {
     showToast(decision === 'approved' ? 'Approved' : 'Rejected', 'success');
@@ -26080,7 +26087,24 @@ function generatePartnerPayoutInvoice(serviceId) {
   db.collection('services').doc(serviceId).get().then(function(doc) {
     if (!doc.exists) return;
     var s = doc.data();
-    if (!s.assignedToId || !s.quotedPrice) return; // nothing to pay out
+    if (!s.assignedToId) return; // never assigned to a real partner account — nothing to pay out
+    if (!s.quotedPrice) {
+      // quotedPrice is an optional field in assignServicePartner()'s modal
+      // (defaults to 0 if left blank) — used to just silently drop the
+      // payout invoice here with no error, which looked like a
+      // successful report submission but quietly dropped the accounting
+      // side-effect. Now at least surfaces to the partner and logs to
+      // console so staff can follow up and create the invoice manually
+      // once a price is set.
+      console.warn('[Partners] generatePartnerPayoutInvoice: service ' + serviceId + ' has no quotedPrice — no payout invoice created');
+      if (typeof notifyUser === 'function') {
+        notifyUser(s.assignedToId,
+          curLang==='rw' ? '&#9888;&#65039; Kwishyurwa Ntarahagurutswe' : '&#9888;&#65039; Payout Not Yet Generated',
+          curLang==='rw' ? 'Akazi kawe karangiye ariko nta giciro cyashyizweho — vugana n\'itsinda rya KOMISIYONERI.' : 'Your job is marked completed but has no price set, so no payout invoice was created yet — contact the KOMISIYONERI team.',
+          'partner_payout_missing_price', 'services', serviceId);
+      }
+      return;
+    }
     var uid = currentUser ? currentUser.uid : 'system';
     var vat = typeof RWANDA_VAT === 'number' ? RWANDA_VAT : 0;
     var subtotal = Number(s.quotedPrice) || 0;
@@ -29138,7 +29162,8 @@ function logAudit(action, collection, docId, oldValue, newValue) {
       updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
       createdBy:   uid,
       updatedBy:   uid
-    });
+    }).then(function(ref) { return ref.update({ id: ref.id }); })
+      .catch(function(e) { console.warn('[logAudit] failed:', e); });
   } catch(e) { console.warn('[logAudit] failed:', e); }
 }
 
@@ -30836,11 +30861,29 @@ function calculatePlotCommission(plotId) {
         siteId:          p.siteId,
         plotId:          plotId,
         agentId:         s.managingAgentId || p.agentId || uid,
+        // agentName/clientName left blank — no cheap lookup available at
+        // this point without an extra users/{uid} read; every UI that
+        // renders these already falls back to '—' when empty.
+        agentName:       '',
+        propertyTitle:   (s.name || '') + (p.plotNumber ? (' — Plot ' + p.plotNumber) : ''),
+        clientName:      '',
         dealValue:       price,
         commissionRate:  s.commissionRate || 4,
         totalCommission: total,
         agentShare:      total * agSpl,
         companyShare:    total * coSpl,
+        // Recorded so a payslip/audit reader can tell which split ratio was
+        // actually applied — a plot-sale commission can legitimately use a
+        // non-standard per-site split (s.agentSplit/companySplit above),
+        // unlike every other commission-creation path which is always the
+        // hardcoded 60/40.
+        agentSplitPct:   agSpl,
+        companySplitPct: coSpl,
+        approvedBy:      '',
+        approvedAt:      null,
+        paidAt:          null,
+        paymentRef:      '',
+        notes:           '',
         status:          'pending',
         isActive:        true,
         createdAt:       now,
@@ -30848,6 +30891,7 @@ function calculatePlotCommission(plotId) {
         createdBy:       uid,
         updatedBy:       uid
       }).then(function(ref) {
+        ref.update({ id: ref.id });
         // Link commission back to plot
         db.collection('plots').doc(plotId).update({ commissionId: ref.id, updatedAt: now, updatedBy: uid });
         logAudit('commission.calculated', 'commissions', ref.id, {},
