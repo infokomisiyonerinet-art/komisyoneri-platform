@@ -20594,7 +20594,9 @@ function loadExecApprovals() {
   // (isCEO() || caller's uid in routedTo).
   var q = db.collection('approvals').where('status','==','pending').where('serverVerified','==',true);
   if (isDirector) q = q.where('routedTo','array-contains',currentUser.uid);
-  q.limit(20).get().then(function(snap) {
+  // Real-time — a new approval request (or another approver deciding one
+  // first) used to need a manual page reload to show up here.
+  var unsub = q.limit(20).onSnapshot(function(snap) {
       if (snap.empty) {
         container.innerHTML = '<div class="exec-empty" data-rw="Nta bisabwa bitegereje" data-en="No pending approvals">No pending approvals</div>';
         if (typeof switchLang !== 'undefined') switchLang(currentLang);
@@ -20614,9 +20616,11 @@ function loadExecApprovals() {
       });
       container.innerHTML = html;
       if (typeof switchLang !== 'undefined') switchLang(currentLang);
-    }).catch(function() {
+    }, function(err) {
+      console.error('[Approvals] loadExecApprovals error — code:', err && err.code, 'message:', err && err.message);
       container.innerHTML = '<div class="exec-empty">Approvals unavailable</div>';
     });
+  registerListener('execApprovals', unsub);
 }
 
 // Final Management Org Chart — deniedActions approval routing. Any action
@@ -20704,8 +20708,8 @@ function loadMyReportsWidget() {
   var list = g('dash-myreports-list');
   if (!list) return;
   list.innerHTML = '<div class="exec-empty">Loading...</div>';
-  db.collection('reports').where('submittedBy','==',currentUser.uid)
-    .orderBy('createdAt','desc').limit(5).get().then(function(snap) {
+  var unsub = db.collection('reports').where('submittedBy','==',currentUser.uid)
+    .orderBy('createdAt','desc').limit(5).onSnapshot(function(snap) {
       if (snap.empty) {
         list.innerHTML = '<div class="exec-empty" data-en="No reports submitted yet">No reports submitted yet</div>';
         if (typeof switchLang !== 'undefined') switchLang(currentLang);
@@ -20717,9 +20721,11 @@ function loadMyReportsWidget() {
           + '<span>' + escapeHtml(r.reportCategory || r.reportType || '') + '</span>'
           + '<span style="color:var(--muted)">' + escapeHtml(r.status || 'submitted') + '</span></div>';
       }).join('');
-    }).catch(function() {
+    }, function(err) {
+      console.error('[Reports] loadMyReportsWidget error — code:', err && err.code, 'message:', err && err.message);
       list.innerHTML = '<div class="exec-empty">Reports unavailable</div>';
     });
+  registerListener('myReports', unsub);
 }
 
 function openSubmitReportModal() {
@@ -20784,7 +20790,7 @@ function loadExecReportsReceived() {
   var q = db.collection('reports').where('recipients','array-contains',currentUser.uid);
   if (deptFilter) q = q.where('department','==',deptFilter);
   if (typeFilter) q = q.where('reportType','==',typeFilter);
-  q.orderBy('createdAt','desc').limit(30).get().then(function(snap) {
+  var unsub = q.orderBy('createdAt','desc').limit(30).onSnapshot(function(snap) {
     if (snap.empty) {
       list.innerHTML = '<div class="exec-empty">No reports received</div>';
       return;
@@ -20796,9 +20802,11 @@ function loadExecReportsReceived() {
         + '<span style="color:var(--muted)">' + escapeHtml(r.reportCategory || r.reportType || '') + '</span></div>'
         + '<span style="color:var(--muted)">' + escapeHtml(r.reportType || '') + '</span></div>';
     }).join('');
-  }).catch(function() {
+  }, function(err) {
+    console.error('[Reports] loadExecReportsReceived error — code:', err && err.code, 'message:', err && err.message);
     list.innerHTML = '<div class="exec-empty">Reports unavailable</div>';
   });
+  registerListener('execReportsReceived', unsub);
 }
 // Small local alias — this file's isCEO() (client-side) already exists as
 // part of isExec()/ROLE_TIERS.EXEC checks; kept explicit here since 'ceo'
@@ -22963,42 +22971,57 @@ function submitAddStaffForm() {
 // provisionable staff roles, plus 'partner'. Queried independently of
 // _hrStaff (the HR module's own cache) so this page works correctly
 // whether or not HR has been visited yet this session.
+// Real-time — a CEO watching this list while a newly-provisioned account
+// logs in for the first time (flipping status: pending_first_login ->
+// active in restoreUserSession()) used to only see it after leaving and
+// re-entering this page. Firestore's 'in' operator caps at 10 values, so
+// this is two independent live queries merged together; each fires on
+// its own schedule, so the merge+render happens after either one updates
+// rather than waiting for both like the old Promise.all did.
+var _asBatch1Docs = [];
+var _asBatch2Docs = [];
+function _mergeAddStaffList() {
+  var seen = {};
+  var list = [];
+  [_asBatch1Docs, _asBatch2Docs].forEach(function(docs) {
+    docs.forEach(function(d) {
+      if (seen[d.id]) return;
+      seen[d.id] = true;
+      var u = d.data();
+      list.push({
+        id: d.id,
+        name: u.displayName || u.name || '(no name)',
+        email: u.email || '',
+        role: u.role || '',
+        department: u.department || '',
+        jobTitle: u.jobTitle || '',
+        reportsTo: u.reportsTo || [],
+        status: u.status || 'active',
+        createdAt: u.createdAt && u.createdAt.toDate ? u.createdAt.toDate() : null
+      });
+    });
+  });
+  list.sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+  _asAccountsList = list;
+  renderAddStaffList();
+}
 function loadAddStaffList() {
   if (typeof db === 'undefined') return;
   var tbody = g('as-list-tbody');
   var roleBatch1 = AS_PROVISIONABLE_ROLES.slice(0, 10);
   var roleBatch2 = AS_PROVISIONABLE_ROLES.slice(10).concat(['partner']);
-  Promise.all([
-    db.collection('users').where('role', 'in', roleBatch1).get(),
-    db.collection('users').where('role', 'in', roleBatch2).get()
-  ]).then(function(snaps) {
-    var seen = {};
-    var list = [];
-    snaps.forEach(function(snap) {
-      snap.forEach(function(d) {
-        if (seen[d.id]) return;
-        seen[d.id] = true;
-        var u = d.data();
-        list.push({
-          id: d.id,
-          name: u.displayName || u.name || '(no name)',
-          email: u.email || '',
-          role: u.role || '',
-          department: u.department || '',
-          jobTitle: u.jobTitle || '',
-          reportsTo: u.reportsTo || [],
-          status: u.status || 'active',
-          createdAt: u.createdAt && u.createdAt.toDate ? u.createdAt.toDate() : null
-        });
-      });
-    });
-    list.sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-    _asAccountsList = list;
-    renderAddStaffList();
-  }).catch(function(e) {
+  function onErr(e) {
     console.error('[ADD-STAFF] loadAddStaffList failed:', e.code || '', e.message);
     if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.2rem">Could not load accounts.</td></tr>';
-  });
+  }
+  var unsub1 = db.collection('users').where('role', 'in', roleBatch1).onSnapshot(function(snap) {
+    _asBatch1Docs = snap.docs; _mergeAddStaffList();
+  }, onErr);
+  var unsub2 = db.collection('users').where('role', 'in', roleBatch2).onSnapshot(function(snap) {
+    _asBatch2Docs = snap.docs; _mergeAddStaffList();
+  }, onErr);
+  registerListener('addStaffList1', unsub1);
+  registerListener('addStaffList2', unsub2);
 }
 
 function renderAddStaffList() {
@@ -24161,7 +24184,10 @@ function loadLeaves() {
   var q = isAdmin
     ? db.collection('leaves').where('isActive','==',true).orderBy('createdAt','desc').limit(100)
     : db.collection('leaves').where('userId','==',currentUser.uid).where('isActive','==',true).orderBy('createdAt','desc').limit(50);
-  q.get().then(function(snap) {
+  // Real-time — an employee's own leave request getting approved/rejected
+  // via the HR Manager dashboard (hrMgrProcessLeave) or this same tab
+  // (processLeave) used to only show up here after a manual reload.
+  var unsub = q.onSnapshot(function(snap) {
     _leavesAll = [];
     var annualD = 0, sickD = 0, emergD = 0;
     snap.forEach(function(d) {
@@ -24178,7 +24204,11 @@ function loadLeaves() {
       if (g('lb-emergency')) g('lb-emergency').textContent = emergD + 'd';
     }
     filterLeaves();
-  }).catch(function() { if (el) el.innerHTML = '<div class="off-empty">Unable to load leave requests.</div>'; });
+  }, function(err) {
+    console.error('[Leaves] loadLeaves error — code:', err && err.code, 'message:', err && err.message);
+    if (el) el.innerHTML = '<div class="off-empty">Unable to load leave requests.</div>';
+  });
+  registerListener('leaves', unsub);
 }
 
 function filterLeaves() {
@@ -26906,15 +26936,20 @@ function loadVerifications() {
               .where('requestedBy','==',currentUser.uid).orderBy('createdAt','desc').limit(200);
   } else { return; }
 
-  query.get().then(function(snap) {
+  // Real-time — staff assigning/updating a request and the requester
+  // watching their own Verification tab used to need a manual reload to
+  // see each other's changes; the only "push" was a separate notification
+  // bell that never re-ran this query.
+  var unsub = query.onSnapshot(function(snap) {
     _verifications = [];
     snap.forEach(function(doc) { var d = doc.data(); d._docId = doc.id; _verifications.push(d); });
     renderVerificationList();
     updateVerificationStats();
-  }).catch(function(err) {
+  }, function(err) {
     console.error('[Verification] load error — code:', err && err.code, 'message:', err && err.message);
     list.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⚠️</div><div class="crm-empty-title">Error loading</div></div>';
   });
+  registerListener('verifications', unsub);
 }
 
 function updateVerificationStats() {
