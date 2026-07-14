@@ -835,5 +835,44 @@ service cloud.firestore {
       allow create, delete: if isExecutive();
       allow update: if isExecutive();
     }
+
+    // ── Role-verification pass: 4 department collections with no prior
+    // scaffolding (unlike employeeRecords/legalCompliance/contractReviews/
+    // financeTransactions above, which the Final Org Chart work already
+    // defined) — same inDept()-scoped shape, added for Chief Broker,
+    // Marketing Manager, CustomerSupport Manager, and IT Manager's own
+    // primary write actions.
+
+    match /sales_targets/{id} {
+      // Chief Broker sets targets; visible read-only to the actual sales
+      // force (isInternalTeam() includes 'agent') — there is no distinct
+      // "Sales Manager" role in this app (deptOfRole() has no such
+      // mapping), so "Sales" in the org-chart sense IS Brokerage/agents.
+      allow read:   if isInternalTeam() || isExecutive();
+      allow create: if (inDept('Brokerage') || isExecutive()) && hasStandardFields();
+      allow update: if inDept('Brokerage') || isExecutive();
+      allow delete: if false;
+    }
+
+    match /campaigns/{id} {
+      allow read:   if inDept('Marketing') || isExecutive();
+      allow create: if (inDept('Marketing') || isExecutive()) && hasStandardFields();
+      allow update: if inDept('Marketing') || isExecutive();
+      allow delete: if false;
+    }
+
+    match /support_tickets/{id} {
+      allow read:   if inDept('CustomerSupport') || isExecutive();
+      allow create: if (inDept('CustomerSupport') || isExecutive()) && hasStandardFields();
+      allow update: if inDept('CustomerSupport') || isExecutive();
+      allow delete: if false;
+    }
+
+    match /system_changes/{id} {
+      allow read:   if inDept('IT') || isExecutive();
+      allow create: if (inDept('IT') || isExecutive()) && hasStandardFields();
+      allow update: if inDept('IT') || isExecutive();
+      allow delete: if false;
+    }
   }
 }
