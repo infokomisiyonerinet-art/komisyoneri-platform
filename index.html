@@ -19087,53 +19087,23 @@ document.addEventListener('securitypolicyviolation', function(e) {
       });
     }
 
-    localStorage.setItem = function(k,v) {
-      _set(k,v);
-      if(k==='km_properties') {
-        try {
-          JSON.parse(v||'[]').forEach(function(p) {
-            if(p.id) rtdb.ref('properties/'+p.id).set(p).catch(function(e){
-              console.error('RTDB write error for property '+p.id+':', e);
-            });
-          });
-        } catch(e){}
-      }
-      if(k==='km_agents') {
-        try {
-          JSON.parse(v||'[]').forEach(function(a) {
-            if(a.id) rtdb.ref('agents/'+a.id).set(a);
-          });
-        } catch(e){}
-      }
-      if(k==='km_leads') {
-        try {
-          JSON.parse(v||'[]').forEach(function(l) {
-            if(l.id) rtdb.ref('leads/'+l.id).set(l);
-          });
-        } catch(e){}
-      }
-      if(k==='km_messages') {
-        try {
-          JSON.parse(v||'[]').forEach(function(m) {
-            if(m.id) rtdb.ref('messages/'+m.id).set(m);
-          });
-        } catch(e){}
-      }
-      if(k==='km_reviews') {
-        try {
-          JSON.parse(v||'[]').forEach(function(r) {
-            if(r.id) rtdb.ref('reviews/'+r.id).set(r);
-          });
-        } catch(e){}
-      }
-      if(k==='km_users') {
-        try {
-          JSON.parse(v||'[]').forEach(function(u) {
-            if(u.email) rtdb.ref('users/'+btoa(u.email).replace(/[.#$[\]]/g,'_')).set(u);
-          });
-        } catch(e){}
-      }
-    };
+    // Used to monkey-patch localStorage.setItem here so that every write to
+    // km_properties/km_agents/km_leads/km_messages/km_reviews/km_users from
+    // ANYWHERE in this file (100+ call sites) also mirrored straight into
+    // the Realtime Database with a full, unauthenticated-reachable .set().
+    // Removed: this was the actual write path behind Firebase's "any user
+    // can read/write the entire database" alert on the RTDB project (see
+    // rules/database.rules.json, added the same time as this removal), and
+    // it duplicated PII (emails, roles, lead/booking contact info) into a
+    // database with no admin-approval gate, no per-record ownership check,
+    // and — unlike every write below — no Firestore rules protecting it.
+    // Firestore is this app's real datastore for all of these (see
+    // loadApprovedProperties(), _startFsNotifListener(), _attachFsLeadListener()
+    // below — the comment on the latter, "fires even when localStorage is
+    // bypassed", already flagged this RTDB path as legacy/bypassable before
+    // this removal). localStorage itself is untouched: every km_* read/write
+    // call site keeps working exactly as before, it just no longer also
+    // fans out to RTDB.
 
     document.readyState==='loading'
       ? document.addEventListener('DOMContentLoaded', attachRealtimeListeners)
