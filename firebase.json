@@ -6,6 +6,9 @@
   "storage": {
     "rules": "rules/storage.rules"
   },
+  "database": {
+    "rules": "rules/database.rules.json"
+  },
   "functions": [
     {
       "source": "functions",
@@ -16,6 +19,7 @@
   "emulators": {
     "firestore": { "port": 8080 },
     "auth": { "port": 9099 },
+    "database": { "port": 9000 },
     "ui": { "enabled": true, "port": 4001 },
     "singleProjectMode": true
   }

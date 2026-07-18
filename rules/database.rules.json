@@ -1,0 +1,13 @@
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null",
+
+    "properties": {
+      ".read": true
+    },
+    "agents": {
+      ".read": true
+    }
+  }
+}
