@@ -1370,6 +1370,11 @@ footer{background:var(--dark-fixed);color:rgba(255,255,255,.5);padding:3.8rem 4%
 .ft-col a:hover{color:#fff}
 .ft-ct{display:flex;align-items:center;gap:.52rem;font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:.5rem}
 .ft-ct svg{width:14px;height:14px;fill:none;stroke:var(--gold);stroke-width:1.9;flex-shrink:0}
+/* Color/no-underline already come from the global a{} reset + .ft-col a{}
+   above — this only adds what neither of those cover: breaking the email
+   at its @ /. so it never overflows the narrow footer column on small
+   screens instead of forcing horizontal scroll. */
+.footer-email{word-break:break-word}
 .ft-bottom{border-top:1px solid rgba(255,255,255,.08);padding-top:1.4rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.7rem}
 .ft-bottom p{font-size:.74rem}
 
@@ -4400,7 +4405,7 @@ html,body{overscroll-behavior-x:none}
         <div class="ft-col"><h5 data-rw="Twandikire" data-en="Contact" data-fr="Contact" data-sw="Wasiliana">Contact</h5>
           <div class="ft-ct"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Kigali, Rwanda</div>
           <div class="ft-ct"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.13a16 16 0 006.73 6.73l1.35-1.35a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>+250 783 177 254</div>
-          <div class="ft-ct"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5c35323a331c373331352f35253332392e35723f3331">[email&#160;protected]</a></div>
+          <div class="ft-ct"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><a href="mailto:info@komisiyoneri.co.rw" class="footer-email">info@komisiyoneri.co.rw</a></div>
           <div class="ft-ct"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>komisiyoneri.co.rw</div>
         </div>
       </div>
