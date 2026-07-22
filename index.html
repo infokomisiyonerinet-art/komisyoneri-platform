@@ -33206,15 +33206,23 @@ function resetSidebarFilters() {
    racing to write the same three DOM nodes with slightly different query
    shapes and number formats. Consolidated here.
 
-   Pre-launch fix: these used to only overwrite the hero markup's hardcoded
-   placeholder ("1,240+"/"850+"/"100+") once a query resolved to a large-
-   enough number (active > 0 / snap.size > 3 / snap.size > 0) — meaning a
-   real, low, honest count never actually replaced the fake number, which
-   stayed on screen indefinitely. The HTML placeholders are now "0" and
-   every query result is shown exactly as returned, including 0 — never a
-   fake number. Counts are also now scoped to match what the labels
-   actually claim (real Firestore-confirmed clients/verified agents, not
-   every active user regardless of role). */
+   Pre-launch fix (first pass): the hero markup's hardcoded placeholder
+   ("1,240+"/"850+"/"100+") used to only get overwritten once a direct
+   properties/users query resolved to a large-enough number — a real, low,
+   honest count never actually replaced the fake number, which stayed on
+   screen indefinitely. That pass switched the HTML placeholders to "0" and
+   queried properties/users directly, correctly scoped (role:'client'/
+   'agent' + isActive/isVerified) — but two of those three counts read the
+   `users` collection, whose rules correctly require auth (own doc or
+   staff), so an anonymous visitor's browser got permission-denied on
+   exactly the two counts that matter most on a public homepage, silently
+   leaving them at "0" for that audience.
+
+   Second pass (this one): reads a single public, PII-free aggregate
+   document (stats/homepage) instead, recomputed on a timer by
+   functions/index.js's updateHomepageStats using the Admin SDK (which
+   bypasses rules entirely) — so every visitor, logged in or not, sees the
+   real counts. */
 function loadLiveHomeStats() {
   if (typeof db === 'undefined') return;
   var elListings = document.getElementById('hero-stat-listings');
@@ -33222,35 +33230,14 @@ function loadLiveHomeStats() {
   var elAgents   = document.getElementById('hero-stat-agents');
   if (!elListings && !elClients && !elAgents) return;
 
-  function fmtCount(n) { return n.toLocaleString(); }
+  function fmtCount(n) { return (n || 0).toLocaleString(); }
 
-  // Filter isActive client-side rather than chaining it onto the query —
-  // status+isActive has no composite index, which made this silently
-  // return zero results in production before this fix.
-  db.collection('properties').where('status', 'in', ['approved', 'Approved']).get()
-    .then(function(snap) {
-      var active = 0;
-      snap.forEach(function(d) { if (d.data().isActive !== false) active++; });
-      if (elListings) elListings.textContent = fmtCount(active);
-    }).catch(function(){});
-
-  // "Abakiliya Bashimye" / "Happy Clients" — role:'client' + isActive:true
-  // specifically, not every active user regardless of role. isActive
-  // filtered client-side for the same composite-index reason as above.
-  db.collection('users').where('role', 'in', ['client', 'Client']).get().then(function(snap) {
-    var active = 0;
-    snap.forEach(function(d) { if (d.data().isActive !== false) active++; });
-    if (elClients) elClients.textContent = fmtCount(active);
-  }).catch(function(){});
-
-  // "Agents Bemewe" / "Verified Agents" — role:'agent' AND isVerified:true;
-  // isVerified filtered client-side (composite-index reason as above) —
-  // this used to count every agent-role account regardless of whether
-  // they were ever actually verified.
-  db.collection('users').where('role', 'in', ['agent', 'Agent']).get().then(function(snap) {
-    var verified = 0;
-    snap.forEach(function(d) { if (d.data().isVerified) verified++; });
-    if (elAgents) elAgents.textContent = fmtCount(verified);
+  db.collection('stats').doc('homepage').get().then(function(doc) {
+    if (!doc.exists) return; // updateHomepageStats hasn't run yet (e.g. right after deploy) — leave the honest "0" placeholder
+    var d = doc.data();
+    if (elListings) elListings.textContent = fmtCount(d.activeListings);
+    if (elClients)  elClients.textContent  = fmtCount(d.activeClients);
+    if (elAgents)   elAgents.textContent   = fmtCount(d.verifiedAgents);
   }).catch(function(){});
 }
 
