@@ -156,6 +156,19 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Public homepage stats aggregate (see functions/index.js's
+    // updateHomepageStats) — 3 counts, no PII, recomputed on a timer by a
+    // Cloud Function using the Admin SDK (which bypasses these rules
+    // entirely, so `write: if false` here is correct: no client, including
+    // an admin, is meant to write this directly). Public read lets
+    // index.html's loadLiveHomeStats() show real listing/client/agent
+    // counts to anonymous visitors without needing read access to the
+    // underlying (correctly locked-down) `users` collection.
+    match /stats/{doc} {
+      allow read:  if true;
+      allow write: if false;
+    }
+
     match /properties/{id} {
       allow read:   if true;
       allow create: if isAuth() && hasStandardFields();

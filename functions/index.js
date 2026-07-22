@@ -1317,3 +1317,56 @@ exports.createStaffOrPartnerAccount = onCall({ region: REGION }, async (request)
 
   return { ok: true, uid, email, name, role, department, jobTitle };
 });
+
+/**
+ * Public homepage stats aggregate.
+ *
+ * The homepage's hero section shows real, live counts (active listings,
+ * active clients, verified agents — see loadLiveHomeStats() in index.html),
+ * but two of those three counts come from the `users` collection, which is
+ * correctly locked down (rules/firestore.rules: `allow read: if isAuth() &&
+ * (own doc || staff)`) — an anonymous visitor's browser gets a permission-
+ * denied error querying it, so those two counts silently stay at 0 for
+ * logged-out visitors. Opening `users` to public list-queries instead would
+ * expose every matching user's full document (email, phone, etc.) to any
+ * visitor who queries it — not an acceptable trade for a vanity stat.
+ *
+ * This recomputes the same three counts server-side on a timer (the Admin
+ * SDK bypasses security rules entirely) and writes ONLY the three resulting
+ * numbers to a single, narrowly public-readable stats/homepage document —
+ * no user documents, no PII, ever reach the client. index.html's
+ * loadLiveHomeStats() should read this document instead of querying
+ * `properties`/`users` directly once rules/firestore.rules' stats/homepage
+ * rule (added alongside this function) is deployed.
+ */
+exports.updateHomepageStats = onSchedule({
+  schedule: '*/15 * * * *',
+  timeZone: 'Africa/Kigali',
+  region: REGION
+}, async () => {
+  const db = getFirestore();
+
+  const propsSnap = await db.collection('properties').where('status', 'in', ['approved', 'Approved']).get();
+  let activeListings = 0;
+  propsSnap.forEach((doc) => { if (doc.data().isActive !== false) activeListings++; });
+
+  // Same role-scoped query shape as index.html's loadLiveHomeStats() —
+  // querying only 'client'/'agent' role docs (rather than the whole
+  // collection) keeps this cheap regardless of total user count.
+  const clientsSnap = await db.collection('users').where('role', 'in', ['client', 'Client']).get();
+  let activeClients = 0;
+  clientsSnap.forEach((doc) => { if (doc.data().isActive !== false) activeClients++; });
+
+  const agentsSnap = await db.collection('users').where('role', 'in', ['agent', 'Agent']).get();
+  let verifiedAgents = 0;
+  agentsSnap.forEach((doc) => { if (doc.data().isVerified) verifiedAgents++; });
+
+  await db.collection('stats').doc('homepage').set({
+    activeListings,
+    activeClients,
+    verifiedAgents,
+    updatedAt: FieldValue.serverTimestamp()
+  });
+
+  logger.info('Homepage stats updated', { activeListings, activeClients, verifiedAgents });
+});
