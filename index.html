@@ -5211,11 +5211,18 @@ html,body{overscroll-behavior-x:none}
       </div>
       <div id="admin-list"></div>
       <div id="admin-agents-panel" style="display:none;padding:.5rem 0">
-        <!-- Pending Firestore users awaiting approval -->
+        <!-- Pending Firestore users awaiting approval — the real, working
+             approve/reject path (see _fsPendingApprove()/_fsPendingReject()).
+             A second, legacy list used to render here from a localStorage/
+             RTDB mirror (getDemoAgents() fallback, capitalized role values
+             disconnected from the real Firestore role system) whose own
+             Approve/Suspend/Delete buttons never touched Firestore at all —
+             removed; ongoing verify/suspend for any staff/agent already has
+             a real, working equivalent in the HR Staff Directory
+             (toggleUserVerified()/toggleUserActive()). -->
         <div id="adm-pending-users-wrap" style="margin-bottom:1rem">
           <div id="adm-pending-users-list"></div>
         </div>
-        <div id="admin-agents-list"></div>
       </div>
       <div id="admin-referrals-panel" style="display:none;padding:.5rem 0">
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.8rem">
@@ -12988,20 +12995,14 @@ async function handleRegister() {
     console.log('[AUTH] handleRegister: calling saveUser()');
     saveUser(user);
     kmTrack('sign_up',{method:'email',role:user.role});
-    /* Notify admins via RTDB admin alert (non-blocking) */
-    try {
-      if (typeof rtdb !== 'undefined') {
-        rtdb.ref('adminAlerts').push({
-          type:      'new_user',
-          userId:    fb.uid,
-          userName:  name,
-          userEmail: email,
-          userRole:  canonRole,
-          status:    canonRole === 'agent' ? 'pending' : 'active',
-          createdAt: Date.now()
-        }).catch(function(){});
-      }
-    } catch(_ae){}
+    // A "notify admins of new signup" RTDB adminAlerts push used to happen
+    // here — removed: nothing in this file ever read that node (grep-
+    // confirmed), so it was pure PII (name, email, role) written into a
+    // database node with no reader, one write with zero functional benefit
+    // and, since PR #120's rules, readable by any authenticated user.
+    // The real, working equivalent for a pending agent application is
+    // _loadFsPendingUsers()'s Firestore query (status:'pending'), already
+    // surfaced in the Admin Panel.
     showToast(curLang==='rw'?'Konti yakozwe! Reba imeyili yawe kugira ngo uremeze.':'Account created! Check your email to verify.');
     var pa = _pendingAction; _pendingAction = null;
     if (pa === 'agent-reg') { go('home'); openAgentReg(); }
@@ -14713,7 +14714,13 @@ function submitBooking() {
   };
   bookings.push(bk);
   try{localStorage.setItem('km_bookings',JSON.stringify(bookings));}catch(e){}
-  if (bk.id) try { rtdb.ref('bookings/' + bk.id).set(bk); } catch(e){}
+  // A legacy rtdb.ref('bookings/'+bk.id).set(bk) mirror write used to
+  // happen here — removed: the Firestore write immediately below (the
+  // `viewings` collection, the collection every dashboard/calendar/CRM
+  // query in this app actually reads) already covers this booking
+  // completely, with proper rules, an audit log entry, and an
+  // auto-created CRM lead; the RTDB copy was pure redundant PII (client
+  // name/phone) with no reader of its own.
 
   // Firestore — write to viewings collection (all 7 standard fields)
   try {
@@ -18178,27 +18185,23 @@ function renderAdminPlatform() {
 //  ADMIN — Agents Management
 // ═══════════════════════════════════════════════════════════
 
+// Used to also seed a localStorage/RTDB "agents" mirror here and render a
+// second, parallel agent list (_renderAdminAgentsList(), with its own
+// adminAgentApprove()/adminAgentSuspend()/adminAgentDelete() — capitalized
+// role values ('Agent'/'PendingAgent'/'Buyer') disconnected from the real
+// lowercase Firestore role system, falling back to getDemoAgents() fake
+// data whenever the mirror was empty). Its Approve/Suspend/Delete buttons
+// never wrote to Firestore at all — only to that legacy mirror — so
+// clicking them gave a real-looking success toast while leaving the
+// actual users/{uid} document (the one every dashboard, security rule,
+// and the homepage stats aggregate actually reads) completely unchanged.
+// Removed: the pending-users list below is the real, working approval
+// path (_fsPendingApprove()/_fsPendingReject(), Firestore-backed), and
+// ongoing verify/suspend for any staff/agent already has a real
+// equivalent in the HR Staff Directory (toggleUserVerified()/
+// toggleUserActive()) — nothing this legacy list did was unique.
 function renderAdminAgents() {
-  var list = document.getElementById('admin-agents-list');
-  if(!list) return;
-  list.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:.82rem">⏳ Gutegura...</div>';
-
-  // Load Firestore pending users first
   _loadFsPendingUsers();
-
-  // Pull live from Firebase first, then render
-  try {
-    firebase.database().ref('agents').once('value').then(function(s) {
-      if(s.exists()) {
-        var fbAgents = [];
-        s.forEach(function(c){ fbAgents.push(c.val()); });
-        if(fbAgents.length > 0) {
-          localStorage.setItem('km_agents', JSON.stringify(fbAgents));
-        }
-      }
-      _renderAdminAgentsList();
-    }).catch(function(){ _renderAdminAgentsList(); });
-  } catch(e){ _renderAdminAgentsList(); }
 }
 
 /* Load pending Firestore users (status:'pending') — agents awaiting admin approval */
@@ -18333,127 +18336,6 @@ function _fsPendingReject(uid) {
   });
 }
 
-function _renderAdminAgentsList() {
-  var agents = [];
-  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
-  if(agents.length === 0) agents = getDemoAgents();
-
-  var list = document.getElementById('admin-agents-list');
-  if(!list) return;
-
-  if(agents.length === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">Nta agents biyandikishije ubu</div>';
-    return;
-  }
-
-  var pending = agents.filter(function(a){ return a.status === 'Pending Verification'; });
-  var pendingBanner = pending.length > 0
-    ? '<div style="background:var(--surface)3cd;border:1.5px solid #ffc107;border-radius:8px;padding:.6rem .9rem;margin-bottom:.7rem;font-size:.8rem;font-weight:600">⏳ ' + pending.length + ' agent(s) bategereje kwemezwa</div>'
-    : '';
-
-  list.innerHTML = pendingBanner + '<div style="font-weight:700;font-size:.82rem;color:var(--navy);margin-bottom:.7rem">Agents '+ agents.length +' — Shinja cyangwa Emeza</div>'
-    + agents.map(function(agent, idx) {
-    var isActive = agent.status === 'Active';
-    var isPending = agent.status === 'Pending Verification';
-    var statusColor = isActive ? '#27A84A' : isPending ? '#F5A623' : '#718096';
-
-    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.6rem;background:var(--surface)">'
-      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">'
-      +   '<div style="flex:1">'
-      +     '<div style="font-weight:700;font-size:.88rem;color:var(--navy)">' + (agent.name||'—') + '</div>'
-      +     '<div style="font-size:.75rem;color:var(--muted)">📍 ' + (agent.zone||'—') + ' | 📞 ' + (agent.phone||'—') + '</div>'
-      +     '<div style="font-size:.73rem;color:var(--muted)">📧 ' + (agent.email||'—') + '</div>'
-      +     '<div style="font-size:.73rem;color:var(--muted);margin-top:.2rem">🌐 ' + (agent.languages||[]).join(', ') + ' | ' + (agent.transport==='car'?'🚗':'🏍️') + ' | Deals: ' + (agent.deals||0) + '</div>'
-      +   '</div>'
-      +   '<span style="background:'+statusColor+';color:#fff;border-radius:20px;padding:.15rem .55rem;font-size:.62rem;font-weight:700;flex-shrink:0">' + agent.status + '</span>'
-      + '</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;margin-top:.6rem">'
-      +   '<button onclick="adminAgentApprove('+idx+')" style="background:#27A84A;color:#fff;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:700">✅ Emeza</button>'
-      +   '<button onclick="adminAgentSuspend('+idx+')" style="background:#F5A623;color:#000;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:700">⏸ Hagarika</button>'
-      +   '<button onclick="adminAgentDelete('+idx+')" style="background:#718096;color:#fff;border:none;padding:.4rem;border-radius:6px;cursor:pointer;font-size:.72rem">🗑️ Siba</button>'
-      + '</div>'
-      + '</div>';
-  }).join('');
-}
-
-function adminAgentApprove(idx) {
-  var agents = [];
-  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
-  if(!agents[idx] && agents.length === 0) agents = getDemoAgents();
-  if(agents[idx]) {
-    agents[idx].status = 'Active';
-    try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
-    try { rtdb.ref('agents/' + agents[idx].id).update({ status: 'Active' }); } catch(e){}
-
-    // Promote the matching user's role to 'Agent' in localStorage + Firebase
-    var agentId = agents[idx].id;
-    var users = [];
-    try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
-    users = users.map(function(u) {
-      if (u.agentId === agentId) {
-        u.role = 'Agent';
-        try { rtdb.ref('users/'+btoa(u.email).replace(/[.#$[\]]/g,'_')).update({ role: 'Agent' }); } catch(e){}
-      }
-      return u;
-    });
-    try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
-
-    showToast('✅ Agent yemejwe! Ubu ashobora guhabwa leads.');
-    renderAdminAgents();
-    var a = agents[idx];
-    if(a.phone) window.open('https://wa.me/'+a.phone.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent('Muraho '+a.name+'! KOMISIYONERI irashimishijwe kukemeza iyandikishe ryawe nka agent. Witeguye guhabwa leads. Urakoze!'), '_blank');
-  }
-}
-
-function adminAgentSuspend(idx) {
-  var agents = [];
-  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
-  if(agents[idx]) {
-    agents[idx].status = 'Suspended';
-    try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
-    try { rtdb.ref('agents/' + agents[idx].id).update({ status: 'Suspended' }); } catch(e){}
-
-    // Revoke Agent role from matching user in localStorage + Firebase
-    var agentId = agents[idx].id;
-    var users = [];
-    try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
-    users = users.map(function(u) {
-      if (u.agentId === agentId && u.role === 'Agent') {
-        u.role = 'PendingAgent';
-        try { rtdb.ref('users/'+btoa(u.email).replace(/[.#$[\]]/g,'_')).update({ role: 'PendingAgent' }); } catch(e){}
-      }
-      return u;
-    });
-    try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
-    showToast('⏸ Agent yahagaritswe.');
-    renderAdminAgents();
-  }
-}
-
-function adminAgentDelete(idx) {
-  if(!confirm('Siba agent uyu burundu?')) return;
-  var agents = [];
-  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
-  var deleted = agents[idx];
-  agents.splice(idx, 1);
-  try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
-  if(deleted) {
-    try { rtdb.ref('agents/' + deleted.id).remove(); } catch(e){}
-    // Revert user role to Buyer
-    var users = [];
-    try { users = JSON.parse(localStorage.getItem('km_users')||'[]'); } catch(e){}
-    users = users.map(function(u) {
-      if (u.agentId === deleted.id) {
-        u.role = 'Buyer'; delete u.agentId; delete u.zone;
-        try { rtdb.ref('users/'+btoa(u.email).replace(/[.#$[\]]/g,'_')).update({ role: 'Buyer', agentId: null, zone: null }); } catch(e){}
-      }
-      return u;
-    });
-    try { localStorage.setItem('km_users', JSON.stringify(users)); } catch(e){}
-  }
-  showToast('🗑️ Agent yasibwe.');
-  renderAdminAgents();
-}
 
 // Load agents, CRM, and Deals when navigating to those pages
 var _goOrigAgents = go;
@@ -19013,17 +18895,14 @@ document.addEventListener('securitypolicyviolation', function(e) {
         }
       });
 
-      // Agents — re-render admin agents tab if active
+      // Agents — km_agents cache only; used to also re-render a legacy
+      // admin agents list here (removed, see renderAdminAgents()'s comment).
       rtdb.ref('agents').on('value', function(s) {
         if (!s.exists()) return;
         var agents = [];
         s.forEach(function(c){ agents.push(c.val()); });
         if (!agents.length) return;
         _set('km_agents', JSON.stringify(agents));
-        var adminModal = document.getElementById('admin-modal');
-        if (adminModal && adminModal.style.display !== 'none' && adminCurrentTab === 'agents') {
-          if (typeof _renderAdminAgentsList === 'function') _renderAdminAgentsList();
-        }
       });
 
       // Leads — notify assigned agent of a new lead in real time
@@ -31748,15 +31627,16 @@ function submitPlotReservation() {
       { status: 'available' },
       { status: 'reserved', clientId: uid }
     );
-    // Notify agent via rtdb
-    if (typeof rtdb !== 'undefined') {
-      try {
-        rtdb.ref('notifications/' + (res.p.agentId || uid)).push({
-          title: 'Plot Reserved',
-          body:  'Plot ' + (res.p.plotNumber || '') + ' has been reserved by a client.',
-          at:    Date.now()
-        });
-      } catch(e) {}
+    // Notify agent — was a legacy rtdb.ref('notifications/'+...).push(),
+    // a database node nothing else in this app reads. notifyUser() is the
+    // same Firestore-backed notification path every other feature in this
+    // file uses (see _fsPendingApprove(), _startFsNotifListener()) — the
+    // one that actually feeds the notification bell/panel.
+    if (typeof notifyUser === 'function') {
+      notifyUser(res.p.agentId || uid,
+        'Plot Reserved',
+        'Plot ' + (res.p.plotNumber || '') + ' has been reserved by a client.',
+        'plot_reserved', 'plots', plotId);
     }
     closeReservePlot();
     showToast(curLang==='rw' ? 'Ikiraro kibitswe neza! Agent azatumanahana nawe.' : 'Plot reserved! Agent will contact you shortly.', 'success');
