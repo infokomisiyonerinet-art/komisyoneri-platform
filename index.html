@@ -163,9 +163,16 @@
 
 <link rel="manifest" href="/manifest.json">
 
-<!-- ── FAVICON ── -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230D3B8C'/><path d='M20 70 L50 30 L80 70 M35 70 L35 52 L65 52 L65 70' stroke='white' stroke-width='7' fill='none' stroke-linejoin='round' stroke-linecap='round'/></svg>">
-<link rel="apple-touch-icon" href="/icon-192.svg">
+<!-- ── FAVICON — the same official icon-192/512 mark used everywhere else
+     (header, footer, PWA, manifest), not a separately hand-drawn duplicate.
+     SVG first for crisp rendering in modern browsers; favicon.ico for
+     legacy/pinned-tab support; PNG sizes for anything needing a raster. ── -->
+<link rel="icon" type="image/svg+xml" href="/icon-192.svg">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
 <!-- ── STRUCTURED DATA (Google Rich Results) ── -->
 <script type="application/ld+json">
@@ -3328,7 +3335,7 @@ html,body{overscroll-behavior-x:none}
   .off-att-head span:nth-child(4),.off-att-row span:nth-child(4),.off-att-head span:nth-child(5),.off-att-row span:nth-child(5){display:none}
 }
 </style>
-  <link rel="preload" as="image" href="/images/logo.png">
+  <link rel="preload" as="image" href="/icon-192.svg">
 </head>
 <body>
 
@@ -3488,7 +3495,7 @@ html,body{overscroll-behavior-x:none}
 <div id="online-bar" class="online-bar">✅ Internet yagarutse!</div>
 <nav class="topnav" role="navigation" aria-label="Urubuga rw'ingenzi">
   <div class="topnav-logo" onclick="go('home')" role="button" tabindex="0">
-    <img src="/images/logo.png" width="63" height="42" decoding="async" style="height:42px;width:auto;object-fit:contain" alt="KOMISIYONERI Logo" onerror="this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.style.display='flex')">
+    <img src="/icon-192.svg" width="42" height="42" decoding="async" style="height:42px;width:42px;object-fit:contain" alt="KOMISIYONERI Logo">
     <div class="logo-text"><strong>KOMISIYONERI</strong><span>Connectpro Services</span></div>
   </div>
   <div class="topnav-links">
@@ -4382,7 +4389,7 @@ html,body{overscroll-behavior-x:none}
       <div class="ft-grid">
         <div>
           <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.65rem">
-            <img src="/images/logo.png" width="52" height="52" loading="lazy" decoding="async" style="object-fit:contain" alt="KOMISIYONERI Logo">
+            <img src="/icon-192.svg" width="52" height="52" loading="lazy" decoding="async" style="object-fit:contain" alt="KOMISIYONERI Logo">
             <div><strong style="color:#fff;font-family:'Cormorant Garamond',serif;font-size:1.05rem">KOMISIYONERI</strong><br><span style="font-size:.55rem;color:rgba(255,255,255,.35);letter-spacing:.16em;text-transform:uppercase">Connectpro Services</span></div>
           </div>
           <p class="ft-brand" data-rw="Duhuza abantu n'imitungo itimurika mu Rwanda mu buryo bworoshye kandi bwizewe." data-en="Connecting people with quality properties in Rwanda simply and safely." data-fr="Nous connectons les gens à des biens de qualité au Rwanda, simplement et en toute sécurité." data-sw="Tunaunganisha watu na mali bora nchini Rwanda kwa urahisi na usalama.">Connecting people with quality properties in Rwanda simply and safely.</p>
@@ -5099,7 +5106,7 @@ html,body{overscroll-behavior-x:none}
   <div class="auth-wrap">
     <div class="auth-left">
       <div style="position:relative;z-index:1">
-        <img src="/images/logo.png" width="70" height="70" loading="lazy" decoding="async" style="object-fit:contain;margin-bottom:2rem" alt="KOMISIYONERI Logo">
+        <img src="/icon-192.svg" width="70" height="70" loading="lazy" decoding="async" style="object-fit:contain;margin-bottom:2rem" alt="KOMISIYONERI Logo">
         <h1 style="color:#fff;font-size:clamp(2rem,4vw,3rem);margin-bottom:1rem" data-rw="Murakaza neza kuri KOMISIYONERI" data-en="Welcome to KOMISIYONERI" data-fr="Bienvenue sur KOMISIYONERI" data-sw="Karibu KOMISIYONERI">Welcome to KOMISIYONERI</h1>
         <p style="color:rgba(255,255,255,.82);font-size:.92rem;line-height:1.8;max-width:400px;margin-bottom:2rem" data-rw="Iyandikishe kuri platform y'imitungo nziza mu Rwanda — itangira ubuntu, ntukeneye karita ya banki." data-en="Register on Rwanda's leading real estate platform — start free, no credit card required." data-fr="Inscrivez-vous sur la principale plateforme immobilière du Rwanda — gratuit, sans carte bancaire." data-sw="Jisajili kwenye jukwaa kuu la mali isiyohamishika la Rwanda — anza bure, hakuna kadi ya benki inayohitajika.">Register on Rwanda's leading real estate platform — start free, no credit card required.</p>
         <div style="display:flex;flex-direction:column;gap:.85rem">

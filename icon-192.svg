@@ -3,4 +3,5 @@
   <path d="M38 140 L96 52 L154 140" stroke="white" stroke-width="14" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
   <path d="M67 140 L67 104 L125 104 L125 140" stroke="white" stroke-width="14" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
   <rect x="82" y="104" width="28" height="36" rx="4" fill="#F5A623"/>
+  <circle cx="96" cy="162" r="7" fill="#F5A623"/>
 </svg>
