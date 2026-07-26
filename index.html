@@ -12812,12 +12812,12 @@ var PropImageUploader = (function() {
 
   function hasAtLeastOne() { return items.length > 0; }
 
-  // Uploads a single item; identical body to what uploadAll() used to run
-  // inline for every item at once. Pulled out unchanged so uploadAll() can
-  // dispatch it through a concurrency limiter instead.
-  function uploadOne(it, idx, pathPrefix) {
-      if (it.isExisting && it.url) return Promise.resolve(it.url);
-      if (!it.file) return Promise.resolve(null);
+  // Single attempt at uploading one item — identical logic to what
+  // uploadAll() used to run inline for every item at once, plus start/end
+  // logging on the request itself (previously only failure paths were
+  // logged, leaving no trace of what happened before a timeout). Retried by
+  // uploadOne() below on a 'timeout' rejection specifically.
+  function _attemptUpload(it, idx, pathPrefix, attemptNum) {
       it.status = 'uploading'; it.progress = 0;
       render();
       return compressImage(it.file).then(function(finalFile) {
@@ -12830,6 +12830,16 @@ var PropImageUploader = (function() {
           var safeName = (finalFile.name || 'photo.jpg').replace(/[^a-zA-Z0-9_.-]/g, '_');
           var ref = storage.ref(pathPrefix + '/' + Date.now() + '_' + idx + '_' + safeName);
           var uploadStartedAt = Date.now();
+          // Logged before ref.put() is even called — the one link in this
+          // chain that can't otherwise be observed: whether the Storage SDK
+          // has a signed-in user (and therefore an ID token to attach to the
+          // request) at the exact moment the upload starts. A hung token
+          // refresh would produce the same symptom as everything else here
+          // (zero state_changed events, then the watchdog fires) with no
+          // other way to distinguish it from a dropped network request.
+          console.log('[Upload] attempt ' + attemptNum + ' starting for ' + ref.fullPath
+            + ' — authUser=' + (firebaseAuth && firebaseAuth.currentUser ? firebaseAuth.currentUser.uid : '(none)')
+            + ' fileSize=' + finalFile.size);
           var task = ref.put(finalFile);
           var settled = false;
           // Guard against a Storage upload that never fires ANY
@@ -12840,7 +12850,7 @@ var PropImageUploader = (function() {
             if (settled) return;
             settled = true;
             try { task.cancel(); } catch(e) {}
-            console.error('[Upload] uploadAll: task for ' + ref.fullPath + ' produced no state_changed event within ' + UPLOAD_TIMEOUT_MS + 'ms — treating as failed');
+            console.error('[Upload] attempt ' + attemptNum + ' for ' + ref.fullPath + ' produced no state_changed event within ' + UPLOAD_TIMEOUT_MS + 'ms — treating as failed');
             _dumpStorageNetworkEvidence(ref.fullPath, uploadStartedAt);
             it.status = 'error';
             it.errorCode = 'timeout';
@@ -12856,7 +12866,7 @@ var PropImageUploader = (function() {
             if (settled) return;
             settled = true;
             clearTimeout(watchdog);
-            console.error('[Upload] uploadAll: task FAILED — code:', err.code || '', 'message:', err.message);
+            console.error('[Upload] attempt ' + attemptNum + ' for ' + ref.fullPath + ' FAILED — code:', err.code || '', 'message:', err.message);
             _dumpStorageNetworkEvidence(ref.fullPath, uploadStartedAt);
             it.status = 'error';
             it.errorCode = err.code || 'unknown-error';
@@ -12867,15 +12877,38 @@ var PropImageUploader = (function() {
             settled = true;
             clearTimeout(watchdog);
             task.snapshot.ref.getDownloadURL().then(function(url) {
+              console.log('[Upload] attempt ' + attemptNum + ' for ' + ref.fullPath + ' succeeded');
               it.status = 'done'; it.progress = 100; it.url = url;
               resolve(url);
             }).catch(function(e) {
-              console.error('[Upload] uploadAll: getDownloadURL FAILED —', e.code || '', e.message);
+              console.error('[Upload] attempt ' + attemptNum + ' for ' + ref.fullPath + ' getDownloadURL FAILED —', e.code || '', e.message);
               it.status = 'error'; it.errorCode = e.code || 'download-url-failed'; render();
               reject(e);
             });
           });
         });
+      });
+  }
+
+  // Uploads a single item, retrying exactly once if the first attempt times
+  // out. A 'timeout' here means zero state_changed events ever fired (see
+  // the watchdog above) — consistent with a single dropped/stalled
+  // connection on a constrained mobile network, not a permission or
+  // config problem (those fail fast with a different error code and are
+  // NOT retried, since retrying a rules rejection just wastes the same
+  // bandwidth for the same guaranteed failure). Previously a lone transient
+  // timeout permanently failed that photo with no recovery path other than
+  // the user manually resubmitting the whole form.
+  function uploadOne(it, idx, pathPrefix) {
+      if (it.isExisting && it.url) return Promise.resolve(it.url);
+      if (it.status === 'done' && it.url) return Promise.resolve(it.url); // already uploaded this session — don't re-send on a resubmit
+      if (!it.file) return Promise.resolve(null);
+      return _attemptUpload(it, idx, pathPrefix, 1).catch(function(err) {
+        if (err && err.code === 'timeout') {
+          console.warn('[Upload] retrying ' + pathPrefix + ' item ' + idx + ' once after a timeout');
+          return _attemptUpload(it, idx, pathPrefix, 2);
+        }
+        throw err;
       });
   }
 

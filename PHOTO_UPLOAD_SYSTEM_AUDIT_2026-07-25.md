@@ -1,10 +1,14 @@
 # Photo Upload System — End-to-End Audit
 
-**Date:** 2026-07-25
+**Date:** 2026-07-25 (correction added 2026-07-26)
 **Branch:** `claude/project-health-scan-v1qqw6`
 **Scope:** Investigation only. No code was modified. Re-traces the complete property-listing photo upload pipeline — file picker, validation, compression, Firebase init, Storage bucket, upload task, progress events, download URL, Firestore save, property creation — against the current state of the code, 18 days after `P0_PROPERTY_UPLOAD_ROOT_CAUSE_INVESTIGATION.md` (2026-07-07) and one upload-specific hardening pass (`8094031`, 2026-07-10) that followed it.
 
-## Bottom line
+## Correction (2026-07-26)
+
+The CORS hypothesis below (originally the leading candidate for the "0%/timeout" symptom) has been **tested live and ruled out**. Unauthenticated HTTP requests against `firebasestorage.googleapis.com` (the exact endpoint the Firebase Storage JS SDK's `ref.put()` talks to — confirmed via this file's own network interceptor, which watches that host specifically) show it returns `Access-Control-Allow-Origin: *` unconditionally, regardless of whatever bucket-level policy `gsutil cors set`/`rules/storage-cors.json` applies. That bucket-level CORS config only governs the raw `storage.googleapis.com` API, which this app's upload code never calls directly. See `UPLOAD_RETRY_FIX_2026-07-26.md` for what was found and fixed instead.
+
+## Bottom line (superseded by the correction above for the CORS claim specifically)
 
 Every layer between selecting a photo and getting a Storage download URL back (steps 1–8 below) is correct in the current code and was already the subject of two prior, targeted hardening passes — there is no remaining code defect in that stretch. Given that, and given that a Storage rules rejection returns a distinct error code almost immediately rather than a 60-second hang with zero progress events, **the single remaining explanation for a genuine "stuck at 0%, then `timeout`" failure is whether `rules/storage-cors.json` has actually been applied to the live GCS bucket** — nothing in this repository's build/deploy path (`package.json`, CI, `firebase.json`) ever runs `gsutil cors set` automatically; it is, and has only ever been, a manual operator action. This cannot be confirmed or ruled out from source code alone.
 
