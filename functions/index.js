@@ -307,6 +307,30 @@ exports.onDealClosedWon = onDocumentUpdated({ document: 'deals/{dealId}', region
     }
   }
 
+  // Denormalize a privacy-safe "sold" marker onto the public property doc
+  // itself, for index.html's loadHomepageRotation() SOLD-badge slot.
+  // Deliberately NOT read from `deals` client-side for that: deals/{id}
+  // requires auth (isAdminOrStaff() or being a party to it — see
+  // rules/firestore.rules), so an anonymous homepage visitor's query would
+  // just get permission-denied and the badge would silently never appear
+  // for most real traffic; and even if it were made readable, a full deal
+  // doc carries client name/phone and commission figures that have no
+  // business being public. `properties` is already fully public
+  // (`allow read: if true`), and a single non-PII timestamp field adds no
+  // new exposure — every other property field is already visible there.
+  // Additive only: does NOT touch the property's own approval `status`
+  // field, so it keeps appearing in the normal approved-listings pipeline
+  // exactly as before; only loadHomepageRotation() treats soldAt specially.
+  if (deal.propertyId) {
+    await db.collection('properties').doc(deal.propertyId).update({
+      soldAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: actingUid
+    }).catch((e) => {
+      logger.warn('onDealClosedWon: could not mark property as sold (may have been deleted)', { dealId, propertyId: deal.propertyId, error: e.message });
+    });
+  }
+
   logger.info('Deal ' + dealId + ' closed_won cascade complete', { commissionCreated, dealValue, agentShare, companyShare });
 });
 

@@ -4109,8 +4109,12 @@ html,body{overscroll-behavior-x:none}
           <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </button>
       </div>
-      <div class="p-grid" id="p-grid-main">
-        <!-- skeleton cards shown until loadApprovedProperties() replaces them -->
+      <!-- id is p-grid-home, deliberately distinct from the listings page's
+           #p-grid-main (see setListingView()'s comment on that duplicate-id
+           history) — this grid runs its own one-per-type rotation query
+           (loadHomepageRotation()), not loadApprovedProperties(). -->
+      <div class="p-grid" id="p-grid-home">
+        <!-- skeleton cards shown until loadHomepageRotation() replaces them -->
         <div class="skeleton-card sk-init"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line sl-title"></div><div class="skeleton-line sl-sub"></div><div class="skeleton-line sl-price"></div></div></div>
         <div class="skeleton-card sk-init"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line sl-title"></div><div class="skeleton-line sl-sub"></div><div class="skeleton-line sl-price"></div></div></div>
         <div class="skeleton-card sk-init"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line sl-title"></div><div class="skeleton-line sl-sub"></div><div class="skeleton-line sl-price"></div></div></div>
@@ -10614,7 +10618,8 @@ var TX = {
     delAllDone:    '🗑️ Imitungo yose yasibwe. (',
     labApproved:   'Yemejwe',
     labRejected:   'Yananiwe',
-    labAll:        'Zose'
+    labAll:        'Zose',
+    soldBadge:     'YAGURISHIJWE'
   },
   en: {
     verified:      'Verified',
@@ -10632,7 +10637,8 @@ var TX = {
     delAllDone:    '🗑️ All properties deleted. (',
     labApproved:   'Approved',
     labRejected:   'Rejected',
-    labAll:        'All'
+    labAll:        'All',
+    soldBadge:     'SOLD'
   },
   fr: {
     verified:      'Vérifié',
@@ -10650,7 +10656,8 @@ var TX = {
     delAllDone:    '🗑️ Tous les biens ont été supprimés. (',
     labApproved:   'Approuvé',
     labRejected:   'Refusé',
-    labAll:        'Tous'
+    labAll:        'Tous',
+    soldBadge:     'VENDU'
   },
   sw: {
     verified:      'Imethibitishwa',
@@ -10668,7 +10675,8 @@ var TX = {
     delAllDone:    '🗑️ Mali zote zimefutwa. (',
     labApproved:   'Imeidhinishwa',
     labRejected:   'Imekataliwa',
-    labAll:        'Zote'
+    labAll:        'Zote',
+    soldBadge:     'IMEUZWA'
   }
 };
 
@@ -10714,6 +10722,7 @@ function setLang(lang) {
   if (typeof renderBottomNav === 'function') renderBottomNav(_bnCurPage);
   // Re-render dynamic content so hardcoded strings also update
   loadApprovedProperties();
+  if (typeof loadHomepageRotation === 'function') loadHomepageRotation();
   closeLangMenu();
 }
 
@@ -14342,6 +14351,11 @@ function renderUserPropCard(prop) {
   // Badges
   var topBadges = '';
   if(prop.isDemo) topBadges += '<span style="position:absolute;top:.4rem;left:.4rem;z-index:4;background:rgba(245,166,35,.95);color:#000;border-radius:20px;padding:.1rem .5rem;font-size:.6rem;font-weight:800">✦ DEMO</span>';
+  // Homepage "Newest Properties" social-proof slot (loadHomepageRotation())
+  // — a real closed/won sale, always shown regardless of recency. Red,
+  // top-left, same slot DEMO would use (never co-occurs with it: a sold
+  // card is never a demo card).
+  if(prop._sold) topBadges += '<span style="position:absolute;top:.4rem;left:.4rem;z-index:4;background:#DC2626;color:#fff;border-radius:20px;padding:.1rem .5rem;font-size:.6rem;font-weight:800">' + t('soldBadge') + '</span>';
   if(prop.verified) topBadges += '<span style="position:absolute;top:.4rem;right:.4rem;z-index:4;background:rgba(39,168,74,.9);color:#fff;border-radius:20px;padding:.1rem .4rem;font-size:.6rem;font-weight:700">✅</span>';
   if(prop.rating) topBadges += '<span style="position:absolute;bottom:.4rem;right:.4rem;z-index:4;background:rgba(0,0,0,.6);color:#fff;border-radius:20px;padding:.1rem .45rem;font-size:.65rem;font-weight:700">★ '+prop.rating+'</span>';
 
@@ -14382,16 +14396,29 @@ function renderUserPropCard(prop) {
   // gives screen readers and AI content parsers the same context an alt would.
   var imgAriaLabel = escapeHtml((prop.title || propName) + (loc ? ' — ' + loc : '') + ' photo');
 
+  // loadHomepageRotation()'s "Plots for Sale" / "Site Nshya" slots hand this
+  // renderer a synthetic prop built from a sites/{id} or plots/{id} document
+  // (see _normalizeSiteAsProp()/_normalizePlotAsProp()), tagged with
+  // _siteLink = the real sites/{id} this card represents. Neither of those
+  // synthetic ids is a real properties/{id} doc, so routing them through
+  // openPropDetail() (property lookup) or addToCompare()/toggleFav()
+  // (also property-keyed) would silently fail — send the click to the real
+  // site plan page instead, and drop the two property-only actions.
+  var isSiteLinked = !!prop._siteLink;
+  var detailOnClick = isSiteLinked ? ('loadSitePlan(\'' + prop._siteLink + '\')') : ('openPropDetail(\'' + pid + '\')');
+  var favBtnHtml = isSiteLinked ? '' : '<button class="p-fav" data-pid="' + pid + '" onclick="event.stopPropagation();toggleFav(\'' + pid + '\',event)" title="Save to favorites" aria-label="Save to favorites"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>';
+  var compareBtnHtml = isSiteLinked ? '' : '<button title="Add to Compare" onclick="event.stopPropagation();addToCompare(\'' + pid + '\')" style="padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-size:.82rem;color:var(--muted);transition:var(--tr)" onmouseover="this.style.borderColor=\'var(--navy)\';this.style.color=\'var(--navy)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--muted)\'">⚖️</button>';
+
   return '<div class="p-card" data-pid="' + pid + '" style="cursor:pointer">'
-    + '<div class="p-img ' + gclass + '" role="img" aria-label="' + imgAriaLabel + '"' + imgBg + ' style="position:relative' + (imgBg ? ';background-size:cover;background-position:center' : '') + '" onclick="openPropDetail(\'' + pid + '\')">'
+    + '<div class="p-img ' + gclass + '" role="img" aria-label="' + imgAriaLabel + '"' + imgBg + ' style="position:relative' + (imgBg ? ';background-size:cover;background-position:center' : '') + '" onclick="' + detailOnClick + '">'
     +   topBadges
     +   placeholder
     +   '<div class="p-tag">' + svcBadge + '</div>'
     +   '<div class="p-price">' + priceLabel + '</div>'
     +   verifiedBadge
-    +   '<button class="p-fav" data-pid="' + pid + '" onclick="event.stopPropagation();toggleFav(\'' + pid + '\',event)" title="Save to favorites" aria-label="Save to favorites"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>'
+    +   favBtnHtml
     + '</div>'
-    + '<div class="p-body" onclick="openPropDetail(\'' + pid + '\')" role="button" tabindex="0">'
+    + '<div class="p-body" onclick="' + detailOnClick + '" role="button" tabindex="0">'
     +   '<div class="p-loc">' + locHtml + '</div>'
     +   '<div class="p-rating">' + ratingRowHtml + photoCountHtml + (prop.viewCount ? '<span style="margin-left:auto;font-size:.68rem;color:var(--muted)">&#128065; ' + Number(prop.viewCount).toLocaleString() + '</span>' : '') + '</div>'
     +   '<div class="p-title">' + propNameHtml + '</div>'
@@ -14399,8 +14426,8 @@ function renderUserPropCard(prop) {
     +   '<div class="p-feats">' + featsHtml + '</div>'
     + '</div>'
     + '<div class="p-card-footer">'
-    +   '<button class="p-btn-detail" onclick="openPropDetail(\'' + pid + '\')">' + t('viewDetail') + '</button>'
-    +   '<button title="Add to Compare" onclick="event.stopPropagation();addToCompare(\'' + pid + '\')" style="padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-size:.82rem;color:var(--muted);transition:var(--tr)" onmouseover="this.style.borderColor=\'var(--navy)\';this.style.color=\'var(--navy)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--muted)\'">⚖️</button>'
+    +   '<button class="p-btn-detail" onclick="' + detailOnClick + '">' + t('viewDetail') + '</button>'
+    +   compareBtnHtml
     +   '<button class="p-btn-wa" onclick="event.stopPropagation();window.open(\'https://wa.me/' + waPhone + '?text=' + waText + '\',\'_blank\')">'
     +     '<svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.549 4.107 1.508 5.84L0 24l6.335-1.483A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.502-5.178-1.38l-.37-.22-3.762.88.924-3.638-.242-.375A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>'
     +     'WhatsApp'
@@ -16745,8 +16772,12 @@ function openAdminAddProp() {
 // explicit user choice, not be seeded ahead of time on every visit.
 document.addEventListener('DOMContentLoaded', function() {
   loadApprovedProperties();
+  if (typeof loadHomepageRotation === 'function') loadHomepageRotation();
 });
-if (document.readyState !== 'loading') loadApprovedProperties();
+if (document.readyState !== 'loading') {
+  loadApprovedProperties();
+  if (typeof loadHomepageRotation === 'function') loadHomepageRotation();
+}
 
 
 // === ADMIN ADD PROPERTY DIRECT (from admin panel) ===
@@ -32940,6 +32971,265 @@ function loadApprovedProperties() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
+   HOMEPAGE — "Newest Properties" one-per-type rotation (#p-grid-home)
+   Independent of loadApprovedProperties()/#p-grid-main above (the full
+   listings page) — that grid keeps showing the complete, paginated,
+   filterable approved list unchanged. This one curates exactly 8 cards:
+   one each of Inzu/Ubutaka/Apartimanı/Villa, one available plot, one
+   New Development site, one of Bureau-or-Inyubako (whichever has
+   inventory), and one real closed/won sale as a red-badged social-proof
+   card — reusing renderUserPropCard() for every slot so the visual design
+   never diverges from the rest of the site.
+   ══════════════════════════════════════════════════════════════════════ */
+
+var HOME_ROTATION_PRIMARY_TYPES  = ['Inzu', 'Ubutaka', 'Apartimanı', 'Villa'];
+var HOME_ROTATION_OVERFLOW_TYPES = ['Bureau', 'Inyubako']; // slot 7's own preference order
+var HOME_ROTATION_ALL_TYPES      = HOME_ROTATION_PRIMARY_TYPES.concat(HOME_ROTATION_OVERFLOW_TYPES);
+// Small pool per type, not just 1: lets a slot skip a candidate already
+// used by an earlier slot, and doubles as a cheap proxy for "which type
+// has the most remaining inventory" during fallback — without needing a
+// separate count() query per type just to rank them.
+var HOME_ROTATION_POOL_SIZE = 4;
+
+// One property per type: approved-only, premium-subscription agents first
+// (properties.featured — set true by subscribeToPremium() for exactly this
+// reason, cleared by cancelMySubscription() — is already the live signal
+// for "this listing's owner currently has an active Premium subscription"),
+// then newest first. Needs the type+status+featured+createdAt composite
+// index (firestore.indexes.json).
+function _fetchTypeCandidates(type) {
+  return db.collection('properties')
+    .where('type', '==', type)
+    .where('status', 'in', ['approved', 'Approved'])
+    .orderBy('featured', 'desc')
+    .orderBy('createdAt', 'desc')
+    .limit(HOME_ROTATION_POOL_SIZE)
+    .get()
+    .then(function(snap) {
+      var out = [];
+      snap.forEach(function(doc) {
+        var d = doc.data();
+        if (d.isActive !== false) out.push(_normalizePropDoc(d, doc.id));
+      });
+      return out;
+    })
+    .catch(function(err) {
+      console.warn('[Home Rotation] type query failed for ' + type + ':', err && err.code);
+      return [];
+    });
+}
+
+// sites.read is public (rules/firestore.rules: allow read: if true), same
+// query shape as renderSitesGrid()'s loader — reuses that exact existing
+// composite index (isActive+status+createdAt), no new index needed.
+function _fetchActiveSites(limitN) {
+  return db.collection('sites')
+    .where('status', '==', 'active')
+    .where('isActive', '==', true)
+    .orderBy('createdAt', 'desc')
+    .limit(limitN)
+    .get()
+    .then(function(snap) {
+      var out = [];
+      snap.forEach(function(doc) { var d = doc.data(); d.id = doc.id; out.push(d); });
+      return out;
+    })
+    .catch(function(err) {
+      console.warn('[Home Rotation] sites query failed:', err && err.code);
+      return [];
+    });
+}
+
+// Needs a new status+isActive+createdAt composite index on plots
+// (firestore.indexes.json) — plots previously only had isActive+siteId+
+// plotNumber, which can't serve this shape.
+function _fetchAvailablePlots(limitN) {
+  return db.collection('plots')
+    .where('status', '==', 'available')
+    .where('isActive', '==', true)
+    .orderBy('createdAt', 'desc')
+    .limit(limitN)
+    .get()
+    .then(function(snap) {
+      var out = [];
+      snap.forEach(function(doc) { var d = doc.data(); d.id = doc.id; out.push(d); });
+      return out;
+    })
+    .catch(function(err) {
+      console.warn('[Home Rotation] plots query failed:', err && err.code);
+      return [];
+    });
+}
+
+// A plot is only shown if its PARENT SITE is itself active/approved — a
+// plot doc always gets status:'available' the instant its site is
+// submitted (see submitSiteForm()), even when the site itself starts
+// 'pending_review' (non-staff submitter). Without this check a plot from a
+// never-approved site could leak onto the public homepage.
+function _fetchNewestAvailablePlot(activeSiteIds) {
+  return _fetchAvailablePlots(30).then(function(plots) {
+    for (var i = 0; i < plots.length; i++) {
+      if (activeSiteIds[plots[i].siteId]) return plots[i];
+    }
+    return null;
+  });
+}
+
+function _normalizeSiteAsProp(site) {
+  return {
+    id: 'site_' + site.id, title: site.name || '',
+    type: curLang === 'rw' ? 'Site Nshya' : 'New Development',
+    service: 'Kugurisha',
+    district: site.district || '', sector: site.sector || '',
+    price: site.totalValueRWF || 0, beds: '', baths: '', size: '',
+    img1: site.siteMapUrl || '', desc: site.description || '',
+    isActive: true, isDemo: false, verified: false,
+    _siteLink: site.id
+  };
+}
+
+function _normalizePlotAsProp(plot, site) {
+  var plotLabel = (curLang === 'rw' ? 'Ikibanza' : 'Plot') + (plot.plotNumber ? ' ' + plot.plotNumber : '');
+  return {
+    id: 'plot_' + plot.id, title: plotLabel + (site && site.name ? ' — ' + site.name : ''),
+    type: curLang === 'rw' ? 'Ibibanza Bigurishwa' : 'Plots for Sale',
+    service: 'Kugurisha',
+    district: (site && site.district) || '', sector: (site && site.sector) || '',
+    price: plot.price || 0, beds: '', baths: '', size: plot.size ? String(plot.size) : '',
+    img1: (site && site.siteMapUrl) || '', desc: '',
+    isActive: true, isDemo: false, verified: false,
+    _siteLink: plot.siteId
+  };
+}
+
+// Most recent real closed/won sale, as intentional social proof — always
+// included regardless of age, omitted gracefully (not faked) if none exist
+// yet.
+//
+// Deliberately does NOT query `deals` directly: deals/{id} requires auth
+// (isAdminOrStaff() or being a party to it — rules/firestore.rules), so an
+// anonymous homepage visitor's query would just get permission-denied and
+// this slot would silently never appear for most real traffic; and even if
+// it were made readable, a full deal doc carries client name/phone and
+// commission figures with no business being public. Instead, reads
+// `properties.soldAt` — a privacy-safe timestamp functions/index.js's
+// onDealClosedWon denormalizes onto the (already fully public) property
+// doc the moment its linked deal actually closes. A plain orderBy with no
+// matching where() only ever returns docs where the ordered field exists
+// at all, so this naturally selects only ever-sold properties — no new
+// composite index needed (single-field orderBy is auto-indexed).
+function _fetchNewestSoldProperty() {
+  return db.collection('properties')
+    .orderBy('soldAt', 'desc')
+    .limit(5)
+    .get()
+    .then(function(snap) {
+      var docs = [];
+      snap.forEach(function(doc) { var d = doc.data(); if (d.isActive !== false) docs.push({ id: doc.id, data: d }); });
+      if (!docs.length) return null;
+      var prop = _normalizePropDoc(docs[0].data, docs[0].id);
+      prop._sold = true;
+      return prop;
+    })
+    .catch(function(err) {
+      console.warn('[Home Rotation] sold-property query failed:', err && err.code);
+      return null;
+    });
+}
+
+function loadHomepageRotation() {
+  var grid = document.getElementById('p-grid-home');
+  if (!grid || typeof db === 'undefined') return;
+
+  if (!grid.querySelector('.user-prop-card') && !grid.querySelector('.sk-init')) {
+    var sk = '<div class="skeleton-card sk-init"><div class="skeleton-img"></div>'
+      + '<div class="skeleton-body"><div class="skeleton-line sl-title"></div>'
+      + '<div class="skeleton-line sl-sub"></div><div class="skeleton-line sl-price"></div></div></div>';
+    grid.innerHTML = sk + sk + sk;
+  }
+
+  var typeQueries = HOME_ROTATION_ALL_TYPES.map(_fetchTypeCandidates);
+
+  Promise.all(typeQueries.concat([
+    _fetchActiveSites(20),
+    _fetchNewestSoldProperty()
+  ])).then(function(results) {
+    var pools = {};
+    HOME_ROTATION_ALL_TYPES.forEach(function(type, i) { pools[type] = results[i]; });
+    var sites = results[HOME_ROTATION_ALL_TYPES.length];
+    var soldProp = results[HOME_ROTATION_ALL_TYPES.length + 1];
+
+    var usedIds = {};
+    function takeFromPool(type) {
+      var pool = pools[type];
+      while (pool.length) {
+        var candidate = pool.shift();
+        if (!usedIds[candidate.id]) { usedIds[candidate.id] = true; return candidate; }
+      }
+      return null;
+    }
+    // "Next-highest-inventory type" fallback: among types not already tried
+    // for this slot, pick whichever still has the most leftover candidates
+    // (approximated from the bounded pool fetched above — see
+    // HOME_ROTATION_POOL_SIZE's comment) and take its newest.
+    function takeFallback(excludeTypes) {
+      var bestType = null, bestCount = 0;
+      HOME_ROTATION_ALL_TYPES.forEach(function(type) {
+        if (excludeTypes.indexOf(type) !== -1) return;
+        if (pools[type].length > bestCount) { bestCount = pools[type].length; bestType = type; }
+      });
+      return bestType ? takeFromPool(bestType) : null;
+    }
+
+    var slots = [];
+
+    // Slots 1–4: Inzu, Ubutaka, Apartimanı, Villa
+    HOME_ROTATION_PRIMARY_TYPES.forEach(function(type) {
+      var item = takeFromPool(type) || takeFallback([type]);
+      if (item) slots.push(item);
+    });
+
+    // Slot 5: an available plot from an approved site
+    var activeSiteIds = {};
+    sites.forEach(function(s) { activeSiteIds[s.id] = true; });
+    var plotSlotPromise = _fetchNewestAvailablePlot(activeSiteIds).then(function(plot) {
+      if (!plot) return null;
+      var site = sites.filter(function(s) { return s.id === plot.siteId; })[0] || null;
+      return _normalizePlotAsProp(plot, site);
+    });
+
+    // Slot 6: the newest active New Development site itself
+    var siteSlot = sites.length ? _normalizeSiteAsProp(sites[0]) : null;
+
+    // Slot 7: Bureau, then Inyubako, then general fallback
+    var overflowItem = takeFromPool('Bureau') || takeFromPool('Inyubako') || takeFallback(HOME_ROTATION_OVERFLOW_TYPES);
+
+    return plotSlotPromise.then(function(plotSlot) {
+      if (plotSlot) slots.push(plotSlot);
+      if (siteSlot) slots.push(siteSlot);
+      if (overflowItem) slots.push(overflowItem);
+      // Slot 8: sold-property social proof, always last, never fabricated
+      if (soldProp) slots.push(soldProp);
+      return slots;
+    });
+  }).then(function(slots) {
+    if (slots.length === 0) {
+      grid.innerHTML = '<div class="empty-listings empty-state">'
+        + '<div class="es-icon">🏠</div>'
+        + '<div class="es-title">' + (curLang === 'rw' ? 'Nta mitungo iraboneka' : 'No listings yet') + '</div>'
+        + '<div class="es-sub">' + (curLang === 'rw' ? 'Garuka vuba!' : 'Check back soon!') + '</div>'
+        + '</div>';
+      return;
+    }
+    grid.innerHTML = slots.map(function(prop) {
+      return '<div class="user-prop-card" data-pid="' + escapeHtml(String(prop.id)) + '">' + renderUserPropCard(prop) + '</div>';
+    }).join('');
+  }).catch(function(err) {
+    console.warn('[Home Rotation] failed:', err);
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════════
    MY LISTINGS — Agent-scoped filtered view (all statuses from Firestore)
    ══════════════════════════════════════════════════════════════════════ */
 
@@ -33388,18 +33678,24 @@ function loadLiveHomeStats() {
   }
 }
 
-/* Hook loadLiveHomeStats into home page navigation, initial page load, and auth settling */
+/* Hook loadLiveHomeStats + loadHomepageRotation into home page navigation,
+   initial page load, and auth settling */
 (function() {
   var _goP7 = go;
   go = function(name) {
     _goP7(name);
-    if (name === 'home') setTimeout(loadLiveHomeStats, 800);
+    if (name === 'home') {
+      setTimeout(loadLiveHomeStats, 800);
+      setTimeout(loadHomepageRotation, 800);
+    }
   };
   document.addEventListener('DOMContentLoaded', function() {
     setTimeout(loadLiveHomeStats, 1500);
+    setTimeout(loadHomepageRotation, 1500);
   });
   firebase.auth().onAuthStateChanged(function() {
     setTimeout(loadLiveHomeStats, 1500);
+    setTimeout(loadHomepageRotation, 1500);
   });
 })();
 

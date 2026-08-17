@@ -405,6 +405,28 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
+          "fieldPath": "type",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "featured",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "properties",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
           "fieldPath": "isActive",
           "order": "ASCENDING"
         },
@@ -1149,6 +1171,24 @@
         {
           "fieldPath": "plotNumber",
           "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "plots",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "isActive",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
         }
       ]
     },
