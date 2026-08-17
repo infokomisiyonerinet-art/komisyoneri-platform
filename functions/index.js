@@ -1362,13 +1362,20 @@ async function recomputeHomepageStats(db) {
   const agentVerificationDump = [];
   agentsSnap.forEach((doc) => {
     const d = doc.data();
-    if (d.isVerified) verifiedAgents++;
+    // Agent verification has been written under two different field names
+    // across the app's history (index.html's _normalizeAgentDoc() already
+    // reads `data.isVerified || data.verified` defensively for exactly this
+    // reason) — checking isVerified alone undercounted every agent doc that
+    // only ever got `verified: true` set, which is how this stat could read
+    // 0 while the agents directory page visibly showed real verified agents
+    // (it uses the lenient two-field check).
+    if (d.isVerified || d.verified) verifiedAgents++;
     // One line per agent doc, not just the final count — this is the
     // specific piece the prior source-only audit couldn't confirm: whether
-    // real agent docs actually have isVerified set. Cheap at this
+    // real agent docs actually have isVerified/verified set. Cheap at this
     // collection's expected size; if that changes, downgrade to
     // logger.debug rather than removing the visibility outright.
-    agentVerificationDump.push(doc.id + ':isVerified=' + !!d.isVerified + ':status=' + (d.status || ''));
+    agentVerificationDump.push(doc.id + ':isVerified=' + !!d.isVerified + ':verified=' + !!d.verified + ':status=' + (d.status || ''));
   });
 
   await db.collection('stats').doc('homepage').set({
@@ -1399,7 +1406,11 @@ exports.updateHomepageStats = onSchedule({
 exports.onUserStatsRelevantChange = onDocumentWritten({ document: 'users/{uid}', region: REGION }, async (event) => {
   const statsFields = (d) => d ? {
     role: String(d.role || '').toLowerCase(),
-    isVerified: !!d.isVerified,
+    // Same isVerified||verified lenient check as recomputeHomepageStats()
+    // above — a doc that only ever gets `verified: true` toggled must still
+    // trip this trigger, or its change to the actual published count would
+    // silently wait for the next 15-minute scheduled sweep instead.
+    isVerified: !!(d.isVerified || d.verified),
     isActive: d.isActive !== false
   } : null;
   const before = statsFields(event.data.before.exists ? event.data.before.data() : null);

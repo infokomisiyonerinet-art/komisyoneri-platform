@@ -99,7 +99,22 @@ service cloud.firestore {
     // ── EXISTING collections ──────────────────────────
 
     match /users/{uid} {
-      allow read:   if isAuth() && (request.auth.uid == uid || isAdminOrStaff());
+      // Narrow, additive public-read carve-out: a verified agent's profile
+      // is the whole point of the "Verified Agent Network" directory
+      // feature (index.html's loadAgentsPage()/renderAgentsGrid()) — it's
+      // meant to be publicly browsable, same as properties/partners below.
+      // Before this, ANY read of `users` (get or list) required auth, so an
+      // anonymous visitor's agents-directory query returned permission-
+      // denied and silently fell back to demo agents; only an already
+      // signed-in staff/admin session could see real agent profiles. Scoped
+      // strictly to role=='agent' AND (isVerified||verified)==true — every
+      // other document (clients, unverified agents, staff, admin, or any
+      // doc missing `role`) is completely unaffected and stays exactly as
+      // protected as before.
+      allow read:   if isAuth() && (request.auth.uid == uid || isAdminOrStaff())
+                    || (resource.data.get('role', '').lower() == 'agent'
+                        && (resource.data.get('isVerified', false) == true
+                            || resource.data.get('verified', false) == true));
       allow create: if isAuth() && request.auth.uid == uid && hasStandardFields();
       // Narrow, additive carve-out for the "Become an Agent" self-service
       // application (see index.html's submitAgentReg()) — the only way a
