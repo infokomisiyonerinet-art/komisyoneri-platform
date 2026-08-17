@@ -12533,11 +12533,20 @@ function _restorePropDraftIfAny() {
 // PROPERTY IMAGE UPLOADER
 // Airbnb/Property24-style multi-image uploader: drag-and-drop (desktop) +
 // native gallery/camera picker (mobile), client-side compression before
-// upload, real Firebase Storage progress, cover selection, delete and
-// reorder. Only the resulting Storage download URLs are ever saved to the
-// database — no external image-hosting URL is ever typed by a user.
-// submitProperty() (defined further below) is the sole consumer.
+// upload, real upload progress, cover selection, delete and reorder.
+// Images are uploaded directly to Cloudinary via an unsigned upload preset;
+// only the resulting secure_url values are ever saved to the database — no
+// external image-hosting URL is ever typed by a user, and no Cloudinary API
+// key/secret is ever present in this code. submitProperty() (defined
+// further below) is the sole consumer.
 // ══════════════════════════════════════════════════════════════════════
+// Cloud name + unsigned upload preset only — never the API key or secret,
+// neither of which an unsigned browser upload needs or should send.
+var CLOUDINARY_CONFIG = {
+  cloudName: 'p10be4wt',
+  uploadPreset: 'komisyoneri_property_images'
+};
+
 var PropImageUploader = (function() {
   var MAX_IMAGES = 15;
   var MAX_DIMENSION = 1920;
@@ -12817,75 +12826,86 @@ var PropImageUploader = (function() {
   // logging on the request itself (previously only failure paths were
   // logged, leaving no trace of what happened before a timeout). Retried by
   // uploadOne() below on a 'timeout' rejection specifically.
+  //
+  // Transport: unsigned Cloudinary upload via XHR (not fetch) so upload
+  // progress events can still drive the existing progress bar UI exactly as
+  // the old Firebase Storage state_changed listener did. pathPrefix carries
+  // the property id through into the Cloudinary public_id so files stay
+  // grouped per-property, mirroring the old Storage folder layout.
   function _attemptUpload(it, idx, pathPrefix, attemptNum) {
       it.status = 'uploading'; it.progress = 0;
       render();
       return compressImage(it.file).then(function(finalFile) {
         return new Promise(function(resolve, reject) {
-          if (typeof storage === 'undefined' || !storage) {
-            it.status = 'error'; it.errorCode = 'storage-unavailable'; render();
-            var unavailErr = new Error('Storage unavailable'); unavailErr.code = 'storage-unavailable';
-            reject(unavailErr); return;
-          }
-          var safeName = (finalFile.name || 'photo.jpg').replace(/[^a-zA-Z0-9_.-]/g, '_');
-          var ref = storage.ref(pathPrefix + '/' + Date.now() + '_' + idx + '_' + safeName);
-          var uploadStartedAt = Date.now();
-          // Logged before ref.put() is even called — the one link in this
-          // chain that can't otherwise be observed: whether the Storage SDK
-          // has a signed-in user (and therefore an ID token to attach to the
-          // request) at the exact moment the upload starts. A hung token
-          // refresh would produce the same symptom as everything else here
-          // (zero state_changed events, then the watchdog fires) with no
-          // other way to distinguish it from a dropped network request.
-          console.log('[Upload] attempt ' + attemptNum + ' starting for ' + ref.fullPath
-            + ' — authUser=' + (firebaseAuth && firebaseAuth.currentUser ? firebaseAuth.currentUser.uid : '(none)')
-            + ' fileSize=' + finalFile.size);
-          var task = ref.put(finalFile);
+          var safeName = (finalFile.name || 'photo.jpg').replace(/[^a-zA-Z0-9_.-]/g, '_').replace(/\.[^.]+$/, '');
+          // pathPrefix arrives as 'properties/{propId}' — the preset's own
+          // Asset Folder setting ('properties') already fixes the top-level
+          // Cloudinary folder for unsigned uploads, so only the propId
+          // portion is used here to avoid nesting properties/properties/...
+          var subPath = pathPrefix.replace(/^properties\//, '').replace(/[^a-zA-Z0-9_/-]/g, '_');
+          var publicId = subPath + '/' + Date.now() + '_' + idx + '_' + safeName;
+          console.log('[Upload] attempt ' + attemptNum + ' starting for ' + publicId + ' fileSize=' + finalFile.size);
+
+          var form = new FormData();
+          form.append('file', finalFile);
+          form.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+          form.append('public_id', publicId);
+
+          var xhr = new XMLHttpRequest();
           var settled = false;
-          // Guard against a Storage upload that never fires ANY
-          // state_changed event — no progress, no error, no completion —
-          // which previously left the submit button spinning forever with
-          // no way to tell the user anything had gone wrong.
+          // Guard against an upload that never fires ANY progress/load/error
+          // event — no progress, no error, no completion — which previously
+          // left the submit button spinning forever with no way to tell the
+          // user anything had gone wrong.
           var watchdog = setTimeout(function() {
             if (settled) return;
             settled = true;
-            try { task.cancel(); } catch(e) {}
-            console.error('[Upload] attempt ' + attemptNum + ' for ' + ref.fullPath + ' produced no state_changed event within ' + UPLOAD_TIMEOUT_MS + 'ms — treating as failed');
-            _dumpStorageNetworkEvidence(ref.fullPath, uploadStartedAt);
+            try { xhr.abort(); } catch(e) {}
+            console.error('[Upload] attempt ' + attemptNum + ' for ' + publicId + ' produced no response within ' + UPLOAD_TIMEOUT_MS + 'ms — treating as failed');
             it.status = 'error';
             it.errorCode = 'timeout';
             render();
-            var timeoutErr = new Error('Upload timed out — no response from Firebase Storage'); timeoutErr.code = 'timeout';
+            var timeoutErr = new Error('Upload timed out — no response from Cloudinary'); timeoutErr.code = 'timeout';
             reject(timeoutErr);
           }, UPLOAD_TIMEOUT_MS);
-          task.on('state_changed', function(snap) {
-            if (settled) return;
-            it.progress = snap.totalBytes ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100) : 0;
+
+          xhr.upload.addEventListener('progress', function(evt) {
+            if (settled || !evt.lengthComputable) return;
+            it.progress = Math.round((evt.loaded / evt.total) * 100);
             updateProgressDom(it.uid, it.progress);
-          }, function(err) {
-            if (settled) return;
-            settled = true;
-            clearTimeout(watchdog);
-            console.error('[Upload] attempt ' + attemptNum + ' for ' + ref.fullPath + ' FAILED — code:', err.code || '', 'message:', err.message);
-            _dumpStorageNetworkEvidence(ref.fullPath, uploadStartedAt);
-            it.status = 'error';
-            it.errorCode = err.code || 'unknown-error';
-            render();
-            reject(err);
-          }, function() {
-            if (settled) return;
-            settled = true;
-            clearTimeout(watchdog);
-            task.snapshot.ref.getDownloadURL().then(function(url) {
-              console.log('[Upload] attempt ' + attemptNum + ' for ' + ref.fullPath + ' succeeded');
-              it.status = 'done'; it.progress = 100; it.url = url;
-              resolve(url);
-            }).catch(function(e) {
-              console.error('[Upload] attempt ' + attemptNum + ' for ' + ref.fullPath + ' getDownloadURL FAILED —', e.code || '', e.message);
-              it.status = 'error'; it.errorCode = e.code || 'download-url-failed'; render();
-              reject(e);
-            });
           });
+          xhr.addEventListener('error', function() {
+            if (settled) return;
+            settled = true;
+            clearTimeout(watchdog);
+            console.error('[Upload] attempt ' + attemptNum + ' for ' + publicId + ' FAILED — network error');
+            it.status = 'error';
+            it.errorCode = 'network-error';
+            render();
+            var netErr = new Error('Upload network error'); netErr.code = 'network-error';
+            reject(netErr);
+          });
+          xhr.addEventListener('load', function() {
+            if (settled) return;
+            settled = true;
+            clearTimeout(watchdog);
+            var res;
+            try { res = JSON.parse(xhr.responseText); } catch(e) { res = null; }
+            if (xhr.status >= 200 && xhr.status < 300 && res && res.secure_url) {
+              console.log('[Upload] attempt ' + attemptNum + ' for ' + publicId + ' succeeded');
+              it.status = 'done'; it.progress = 100; it.url = res.secure_url;
+              resolve(res.secure_url);
+            } else {
+              var code = (res && res.error && res.error.message) || ('http-' + xhr.status);
+              console.error('[Upload] attempt ' + attemptNum + ' for ' + publicId + ' FAILED — ' + code);
+              it.status = 'error'; it.errorCode = code; render();
+              var uploadErr = new Error('Cloudinary upload failed: ' + code); uploadErr.code = code;
+              reject(uploadErr);
+            }
+          });
+
+          xhr.open('POST', 'https://api.cloudinary.com/v1_1/' + CLOUDINARY_CONFIG.cloudName + '/image/upload', true);
+          xhr.send(form);
         });
       });
   }
