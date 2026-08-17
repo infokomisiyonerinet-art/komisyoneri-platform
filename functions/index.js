@@ -1339,13 +1339,13 @@ exports.createStaffOrPartnerAccount = onCall({ region: REGION }, async (request)
  * `properties`/`users` directly once rules/firestore.rules' stats/homepage
  * rule (added alongside this function) is deployed.
  */
-exports.updateHomepageStats = onSchedule({
-  schedule: '*/15 * * * *',
-  timeZone: 'Africa/Kigali',
-  region: REGION
-}, async () => {
-  const db = getFirestore();
-
+// Pulled out of updateHomepageStats so the event-driven triggers below can
+// call the exact same counting logic on-demand, instead of every affected
+// user/property change having to wait for the next 15-minute sweep. Logs
+// the raw counts on every run (not just the schedule) so a "why is this
+// showing 0" question can be answered from Cloud Function logs alone,
+// without needing direct Firestore console access.
+async function recomputeHomepageStats(db) {
   const propsSnap = await db.collection('properties').where('status', 'in', ['approved', 'Approved']).get();
   let activeListings = 0;
   propsSnap.forEach((doc) => { if (doc.data().isActive !== false) activeListings++; });
@@ -1359,7 +1359,17 @@ exports.updateHomepageStats = onSchedule({
 
   const agentsSnap = await db.collection('users').where('role', 'in', ['agent', 'Agent']).get();
   let verifiedAgents = 0;
-  agentsSnap.forEach((doc) => { if (doc.data().isVerified) verifiedAgents++; });
+  const agentVerificationDump = [];
+  agentsSnap.forEach((doc) => {
+    const d = doc.data();
+    if (d.isVerified) verifiedAgents++;
+    // One line per agent doc, not just the final count — this is the
+    // specific piece the prior source-only audit couldn't confirm: whether
+    // real agent docs actually have isVerified set. Cheap at this
+    // collection's expected size; if that changes, downgrade to
+    // logger.debug rather than removing the visibility outright.
+    agentVerificationDump.push(doc.id + ':isVerified=' + !!d.isVerified + ':status=' + (d.status || ''));
+  });
 
   await db.collection('stats').doc('homepage').set({
     activeListings,
@@ -1368,5 +1378,46 @@ exports.updateHomepageStats = onSchedule({
     updatedAt: FieldValue.serverTimestamp()
   });
 
-  logger.info('Homepage stats updated', { activeListings, activeClients, verifiedAgents });
+  logger.info('Homepage stats recomputed', { activeListings, activeClients, verifiedAgents, agentVerificationDump });
+  return { activeListings, activeClients, verifiedAgents };
+}
+
+exports.updateHomepageStats = onSchedule({
+  schedule: '*/15 * * * *',
+  timeZone: 'Africa/Kigali',
+  region: REGION
+}, async () => {
+  await recomputeHomepageStats(getFirestore());
+});
+
+// Closes the up-to-15-minute staleness window between an actual approval
+// (_fsPendingApprove() in index.html sets isVerified/status/isActive
+// together) and the homepage reflecting it — recompute immediately instead
+// of waiting for the next scheduled sweep, but only for writes that could
+// actually change one of the three published counts, not on every profile
+// edit.
+exports.onUserStatsRelevantChange = onDocumentWritten({ document: 'users/{uid}', region: REGION }, async (event) => {
+  const statsFields = (d) => d ? {
+    role: String(d.role || '').toLowerCase(),
+    isVerified: !!d.isVerified,
+    isActive: d.isActive !== false
+  } : null;
+  const before = statsFields(event.data.before.exists ? event.data.before.data() : null);
+  const after = statsFields(event.data.after.exists ? event.data.after.data() : null);
+  const wasCountable = before && (before.role === 'client' || before.role === 'agent');
+  const isCountable = after && (after.role === 'client' || after.role === 'agent');
+  if (!wasCountable && !isCountable) return; // never a client/agent doc, before or after — irrelevant to these counts
+  if (before && after && before.role === after.role && before.isVerified === after.isVerified && before.isActive === after.isActive) return; // relevant fields unchanged
+  await recomputeHomepageStats(getFirestore());
+});
+
+exports.onPropertyStatsRelevantChange = onDocumentWritten({ document: 'properties/{id}', region: REGION }, async (event) => {
+  const statsFields = (d) => d ? {
+    status: String(d.status || ''),
+    isActive: d.isActive !== false
+  } : null;
+  const before = statsFields(event.data.before.exists ? event.data.before.data() : null);
+  const after = statsFields(event.data.after.exists ? event.data.after.data() : null);
+  if (before && after && before.status === after.status && before.isActive === after.isActive) return;
+  await recomputeHomepageStats(getFirestore());
 });
