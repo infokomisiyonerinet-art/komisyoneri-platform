@@ -163,6 +163,11 @@
 
 <link rel="manifest" href="/manifest.json">
 
+<!-- Single source of truth for Rwanda's 30 districts — every district
+     dropdown/filter on the platform reads from RWANDA_DISTRICTS instead
+     of hardcoding its own copy (see js/districts.js). -->
+<script src="/js/districts.js"></script>
+
 <!-- ── FAVICON — the same official icon-192/512 mark used everywhere else
      (header, footer, PWA, manifest), not a separately hand-drawn duplicate.
      SVG first for crisp rendering in modern browsers; favicon.ico for
@@ -3791,17 +3796,7 @@ html,body{overscroll-behavior-x:none}
         </select>
       </div>
       <div class="field"><label for="prop-district">Aho Imitungo Iherereye (Akarere)</label>
-        <select id="prop-district" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
-          <option>Gasabo</option><option>Kicukiro</option><option>Nyarugenge</option>
-          <option>Bugesera</option><option>Gatsibo</option><option>Kayonza</option>
-          <option>Kirehe</option><option>Ngoma</option><option>Nyagatare</option>
-          <option>Rwamagana</option><option>Burera</option><option>Gakenke</option>
-          <option>Gicumbi</option><option>Musanze</option><option>Rulindo</option>
-          <option>Gisagara</option><option>Huye</option><option>Kamonyi</option>
-          <option>Muhanga</option><option>Nyamagabe</option><option>Nyanza</option>
-          <option>Nyaruguru</option><option>Ruhango</option><option>Karongi</option>
-          <option>Ngororero</option><option>Nyabihu</option><option>Nyamasheke</option>
-          <option>Rubavu</option><option>Rusizi</option><option>Rutsiro</option>
+        <select id="prop-district" class="district-select" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
         </select>
       </div>
       <div class="field"><label>Segiteri / Akagari</label><input type="text" id="prop-sector" placeholder="urugero: Kacyiru, Gikondo..."></div>
@@ -4464,18 +4459,8 @@ html,body{overscroll-behavior-x:none}
     <!-- Search + Filter bar -->
     <div style="display:flex;gap:.6rem;margin-bottom:1.2rem;flex-wrap:wrap">
       <input type="text" id="agent-search-inp" oninput="filterAgentsPage()" placeholder="🔍 Shakisha agent ku izina cyangwa zone..." style="flex:1;min-width:180px;padding:.65rem .9rem;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;background:var(--surface)">
-      <select id="agent-zone-filter" onchange="filterAgentsPage()" style="padding:.65rem .9rem;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;background:var(--surface)" aria-label="Filter by zone">
+      <select id="agent-zone-filter" class="district-select" onchange="filterAgentsPage()" style="padding:.65rem .9rem;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;background:var(--surface)" aria-label="Filter by zone">
         <option value="">📍 Turere Twose</option>
-        <option value="Gasabo">Gasabo</option>
-        <option value="Kicukiro">Kicukiro</option>
-        <option value="Nyarugenge">Nyarugenge</option>
-        <option value="Musanze">Musanze</option>
-        <option value="Rubavu">Rubavu</option>
-        <option value="Huye">Huye</option>
-        <option value="Nyagatare">Nyagatare</option>
-        <option value="Karongi">Karongi</option>
-        <option value="Muhanga">Muhanga</option>
-        <option value="Rusizi">Rusizi</option>
       </select>
     </div>
     <!-- Stats bar -->
@@ -6144,11 +6129,8 @@ html,body{overscroll-behavior-x:none}
         <option value="construction">🏗️ Construction Firm</option>
         <option value="insurance">🛡️ Insurance Provider</option>
       </select>
-      <select id="partners-filter-district" onchange="filterPartners()" aria-label="Filter by district">
+      <select id="partners-filter-district" class="district-select" onchange="filterPartners()" aria-label="Filter by district">
         <option value="">-- Akarere Kose / All Districts --</option>
-        <option>Gasabo</option><option>Kicukiro</option><option>Nyarugenge</option>
-        <option>Musanze</option><option>Rubavu</option><option>Huye</option>
-        <option>Rwamagana</option><option>Nyagatare</option>
       </select>
       <input type="text" id="partners-search" placeholder="Shakisha umuhuza... / Search partner..." oninput="filterPartners()">
     </div>
@@ -7613,18 +7595,8 @@ html,body{overscroll-behavior-x:none}
   <div class="crm-wrap">
     <div class="crm-header">
       <div class="site-filters">
-        <select id="sites-filter-district" onchange="filterSites()" aria-label="Filter by district">
+        <select id="sites-filter-district" class="district-select" onchange="filterSites()" aria-label="Filter by district">
           <option value="" data-rw="Intara Zose" data-en="All Districts">All Districts</option>
-          <option value="Gasabo">Gasabo</option><option value="Kicukiro">Kicukiro</option><option value="Nyarugenge">Nyarugenge</option>
-          <option value="Bugesera">Bugesera</option><option value="Rwamagana">Rwamagana</option><option value="Musanze">Musanze</option>
-          <option value="Rubavu">Rubavu</option><option value="Huye">Huye</option><option value="Muhanga">Muhanga</option>
-          <option value="Kamonyi">Kamonyi</option><option value="Ngoma">Ngoma</option><option value="Kirehe">Kirehe</option>
-          <option value="Kayonza">Kayonza</option><option value="Nyagatare">Nyagatare</option><option value="Gisagara">Gisagara</option>
-          <option value="Nyamagabe">Nyamagabe</option><option value="Nyaruguru">Nyaruguru</option><option value="Ruhango">Ruhango</option>
-          <option value="Karongi">Karongi</option><option value="Rutsiro">Rutsiro</option><option value="Ngororero">Ngororero</option>
-          <option value="Nyabihu">Nyabihu</option><option value="Gakenke">Gakenke</option><option value="Gicumbi">Gicumbi</option>
-          <option value="Burera">Burera</option><option value="Gatsibo">Gatsibo</option><option value="Rusizi">Rusizi</option>
-          <option value="Rulindo">Rulindo</option><option value="Nyamasheke">Nyamasheke</option><option value="Karongi">Karongi</option>
         </select>
         <input type="text" id="sites-search" placeholder="Shakisha site... / Search site..." oninput="filterSites()" style="flex:1;min-width:180px;padding:.5rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;font-family:inherit">
       </div>
@@ -7715,18 +7687,8 @@ html,body{overscroll-behavior-x:none}
       <div class="field"><label data-rw="Izina ry'Ishami (RW)" data-en="Branch Name (RW)">Branch Name (RW)</label><input type="text" id="branch-name-rw" placeholder="e.g. Kigali HQ"></div>
       <div class="field"><label data-rw="Kode" data-en="Branch Code">Branch Code</label><input type="text" id="branch-code" placeholder="e.g. KGL-HQ" style="text-transform:uppercase"></div>
       <div class="field"><label data-rw="Akarere" data-en="District" for="branch-district">District</label>
-        <select id="branch-district" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem">
+        <select id="branch-district" class="district-select" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem">
           <option value="">Select district...</option>
-          <option value="Gasabo">Gasabo</option><option value="Kicukiro">Kicukiro</option><option value="Nyarugenge">Nyarugenge</option>
-          <option value="Bugesera">Bugesera</option><option value="Rulindo">Rulindo</option><option value="Rwamagana">Rwamagana</option>
-          <option value="Musanze">Musanze</option><option value="Rubavu">Rubavu</option><option value="Nyamasheke">Nyamasheke</option>
-          <option value="Huye">Huye</option><option value="Muhanga">Muhanga</option><option value="Kamonyi">Kamonyi</option>
-          <option value="Ngoma">Ngoma</option><option value="Kirehe">Kirehe</option><option value="Kayonza">Kayonza</option>
-          <option value="Nyagatare">Nyagatare</option><option value="Gisagara">Gisagara</option><option value="Nyamagabe">Nyamagabe</option>
-          <option value="Nyaruguru">Nyaruguru</option><option value="Ruhango">Ruhango</option><option value="Karongi">Karongi</option>
-          <option value="Rutsiro">Rutsiro</option><option value="Ngororero">Ngororero</option><option value="Nyabihu">Nyabihu</option>
-          <option value="Gakenke">Gakenke</option><option value="Gicumbi">Gicumbi</option><option value="Burera">Burera</option>
-          <option value="Gatsibo">Gatsibo</option><option value="Nyagatare">Nyagatare</option><option value="Rusizi">Rusizi</option>
         </select>
       </div>
       <div class="field"><label data-rw="Aderesi" data-en="Address">Address</label><input type="text" id="branch-address" placeholder="Street, Sector, District"></div>
@@ -7786,18 +7748,8 @@ html,body{overscroll-behavior-x:none}
           <div class="field"><label data-rw="Izina ry'Isitey (RW)" data-en="Site Name (RW)">Site Name (RW)</label><input type="text" id="site-name-rw" placeholder="Izina mu Kinyarwanda"></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
             <div class="field"><label data-rw="Intara" data-en="District" for="site-district">District</label>
-              <select id="site-district" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem">
+              <select id="site-district" class="district-select" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem">
                 <option value="">Select district...</option>
-                <option>Gasabo</option><option>Kicukiro</option><option>Nyarugenge</option>
-                <option>Bugesera</option><option>Rulindo</option><option>Rwamagana</option>
-                <option>Musanze</option><option>Rubavu</option><option>Nyamasheke</option>
-                <option>Huye</option><option>Muhanga</option><option>Kamonyi</option>
-                <option>Ngoma</option><option>Kirehe</option><option>Kayonza</option>
-                <option>Nyagatare</option><option>Gisagara</option><option>Nyamagabe</option>
-                <option>Nyaruguru</option><option>Ruhango</option><option>Karongi</option>
-                <option>Rutsiro</option><option>Ngororero</option><option>Nyabihu</option>
-                <option>Gakenke</option><option>Gicumbi</option><option>Burera</option>
-                <option>Gatsibo</option><option>Rusizi</option>
               </select>
             </div>
             <div class="field"><label data-rw="Umurenge" data-en="Sector">Sector</label><input type="text" id="site-sector" placeholder="Sector"></div>
@@ -8231,31 +8183,8 @@ html,body{overscroll-behavior-x:none}
         📍 Intambwe 2/3 — Akarere n'Uburambe
       </div>
       <div class="field"><label for="ag-zone">Akarere Wahawe (Zone yawe)</label>
-        <select id="ag-zone" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
+        <select id="ag-zone" class="district-select-grouped" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
           <option value="">Hitamo akarere...</option>
-          <optgroup label="Kigali">
-            <option value="Gasabo">Gasabo (Kimironko, Remera, Kacyiru)</option>
-            <option value="Kicukiro">Kicukiro (Niboye, Gatenga, Kanombe)</option>
-            <option value="Nyarugenge">Nyarugenge (CBD, Nyamirambo, Muhima)</option>
-          </optgroup>
-          <optgroup label="Amajyaruguru">
-            <option value="Musanze">Musanze</option>
-            <option value="Rubavu">Rubavu (Gisenyi)</option>
-            <option value="Gicumbi">Gicumbi</option>
-          </optgroup>
-          <optgroup label="Amajyepfo">
-            <option value="Huye">Huye (Butare)</option>
-            <option value="Muhanga">Muhanga</option>
-            <option value="Nyanza">Nyanza</option>
-          </optgroup>
-          <optgroup label="Iburasirazuba">
-            <option value="Nyagatare">Nyagatare</option>
-            <option value="Rwamagana">Rwamagana</option>
-          </optgroup>
-          <optgroup label="Iburengerazuba">
-            <option value="Karongi">Karongi</option>
-            <option value="Rusizi">Rusizi (Kamembe)</option>
-          </optgroup>
         </select>
       </div>
       <div class="field"><label for="ag-exp">Uburambe mu Mitungo</label>
@@ -8342,10 +8271,7 @@ html,body{overscroll-behavior-x:none}
         </select>
       </div>
       <div class="field"><label for="lead-zone">Akarere Ushaka</label>
-        <select id="lead-zone" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
-          <option>Gasabo</option><option>Kicukiro</option><option>Nyarugenge</option>
-          <option>Musanze</option><option>Rubavu</option><option>Huye</option>
-          <option>Nyagatare</option><option>Karongi</option><option>Muhanga</option>
+        <select id="lead-zone" class="district-select" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem">
         </select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
@@ -8889,18 +8815,8 @@ html,body{overscroll-behavior-x:none}
       </div>
       <div class="vr-field">
         <label data-rw="Akarere" data-en="District" for="vr-district">District</label>
-        <select id="vr-district" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
+        <select id="vr-district" class="district-select" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem">
           <option value="">-- Akarere / District --</option>
-          <option>Gasabo</option><option>Kicukiro</option><option>Nyarugenge</option>
-          <option>Bugesera</option><option>Gatsibo</option><option>Kayonza</option>
-          <option>Kirehe</option><option>Ngoma</option><option>Nyagatare</option>
-          <option>Rwamagana</option><option>Burera</option><option>Gakenke</option>
-          <option>Gicumbi</option><option>Musanze</option><option>Rulindo</option>
-          <option>Gisagara</option><option>Huye</option><option>Kamonyi</option>
-          <option>Muhanga</option><option>Nyamagabe</option><option>Nyanza</option>
-          <option>Nyaruguru</option><option>Ruhango</option>
-          <option>Karongi</option><option>Ngororero</option><option>Nyabihu</option>
-          <option>Nyamasheke</option><option>Rubavu</option><option>Rusizi</option><option>Rutsiro</option>
         </select>
       </div>
       <div class="vr-field">
@@ -9497,14 +9413,8 @@ html,body{overscroll-behavior-x:none}
       <div class="form-row-2">
         <div class="form-group">
           <label data-rw="Akarere" data-en="District" for="la-district">District</label>
-          <select id="la-district" style="width:100%">
+          <select id="la-district" class="district-select" style="width:100%">
             <option value="">-- Select District --</option>
-            <option>Gasabo</option><option>Kicukiro</option><option>Nyarugenge</option>
-            <option>Musanze</option><option>Rubavu</option><option>Huye</option>
-            <option>Rwamagana</option><option>Bugesera</option><option>Kayonza</option>
-            <option>Kirehe</option><option>Nyagatare</option><option>Ngoma</option>
-            <option>Muhanga</option><option>Karongi</option><option>Nyamasheke</option>
-            <option>Rusizi</option><option>Nyamagabe</option>
           </select>
         </div>
         <div class="form-group">
@@ -14360,7 +14270,21 @@ window.addEventListener('DOMContentLoaded', function() {
   // getInitialLang(). Was unconditionally 'rw' here, with no persistence
   // at all, so every single page load reset the language regardless of
   // anything the visitor had chosen before.
-  setLang(getInitialLang());
+  // Wrapped in try/catch: setLang() calls several page-refresh hooks
+  // (e.g. loadApprovedProperties()) that touch Firestore, so a slow/failed
+  // connection can throw here — confirmed directly while testing this
+  // change (a network hiccup mid-setLang() silently aborted everything
+  // still queued after it in this handler, including initChat(),
+  // applyTheme(), and the offline-bar check below, none of which have
+  // anything to do with language). None of that should ever be able to
+  // take the rest of page bootstrap down with it.
+  try { setLang(getInitialLang()); } catch (e) { console.error('[BOOT] setLang failed:', e); }
+  // Populate every district <select> from the single canonical list —
+  // see js/districts.js. Must run once per load; none of these selects
+  // have their innerHTML rebuilt elsewhere, so this alone keeps every
+  // district dropdown/filter on the platform in sync, permanently.
+  if (typeof populateDistrictSelects === 'function') populateDistrictSelects();
+  if (typeof populateDistrictSelectsGrouped === 'function') populateDistrictSelectsGrouped();
   initChat();
   // The inline <head> script already set data-theme before first paint (no
   // flash of the wrong theme); this call just syncs the toggle icon and the
@@ -19623,7 +19547,7 @@ var _branches = [];
 var _branchFilter = { q: '', status: '' };
 var _brTabActive = 'branches';
 var BR_STATUS_COLOR = { active:'#16A34A', inactive:'#64748B', planned:'#D97706' };
-var BR_RWANDA_DISTRICTS = ['Gasabo','Kicukiro','Nyarugenge','Bugesera','Rulindo','Rwamagana','Musanze','Rubavu','Nyamasheke','Huye','Muhanga','Kamonyi','Ngoma','Kirehe','Kayonza','Nyagatare','Gisagara','Nyamagabe','Nyaruguru','Ruhango','Karongi','Rutsiro','Ngororero','Nyabihu','Gakenke','Gicumbi','Burera','Gatsibo','Rusizi'];
+var BR_RWANDA_DISTRICTS = RWANDA_DISTRICTS; // single source of truth — js/districts.js
 
 function switchBranchTab(tab) {
   _brTabActive = tab;
@@ -20785,7 +20709,7 @@ function submitContractReview(contractId) {
 /* ── Phase 14 globals ── */
 var _biTabActive = 'market';
 var BI_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-var BI_DISTRICTS = ['Gasabo','Kicukiro','Nyarugenge','Bugesera','Rulindo','Rwamagana','Musanze'];
+var BI_DISTRICTS = RWANDA_DISTRICTS; // single source of truth — js/districts.js
 var BI_PROP_TYPES = { house:'House', apartment:'Apartment', land:'Land', commercial:'Commercial', villa:'Villa', office:'Office' };
 var BI_SOURCES = { website:'Website', referral:'Referral', social:'Social Media', walkin:'Walk-in', agent:'Agent Outreach', portal:'Portal', other:'Other' };
 var BI_BUDGETS = [
@@ -26699,14 +26623,11 @@ var PARTNER_TYPES = {
   insurance:    { label: 'Insurance Provider',labelRW: 'Ubwishingizi' }
 };
 
-var RWANDA_DISTRICTS = [
-  'Kigali City','Nyarugenge','Gasabo','Kicukiro',
-  'Huye','Muhanga','Karongi','Rubavu','Musanze',
-  'Rwamagana','Bugesera','Kayonza','Kirehe','Ngoma',
-  'Burera','Gakenke','Gicumbi','Rulindo','Nyabihu',
-  'Ngororero','Nyamasheke','Rusizi','Nyamagabe','Nyaruguru',
-  'Gisagara','Nyanza','Ruhango','Kamonyi','Gatsibo'
-];
+// RWANDA_DISTRICTS is the single source of truth defined in js/districts.js
+// (loaded in <head>) — this used to be a second, local, incomplete copy
+// (29 entries, one of which was "Kigali City" — not a real district — and
+// missing the real Nyagatare/Rutsiro), which silently shadowed the global
+// for every use below (biDistrictMap()'s per-district deal counts). Removed.
 
 /* ── Load ── */
 function loadPartners() {
@@ -31561,13 +31482,7 @@ var AMENITY_ICONS = {
   school: '🏫 School', hospital: '🏥 Hospital', security: '🔒 Security'
 };
 
-var DISTRICT_OPTIONS = [
-  'Gasabo','Kicukiro','Nyarugenge','Bugesera','Rulindo','Rwamagana',
-  'Musanze','Rubavu','Nyamasheke','Huye','Muhanga','Kamonyi',
-  'Ngoma','Kirehe','Kayonza','Nyagatare','Gisagara','Nyamagabe',
-  'Nyaruguru','Ruhango','Karongi','Rutsiro','Ngororero','Nyabihu',
-  'Gakenke','Gicumbi','Burera','Gatsibo','Rusizi','Nyamasheke'
-];
+var DISTRICT_OPTIONS = RWANDA_DISTRICTS; // single source of truth — js/districts.js
 
 // ── Format RWF (compact, prefix style — Sites/Land module) ──
 function fmtRWFCompact(n) {
@@ -35840,8 +35755,7 @@ function closeAgentLead() {
 function _ensureAgentLeadModal() {
   if (document.getElementById('agent-lead-modal')) return;
 
-  var districts = ['Gasabo','Kicukiro','Nyarugenge','Bugesera','Rulindo','Rwamagana','Musanze','Rubavu','Nyamasheke','Huye','Muhanga','Kamonyi','Ngoma','Kirehe','Kayonza','Nyagatare','Gisagara','Nyamagabe','Nyaruguru','Ruhango','Karongi','Rutsiro','Ngororero','Nyabihu','Gakenke','Gicumbi','Burera','Gatsibo','Rusizi'];
-  var distOpts = districts.map(function(d){ return '<option value="'+d+'">'+d+'</option>'; }).join('');
+  var distOpts = RWANDA_DISTRICTS.map(function(d){ return '<option value="'+d+'">'+d+'</option>'; }).join('');
 
   var modal = document.createElement('div');
   modal.id = 'agent-lead-modal';
