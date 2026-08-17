@@ -14776,8 +14776,19 @@ function openMyProps() {
 // never fabricated. Replaces a previous version of this page that showed
 // static hardcoded numbers (including an internal pitch-deck revenue
 // forecast) to anonymous public visitors.
-function loadPublicMarketAnalytics() {
-  var props = getApprovedProps();
+// Computes and renders every Market Analytics section from a given props
+// array — pulled out so loadPublicMarketAnalytics() below can feed it a
+// fresh Firestore snapshot when available, instead of this always being
+// entirely dependent on localStorage's km_properties already having been
+// populated by some OTHER page (loadApprovedProperties()) having run first
+// in this session. A visitor who lands directly on Analytics (bookmark,
+// direct nav) without ever visiting Properties first previously saw
+// whatever demo/stale data happened to be cached — or nothing at all if
+// the cache was empty and this function was never even reached (see
+// loadPublicMarketAnalytics()'s own comment below for the "stuck on
+// Loading..." mechanism that was actually about invocation, not this
+// computation itself, which was always synchronous and safe).
+function _renderMarketAnalytics(props) {
   var n = props.length;
   var noData = curLang === 'rw' ? 'Nta bipimo bihagije' : 'Not enough data yet';
 
@@ -14860,14 +14871,55 @@ function loadPublicMarketAnalytics() {
   }
 }
 
+// Entry point actually wired to the analytics page (see the go() override
+// below). Fetches live from Firestore first — the same query/normalize
+// pattern loadApprovedProperties() already uses successfully — rather than
+// only ever reading whatever's already sitting in the shared localStorage
+// cache, which may still be empty/demo-only if the visitor never happened
+// to load the Properties page first in this session. Falls back to the
+// cached/demo data via getApprovedProps() on any Firestore error, so this
+// always renders SOMETHING (real data, cached data, or an explicit "not
+// enough data" message) instead of ever leaving the page's static
+// "Loading..." placeholders untouched.
+function loadPublicMarketAnalytics() {
+  if (typeof db === 'undefined') { _renderMarketAnalytics(getApprovedProps()); return; }
+  db.collection('properties')
+    .where('status', 'in', ['approved', 'Approved'])
+    .limit(200)
+    .get()
+    .then(function(snap) {
+      var props = [];
+      snap.forEach(function(doc) {
+        var data = doc.data();
+        if (data.isActive !== false) props.push(_normalizePropDoc(data, doc.id));
+      });
+      _renderMarketAnalytics(props.length ? props : getApprovedProps());
+    })
+    .catch(function(err) {
+      console.warn('[K-REOS] loadPublicMarketAnalytics Firestore error:', err);
+      _renderMarketAnalytics(getApprovedProps());
+    });
+}
+
 // Load approved properties whenever listings page is shown
 var origGo = go;
 go = function(page) {
   origGo(page);
   if (page === 'listings') {
-    /* Skip reset + reload when applyAndSearch is driving the navigation */
-    if (!_myListingsMode && !window._filtersActive) { _listPage = 1; _listFiltered = null; }
-    if (!window._filtersActive) setTimeout(loadApprovedProperties, 100);
+    // window._filtersActive is meant to suppress the reset/reload ONLY for
+    // the single navigation a search action itself triggers (applyAndSearch()/
+    // qs_openProp() set it right before calling go('listings')) — but it was
+    // never cleared afterward, so it stayed true for the rest of the
+    // session. Every later visit to the listings page (nav bar, "Properties"
+    // link, anything) kept skipping both the _listFiltered reset AND the
+    // Firestore re-fetch, permanently freezing the grid on whatever the
+    // last search left behind — including an empty [] if that search had
+    // zero matches. Consuming the flag here makes the suppression actually
+    // one-shot, matching what the comment always said it did.
+    var skipReload = !!window._filtersActive;
+    window._filtersActive = false;
+    if (!_myListingsMode && !skipReload) { _listPage = 1; _listFiltered = null; }
+    if (!skipReload) setTimeout(loadApprovedProperties, 100);
   } else if (page === 'analytics') {
     setTimeout(loadPublicMarketAnalytics, 100);
   }
@@ -33387,8 +33439,19 @@ function _savePropToFirestoreFS(propData, status, userId, isVerified) {
     ? propData.images
     : [propData.img1, propData.img2, propData.img3]
   ).filter(function(u) { return u && u.length < 2000; }); /* skip any accidental base64 blob — too large for Firestore */
+  // Pre-allocate the document reference so the real Firestore document ID
+  // is known before the first write, instead of the old add()-then-
+  // update({id}) two-step: that second write changed only the `id` field,
+  // which rules/firestore.rules' properties.update allowlist never
+  // included — every non-admin submission's ID-stamp write was silently
+  // rejected with permission-denied, the whole _savePropToFirestoreFS()
+  // promise rejected even though the document had already been created,
+  // and submitProperty()'s .catch() then never set pd._fsId, producing a
+  // false "success" toast and ghost admin-queue entries. One atomic set()
+  // needs no rules change and can't partially fail this way.
+  var propRef = db.collection('properties').doc();
   var fsDoc = {
-    id:          '',
+    id:          propRef.id,
     title:       propData.title       || '',
     type:        propData.type        || '',
     category:    propData.service === 'Gukodesha' ? 'rent' : 'sale',
@@ -33438,9 +33501,7 @@ function _savePropToFirestoreFS(propData, status, userId, isVerified) {
   } else {
     fsDoc.isInvestmentOpportunity = false;
   }
-  return db.collection('properties').add(fsDoc).then(function(ref) {
-    return ref.update({ id: ref.id }).then(function() { return ref.id; });
-  });
+  return propRef.set(fsDoc).then(function() { return propRef.id; });
 }
 
 /* Shared finish step for both admin (auto-approved) and agent (pending)
@@ -33930,8 +33991,16 @@ function filterAgentsPage() {
     return matchSearch && matchZone;
   });
   renderAgentsGrid(filtered);
-  var countEl = document.getElementById('agents-total-count');
-  if (countEl) countEl.textContent = filtered.length;
+  // Was only ever writing agents-total-count directly — agents-active-count
+  // and agents-zones-count never got touched by a filter/search action, so
+  // they stayed frozen at whatever loadAgentsPage()'s last full-list
+  // computation left them (0 if that Firestore fetch hadn't resolved yet,
+  // e.g. when usearchOpenAgents() drives straight into a filtered search
+  // before the page's own load has a chance to finish). Reusing the same
+  // _updateAgentStats() the full list uses keeps all three numbers
+  // consistent with what's actually on screen — the filtered set — instead
+  // of two of them silently describing a different, stale set.
+  _updateAgentStats(filtered);
 }
 
 /* ══════════════════════════════════════════════════════════════════════
