@@ -701,6 +701,14 @@ service cloud.firestore {
     // Director's normal day-to-day operating scope — full access, no CEO
     // gate. Distinct from the general isAdminOrStaff() tier: scoped to just
     // CEO + Director per the governance spec, not every staff-tier role.
+    // ⚠ UNBUILT (confirmed via full-repo grep, 2026-07-26): no client code
+    // or Cloud Function anywhere writes to this collection, directly or via
+    // the /approvals dynamic-write cascade — this rule is scaffolding for a
+    // UI that was never built, not a currently-active feature. It will show
+    // 0 documents in any dashboard forever, not due to a bug. If this
+    // feature is confirmed abandoned rather than pending, this block can be
+    // safely removed; leaving it in place costs nothing and doesn't weaken
+    // any other rule.
     match /dailyOperations/{id} {
       allow read:   if isCEO() || isDirector();
       allow create: if (isCEO() || isDirector()) && hasStandardFields();
@@ -732,6 +740,9 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ⚠ UNBUILT (confirmed via full-repo grep, 2026-07-26): no client code
+    // or Cloud Function anywhere writes to this collection — see the same
+    // note on dailyOperations above; applies identically here.
     match /suggestions/{id} {
       allow read:   if isCEO() || isDirector();
       allow create: if (isCEO() || isDirector()) && hasStandardFields();
@@ -802,6 +813,9 @@ service cloud.firestore {
     // staff-tier role); duplicating it here would just be a second,
     // disconnected copy of the same data.
 
+    // ⚠ UNBUILT (confirmed via full-repo grep, 2026-07-26): no client code
+    // or Cloud Function anywhere writes to this collection — see the same
+    // note on dailyOperations above; applies identically here.
     match /employeeRecords/{id} {
       allow read:   if inDept('HR') || isExecutive();
       allow create: if (inDept('HR') || isExecutive()) && hasStandardFields();
@@ -809,6 +823,9 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ⚠ UNBUILT (confirmed via full-repo grep, 2026-07-26): no client code
+    // or Cloud Function anywhere writes to this collection — see the same
+    // note on dailyOperations above; applies identically here.
     match /legalCompliance/{id} {
       allow read:   if inDept('Legal') || isExecutive();
       allow create: if (inDept('Legal') || isExecutive()) && hasStandardFields();
