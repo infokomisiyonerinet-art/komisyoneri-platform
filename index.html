@@ -16808,11 +16808,21 @@ function openAdminAddProp() {
 // this file used to carry a second, uncalled implementation here as
 // dead code left over from an earlier unfinished attempt.)
 
-// Initialize demos immediately — must run before loadApprovedProperties
+// Load real listings on page load. This used to unconditionally call
+// loadDemoListings() first — which seeds localStorage with 7 hardcoded
+// demo properties on EVERY load, regardless of whether Firestore has real
+// approved listings — so any device whose Firestore query returned few/no
+// results (e.g. right after a listing was submitted but before an admin
+// approved it) showed only demo/placeholder data instead of an honest
+// "no listings yet" state. loadApprovedProperties() already shows its own
+// skeleton loaders while Firestore loads, and its genuine empty-state
+// already offers an opt-in "Try demo listings!" button (see
+// _renderApprovedGrids()) — demo data should only ever appear via that
+// explicit user choice, not be seeded ahead of time on every visit.
 document.addEventListener('DOMContentLoaded', function() {
-  loadDemoListings();
+  loadApprovedProperties();
 });
-if (document.readyState !== 'loading') loadDemoListings();
+if (document.readyState !== 'loading') loadApprovedProperties();
 
 
 // === ADMIN ADD PROPERTY DIRECT (from admin panel) ===
@@ -33387,11 +33397,39 @@ function resetSidebarFilters() {
    exactly the two counts that matter most on a public homepage, silently
    leaving them at "0" for that audience.
 
-   Second pass (this one): reads a single public, PII-free aggregate
-   document (stats/homepage) instead, recomputed on a timer by
-   functions/index.js's updateHomepageStats using the Admin SDK (which
-   bypasses rules entirely) — so every visitor, logged in or not, sees the
-   real counts. */
+   Second pass: read a single public, PII-free aggregate document
+   (stats/homepage), recomputed on a 15-minute timer by functions/index.js's
+   updateHomepageStats using the Admin SDK (which bypasses rules entirely).
+   That fixed the permission-denied problem, but introduced a new one:
+   Cloud Functions deploy on a completely separate pipeline from this
+   static site (this repo has no CI step that runs `firebase deploy
+   --only functions`), and index.html's UI showed the exact same honest-
+   looking "0" whether that function had (a) never been deployed, (b) been
+   deployed but not fired yet, or (c) genuinely computed a real 0 — so a
+   working properties/agents search page next to three "0" hero stats was
+   consistent with all three, not just genuinely-empty data. Separately,
+   updateHomepageStats' verifiedAgents count only ever checked
+   `isVerified`, while agent docs have been written with either
+   `isVerified` or `verified` (index.html's _normalizeAgentDoc() already
+   reads both, defensively) — so even a successful run of that function
+   could undercount.
+
+   Third pass (this one): Listed Properties and Verified Agents are now
+   computed with the SAME live, direct Firestore queries the working
+   properties/agents pages already use (see loadApprovedProperties() /
+   loadAgentsPage()) — no dependency on the separately-deployed scheduled
+   function at all. This only works for these two because `properties` is
+   fully public (rules/firestore.rules: `allow read: if true`) and
+   verified-agent docs specifically now have a narrow public-read
+   carve-out (same file, users/{uid}) — deliberate, since the agents
+   directory is meant to be a public feature. Happy Clients still reads
+   the precomputed stats/homepage document: a live public count of client
+   accounts isn't something rules/firestore.rules should ever allow (client
+   `users` docs are not a public directory the way agent profiles are), so
+   there is no safe live-query equivalent for that one stat — it stays
+   dependent on updateHomepageStats actually being deployed and having run
+   at least once; until then it honestly shows "0" rather than a fake
+   number. */
 function loadLiveHomeStats() {
   if (typeof db === 'undefined') return;
   var elListings = document.getElementById('hero-stat-listings');
@@ -33401,13 +33439,38 @@ function loadLiveHomeStats() {
 
   function fmtCount(n) { return (n || 0).toLocaleString(); }
 
-  db.collection('stats').doc('homepage').get().then(function(doc) {
-    if (!doc.exists) return; // updateHomepageStats hasn't run yet (e.g. right after deploy) — leave the honest "0" placeholder
-    var d = doc.data();
-    if (elListings) elListings.textContent = fmtCount(d.activeListings);
-    if (elClients)  elClients.textContent  = fmtCount(d.activeClients);
-    if (elAgents)   elAgents.textContent   = fmtCount(d.verifiedAgents);
-  }).catch(function(){});
+  if (elListings) {
+    db.collection('properties').where('status', 'in', ['approved', 'Approved']).limit(1000).get()
+      .then(function(snap) {
+        var n = 0;
+        snap.forEach(function(doc) { if (doc.data().isActive !== false) n++; });
+        elListings.textContent = fmtCount(n);
+      })
+      .catch(function(err) { console.warn('[Home Stats] listings count failed:', err && err.code); });
+  }
+
+  if (elAgents) {
+    // Two queries, not one: Firestore can't OR across two different field
+    // names (isVerified vs verified) in a single where() — merged and
+    // de-duplicated by doc id below, since a doc could in principle have
+    // both fields set. Verified-agent counts are small enough (tens, not
+    // thousands) that this is cheap.
+    Promise.all([
+      db.collection('users').where('role', 'in', ['agent', 'Agent']).where('isVerified', '==', true).limit(2000).get(),
+      db.collection('users').where('role', 'in', ['agent', 'Agent']).where('verified', '==', true).limit(2000).get()
+    ]).then(function(snaps) {
+      var ids = {};
+      snaps.forEach(function(snap) { snap.forEach(function(doc) { ids[doc.id] = true; }); });
+      elAgents.textContent = fmtCount(Object.keys(ids).length);
+    }).catch(function(err) { console.warn('[Home Stats] verified agents count failed:', err && err.code); });
+  }
+
+  if (elClients) {
+    db.collection('stats').doc('homepage').get().then(function(doc) {
+      if (!doc.exists) return; // updateHomepageStats hasn't run yet (e.g. right after deploy) — leave the honest "0" placeholder
+      elClients.textContent = fmtCount(doc.data().activeClients);
+    }).catch(function(){});
+  }
 }
 
 /* Hook loadLiveHomeStats into home page navigation, initial page load, and auth settling */
@@ -33601,19 +33664,40 @@ function submitProperty() {
       u.images=urls; u.img1=urls[0]||''; u.img2=urls[1]||''; u.img3=urls[2]||'';
       eProps[ei]=u;
       try { localStorage.setItem('km_properties', JSON.stringify(eProps)); } catch(e){}
+      // Firestore is the only thing that syncs an edit across devices —
+      // localStorage above is just this device's cache. The Firestore
+      // update used to be fire-and-forget (its .catch() discarded the error
+      // and the "updated!" toast fired immediately regardless), so a failed
+      // sync looked identical to a successful one and the edit silently
+      // never left this device. Now the success toast only fires once the
+      // Firestore write is actually confirmed.
+      var syncTarget;
       if (u._fsId && typeof db !== 'undefined') {
-        db.collection('properties').doc(u._fsId).update({
+        syncTarget = db.collection('properties').doc(u._fsId).update({
           type:u.type, category:u.service==='Gukodesha'?'rent':'sale',
           district:u.district, sector:u.sector||'', price:parseInt(u.price)||0,
           bedrooms:parseInt(u.beds)||0, bathrooms:parseInt(u.baths)||0,
           area:u.size||'', description:u.desc||'', title:u.title||'',
           amenities:u.amenities||[], images:urls,
           updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
-        }).catch(function(){});
+        });
+      } else {
+        var noFsIdErr = new Error('No linked Firestore document (_fsId) for this listing');
+        noFsIdErr.code = 'no-fsid';
+        syncTarget = Promise.reject(noFsIdErr);
       }
-      setBusy(false);
-      closeAddProperty();
-      showToast(curLang==='rw'?'✅ Imitungo yahinduwe! Irasabwa kwemezwa.':'✅ Listing updated! Awaiting approval.');
+      syncTarget.then(function() {
+        setBusy(false);
+        closeAddProperty();
+        showToast(curLang==='rw'?'✅ Imitungo yahinduwe! Irasabwa kwemezwa.':'✅ Listing updated! Awaiting approval.');
+      }).catch(function(err) {
+        console.error('[Property Edit] Firestore sync failed — code:', err && err.code, 'message:', err && err.message);
+        setBusy(false);
+        var codeSuffix = (err && err.code) ? ' [' + err.code + ']' : '';
+        showToast(curLang==='rw'
+          ? '⚠️ Impinduka ntizabashije kubikwa kuri seriveri' + codeSuffix + '. Reba interineti yawe hanyuma ugerageze nanone.'
+          : '⚠️ Failed to sync your changes to the server' + codeSuffix + '. Check your connection and try saving again.', 'error');
+      });
     }).catch(showUploadError);
     return;
   }
@@ -33647,16 +33731,30 @@ function submitProperty() {
   setBusy(true);
   PropImageUploader.uploadAll('properties/' + propId).then(function(urls) {
     pd.images = urls; pd.img1 = urls[0]||''; pd.img2 = urls[1]||''; pd.img3 = urls[2]||'';
-    // Firestore write failures degrade gracefully to the localStorage cache
-    // (matching prior behavior) — only a failed photo upload is a hard error,
-    // since without at least one image URL there is nothing valid to publish.
     return _savePropToFirestoreFS(pd, isAdmin ? 'approved' : 'pending', currentUser.uid, isAdmin)
       .then(function(fsId) {
         if (fsId) pd._fsId = fsId;
         logAudit(isAdmin ? 'property.created' : 'property.submitted', 'properties', fsId||String(pd.id), null, {title:pd.title, status:pd.status.toLowerCase()});
         _propSubmitFinish(pd, isAdmin);
       })
-      .catch(function() { _propSubmitFinish(pd, isAdmin); });
+      .catch(function(err) {
+        // A Firestore write failure here used to be swallowed and treated as
+        // a full success (_propSubmitFinish ran either way, caching pd into
+        // this device's localStorage and showing the same "submitted!"
+        // toast) — so the listing only ever existed on this device, since
+        // localStorage never syncs and Firestore is the only thing that
+        // does. Surface the real failure and let the user retry instead of
+        // silently losing the submission: PropImageUploader.uploadAll() is
+        // idempotent for already-uploaded photos (uploadOne() short-circuits
+        // any item already at status:'done'), so resubmitting only retries
+        // the Firestore write, not the photo upload.
+        console.error('[Property Submit] Firestore write failed — code:', err && err.code, 'message:', err && err.message);
+        setBusy(false);
+        var codeSuffix = (err && err.code) ? ' [' + err.code + ']' : '';
+        showToast(curLang==='rw'
+          ? '⚠️ Ntibyashobotse kubika imitungo kuri seriveri' + codeSuffix + '. Reba interineti yawe hanyuma ugerageze nanone.'
+          : '⚠️ Failed to save the listing to the server' + codeSuffix + '. This listing has NOT been published — check your connection and try submitting again.', 'error');
+      });
   }).catch(showUploadError);
 }
 
