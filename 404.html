@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Not Found — KOMISIYONERI</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/icon-192.svg">
+<!--
+  Defensive fallback only — komisiyoneri-platform's vercel.json has a
+  catch-all rewrite (source: "/(.*)", destination: "/index.html"), which
+  intercepts essentially every request before Vercel's own static-hosting
+  404 fallback would ever apply, so the real "branded 404" experience for
+  a genuinely unrecognized in-app route is index.html's own #page-404
+  (see go()'s handling of an unmatched page name). This file exists as a
+  safety net for the narrow case where a request bypasses that rewrite
+  entirely (a raw static-asset path Vercel resolves before rewrites run,
+  or any future change to that config) — same brand, same "go home"
+  recovery path, without depending on the full app/Firebase bootstrapping.
+-->
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    background:#F4F7FC;color:#0F1B35;
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;padding:1.5rem;text-align:center;
+  }
+  .wrap{max-width:420px}
+  .icon{font-size:3.2rem;margin-bottom:.6rem}
+  h1{font-size:1.3rem;font-weight:700;color:#0D3B8C;margin-bottom:.5rem}
+  p{color:#6B7A99;font-size:.92rem;margin-bottom:1.8rem;line-height:1.6}
+  a.btn{
+    display:inline-block;background:#F5A623;color:#1a1200;
+    font-weight:700;font-size:.88rem;text-decoration:none;
+    padding:.7rem 1.6rem;border-radius:100px;
+  }
+  a.btn:hover{background:#e09b18}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="icon">🧭</div>
+    <h1>Page Not Found</h1>
+    <p>This page doesn't exist or may have moved.</p>
+    <a class="btn" href="/">Go to Homepage</a>
+  </div>
+</body>
+</html>
