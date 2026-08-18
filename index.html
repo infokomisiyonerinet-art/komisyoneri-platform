@@ -32988,20 +32988,35 @@ var HOME_ROTATION_ALL_TYPES      = HOME_ROTATION_PRIMARY_TYPES.concat(HOME_ROTAT
 // Small pool per type, not just 1: lets a slot skip a candidate already
 // used by an earlier slot, and doubles as a cheap proxy for "which type
 // has the most remaining inventory" during fallback — without needing a
-// separate count() query per type just to rank them.
-var HOME_ROTATION_POOL_SIZE = 4;
+// separate count() query per type just to rank them. Wider than the
+// original 4 now that premium-first is a client-side re-sort of this pool
+// (see _fetchTypeCandidates()) rather than a Firestore-level orderBy, so
+// there's a reasonable window for a premium listing to actually be in it.
+var HOME_ROTATION_POOL_SIZE = 8;
 
 // One property per type: approved-only, premium-subscription agents first
 // (properties.featured — set true by subscribeToPremium() for exactly this
 // reason, cleared by cancelMySubscription() — is already the live signal
 // for "this listing's owner currently has an active Premium subscription"),
-// then newest first. Needs the type+status+featured+createdAt composite
-// index (firestore.indexes.json).
+// then newest first.
+//
+// Deliberately does NOT do `.orderBy('featured', 'desc')` in Firestore:
+// orderBy() silently EXCLUDES any document that doesn't have that field at
+// all (not just ones where it's false) — and this codebase has gone
+// through enough incremental schema phases that older property documents
+// predating the Premium-subscription feature are a real possibility, not
+// a hypothetical. Ordering by featured in Firestore would have silently
+// dropped every one of those from every single type query, on top of
+// needing its own 4-field composite index. Instead: order by createdAt
+// alone (a field every property document has always had — always set via
+// serverTimestamp() at creation), then re-sort the fetched pool by
+// featured client-side, where a missing field just reads as falsy instead
+// of vanishing the whole document. Only needs the simpler
+// type+status+createdAt composite index (firestore.indexes.json).
 function _fetchTypeCandidates(type) {
   return db.collection('properties')
     .where('type', '==', type)
     .where('status', 'in', ['approved', 'Approved'])
-    .orderBy('featured', 'desc')
     .orderBy('createdAt', 'desc')
     .limit(HOME_ROTATION_POOL_SIZE)
     .get()
@@ -33011,6 +33026,9 @@ function _fetchTypeCandidates(type) {
         var d = doc.data();
         if (d.isActive !== false) out.push(_normalizePropDoc(d, doc.id));
       });
+      // Stable sort: featured-true first, preserving the createdAt-desc
+      // order already returned by Firestore within each group.
+      out.sort(function(a, b) { return (b.featured ? 1 : 0) - (a.featured ? 1 : 0); });
       return out;
     })
     .catch(function(err) {
