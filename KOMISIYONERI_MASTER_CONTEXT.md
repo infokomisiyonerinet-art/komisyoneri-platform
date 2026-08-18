@@ -213,7 +213,9 @@ Analytics:   Firebase Analytics (GA4 integrated)
 ### Active Firebase Project
 ```
 Project ID:        komisyoneri-platform-prod
-Auth Domain:       komisyoneri-platform-prod.firebaseapp.com
+Auth Domain:       auth.komisiyoneri.co.rw (custom auth domain — see
+                    GOOGLE_AUTH_CUSTOM_DOMAIN_SETUP.md; default Firebase
+                    domain was komisyoneri-platform-prod.firebaseapp.com)
 Database URL:      https://komisyoneri-platform-prod-default-rtdb.firebaseio.com
 Storage Bucket:    komisyoneri-platform-prod.firebasestorage.app
 Messaging ID:      766901928352
