@@ -1039,7 +1039,17 @@ html[data-portal="partners"] #page-home{display:none!important}
 /* PAYMENT MODAL */
 .modal-wrap{position:fixed;inset:0;background:rgba(8,20,58,.55);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);z-index:2000;display:none;align-items:center;justify-content:center;padding:1rem}
 .modal-wrap.open{display:flex}
-.modal{background:var(--surface);border-radius:22px;padding:2.1rem;width:100%;max-width:510px;box-shadow:0 24px 90px rgba(0,0,0,.28);animation:mIn .28s ease}
+/* overflow-y:auto is the actual scroll-bug fix here — .modal gets a
+   max-height cap further down (92dvh/720px desktop, 85svh/85dvh on
+   narrow screens) but had no way to scroll past it. 40+ of the 72
+   .modal instances in this file rely on nothing but this base rule (the
+   other ~32 duplicate an inline max-height/overflow-y on their own
+   wrapper), so any of those 40 with content taller than the cap had that
+   content silently clipped and permanently unreachable — body scroll is
+   locked while a modal is open, and .modal itself had no scroll of its
+   own either. overflow-x:hidden preserves the rounded-corner clipping
+   the old plain overflow:hidden implicitly provided. */
+.modal{background:var(--surface);border-radius:22px;padding:2.1rem;width:100%;max-width:510px;box-shadow:0 24px 90px rgba(0,0,0,.28);animation:mIn .28s ease;overflow-y:auto;overflow-x:hidden}
 @keyframes mIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
 .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
 /* This is the one modal whose header is meant to bleed edge-to-edge
@@ -1580,7 +1590,14 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   background:var(--surface);border-radius:24px;width:100%;max-width:600px;
   box-shadow:0 32px 100px rgba(0,0,0,.35);
   animation:smUp .28s cubic-bezier(.34,1.56,.64,1);
-  overflow:hidden;
+  /* Was plain overflow:hidden with no scroll anywhere inside — this box
+     gets a max-height cap further down (92dvh/720px desktop, 92vh on
+     narrow screens), and its filter form (service/district/price/beds/
+     amenities/"more filters") can genuinely exceed that on a shorter
+     window. overflow-x stays hidden to keep the rounded-corner clipping;
+     overflow-y:auto is what actually fixes the clipped/unreachable
+     content bug. */
+  overflow-x:hidden;overflow-y:auto;
 }
 @keyframes smUp{from{opacity:0;transform:translateY(28px) scale(.97)}to{opacity:1;transform:none}}
 
@@ -7088,7 +7105,7 @@ html,body{overscroll-behavior-x:none}
     </div>
     <div class="exec-panel">
       <div class="exec-panel-hdr" data-rw="Abacuruzi 5 b'Ibanze" data-en="Top 5 Agents by Commission">Top 5 Agents by Commission</div>
-      <div id="exec-top-agents"><div class="exec-empty">Loading...</div></div>
+      <div id="exec-top-agents" class="exec-scroll"><div class="exec-empty">Loading...</div></div>
     </div>
   </div>
 
@@ -7259,7 +7276,7 @@ html,body{overscroll-behavior-x:none}
     </div>
     <div class="exec-panel" style="margin-top:14px">
       <div class="exec-panel-hdr" data-rw="Intego z'Ukwezi Gutaha" data-en="Next Month Targets vs Actuals">Next Month Targets vs Actuals</div>
-      <div id="bi-targets"></div>
+      <div id="bi-targets" class="exec-scroll"></div>
     </div>
   </div>
 </div>
@@ -7318,7 +7335,7 @@ html,body{overscroll-behavior-x:none}
         <option value="admin">Admin</option>
       </select>
     </div>
-    <div id="br-staff-list"></div>
+    <div id="br-staff-list" class="exec-scroll"></div>
   </div>
 
   <!-- PERFORMANCE PANE -->
@@ -10151,7 +10168,7 @@ html,body{overscroll-behavior-x:none}
       </div>
     </div>
     <!-- Line items table -->
-    <div id="id-line-items-table" style="margin:.75rem 0"></div>
+    <div id="id-line-items-table" class="exec-scroll" style="margin:.75rem 0"></div>
     <!-- Totals -->
     <div class="ac-invoice-totals">
       <div class="ac-total-row"><span data-rw="Subtotal" data-en="Subtotal">Subtotal</span><span id="id-subtotal"></span></div>
@@ -11205,8 +11222,44 @@ function g(id) { return document.getElementById(id); }
 // and are NOT covered here — a separate, smaller follow-up, since each of
 // those has its own bespoke show/hide function with unknown side effects
 // that a purely mechanical fix here shouldn't assume it's safe to touch.
+// ── Centralized body-scroll lock ─────────────────────────────────────
+// Every overlay that needs to lock background scroll while it's open
+// (this modal system, Universal Search, the property filters panel, the
+// photo/3D tour viewer, the mobile dashboard sidebar drawer) used to set
+// document.body.style.overflow directly and independently. That meant
+// closing any ONE of them unconditionally cleared the lock — even if a
+// DIFFERENT one of these overlays was still open underneath it — leaving
+// the page in a half-broken state (an overlay still visually open, but
+// the background scrollable again behind it). A Set of owner keys fixes
+// this the same way _modalStack already did for the modal system alone:
+// the lock only actually releases once every owner has released it.
+var _scrollLockOwners = new Set();
+function lockBodyScroll(owner) {
+  _scrollLockOwners.add(owner);
+  document.body.style.overflow = 'hidden';
+}
+function unlockBodyScroll(owner) {
+  _scrollLockOwners.delete(owner);
+  if (_scrollLockOwners.size === 0) document.body.style.overflow = '';
+}
+
 var _modalStack = [];
 var _modalPrevFocus = null;
+
+// Every switch*Tab() function in the staff dashboard (HR, Executive, BI,
+// Accounting, Office, Customer, Investor, Branch, Admin, property-detail
+// tabs) just toggles display:none/'' on tab panes with no scroll
+// management — so switching tabs left the visitor wherever they'd
+// scrolled to on the PREVIOUS tab, which can land them mid-way down a
+// totally unrelated section of the new one instead of at its top.
+// .dash-content technically has its own overflow-y:auto too (see its
+// CSS), so both the window and it are reset — whichever one actually
+// ends up being the real scroll container for a given tab, this covers it.
+function _resetTabScroll() {
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  var dc = document.querySelector('.dash-content');
+  if (dc) dc.scrollTop = 0;
+}
 
 function _modalFocusableEls(container) {
   var nodes = container.querySelectorAll(
@@ -11238,7 +11291,7 @@ function openModal(id) {
   var el = document.getElementById(id);
   if (!el) return;
   el.classList.add('open');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll('modal:' + id);
 
   if (_modalStack.indexOf(id) === -1) _modalStack.push(id);
   if (_modalStack.length === 1) _modalPrevFocus = document.activeElement;
@@ -11265,9 +11318,9 @@ function closeModal(id) {
 
   var idx = _modalStack.indexOf(id);
   if (idx !== -1) _modalStack.splice(idx, 1);
+  unlockBodyScroll('modal:' + id);
 
   if (!document.querySelector('.modal-wrap.open')) {
-    document.body.style.overflow = '';
     if (_modalPrevFocus && typeof _modalPrevFocus.focus === 'function') _modalPrevFocus.focus();
     _modalPrevFocus = null;
   }
@@ -13712,7 +13765,7 @@ function usearchOpen() {
   var overlay = document.getElementById('usearch-overlay');
   if (!overlay) return;
   overlay.classList.add('open');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll('usearch');
   usearchRenderCats();
   var input = document.getElementById('usearch-input');
   if (input) { input.value = ''; setTimeout(function(){ input.focus(); }, 60); }
@@ -13722,8 +13775,19 @@ function usearchClose() {
   var overlay = document.getElementById('usearch-overlay');
   if (!overlay) return;
   overlay.classList.remove('open');
-  document.body.style.overflow = '';
+  unlockBodyScroll('usearch');
 }
+// Was missing entirely — Escape did nothing while Universal Search was
+// open (X button / outside click were the only ways to close it), so the
+// overlay + its scroll lock could get stuck open past what a user would
+// expect. Gated on the overlay actually being open, matching the
+// tour-modal pattern below, so this doesn't fire on every Escape
+// press platform-wide.
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+  var overlay = document.getElementById('usearch-overlay');
+  if (overlay && overlay.classList.contains('open')) usearchClose();
+});
 function usearchRenderCats() {
   var wrap = document.getElementById('usearch-cats');
   if (!wrap) return;
@@ -14053,7 +14117,7 @@ function usearchOpenFaq(index) {
 // ── openSearch: accepts optional pre-fill {type, district, tab, chip, query} ──
 function openSearch(opts) {
   document.getElementById('search-modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll('search');
   if (opts) {
     if (opts.tab) {
       document.querySelectorAll('.sm-tab').forEach(function(t) {
@@ -14093,7 +14157,7 @@ function openSearch(opts) {
 }
 function closeSearch() {
   document.getElementById('search-modal').classList.remove('open');
-  document.body.style.overflow = '';
+  unlockBodyScroll('search');
   closeQsSuggestions();
 }
 function setSmTab(btn) {
@@ -14232,8 +14296,19 @@ function applyAndSearch() {
 }
 
 // ESC + outside-click to close
+// Was unconditional — fired closeSearch() on every Escape press anywhere
+// in the app, even with search-modal not open. Harmless-looking on its
+// own, but closeSearch() used to clear document.body.style.overflow
+// directly; if some OTHER overlay (e.g. Universal Search) was open at the
+// time and its own Escape handling didn't fully suppress this one, that
+// stray call could unlock background scroll while the other overlay was
+// still visually open. Now gated the same way the tour-modal listener
+// already was, and the underlying lock/unlock is owner-scoped besides
+// (see lockBodyScroll/unlockBodyScroll), so this can't happen either way.
 document.addEventListener('keydown', function(e) {
-  if (e.key==='Escape') { closeSearch(); closeQsSuggestions(); }
+  if (e.key !== 'Escape') return;
+  var sm = document.getElementById('search-modal');
+  if (sm && sm.classList.contains('open')) { closeSearch(); closeQsSuggestions(); }
 });
 document.addEventListener('click', function(e) {
   var qs=document.getElementById('qs-suggestions'), inp=document.getElementById('qs-input');
@@ -16279,7 +16354,7 @@ function openTour(startIdx) {
   }
 
   modal.classList.add('open');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll('tour');
 
   // Swipe (initialised once)
   if (!openTour._swipe) {
@@ -16343,7 +16418,7 @@ function openVR() {
 function closeTour() {
   var modal = document.getElementById('tour-modal');
   if (modal) modal.classList.remove('open');
-  document.body.style.overflow = '';
+  unlockBodyScroll('tour');
   var iframe = document.getElementById('tour-iframe');
   if (iframe) { iframe.src=''; iframe.style.display='none'; }
   var photoWrap = document.getElementById('tour-photo-wrap');
@@ -17847,6 +17922,11 @@ function openDashSidebar() {
   var ov = document.getElementById('dash-sidebar-overlay');
   if (sb) sb.classList.add('open');
   if (ov) ov.classList.add('open');
+  // Was missing — every other full-screen overlay/drawer in the app
+  // locks background scroll while open; this mobile nav drawer (with its
+  // own backdrop) didn't, so the page underneath could still be
+  // touch-scrolled behind it.
+  lockBodyScroll('dash-sidebar');
 }
 
 function closeDashSidebar() {
@@ -17855,7 +17935,13 @@ function closeDashSidebar() {
   var ov = document.getElementById('dash-sidebar-overlay');
   if (sb) sb.classList.remove('open');
   if (ov) ov.classList.remove('open');
+  unlockBodyScroll('dash-sidebar');
 }
+// Escape-to-close, matching every other overlay in the app (outside-click
+// via #dash-sidebar-overlay's onclick was already wired).
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && dashSidebarOpen) closeDashSidebar();
+});
 
 // Auto-close the drawer when any nav item is clicked, via delegation
 // (avoids editing every existing .dn onclick attribute individually).
@@ -18068,6 +18154,7 @@ function filterAgentsPage() {
 var adminCurrentTab = 'listings';
 
 function switchAdminTab(tab) {
+  _resetTabScroll();
   adminCurrentTab = tab;
 
   // Update tab buttons
@@ -19581,6 +19668,7 @@ var BR_STATUS_COLOR = { active:'#16A34A', inactive:'#64748B', planned:'#D97706' 
 var BR_RWANDA_DISTRICTS = RWANDA_DISTRICTS; // single source of truth — js/districts.js
 
 function switchBranchTab(tab) {
+  _resetTabScroll();
   _brTabActive = tab;
   ['branches','staff','performance','coverage'].forEach(function(t) {
     var btn  = g('brtab-btn-' + t);
@@ -20753,6 +20841,7 @@ var BI_BUDGETS = [
 
 /* ── tab switch ── */
 function switchBITab(tab) {
+  _resetTabScroll();
   _biTabActive = tab;
   ['market','leads','agents','insights','forecast'].forEach(function(t) {
     var btn  = g('bitab-btn-' + t);
@@ -21404,6 +21493,7 @@ var EXEC_STAGE_LABELS = { new:'New', contacted:'Contacted', qualified:'Qualified
 var _execTabActive = 'overview';
 
 function switchExecTab(tab) {
+  _resetTabScroll();
   _execTabActive = tab;
   ['overview','revenue','pipeline','team'].forEach(function(t) {
     var btn = g('extab-btn-' + t);
@@ -22360,6 +22450,7 @@ function loadAccountingStats() {
 }
 
 function switchAccountingTab(tab) {
+  _resetTabScroll();
   ['invoices','expenses','reports'].forEach(function(t) {
     var btn  = g('actab-btn-' + t);
     var pane = g('actab-' + t);
@@ -23104,6 +23195,7 @@ function loadHRStats() {
 }
 
 function switchHRTab(tab) {
+  _resetTabScroll();
   ['staff','payroll','performance','lifecycle','recruitment','assets'].forEach(function(t) {
     var btn  = g('hrtab-btn-' + t);
     var pane = g('hrtab-' + t);
@@ -24836,6 +24928,7 @@ function loadOfficeStats() {
 }
 
 function switchOfficeTab(tab) {
+  _resetTabScroll();
   ['tasks','attendance','leave','schedule','channel'].forEach(function(t) {
     var btn  = g('otab-btn-' + t);
     var pane = g('otab-' + t);
@@ -25657,6 +25750,7 @@ function loadCustAfterSale(uid) {
 
 /* ── Tab switching ── */
 function switchCustTab(tab) {
+  _resetTabScroll();
   _custTab = tab;
   ['deals','docs','viewings','aftersale'].forEach(function(t) {
     var btn  = g('ctab-btn-' + t);
@@ -27238,6 +27332,7 @@ var _invOpportunities = [];
 var _invPortfolio = [];
 
 function switchInvestorTab(tab, btn) {
+  _resetTabScroll();
   ['opps','calc','portfolio'].forEach(function(t) {
     var el = document.getElementById('inv-tab-' + t);
     if (el) el.style.display = t === tab ? '' : 'none';
