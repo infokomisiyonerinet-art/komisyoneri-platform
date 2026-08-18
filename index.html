@@ -19173,7 +19173,18 @@ document.addEventListener('securitypolicyviolation', function(e) {
   // ═══════════════════════════════════════════════════════
   var firebaseConfig = {
     apiKey:            "AIzaSyCw9NYlw0XLC26Di-nFCNOuL7D6RX8k820",
-    authDomain:        "komisyoneri-platform-prod.firebaseapp.com",
+    // Custom auth domain, not the default *.firebaseapp.com — so the Google
+    // Sign-In popup/redirect flow shows "auth.komisiyoneri.co.rw" instead of
+    // the Firebase-branded domain. Requires matching DNS + Firebase Console
+    // setup outside this file to actually resolve (see
+    // GOOGLE_AUTH_CUSTOM_DOMAIN_SETUP.md) — until that's done, Google
+    // Sign-In will fail (auth/unauthorized-domain or a networking error)
+    // even though this points at the right hostname. vercel.json's CSP
+    // frame-src must name this same host (the SDK opens a hidden iframe at
+    // <authDomain>/__/auth/iframe to relay popup/redirect results — see
+    // this file's own auth/internal-error handling in _handleGoogleAuthError()
+    // for the prior incident this exact CSP dependency caused).
+    authDomain:        "auth.komisiyoneri.co.rw",
     databaseURL:       "https://komisyoneri-platform-prod-default-rtdb.firebaseio.com",
     projectId:         "komisyoneri-platform-prod",
     storageBucket:     "komisyoneri-platform-prod.firebasestorage.app",

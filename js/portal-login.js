@@ -34,7 +34,12 @@
 
   var firebaseConfig = {
     apiKey:            "AIzaSyCw9NYlw0XLC26Di-nFCNOuL7D6RX8k820",
-    authDomain:        "komisyoneri-platform-prod.firebaseapp.com",
+    // Kept in sync with index.html's firebaseConfig — same custom auth
+    // domain (see that file's comment for the full rationale/dependencies).
+    // This page only does email/password sign-in today, so nothing here
+    // actually opens the auth iframe this domain matters for, but the two
+    // configs must still name the same Firebase project/domain.
+    authDomain:        "auth.komisiyoneri.co.rw",
     databaseURL:       "https://komisyoneri-platform-prod-default-rtdb.firebaseio.com",
     projectId:         "komisyoneri-platform-prod",
     storageBucket:     "komisyoneri-platform-prod.firebasestorage.app",
