@@ -1822,9 +1822,17 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
    (fully hidden under the fixed .topnav, so the space itself was the
    only visible symptom).
 ══════════════════════════════ */
-.offline-bar,.online-bar{display:none;text-align:center;padding:.5rem 1rem;font-size:.82rem;font-weight:600}
+.offline-bar,.online-bar,.update-bar{display:none;text-align:center;padding:.5rem 1rem;font-size:.82rem;font-weight:600}
 .offline-bar{background:var(--warn-bg);color:var(--warn-dark)}
 .online-bar{background:var(--success-bg);color:var(--success)}
+/* Shown when the service worker detects a new deploy — a deliberate,
+   user-triggered refresh rather than silently swapping content out from
+   under someone mid-form (see the registration code for why this is a
+   separate signal from the SW's own skipWaiting()/clients.claim(), which
+   only affects FUTURE requests, not the page already on screen). */
+.update-bar{background:var(--navy);color:#fff;display:none;align-items:center;justify-content:center;gap:.7rem;flex-wrap:wrap}
+.update-bar.show{display:flex}
+.update-bar-btn{background:var(--gold);color:#1a1200;border:none;border-radius:100px;padding:.3rem .9rem;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit}
 
 /* ══════════════════════════════
    FLOATING SEARCH TRIGGER BAR
@@ -3515,6 +3523,10 @@ html,body{overscroll-behavior-x:none}
 <!-- Offline / Online Bar -->
 <div id="offline-bar" class="offline-bar">⚠️ Nta internet — Platform ikora offline</div>
 <div id="online-bar" class="online-bar">✅ Internet yagarutse!</div>
+<div id="update-bar" class="update-bar" role="status">
+  <span data-rw="🔄 Hari verisiyo nshya ihari!" data-en="🔄 A new version is available!" data-fr="🔄 Une nouvelle version est disponible !" data-sw="🔄 Toleo jipya linapatikana!">🔄 A new version is available!</span>
+  <button type="button" class="update-bar-btn" onclick="window.location.reload()" data-rw="Kubura ubu" data-en="Refresh now" data-fr="Actualiser" data-sw="Onyesha upya">Refresh now</button>
+</div>
 <nav class="topnav" role="navigation" aria-label="Urubuga rw'ingenzi">
   <div class="topnav-logo" onclick="go('home')" role="button" tabindex="0">
     <img src="/icon-192.svg" width="42" height="42" decoding="async" style="height:42px;width:42px;object-fit:contain" alt="KOMISIYONERI Logo">
@@ -17642,10 +17654,45 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js')
       .then(function(reg) {
         console.log('[PWA] Service Worker registered:', reg.scope);
+        _watchForSWUpdate(reg);
       })
       .catch(function(err) {
         console.log('[PWA] Service Worker registration failed:', err.message);
       });
+  });
+}
+
+// New-version detection — sw.js already calls skipWaiting()/clients.claim()
+// on its own, but that only changes which SW instance handles FUTURE
+// requests; it does nothing to the page already loaded in memory. Without
+// this, a visitor who leaves a tab open across a deploy would keep running
+// the old JS indefinitely with no way to know a fix has actually shipped.
+// Deliberately a dismiss-free banner + manual "Refresh now" button rather
+// than an automatic reload — reloading out from under someone mid-form
+// (e.g. partway through creating a deal) would lose their work.
+function _watchForSWUpdate(reg) {
+  function announce(worker) {
+    worker.addEventListener('statechange', function() {
+      // A controller already existing means this is a genuine update, not
+      // the very first install on a brand-new visit (which also passes
+      // through 'installed', but there's nothing to refresh away from yet).
+      if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+        var bar = document.getElementById('update-bar');
+        if (bar) bar.classList.add('show');
+      }
+    });
+  }
+  if (reg.waiting) announce(reg.waiting);
+  reg.addEventListener('updatefound', function() {
+    if (reg.installing) announce(reg.installing);
+  });
+  // The browser already re-checks sw.js on every navigation (it's served
+  // no-cache — see vercel.json), but a tab left open in the background for
+  // a long session wouldn't navigate again on its own; re-check when the
+  // visitor comes back to it instead of waiting on the ~24h spec-mandated
+  // background check.
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') reg.update().catch(function(){});
   });
 }
 
