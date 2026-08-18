@@ -413,10 +413,6 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "featured",
-          "order": "DESCENDING"
-        },
-        {
           "fieldPath": "createdAt",
           "order": "DESCENDING"
         }
