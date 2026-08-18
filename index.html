@@ -34526,14 +34526,32 @@ function loadAgentsPage() {
     + '<div class="es-icon" style="font-size:2rem">&#9203;</div>'
     + '<div class="es-title">' + (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Gutegereza...' : 'Loading agents...') + '</div></div>';
 
-  db.collection('users')
-    .where('role', 'in', ['agent', 'Agent'])
-    .where('isActive', '==', true)
-    .limit(60)
-    .get()
-    .then(function(snap) {
-      var agents = [];
-      snap.forEach(function(doc) { agents.push(_normalizeAgentDoc(doc.data(), doc.id)); });
+  // Two queries, not one: rules/firestore.rules' public-read carve-out for
+  // users/{uid} only allows a LIST query Firestore can prove safe from the
+  // query's own filters alone — role + isActive isn't enough, since the
+  // rule's public branch also requires isVerified==true OR verified==true
+  // per document, and Firestore can't evaluate a per-document OR that isn't
+  // reflected in a where() clause. Without one of those two fields filtered
+  // here, this whole query came back permission-denied for every caller
+  // except an already-isAdminOrStaff() one (that branch is field-
+  // independent, so it doesn't need the filter) — which is exactly why an
+  // anonymous or ordinary logged-in visitor saw an empty/demo agents
+  // directory while an admin/staff tester saw real data. Same
+  // isVerified/verified split-and-merge already used by loadLiveHomeStats()
+  // above, since agent docs are inconsistently written with one field or
+  // the other.
+  Promise.all([
+    db.collection('users').where('role', 'in', ['agent', 'Agent']).where('isVerified', '==', true).limit(60).get(),
+    db.collection('users').where('role', 'in', ['agent', 'Agent']).where('verified', '==', true).limit(60).get()
+  ])
+    .then(function(snaps) {
+      var byId = {};
+      snaps.forEach(function(snap) {
+        snap.forEach(function(doc) {
+          if (doc.data().isActive !== false) byId[doc.id] = _normalizeAgentDoc(doc.data(), doc.id);
+        });
+      });
+      var agents = Object.keys(byId).map(function(id) { return byId[id]; });
       if (agents.length === 0) {
         agents = getDemoAgents().map(function(a) { a.isDemo = true; return a; });
       }
