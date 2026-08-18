@@ -4149,13 +4149,9 @@ html,body{overscroll-behavior-x:none}
   <!-- FEATURED LISTINGS -->
   <section class="section">
     <div class="wrap">
-      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:2.2rem;flex-wrap:wrap;gap:1rem">
-        <div><div class="eyebrow" data-rw="Imitungo Mishya" data-en="New Listings">Imitungo Mishya</div>
-          <h2 class="h2" style="margin-top:.35rem" data-rw="Imitungo Ishimishije" data-en="Featured Properties">Imitungo Ishimishije</h2></div>
-        <button class="btn btn-outline btn-sm" onclick="go('listings')">
-          <span data-rw="Reba Yose" data-en="View All">Reba Yose</span>
-          <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </button>
+      <div style="margin-bottom:2.2rem">
+        <div class="eyebrow" data-rw="Imitungo Mishya" data-en="New Listings">Imitungo Mishya</div>
+        <h2 class="h2" style="margin-top:.35rem" data-rw="Imitungo Ishimishije" data-en="Featured Properties">Imitungo Ishimishije</h2>
       </div>
       <!-- id is p-grid-home, deliberately distinct from the listings page's
            #p-grid-main (see setListingView()'s comment on that duplicate-id
@@ -4167,6 +4163,15 @@ html,body{overscroll-behavior-x:none}
         <div class="skeleton-card sk-init"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line sl-title"></div><div class="skeleton-line sl-sub"></div><div class="skeleton-line sl-price"></div></div></div>
         <div class="skeleton-card sk-init"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line sl-title"></div><div class="skeleton-line sl-sub"></div><div class="skeleton-line sl-price"></div></div></div>
         </div>
+      <!-- Moved below the grid (was above, before any cards) — users should
+           see what's featured first, then get "View All" as the next
+           action after browsing, not before. Same button, same handler. -->
+      <div style="text-align:center;margin-top:2.2rem">
+        <button class="btn btn-outline btn-sm" onclick="go('listings')">
+          <span data-rw="Reba Yose" data-en="View All">Reba Yose</span>
+          <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
     </div>
   </section>
 
@@ -10692,7 +10697,9 @@ var TX = {
     labApproved:   'Yemejwe',
     labRejected:   'Yananiwe',
     labAll:        'Zose',
-    soldBadge:     'YAGURISHIJWE'
+    soldBadge:     'YAGURISHIJWE',
+    saleBadge:     'Kugura',
+    rentBadge:     'Gukodesha'
   },
   en: {
     verified:      'Verified',
@@ -10711,7 +10718,9 @@ var TX = {
     labApproved:   'Approved',
     labRejected:   'Rejected',
     labAll:        'All',
-    soldBadge:     'SOLD'
+    soldBadge:     'SOLD',
+    saleBadge:     'For Sale',
+    rentBadge:     'For Rent'
   },
   fr: {
     verified:      'Vérifié',
@@ -10730,7 +10739,9 @@ var TX = {
     labApproved:   'Approuvé',
     labRejected:   'Refusé',
     labAll:        'Tous',
-    soldBadge:     'VENDU'
+    soldBadge:     'VENDU',
+    saleBadge:     'À Vendre',
+    rentBadge:     'À Louer'
   },
   sw: {
     verified:      'Imethibitishwa',
@@ -10749,7 +10760,9 @@ var TX = {
     labApproved:   'Imeidhinishwa',
     labRejected:   'Imekataliwa',
     labAll:        'Zote',
-    soldBadge:     'IMEUZWA'
+    soldBadge:     'IMEUZWA',
+    saleBadge:     'Kuuza',
+    rentBadge:     'Kukodisha'
   }
 };
 
@@ -14482,10 +14495,13 @@ function renderUserPropCard(prop) {
     : priceNum + ' RWF';
   if(prop.service === 'Gukodesha') priceLabel += '/mo';
 
-  // Service badge
+  // Service badge — t('rentBadge')/t('saleBadge') so this follows the
+  // language switcher like the rest of the UI; prop.service itself stays
+  // the raw 'Gukodesha'/'Kugura' data value (compared elsewhere in this
+  // file), only the displayed label is localized.
   var svcBadge = prop.service === 'Gukodesha'
-    ? '<span class="badge b-green">Gukodesha</span>'
-    : '<span class="badge b-navy">Kugura</span>';
+    ? '<span class="badge b-green">' + t('rentBadge') + '</span>'
+    : '<span class="badge b-navy">' + t('saleBadge') + '</span>';
 
   // Location + features
   var loc = [prop.district, prop.sector].filter(Boolean).join(', ');
@@ -17261,7 +17277,7 @@ function openPropDetail(propId) {
   if(badgesEl) {
     badgesEl.innerHTML = (prop.isDemo ? '<span class="badge b-gold">✦ DEMO</span>' : '')
       + (prop.verified ? '<span class="badge b-green">✅ Verified</span>' : '')
-      + (prop.service === 'Gukodesha' ? '<span class="badge b-muted">Gukodesha</span>' : '<span class="badge b-navy">Kugura</span>')
+      + (prop.service === 'Gukodesha' ? '<span class="badge b-muted">' + t('rentBadge') + '</span>' : '<span class="badge b-navy">' + t('saleBadge') + '</span>')
       + (prop.tour3dUrl ? '<span class="badge" style="background:#7c3aed;color:#fff;cursor:pointer" onclick="openTour(0)" role="button" tabindex="0">🌐 3D Tour</span>' : '')
       + (prop.rating ? '<span class="badge" style="background:var(--light);color:var(--navy)">★ '+prop.rating+'</span>' : '');
   }
