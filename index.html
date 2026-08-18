@@ -5456,6 +5456,31 @@ html,body{overscroll-behavior-x:none}
 </div>
 
 <!-- ═══════════════════════════════════
+     PAGE: 404 — shown by go() itself whenever it's called with a page
+     name that has no matching #page-<name> element, instead of leaving
+     every .page hidden (go() unconditionally clears .active from all of
+     them before re-adding it to the target — with no matching element,
+     that meant a fully blank screen with no error, no way to tell what
+     happened). Covers both a stale/typo'd internal go('...') call and a
+     direct/refreshed visit to an unrecognized clean path or hash (see the
+     DOMContentLoaded router's own fallback). #p404-path is filled in by
+     go() with the actual name that was requested, so this is traceable
+     to whatever link/URL caused it instead of being a dead end.
+════════════════════════════════════ -->
+<div class="page" id="page-404">
+  <div class="wrap" style="padding:5rem 1rem 6rem;text-align:center;max-width:520px">
+    <div style="font-size:3.2rem;margin-bottom:.6rem">🧭</div>
+    <h1 class="h1" style="margin-bottom:.5rem" data-rw="Ntibyabonetse" data-en="Page Not Found" data-fr="Page Introuvable" data-sw="Ukurasa Haujapatikana">Page Not Found</h1>
+    <p style="color:var(--muted);font-size:.92rem;margin-bottom:.9rem" data-rw="Iyi paji ntiboneka cyangwa yimuwe." data-en="This page doesn't exist or may have moved." data-fr="Cette page n'existe pas ou a été déplacée." data-sw="Ukurasa huu haupo au umehamishwa.">This page doesn't exist or may have moved.</p>
+    <p id="p404-path" style="font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--muted);background:var(--light);border-radius:8px;padding:.5rem .8rem;display:inline-block;margin-bottom:1.8rem;word-break:break-all"></p>
+    <div style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-gold btn-lg" onclick="go('home')" data-rw="Subira Ahabanza" data-en="Go to Homepage" data-fr="Retour à l'Accueil" data-sw="Rudi Nyumbani">Go to Homepage</button>
+      <button class="btn" style="border:1.5px solid var(--border)" onclick="usearchOpen()" data-rw="Shakisha" data-en="Search" data-fr="Rechercher" data-sw="Tafuta">Search</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
      PAGE: TERMS OF SERVICE
 ════════════════════════════════════ -->
 <div class="page" id="page-terms">
@@ -13440,7 +13465,24 @@ function go(name) {
   // Show target page
   var pg = document.getElementById('page-' + name);
   var nb = document.getElementById('nl-' + name);
-  if (pg) pg.classList.add('active');
+  if (pg) {
+    pg.classList.add('active');
+  } else {
+    // name doesn't match any real #page-<name> — every .page was just
+    // unconditionally hidden above, so without this the visitor gets a
+    // fully blank screen with no indication anything went wrong. Shown
+    // directly rather than via a recursive go('404') call, so this
+    // doesn't re-run the role-redirect logic at the top of this function
+    // a second time for no reason.
+    console.error('[ROUTER] go(\'' + name + '\') — no #page-' + name + ' element exists; showing 404.');
+    kmTrack('page_not_found', { attempted: name });
+    var notFoundPg = document.getElementById('page-404');
+    if (notFoundPg) {
+      notFoundPg.classList.add('active');
+      var pathEl = document.getElementById('p404-path');
+      if (pathEl) pathEl.textContent = window.location.pathname + window.location.hash;
+    }
+  }
   if (nb) { nb.classList.add('active'); nb.setAttribute('aria-current', 'page'); }
 
   // Drop the per-property structured data injected by openPropDetail() once
@@ -33175,55 +33217,73 @@ function loadApprovedProperties() {
 var HOME_ROTATION_PRIMARY_TYPES  = ['Inzu', 'Ubutaka', 'Apartimanı', 'Villa'];
 var HOME_ROTATION_OVERFLOW_TYPES = ['Bureau', 'Inyubako']; // slot 7's own preference order
 var HOME_ROTATION_ALL_TYPES      = HOME_ROTATION_PRIMARY_TYPES.concat(HOME_ROTATION_OVERFLOW_TYPES);
-// Small pool per type, not just 1: lets a slot skip a candidate already
-// used by an earlier slot, and doubles as a cheap proxy for "which type
-// has the most remaining inventory" during fallback — without needing a
-// separate count() query per type just to rank them. Wider than the
-// original 4 now that premium-first is a client-side re-sort of this pool
-// (see _fetchTypeCandidates()) rather than a Firestore-level orderBy, so
-// there's a reasonable window for a premium listing to actually be in it.
-var HOME_ROTATION_POOL_SIZE = 8;
+// Each type's full pool (however many of that type exist within the
+// shared 150-doc fetch — see _fetchRotationPools()) is kept, not just a
+// handful — this also doubles as a proxy for "which type has the most
+// remaining inventory" during the fallback below, without a separate
+// count() query per type just to rank them.
 
-// One property per type: approved-only, premium-subscription agents first
-// (properties.featured — set true by subscribeToPremium() for exactly this
-// reason, cleared by cancelMySubscription() — is already the live signal
-// for "this listing's owner currently has an active Premium subscription"),
-// then newest first.
+// Every type's pool in ONE query, grouped/sorted entirely in JS — replaces
+// 6 separate `.where('type','==',type).where('status','in',[...])
+// .orderBy('createdAt','desc')` queries, each of which needs its own
+// type+status+createdAt composite index. That index is correctly declared
+// in firestore.indexes.json, but declaring it in the repo and it actually
+// being deployed/built in the live Firestore project are two different
+// things (this sandbox has no path to run `firebase deploy` — see
+// FIRESTORE_DEPLOY_RUNBOOK.md) — until it's confirmed "Enabled" in the
+// Firebase console, every one of those 6 queries fails via its own
+// .catch(), which is indistinguishable from "genuinely no inventory of
+// that type" from here and matches the reported "rotation collapsed to
+// just the New Development site card" exactly.
 //
-// Deliberately does NOT do `.orderBy('featured', 'desc')` in Firestore:
-// orderBy() silently EXCLUDES any document that doesn't have that field at
-// all (not just ones where it's false) — and this codebase has gone
-// through enough incremental schema phases that older property documents
-// predating the Premium-subscription feature are a real possibility, not
-// a hypothetical. Ordering by featured in Firestore would have silently
-// dropped every one of those from every single type query, on top of
-// needing its own 4-field composite index. Instead: order by createdAt
-// alone (a field every property document has always had — always set via
-// serverTimestamp() at creation), then re-sort the fetched pool by
-// featured client-side, where a missing field just reads as falsy instead
-// of vanishing the whole document. Only needs the simpler
-// type+status+createdAt composite index (firestore.indexes.json).
-function _fetchTypeCandidates(type) {
+// This query needs nothing beyond Firestore's automatic single-field
+// index on `status` — the exact same shape loadApprovedProperties()
+// already uses successfully elsewhere on this page. Type-grouping and the
+// featured-first-then-newest ordering (see the comment this replaced:
+// orderBy('featured') in Firestore silently drops any document missing
+// that field, which older pre-Premium-subscription listings can be) both
+// become plain array operations instead, so this whole section no longer
+// depends on ANY composite index existing at all — resilient to the
+// deploy gap rather than just correctly diagnosing it.
+function _tsMillis(ts) {
+  if (!ts) return 0;
+  if (typeof ts.toMillis === 'function') return ts.toMillis();
+  if (typeof ts.seconds === 'number') return ts.seconds * 1000;
+  var d = new Date(ts);
+  return isNaN(d.getTime()) ? 0 : d.getTime();
+}
+function _fetchRotationPools() {
   return db.collection('properties')
-    .where('type', '==', type)
     .where('status', 'in', ['approved', 'Approved'])
-    .orderBy('createdAt', 'desc')
-    .limit(HOME_ROTATION_POOL_SIZE)
+    .limit(150)
     .get()
     .then(function(snap) {
-      var out = [];
+      var docs = [];
       snap.forEach(function(doc) {
         var d = doc.data();
-        if (d.isActive !== false) out.push(_normalizePropDoc(d, doc.id));
+        if (d.isActive !== false) docs.push({ raw: d, id: doc.id, ts: _tsMillis(d.createdAt) });
       });
-      // Stable sort: featured-true first, preserving the createdAt-desc
-      // order already returned by Firestore within each group.
-      out.sort(function(a, b) { return (b.featured ? 1 : 0) - (a.featured ? 1 : 0); });
-      return out;
+      // Newest first, matching the orderBy('createdAt','desc') this replaces.
+      docs.sort(function(a, b) { return b.ts - a.ts; });
+
+      var pools = {};
+      HOME_ROTATION_ALL_TYPES.forEach(function(type) { pools[type] = []; });
+      docs.forEach(function(item) {
+        var normalized = _normalizePropDoc(item.raw, item.id);
+        if (pools[normalized.type]) pools[normalized.type].push(normalized);
+      });
+      // Featured-true first within each type's pool, preserving the
+      // createdAt-desc order already applied above within each group.
+      HOME_ROTATION_ALL_TYPES.forEach(function(type) {
+        pools[type].sort(function(a, b) { return (b.featured ? 1 : 0) - (a.featured ? 1 : 0); });
+      });
+      return pools;
     })
     .catch(function(err) {
-      console.warn('[Home Rotation] type query failed for ' + type + ':', err && err.code);
-      return [];
+      console.warn('[Home Rotation] approved-pool query failed:', err && err.code);
+      var empty = {};
+      HOME_ROTATION_ALL_TYPES.forEach(function(type) { empty[type] = []; });
+      return empty;
     });
 }
 
@@ -33356,16 +33416,14 @@ function loadHomepageRotation() {
     grid.innerHTML = sk + sk + sk;
   }
 
-  var typeQueries = HOME_ROTATION_ALL_TYPES.map(_fetchTypeCandidates);
-
-  Promise.all(typeQueries.concat([
+  Promise.all([
+    _fetchRotationPools(),
     _fetchActiveSites(20),
     _fetchNewestSoldProperty()
-  ])).then(function(results) {
-    var pools = {};
-    HOME_ROTATION_ALL_TYPES.forEach(function(type, i) { pools[type] = results[i]; });
-    var sites = results[HOME_ROTATION_ALL_TYPES.length];
-    var soldProp = results[HOME_ROTATION_ALL_TYPES.length + 1];
+  ]).then(function(results) {
+    var pools = results[0];
+    var sites = results[1];
+    var soldProp = results[2];
 
     var usedIds = {};
     function takeFromPool(type) {
@@ -33378,8 +33436,8 @@ function loadHomepageRotation() {
     }
     // "Next-highest-inventory type" fallback: among types not already tried
     // for this slot, pick whichever still has the most leftover candidates
-    // (approximated from the bounded pool fetched above — see
-    // HOME_ROTATION_POOL_SIZE's comment) and take its newest.
+    // (from the full per-type pools _fetchRotationPools() built) and take
+    // its newest.
     function takeFallback(excludeTypes) {
       var bestType = null, bestCount = 0;
       HOME_ROTATION_ALL_TYPES.forEach(function(type) {
