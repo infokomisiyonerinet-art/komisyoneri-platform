@@ -2396,12 +2396,22 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 
 /* 2 ── Momentum scrolling (iOS) + scroll containment on all scrollable panes */
 .dash-sidebar,.dash-content,.qs-suggestions,
-.sm-box,.s-card{
+.sm-box,.s-card,.modal{
   -webkit-overflow-scrolling:touch;
   overscroll-behavior-y:contain;
 }
 /* Prevent background-page scroll when a modal/overlay is open */
 .modal-wrap{overscroll-behavior:contain}
+/* .modal-wrap containing scroll only stops it reaching html/body — it does
+   nothing for a nested scrollable list INSIDE a modal (e.g. #srm-history,
+   #plot-preview-list, #off-channel-messages) bottoming out and chaining
+   its scroll to the .modal box wrapping it, which can visually rubber-band
+   the whole modal on iOS even though .modal itself is now contained too
+   (see above). Same nested-scroll-conflict risk for the two standalone
+   list panels below (#fav-grid, #notif-list) and .contact-log. */
+#srm-history,#plot-preview-list,#off-channel-messages,#fav-grid,#notif-list,.contact-log{
+  overscroll-behavior:contain;
+}
 
 /* 3 ── Scrolling smoothness in dashboard panes */
 .dash-sidebar,.dash-content{scroll-behavior:smooth}
@@ -3007,8 +3017,17 @@ html,body{overscroll-behavior-x:none}
 
 /* kanban board */
 .crm-kanban{display:flex;gap:.8rem;overflow-x:auto;padding-bottom:.6rem}
-.crm-col{min-width:220px;background:var(--light);border-radius:var(--r-sm);padding:.6rem}
-.crm-col-hdr{display:flex;justify-content:space-between;align-items:center;padding-bottom:.5rem;margin-bottom:.5rem;border-top:3px solid var(--navy);padding-top:.4rem}
+/* Was min-width only, no height cap — a stage with many cards just grew
+   the column (and the whole page under it) taller and taller with no
+   scroll of its own, instead of scrolling within its own column like a
+   Kanban board is expected to. Shared by both renderCrmKanban() and
+   renderDealKanban() (both use this exact class), fixed once here for
+   both: the header stays visible, only .crm-col-body scrolls. min-height:0
+   is required on a flex child for overflow-y:auto to actually take effect
+   instead of growing to fit its content anyway. */
+.crm-col{min-width:220px;background:var(--light);border-radius:var(--r-sm);padding:.6rem;display:flex;flex-direction:column;max-height:60vh}
+.crm-col-body{overflow-y:auto;min-height:0;overscroll-behavior:contain}
+.crm-col-hdr{display:flex;justify-content:space-between;align-items:center;padding-bottom:.5rem;margin-bottom:.5rem;border-top:3px solid var(--navy);padding-top:.4rem;flex-shrink:0}
 .crm-col-name{font-size:.76rem;font-weight:700;color:var(--dark)}
 .crm-col-count{font-size:.68rem;color:var(--muted);background:var(--surface);border-radius:var(--r-full);padding:.1rem .5rem}
 .crm-kcard{background:var(--surface);border-radius:var(--r-sm);padding:.6rem;margin-bottom:.5rem;box-shadow:var(--sh-sm);cursor:pointer}
@@ -7969,7 +7988,7 @@ html,body{overscroll-behavior-x:none}
   <div class="modal" style="max-width:500px;max-height:90vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">🏠 Imitungo Yange</div>
-      <button class="modal-x" onclick="document.getElementById('my-props-modal').style.display='none'" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <button class="modal-x" onclick="closeModal('my-props-modal')" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div id="my-props-list" style="padding:.5rem 0"></div>
   </div>
@@ -8620,7 +8639,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === CREATE DEAL MODAL (Phase 3 — Agent/Staff) === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="create-deal-modal">
   <div class="modal" style="max-width:460px;width:95%">
-    <button class="modal-x" onclick="document.getElementById('create-deal-modal').style.display='none'" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
+    <button class="modal-x" onclick="closeModal('create-deal-modal')" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
     <div style="margin-bottom:1rem">
       <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:.25rem" data-rw="DEAL NSHYA" data-en="NEW DEAL">NEW DEAL</div>
       <h2 style="font-size:1.1rem;font-weight:800;color:var(--navy)" data-rw="Fungura Transaction" data-en="Open Transaction">Open Transaction</h2>
@@ -8736,7 +8755,7 @@ html,body{overscroll-behavior-x:none}
         <button class="btn btn-outline" style="flex:1;justify-content:center" onclick="submitCommissionDecision(false)">
           <span data-rw="Siba" data-en="Reject">Reject</span>
         </button>
-        <button class="btn btn-outline" onclick="document.getElementById('approve-commission-modal').style.display='none'" style="padding:.5rem .8rem">✕</button>
+        <button class="btn btn-outline" onclick="closeModal('approve-commission-modal')" style="padding:.5rem .8rem">✕</button>
       </div>
     </div>
   </div>
@@ -8761,7 +8780,7 @@ html,body{overscroll-behavior-x:none}
 <!-- === MANUAL COMMISSION MODAL === -->
 <div class="modal-wrap" role="dialog" aria-modal="true" id="manual-commission-modal">
   <div class="modal" style="max-width:440px;width:95%">
-    <button class="modal-x" onclick="document.getElementById('manual-commission-modal').style.display='none'" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
+    <button class="modal-x" onclick="closeModal('manual-commission-modal')" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
     <div style="margin-bottom:1rem">
       <div style="font-size:.65rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:.25rem" data-rw="KOMISIYONI NSHYA" data-en="NEW COMMISSION">NEW COMMISSION</div>
       <h2 style="font-size:1.1rem;font-weight:800;color:var(--navy)" data-rw="Injiza Komisiyoni" data-en="Add Commission">Add Commission</h2>
@@ -9064,7 +9083,7 @@ html,body{overscroll-behavior-x:none}
         <button id="ds-confirm-btn" class="btn btn-navy" style="flex:1;justify-content:center" onclick="confirmSignature()">
           <span data-rw="Emeza Umukono" data-en="Sign Document">Sign Document</span>
         </button>
-        <button class="btn btn-outline" onclick="document.getElementById('document-sign-modal').style.display='none'" style="padding:.5rem .8rem">✕</button>
+        <button class="btn btn-outline" onclick="closeModal('document-sign-modal')" style="padding:.5rem .8rem">✕</button>
       </div>
     </div>
   </div>
@@ -9283,7 +9302,7 @@ html,body{overscroll-behavior-x:none}
         <button id="rp-submit-btn" class="btn btn-navy" style="flex:1;justify-content:center" onclick="submitPartnerRating()">
           <span data-rw="Ohereza Isuzuma" data-en="Submit Rating">Submit Rating</span>
         </button>
-        <button class="btn btn-outline" onclick="document.getElementById('rate-partner-modal').style.display='none'" style="padding:.5rem .8rem">✕</button>
+        <button class="btn btn-outline" onclick="closeRatePartner()" style="padding:.5rem .8rem">✕</button>
       </div>
     </div>
   </div>
@@ -10377,7 +10396,7 @@ html,body{overscroll-behavior-x:none}
   <div class="modal" style="max-width:500px;max-height:92vh;overflow-y:auto">
     <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--border)">
       <div class="modal-title">📊 Deal Tracker — Ikurikirana Transaction</div>
-      <button class="modal-x" onclick="document.getElementById('deal-modal').style.display='none'" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <button class="modal-x" onclick="closeModal('deal-modal')" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div id="deal-tracker-content" style="padding:.5rem 0"></div>
   </div>
@@ -10872,12 +10891,16 @@ if (rs && rv) rs.addEventListener('input', () => { rv.textContent = rs.value + '
 // _applyFavState() is called after dynamic property cards are rendered
 
 // ── PAYMENT MODAL
+// Was toggling the .open class directly — that gets visibility right
+// (.modal-wrap.open{display:flex}) but skips openModal()'s scroll lock,
+// focus trap, and Escape-to-close entirely, same underlying bug as
+// openDocumentUpload() etc. elsewhere in this file (see that comment).
 function openPay() {
   kmTrack('begin_checkout',{});
   if(kmFlag('payments')) injectRealPayForm();
-  document.getElementById('pay-modal').classList.add('open');
+  openModal('pay-modal');
 }
-function closePay() { document.getElementById('pay-modal').classList.remove('open'); }
+function closePay() { closeModal('pay-modal'); }
 document.getElementById('pay-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closePay(); });
 
 // ── CHAT WIDGET v2 — robust, persistent, typing indicator
@@ -14765,10 +14788,14 @@ function adminDeleteAll(status) {
 }
 
 // --- MY PROPERTIES ---
+// This declaration is superseded by the later Firestore-backed
+// openMyProps() further down the file (last declaration wins) — fixed
+// here too anyway so dead code doesn't sit around modeling the bug we
+// just fixed everywhere else.
 function openMyProps() {
   if (!currentUser) { go('auth'); return; }
-  var m = document.getElementById('my-props-modal');
-  if(m) m.style.display = 'flex';
+  if (!document.getElementById('my-props-modal')) return;
+  openModal('my-props-modal');
   var props = [];
   try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
   var mine = props.filter(function(p){ return p.ownerEmail === currentUser.email; });
@@ -14787,7 +14814,7 @@ function openMyProps() {
     var statusIcon = prop.status==='Approved'?'✅':prop.status==='Rejected'?'❌':'⏳';
     var priceDisplay = prop.price ? Number(prop.price).toLocaleString()+' RWF' : '—';
     var editBtn = prop.status === 'Pending'
-      ? '<button onclick=\'openEditProperty('+JSON.stringify(prop).replace(/\'/g,"\\'")+');document.getElementById("my-props-modal").style.display="none"\' '
+      ? '<button onclick=\'openEditProperty('+JSON.stringify(prop).replace(/\'/g,"\\'")+');closeModal("my-props-modal")\' '
         + 'style="background:none;border:1.5px solid var(--navy);color:var(--navy);border-radius:7px;padding:.25rem .6rem;font-size:.72rem;font-weight:700;cursor:pointer;margin-top:.4rem">✏️ '
         + (curLang==='rw'?'Hindura':'Edit') + '</button>'
       : '';
@@ -16570,7 +16597,10 @@ function openAdminLeads() {
 
   var m = document.getElementById('deal-modal');
   if(!m) return;
-  m.style.display = 'flex';
+  // Was m.style.display='flex' — bypassed openModal()'s scroll lock/focus
+  // trap/Escape handling, same bug as openDocumentUpload() etc. elsewhere
+  // in this file.
+  openModal('deal-modal');
 
   var content = document.getElementById('deal-tracker-content');
 
@@ -27690,14 +27720,18 @@ function renderDocumentList() {
 }
 
 // ── Upload Document ───────────────────────────────────
+// Was setting style.display directly instead of going through
+// openModal()/closeModal() like every other .modal-wrap in the app — that
+// bypassed lockBodyScroll() entirely (background page stayed scrollable
+// behind this modal), the focus trap, and Escape-to-close. Same fix as
+// openManualCommission()/openCreateDeal() below, same reason.
 function openDocumentUpload() {
-  var m = document.getElementById('document-upload-modal');
-  if (m) m.style.display = 'flex';
+  if (!document.getElementById('document-upload-modal')) return;
+  openModal('document-upload-modal');
   populateDocClientSelect();
 }
 function closeDocumentUpload() {
-  var m = document.getElementById('document-upload-modal');
-  if (m) m.style.display = 'none';
+  closeModal('document-upload-modal');
 }
 
 // Real client picker — every document must be attributed to the actual
@@ -27912,7 +27946,9 @@ function openSignDocument(id) {
   var fullNameEl = document.getElementById('ds-full-name');
   if (fullNameEl) fullNameEl.value = typeof currentUser !== 'undefined' && currentUser
     ? (currentUser.displayName || currentUser.name || '') : '';
-  m.style.display = 'flex';
+  // Was m.style.display='flex' — see openDocumentUpload()'s comment for
+  // why bypassing openModal() here is a real bug, not just style nitpick.
+  openModal('document-sign-modal');
 }
 
 function confirmSignature() {
@@ -27948,7 +27984,7 @@ function confirmSignature() {
     showToast(allSigned
       ? (curLang === 'rw' ? 'Dosiye yasinywe yose!' : 'Document fully signed!')
       : (curLang === 'rw' ? 'Umukono wawe wabitswe!' : 'Your signature recorded!'), 'success');
-    document.getElementById('document-sign-modal').style.display = 'none';
+    closeModal('document-sign-modal');
     if (btn) btn.disabled = false;
     for (var i = 0; i < _documents.length; i++) {
       if ((_documents[i]._docId || _documents[i].id) === id) {
@@ -29168,7 +29204,9 @@ function openApproveCommission(id) {
   }
   var idEl = document.getElementById('ac-comm-id');
   if (idEl) idEl.value = id;
-  m.style.display = 'flex';
+  // Was m.style.display='flex' — see openDocumentUpload()'s comment for
+  // why bypassing openModal() here is a real bug, not just style nitpick.
+  openModal('approve-commission-modal');
 }
 
 function submitCommissionDecision(approved) {
@@ -29194,7 +29232,7 @@ function submitCommissionDecision(approved) {
     showToast(approved
       ? (curLang === 'rw' ? 'Komisiyoni yemejwe!' : 'Commission approved!')
       : (curLang === 'rw' ? 'Komisiyoni yanzwe' : 'Commission rejected'), approved ? 'success' : 'info');
-    document.getElementById('approve-commission-modal').style.display = 'none';
+    closeModal('approve-commission-modal');
     for (var i = 0; i < _commissions.length; i++) {
       if ((_commissions[i]._docId || _commissions[i].id) === id) {
         _commissions[i].status = update.status;
@@ -29352,9 +29390,13 @@ function populateManualCommissionAgentSelect() {
     }).catch(function(e) { console.error('[Commission] populateManualCommissionAgentSelect', e); });
 }
 
+// Was setting style.display directly instead of going through
+// openModal()/closeModal() — see openDocumentUpload()'s comment above for
+// why that's a real bug (scroll lock, focus trap, and Escape-to-close all
+// silently skipped), not just a style-consistency nitpick.
 function openManualCommission() {
-  var m = document.getElementById('manual-commission-modal');
-  if (m) m.style.display = 'flex';
+  if (!document.getElementById('manual-commission-modal')) return;
+  openModal('manual-commission-modal');
   populateManualCommissionAgentSelect();
   var prv = document.getElementById('mc-preview');
   if (prv) prv.style.display = 'none';
@@ -29431,7 +29473,7 @@ function createManualCommission() {
     ref.update({ id: ref.id });
     logAudit('commission.manual.created', 'commissions', ref.id, null, { agentName: agentName, total: total });
     showToast(curLang === 'rw' ? 'Komisiyoni yabitswe!' : 'Commission saved!', 'success');
-    document.getElementById('manual-commission-modal').style.display = 'none';
+    closeModal('manual-commission-modal');
     if (agentSel) agentSel.value = '';
     if (propEl)  propEl.value  = '';
     if (valEl)   valEl.value   = '';
@@ -29989,9 +30031,11 @@ function submitCounterOffer() {
 }
 
 // ── Create New Deal (manual) ──────────────────────────
+// Was setting style.display directly instead of going through
+// openModal()/closeModal() — see openDocumentUpload()'s comment above for
+// why that's a real bug, not just a style-consistency nitpick.
 function openCreateDeal() {
-  var m = document.getElementById('create-deal-modal');
-  if (!m) return;
+  if (!document.getElementById('create-deal-modal')) return;
   /* Reset all fields on fresh open */
   ['cd-prop-title','cd-client-name','cd-client-phone','cd-price',
    'cd-lead-id','cd-agent-id','cd-agent-name-h'].forEach(function(id) {
@@ -30000,7 +30044,7 @@ function openCreateDeal() {
   });
   var typeEl = document.getElementById('cd-deal-type');
   if (typeEl) typeEl.value = 'sale';
-  m.style.display = 'flex';
+  openModal('create-deal-modal');
 }
 
 function createNewDeal() {
@@ -30079,7 +30123,7 @@ function createNewDeal() {
         'deal_assigned', 'deals', ref.id);
     }
     showToast(curLang === 'rw' ? 'Deal ifunguwe!' : 'Deal opened!', 'success');
-    document.getElementById('create-deal-modal').style.display = 'none';
+    closeModal('create-deal-modal');
     if (sbBtn) { sbBtn.disabled = false; if(sbLbl) sbLbl.textContent = curLang === 'rw' ? 'Fungura Deal' : 'Open Deal'; }
     /* Clear form + hidden fields */
     [propEl, clientEl, phoneEl, priceEl, leadIdEl, agentIdEl, agentNhEl].forEach(function(el) { if(el) el.value = ''; });
@@ -31263,6 +31307,7 @@ function renderDealKanban() {
       +   '<span class="crm-col-name">' + (curLang==='rw' ? stage.labelRW : stage.labelEN) + '</span>'
       +   '<span class="crm-col-count">' + cards.length + (totalStr ? ' &bull; ' + totalStr + ' RWF' : '') + '</span>'
       + '</div>'
+      + '<div class="crm-col-body">'
       + (cards.length === 0
           ? '<div style="padding:.8rem;text-align:center;color:var(--muted);font-size:.75rem">—</div>'
           : cards.map(function(deal) {
@@ -31284,6 +31329,7 @@ function renderDealKanban() {
                 + '</div>'
                 + '</div>';
             }).join(''))
+      + '</div>' /* closes .crm-col-body */
       + '</div>';
   }).join('');
 }
@@ -31336,6 +31382,7 @@ function renderCrmKanban() {
     if (totalVal > 0) {
       html += '<div class="crm-col-value">' + fmtRWF(totalVal) + '</div>';
     }
+    html += '<div class="crm-col-body">';
     if (cards.length === 0) {
       html += '<div style="text-align:center;padding:1.5rem .5rem;color:var(--muted);font-size:.7rem">—</div>';
     } else {
@@ -31360,7 +31407,8 @@ function renderCrmKanban() {
           + '</div>';
       });
     }
-    html += '</div>';
+    html += '</div>'; /* closes .crm-col-body */
+    html += '</div>'; /* closes .crm-col */
   });
   board.innerHTML = html;
 }
@@ -35385,8 +35433,10 @@ function _renderMyPropsList(mine, list) {
 
 function openMyProps() {
   if (!currentUser) { go('auth'); return; }
-  var m = document.getElementById('my-props-modal');
-  if (m) m.style.display = 'flex';
+  if (!document.getElementById('my-props-modal')) return;
+  // Was m.style.display='flex' — see openDocumentUpload()'s comment for
+  // why bypassing openModal() here is a real bug, not just style nitpick.
+  openModal('my-props-modal');
   var list = document.getElementById('my-props-list');
   if (!list) return;
 
@@ -35776,24 +35826,31 @@ function _fallbackCopy(text) {
 }
 
 /* Open referral panel modal */
+// Was setting style.display directly instead of going through
+// openModal()/closeModal() — see openDocumentUpload()'s comment (search
+// this file for that name) for why that's a real bug, not just a style
+// nitpick: no scroll lock, no focus trap, no Escape-to-close.
 function openReferralPanel() {
   _ensureReferralModal();
   loadReferralStats();
-  document.getElementById('ref-panel-modal').style.display = 'flex';
+  openModal('ref-panel-modal');
 }
 
 function closeReferralPanel() {
-  var m = document.getElementById('ref-panel-modal');
-  if (m) m.style.display = 'none';
+  closeModal('ref-panel-modal');
 }
 
-/* Dynamically create the referral modal (lazy init) */
+/* Dynamically create the referral modal (lazy init). No inline
+   style.display here — leaving that unset lets the .modal-wrap /
+   .modal-wrap.open CSS toggle drive visibility via openModal()/
+   closeModal() above; an inline display:none set once here would
+   permanently out-rank that class-based rule (inline style always wins
+   over a class selector), so the modal could never be shown again. */
 function _ensureReferralModal() {
   if (document.getElementById('ref-panel-modal')) return;
   var m = document.createElement('div');
   m.className     = 'modal-wrap';
   m.id            = 'ref-panel-modal';
-  m.style.display = 'none';
   m.innerHTML = '<div class="modal" style="max-width:480px;width:95vw">'
     + '<div class="modal-hdr">'
     + '<div><div class="modal-title" data-rw="Porogaramu yo Gutumiza Inshuti" data-en="Referral Program">Referral Program</div>'
