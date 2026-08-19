@@ -187,13 +187,39 @@ service cloud.firestore {
     match /properties/{id} {
       allow read:   if true;
       allow create: if isAuth() && hasStandardFields();
+      // Editing an already-Approved listing's own content is CEO-only —
+      // index.html's openEditProperty() only exposes this via a
+      // CEO-visible "Edit" button in the admin panel, but the client UI
+      // was never the real boundary: before this, isAdminOrStaff() (every
+      // staff-tier role, not just CEO) could already write any field to
+      // any property regardless of status via a direct Firestore call,
+      // Approved included. _isApprovedContentEditByNonCEO() closes that
+      // gap without touching what admin/staff can still do to an Approved
+      // listing — approve/reject, isActive toggle, approvedBy/approvedAt,
+      // featured, investmentDetails.totalRaised, etc. all stay available
+      // to the full isAdminOrStaff() tier exactly as before; only a write
+      // that touches this listing's actual content fields while it's
+      // Approved is now restricted to isCEO(). Status is stored
+      // inconsistently cased across this app ('Approved' vs 'approved' —
+      // see loadHomepageRotation()'s own comment on the same issue), so
+      // this compares lower().
+      function _isApprovedContentEditByNonCEO() {
+        return resource.data.get('status', '').lower() == 'approved'
+          && !isCEO()
+          && request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['type','category','district','sector','price','bedrooms',
+                      'bathrooms','area','description','title','amenities','images']);
+      }
       // The owning agent/owner may edit their own listing's content, but
       // never the fields that represent the admin-review decision itself
       // (status, approvedBy, approvedAt, isVerified) or reassign ownership
       // (agentId, ownerId) — matches what the self-edit UI actually sends
       // (see the edit-mode branch of submitProperty()) and closes off a
       // client-side bypass of the "every listing is admin-reviewed" guarantee.
-      allow update: if isAdminOrStaff()
+      // This branch already only ever fires while status is Pending (the
+      // client never lets an owner/agent reach this for an Approved
+      // listing), so it needs no separate CEO carve-out of its own.
+      allow update: if (isAdminOrStaff() && !_isApprovedContentEditByNonCEO())
                     || ((resource.data.agentId == request.auth.uid || resource.data.ownerId == request.auth.uid)
                         && request.resource.data.diff(resource.data).affectedKeys()
                            .hasOnly(['type','category','district','sector','price','bedrooms',
