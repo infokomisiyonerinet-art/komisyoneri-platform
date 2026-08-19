@@ -10011,6 +10011,10 @@ html,body{overscroll-behavior-x:none}
           <button class="btn btn-sm" onclick="toggleUserVerified(_spProfileId)" style="font-size:.75rem;background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0" id="sp-verify-btn" data-en="Verify">Verify</button>
           <button class="btn btn-sm" onclick="toggleUserActive(_spProfileId)" style="font-size:.75rem;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA" id="sp-active-btn" data-en="Suspend">Suspend</button>
         </div>
+        <!-- CEO-only, approved-agent-only — see deleteAgentPermanently()'s
+             own gating comment for why this is stricter than the rest of
+             this section (which shows for isExec(), i.e. CEO OR director). -->
+        <button class="btn btn-sm" onclick="deleteAgentPermanently(_spProfileId)" style="display:none;margin-top:.5rem;font-size:.75rem;background:#7c1d1d;color:#fff;border:1px solid #7c1d1d" id="sp-delete-agent-btn" data-en="Delete Agent Permanently">Delete Agent Permanently</button>
       </div>
       <div style="font-size:.85rem;font-weight:600;color:var(--navy);margin-bottom:.5rem" data-rw="Imikorere ya Vuba" data-en="Recent Activity">Recent Activity</div>
       <div id="sp-activity" style="font-size:.8rem;color:var(--muted);padding:.5rem 0"></div>
@@ -12399,8 +12403,17 @@ function logoutUser() {
 var _editPropId = null;
 
 function openEditProperty(prop) {
-  // Only Pending properties can be edited
-  if (prop.status !== 'Pending') {
+  // Only Pending properties can be edited — except the CEO, who may also
+  // edit an already-Approved listing (status stays Approved afterward,
+  // same as every other edit in this app never touching status; see
+  // rules/firestore.rules' _isApprovedContentEditByNonCEO() for the
+  // matching server-side restriction). Status is stored inconsistently
+  // cased across this app ('Approved' vs 'approved' — see
+  // loadHomepageRotation()'s own comment on the same issue), so this
+  // compares case-insensitively rather than assuming one casing.
+  var isApproved = (prop.status || '').toLowerCase() === 'approved';
+  var ceoEditingApproved = isApproved && _roleOf(currentUser) === 'ceo';
+  if (prop.status !== 'Pending' && !ceoEditingApproved) {
     showToast(curLang==='rw' ? 'Imitungo yemejwe ntishobora guhindurwa.' : 'Approved properties cannot be edited.', 'warn');
     return;
   }
@@ -24032,6 +24045,18 @@ function openStaffProfile(uid) {
       if (verBtn) verBtn.textContent = u.isVerified ? 'Unverify' : 'Verify';
       var actBtnEl = g('sp-active-btn');
       if (actBtnEl) actBtnEl.textContent = u.isActive === false ? 'Activate' : 'Suspend';
+      // Stricter than this whole section's own isExec() gate (CEO OR
+      // director) — permanent deletion is CEO-only, and only for an
+      // already-approved agent (role==='agent' AND isVerified/verified —
+      // this app has no separate 'approved' status string for agents, see
+      // _fsPendingApprove()). deleteAgentPermanently() re-checks both of
+      // these again itself before calling the Cloud Function, which
+      // re-checks a third time server-side — this is just the UI layer.
+      var delAgentBtn = g('sp-delete-agent-btn');
+      if (delAgentBtn) {
+        var isApprovedAgent = (u.role||'').toLowerCase() === 'agent' && (u.isVerified === true || u.verified === true);
+        delAgentBtn.style.display = (_roleOf(currentUser) === 'ceo' && isApprovedAgent) ? '' : 'none';
+      }
       var actEl = g('sp-activity');
       if (actEl) actEl.textContent = 'Loading activity...';
       db.collection('tasks').where('assignedTo','==',uid).where('isActive','==',true).orderBy('createdAt','desc').limit(5).get().then(function(snap) {
@@ -24501,6 +24526,57 @@ function toggleUserActive(uid) {
     if (actBtn) actBtn.textContent = newVal ? 'Suspend' : 'Activate';
     showToast(newVal ? (curLang === 'rw' ? 'Konti yafunguwe!' : 'Account activated!') : (curLang === 'rw' ? 'Konti ifunze!' : 'Account suspended!'), newVal ? 'success' : 'warn');
   }).catch(function() { showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error', 'error'); });
+}
+
+// Permanently deletes an already-approved agent's account — Firestore doc
+// AND Firebase Auth login, plus reassigning their properties/sites to the
+// CEO performing this and blocking outright if they still have active
+// deals/leads (see deleteApprovedAgent's own comment in functions/index.js
+// for the full cascade policy; this client function is UI-layer only —
+// the Cloud Function re-verifies CEO role and approved-agent status
+// itself and is the real security boundary here, same as every other
+// CEO-only action in this app).
+//
+// Irreversible, so this requires the CEO to type the agent's exact
+// display name before the call fires — a plain confirm() dialog is too
+// easy to reflexively click through for something that also deletes the
+// person's login.
+function deleteAgentPermanently(uid) {
+  if (!uid) return;
+  var u = _hrStaff.find(function(x) { return x.id === uid; });
+  if (!u) return;
+  if (_roleOf(currentUser) !== 'ceo') { showToast('Only the CEO can do this.', 'error'); return; }
+  var isApprovedAgent = (u.role||'').toLowerCase() === 'agent' && (u.isVerified === true || u.verified === true);
+  if (!isApprovedAgent) { showToast('Only an already-approved agent can be deleted this way.', 'error'); return; }
+
+  var name = u.displayName || u.email || uid;
+  var typed = prompt(
+    'This permanently deletes ' + name + ' — their account, login, and profile cannot be recovered.\n\n' +
+    'Their properties and sites will be reassigned to you; any active deals or leads will block this instead of being silently reassigned; commissions and other financial records are kept untouched.\n\n' +
+    'Type the agent name exactly ("' + name + '") to confirm:'
+  );
+  if (typed === null) return;
+  if (typed.trim() !== name) {
+    showToast('Name did not match — nothing was deleted.', 'warn');
+    return;
+  }
+
+  var btn = g('sp-delete-agent-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Deleting…'; }
+
+  cloudFns.httpsCallable('deleteApprovedAgent')({ uid: uid }).then(function(result) {
+    var data = (result && result.data) || {};
+    closeModal('staff-profile-modal');
+    showToast('Agent deleted. ' + (data.reassignedProperties||0) + ' propert' +
+      ((data.reassignedProperties||0) === 1 ? 'y' : 'ies') + ' and ' + (data.reassignedSites||0) +
+      ' site(s) reassigned to you.', 'success');
+    _hrStaff = _hrStaff.filter(function(x) { return x.id !== uid; });
+    filterStaff();
+  }).catch(function(err) {
+    showToast((err && err.message) || 'Could not delete this agent. Please try again.', 'error');
+  }).finally(function() {
+    if (btn) { btn.disabled = false; btn.textContent = 'Delete Agent Permanently'; }
+  });
 }
 
 /* ── PAYROLL ── */
@@ -34146,7 +34222,12 @@ function submitProperty() {
     var ei = -1;
     for (var i=0; i<eProps.length; i++) { if (String(eProps[i].id)===String(editId)) { ei=i; break; } }
     if (ei===-1) { showToast('Imitungo ntiboneka.'); closeAddProperty(); return; }
-    if (eProps[ei].status !== 'Pending') {
+    // Same CEO-on-Approved carve-out as openEditProperty()'s own gate —
+    // must be re-checked here too since this function is the one that
+    // actually fires the Firestore write, not just opens the modal.
+    var editIsApproved = (eProps[ei].status || '').toLowerCase() === 'approved';
+    var editCeoOnApproved = editIsApproved && _roleOf(currentUser) === 'ceo';
+    if (eProps[ei].status !== 'Pending' && !editCeoOnApproved) {
       showToast(curLang==='rw'?'Imitungo yemejwe ntishobora guhindurwa.':'Only pending listings can be edited.','warn');
       closeAddProperty(); return;
     }
@@ -34357,6 +34438,10 @@ function adminRender(filter) {
         + '<div style="font-size:.7rem;font-weight:700;color:'+statusColor+';text-align:center">'+escapeHtml(st)+'</div>'
         + (st.toLowerCase()!=='approved'?'<button onclick="_fsAdminApprove('+globalIdx+')" style="background:#27A84A;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">✅ Emeza</button>':'')
         + (st.toLowerCase()!=='rejected'?'<button onclick="_fsAdminReject('+globalIdx+')" style="background:#e53e3e;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">❌ Kataa</button>':'')
+        // CEO-only, Approved-only — see openEditProperty()'s own gate,
+        // which this button feeds into (re-checked there and in
+        // rules/firestore.rules, not just hidden here).
+        + (st.toLowerCase()==='approved' && _roleOf(currentUser)==='ceo'?'<button onclick="_ceoEditApprovedProperty('+globalIdx+')" style="background:#0D3B8C;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">✏️ Hindura</button>':'')
         + '<button onclick="_fsAdminDelete('+globalIdx+')" style="background:#718096;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem">🗑️ Siba</button>'
         + '</div></div></div>';
     }).join('');
@@ -34433,6 +34518,27 @@ function _fsAdminReject(idx) {
   var li=ls.findIndex(function(p){return String(p.id)===String(prop.id||prop._fsId);});
   if(li>=0) ls[li].status='Rejected'; try{localStorage.setItem('km_properties',JSON.stringify(ls));}catch(e){}
   showToast('&#10060; Imitungo yananiwe.'); adminRender(adminCurrentFilter);
+}
+
+// Opens the shared edit modal (openEditProperty(), which the CEO-on-
+// Approved carve-out already covers) for a property picked from THIS
+// admin list, whose entries come straight from Firestore rather than the
+// current browser's own km_properties cache. submitProperty()'s edit-mode
+// save path looks the property up in that cache by id, so a listing
+// nobody's loadApprovedProperties() call has synced into this browser yet
+// (very possible here — the CEO may be editing a listing they have never
+// personally browsed) needs to be upserted into it first, or the save
+// would silently fail with "Imitungo ntiboneka" (property not found).
+// Only inserts/updates this one entry — never wipes the rest of the
+// cache the way _mergePropsToCache() would if handed just this one prop.
+function _ceoEditApprovedProperty(idx) {
+  var prop = _adminAllProps[idx]; if (!prop) return;
+  var cache = []; try { cache = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e) {}
+  var i = cache.findIndex(function(p) { return String(p.id) === String(prop.id||prop._fsId); });
+  var cacheEntry = Object.assign({}, prop, { id: prop.id || prop._fsId, _fsId: prop._fsId || prop.id });
+  if (i >= 0) cache[i] = cacheEntry; else cache.push(cacheEntry);
+  try { localStorage.setItem('km_properties', JSON.stringify(cache)); } catch(e) {}
+  openEditProperty(cacheEntry);
 }
 
 /* Soft-delete a property */

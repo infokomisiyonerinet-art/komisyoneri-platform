@@ -1343,6 +1343,123 @@ exports.createStaffOrPartnerAccount = onCall({ region: REGION }, async (request)
 });
 
 /**
+ * ── Permanent Agent Deletion (deleteApprovedAgent) ──────────────────────
+ *
+ * CEO-only, same server-side re-verification pattern as
+ * createStaffOrPartnerAccount right above (never trust the client's role
+ * claim — re-read users/{uid} here). Deleting a Firebase Auth account is
+ * an Admin-SDK-only operation, so — same reasoning as staff provisioning —
+ * this has to be a Cloud Function, not a client-side Firestore write.
+ *
+ * Scoped to an already-approved agent only (role === 'agent' and
+ * isVerified/verified === true — this app has no separate "agents"
+ * collection or distinct "approved" status string; approval IS those two
+ * fields on the users/{uid} doc, set by index.html's _fsPendingApprove()).
+ *
+ * Cascade behavior (confirmed with the requester before implementing,
+ * since this app has no existing "delete an agent" precedent to copy):
+ *   - deals / leads: deletion is BLOCKED if the agent has any not yet in
+ *     pipelineStage closed_won/closed_lost — these are active business in
+ *     progress, never silently reassigned or orphaned.
+ *   - properties.agentId / sites.managingAgentId: reassigned to the CEO
+ *     performing the deletion (the one account guaranteed to always
+ *     exist), so listings/sites stay properly owned instead of pointing
+ *     at a deleted account.
+ *   - commissions / subscriptions / payout_requests / documents /
+ *     viewings / site_enquiries: left completely untouched. These are
+ *     financial/historical records — agentId becomes a dangling reference
+ *     to a deleted account on purpose, the same way a paid invoice still
+ *     names a since-deleted client elsewhere in a normal accounting
+ *     system. Never modified, never deleted.
+ */
+exports.deleteApprovedAgent = onCall({ region: REGION }, async (request) => {
+  const auth = request.auth;
+  if (!auth || !auth.uid) {
+    throw new HttpsError('unauthenticated', 'You must be signed in.');
+  }
+  const db = getFirestore();
+
+  const callerDoc = await db.collection('users').doc(auth.uid).get();
+  const callerRole = callerDoc.exists ? String(callerDoc.data().role || '').toLowerCase() : '';
+  if (callerRole !== 'ceo') {
+    logger.warn('deleteApprovedAgent: rejected — caller is not CEO', { callerUid: auth.uid, callerRole });
+    throw new HttpsError('permission-denied', 'Only the CEO can permanently delete an agent.');
+  }
+
+  const targetUid = String((request.data || {}).uid || '').trim();
+  if (!targetUid) throw new HttpsError('invalid-argument', 'Missing agent uid.');
+  if (targetUid === auth.uid) throw new HttpsError('invalid-argument', 'Cannot delete your own account this way.');
+
+  const targetDoc = await db.collection('users').doc(targetUid).get();
+  if (!targetDoc.exists) throw new HttpsError('not-found', 'Agent not found.');
+  const targetData = targetDoc.data();
+  const targetRole = String(targetData.role || '').toLowerCase();
+  const isApprovedAgent = targetRole === 'agent' && (targetData.isVerified === true || targetData.verified === true);
+  if (!isApprovedAgent) {
+    throw new HttpsError('failed-precondition', 'Only an already-approved (verified) agent can be deleted this way.');
+  }
+
+  // Active-business guard — deals and leads share the same pipelineStage
+  // field/values (see EXEC_CRM_STAGES/CRM_STAGES in index.html); fetched
+  // and filtered in JS rather than a composite `not-in` query since a
+  // single agent's deal/lead volume here is always small.
+  const CLOSED_STAGES = ['closed_won', 'closed_lost'];
+  const [dealsSnap, leadsSnap] = await Promise.all([
+    db.collection('deals').where('agentId', '==', targetUid).get(),
+    db.collection('leads').where('agentId', '==', targetUid).get()
+  ]);
+  const activeDeals = dealsSnap.docs.filter((d) => CLOSED_STAGES.indexOf(d.data().pipelineStage) === -1);
+  const activeLeads = leadsSnap.docs.filter((d) => CLOSED_STAGES.indexOf(d.data().pipelineStage) === -1);
+  if (activeDeals.length || activeLeads.length) {
+    throw new HttpsError('failed-precondition',
+      'Cannot delete: ' + activeDeals.length + ' active deal(s) and ' + activeLeads.length +
+      ' active lead(s) still assigned to this agent. Reassign or close them first, then retry.');
+  }
+
+  // Reassign properties/sites to the CEO performing the deletion, batched
+  // (Firestore batches cap at 500 writes — this app's per-agent listing
+  // volume is nowhere near that, so a single batch is fine).
+  const [propsSnap, sitesSnap] = await Promise.all([
+    db.collection('properties').where('agentId', '==', targetUid).get(),
+    db.collection('sites').where('managingAgentId', '==', targetUid).get()
+  ]);
+  const now = FieldValue.serverTimestamp();
+  if (propsSnap.size || sitesSnap.size) {
+    const batch = db.batch();
+    propsSnap.docs.forEach((d) => batch.update(d.ref, { agentId: auth.uid, updatedAt: now, updatedBy: auth.uid }));
+    sitesSnap.docs.forEach((d) => batch.update(d.ref, { managingAgentId: auth.uid, updatedAt: now, updatedBy: auth.uid }));
+    await batch.commit();
+  }
+
+  // Auth account first — if this fails, nothing else has been touched yet
+  // and the whole operation can just be retried. 'auth/user-not-found' is
+  // tolerated (the Firestore profile can outlive its Auth record in rare
+  // cases, e.g. a prior manual cleanup) rather than blocking the deletion
+  // on a record that's already gone.
+  try {
+    await getAuth().deleteUser(targetUid);
+  } catch (err) {
+    if (!err || err.code !== 'auth/user-not-found') {
+      logger.error('deleteApprovedAgent: Auth user deletion failed', { targetUid, error: err && err.message });
+      throw new HttpsError('internal', 'Could not delete the agent login. No data was changed — please retry.');
+    }
+  }
+
+  await db.collection('users').doc(targetUid).delete();
+
+  await logAudit(db, 'agent.permanently_deleted', 'users', targetUid,
+    { role: targetData.role, displayName: targetData.displayName, email: targetData.email,
+      reassignedProperties: propsSnap.size, reassignedSites: sitesSnap.size },
+    null, auth.uid);
+
+  logger.info('deleteApprovedAgent: agent deleted', {
+    targetUid, deletedBy: auth.uid, reassignedProperties: propsSnap.size, reassignedSites: sitesSnap.size
+  });
+
+  return { ok: true, reassignedProperties: propsSnap.size, reassignedSites: sitesSnap.size };
+});
+
+/**
  * Public homepage stats aggregate.
  *
  * The homepage's hero section shows real, live counts (active listings,
