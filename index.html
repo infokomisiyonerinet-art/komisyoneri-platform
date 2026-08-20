@@ -15314,7 +15314,15 @@ function submitDeposit() {
   if(!name||!name.value){showToast('Shyira amazina yawe!', 'error');return;}
   if(!phone||!phone.value){showToast('Shyira telefoni yawe!', 'error');return;}
   closeDepositPay();
-  showToast('Deposit yoherejwe! Tuzakwemeza mu masaha 24. ✅');
+  // Used to show "Deposit sent! We'll confirm within 24h" here with zero
+  // backend behind it — no write, no notification, no actual deposit ever
+  // recorded anywhere. Online payment stays Coming Soon for this launch, so
+  // route to WhatsApp instead, matching the already-honest deposit fallback
+  // used elsewhere in this app (openDepositPay's "Coming Soon" modal) rather
+  // than implying a transaction happened.
+  var msg = encodeURIComponent('Ndashaka kwishyura deposit — Amazina: ' + name.value + ', Telefoni: ' + phone.value);
+  window.open('https://wa.me/250783177254?text=' + msg, '_blank');
+  showToast('Turaguhamagara kuri WhatsApp kugira ngo dukwemeze deposit yawe.');
 }
 
 
@@ -18541,7 +18549,12 @@ function injectRealPayForm() {
       '<div class="pay-m" onclick="this.parentElement.querySelectorAll(\'.pay-m\').forEach(x= role="button" tabindex="0">x.classList.remove(\'active\'));this.classList.add(\'active\')"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span>Karita ya Banki</span></div>' +
       '<div class="pay-m" onclick="this.parentElement.querySelectorAll(\'.pay-m\').forEach(x= role="button" tabindex="0">x.classList.remove(\'active\'));this.classList.add(\'active\')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Bank Transfer</span></div>' +
     '</div>' +
-    '<button class="btn btn-navy btn-lg" style="width:100%;justify-content:center;margin-top:.5rem" onclick="closePay();showToast(\'Kwishyura kwaratangiye! Uzabona ubutumwa.\')">' +
+    // Used to claim "Payment started! You'll receive a message" here with no
+    // backend behind it whatsoever. Online payment stays Coming Soon for
+    // this launch — route to WhatsApp instead, the same honest fallback
+    // already used elsewhere in this app, rather than implying a
+    // transaction happened.
+    '<button class="btn btn-navy btn-lg" style="width:100%;justify-content:center;margin-top:.5rem" onclick="closePay();window.open(\'https://wa.me/250783177254?text=Ndashaka%20kwishyura\',\'_blank\');showToast(\'Turaguhamagara kuri WhatsApp kugira ngo dukwemeze kwishyura.\')">' +
       '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Emeza Kwishyura' +
     '</button>' +
     '<div class="sec-badge"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>256-bit SSL</span><span>Secured by KOMISIYONERI</span></div>';
@@ -21708,40 +21721,46 @@ function loadExecKPIs() {
   // to attribute an invoice's revenue to the month it was CREATED even
   // when it was actually paid the following month, so this tile and
   // Accounting's own revenue figure could disagree for the same invoice.
+  // Each KPI tile below used to fail completely silently (.catch(function(){}))
+  // on any Firestore error, including a missing composite index — the tile
+  // just stayed at its static default with no way to tell "no data" apart
+  // from "the query is broken." Logging err.code/err.message on every one
+  // makes that visible in the console instead, matching the pattern already
+  // used successfully elsewhere in this app (e.g. the photo-upload path).
   db.collection('invoices').where('status','==','paid').where('isActive','==',true)
     .where('paidAt','>=',ts).get().then(function(snap) {
       var total = 0;
       snap.forEach(function(d) { total += (d.data().totalAmount || 0); });
       var el = g('exec-kpi-rev');
       if (el) el.textContent = fmtRWF(total);
-    }).catch(function(){});
+    }).catch(function(err) { console.error('[ExecDash] revenue KPI query failed:', err.code || '', err.message); });
 
   db.collection('deals').where('isActive','==',true).where('pipelineStage','not-in',['closed_won','closed_lost']).count().get().then(function(snap) {
     var el = g('exec-kpi-deals');
     if (el) el.textContent = snap.data().count;
-  }).catch(function(){});
+  }).catch(function(err) { console.error('[ExecDash] active-deals KPI query failed:', err.code || '', err.message); });
 
   db.collection('properties').where('isActive','==',true).where('status','==','approved').count().get().then(function(snap) {
     var el = g('exec-kpi-props');
     if (el) el.textContent = snap.data().count;
-  }).catch(function(){});
+  }).catch(function(err) { console.error('[ExecDash] properties KPI query failed:', err.code || '', err.message); });
 
   db.collection('users').where('role','==','agent').where('isActive','==',true).count().get().then(function(snap) {
     var el = g('exec-kpi-agents');
     if (el) el.textContent = snap.data().count;
-  }).catch(function(){});
+  }).catch(function(err) { console.error('[ExecDash] agents KPI query failed:', err.code || '', err.message); });
 
   db.collection('leads').where('isActive','==',true).where('createdAt','>=',ts).count().get().then(function(snap) {
     var el = g('exec-kpi-leads');
     if (el) el.textContent = snap.data().count;
-  }).catch(function(){});
+  }).catch(function(err) { console.error('[ExecDash] leads KPI query failed:', err.code || '', err.message); });
 
   db.collection('commissions').where('isActive','==',true).where('createdAt','>=',ts).get().then(function(snap) {
     var total = 0;
     snap.forEach(function(d) { total += (d.data().totalCommission || 0); });
     var el = g('exec-kpi-comm');
     if (el) el.textContent = fmtRWF(total);
-  }).catch(function(){});
+  }).catch(function(err) { console.error('[ExecDash] commissions KPI query failed:', err.code || '', err.message); });
 
   loadExecOverview();
 }
@@ -22247,7 +22266,7 @@ function loadExecHealth() {
     db.collection(m.col).where('isActive','==',true).get().then(function(snap) {
       var cnt = g('exec-health-cnt-' + m.key);
       if (cnt) cnt.textContent = snap.size;
-    }).catch(function(){});
+    }).catch(function(err) { console.error('[ExecDash] health count for ' + m.key + ' failed:', err.code || '', err.message); });
   });
 }
 
@@ -22319,7 +22338,7 @@ function loadExecTopAgents() {
     var namePromises = sorted.map(function(item) {
       return db.collection('users').doc(item.name).get().then(function(u) {
         if (u.exists) item.name = u.data().displayName || u.data().email || item.name;
-      }).catch(function(){});
+      }).catch(function(err) { console.warn('[ExecDash] top-agents name lookup failed for ' + item.name + ':', err.code || '', err.message); });
     });
     Promise.all(namePromises).then(function() {
       var html = '<table class="exec-perf-table"><thead><tr><th>#</th><th data-rw="Izina" data-en="Agent">Agent</th><th data-rw="Komisiyoni" data-en="Commission">Commission</th><th>#Deals</th></tr></thead><tbody>';
