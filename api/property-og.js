@@ -61,9 +61,16 @@ function fmtPrice(n) {
 // inject a fill/crop to the ~1200x630 size platforms want for a link-
 // preview card. Falls through untouched for any non-Cloudinary URL (e.g.
 // legacy Firebase Storage images on older listings).
+//
+// f_jpg (not f_auto): f_auto negotiates format off the requester's Accept
+// header, and social-preview crawlers are inconsistent about sending one —
+// some get served WebP/AVIF back, which WhatsApp's in-app preview renderer
+// in particular has a documented history of failing to display (shows no
+// image at all, not a broken-image icon). JPG is the one format every
+// crawler in the has-header allowlist below is guaranteed to render.
 function cloudinaryPreviewUrl(url) {
   if (typeof url !== 'string' || url.indexOf('res.cloudinary.com') === -1) return url;
-  return url.replace('/upload/', '/upload/c_fill,w_1200,h_630,q_auto,f_auto/');
+  return url.replace('/upload/', '/upload/c_fill,w_1200,h_630,q_auto,f_jpg/');
 }
 
 function renderHtml(opts) {
