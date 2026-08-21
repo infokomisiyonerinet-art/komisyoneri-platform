@@ -5,20 +5,61 @@
 // preview crawlers (facebookexternalhit, WhatsApp, Twitterbot, LinkedInBot,
 // etc.) generally don't execute JavaScript — they read only the initial
 // HTML response — so the SPA's client-side-injected meta tags (see
-// _updatePropertyMeta() in index.html) are invisible to them. vercel.json
-// rewrites /property/:id here ONLY when the request's User-Agent matches a
-// known crawler; every other visitor gets the normal index.html SPA, which
-// opens the same property client-side via openPropDetail().
+// _updatePropertyMeta() in index.html) are invisible to them.
+//
+// vercel.json rewrites EVERY /property/:id request here — unconditionally,
+// for crawlers and humans alike. The crawler/human split used to live in
+// vercel.json itself (a rewrite with a `has: user-agent` condition, falling
+// through to a separate plain catch-all rewrite for everyone else); that
+// depended on Vercel's conditional-rewrite fallthrough behaving exactly as
+// expected for a brand-new path pattern, which turned out to 404 real
+// shared links instead of falling through — see isCrawlerRequest() below,
+// which now makes that decision here in plain, directly-testable JS
+// instead. A human (anything isCrawlerRequest() says isn't a bot) gets
+// index.html's actual bytes read straight off disk (see includeFiles for
+// this function in vercel.json) and served back verbatim — from the
+// browser's point of view this is indistinguishable from Vercel's own
+// static index.html, so the SPA boots normally and opens the property
+// client-side via openPropDetail() exactly as before.
 //
 // Reads straight from Firestore's REST API using the same public web API
 // key the client SDK itself uses in index.html — no service-account
 // credentials needed, since rules/firestore.rules already allows
 // unconditional public read on properties/{id}.
 
+const fs = require('fs');
+const path = require('path');
+
 const PROJECT_ID = 'komisyoneri-platform-prod';
 const API_KEY = 'AIzaSyCw9NYlw0XLC26Di-nFCNOuL7D6RX8k820';
 const SITE_URL = 'https://komisiyoneri.co.rw';
 const DEFAULT_IMAGE = SITE_URL + '/images/kigali-skyline.jpg';
+
+// Same bot list the old vercel.json `has` condition used, now matched here
+// instead — case-insensitive, since nothing about that decision needs to
+// be case-sensitive and JS regex makes it free to fix.
+//
+// This alone reproduced the reported bug: WhatsApp's Android in-app
+// browser — what actually opens when a HUMAN taps a link shared to a
+// WhatsApp chat/Status — sends a UA like "...Chrome/97.0.4692.98 Mobile
+// Safari/537.36 WhatsApp/2.23.20.0 A", which also contains "WhatsApp" and
+// was matching this same check. That routed the real human to this tiny
+// OG-tag-only shell instead of the app. WhatsApp's own preview-fetch bot
+// (the thing that's actually supposed to land here) is a lightweight HTTP
+// client with no browser-engine signature in its UA at all — see
+// isCrawlerRequest() below, which uses that distinction to tell the two
+// apart. Google's own crawlers are the one deliberate exception: they
+// legitimately run on Chrome-based infrastructure even as the real bot.
+const LIGHTWEIGHT_BOT_RE = /facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|redditbot|Pinterest|Applebot|SkypeUriPreview|vkShare|W3C_Validator/i;
+const GOOGLE_BOT_RE = /Google-InspectionTool|GoogleOther/i;
+const REAL_BROWSER_ENGINE_RE = /Chrome\/|CriOS\/|FxiOS\/|Firefox\//i;
+
+function isCrawlerRequest(ua) {
+  ua = ua || '';
+  if (GOOGLE_BOT_RE.test(ua)) return true;
+  if (LIGHTWEIGHT_BOT_RE.test(ua)) return !REAL_BROWSER_ENGINE_RE.test(ua);
+  return false;
+}
 
 function escapeHtml(s) {
   return String(s == null ? '' : s)
@@ -105,10 +146,42 @@ function renderHtml(opts) {
     + '</body></html>';
 }
 
+// Serves the real SPA shell for a human visitor. Reads index.html off disk
+// (bundled into this function via the "includeFiles" entry in vercel.json)
+// rather than redirecting — a redirect would round-trip through the browser
+// an extra time and change what shows in the address bar mid-navigation;
+// this way /property/{id} in the address bar is served exactly the bytes
+// Vercel's own static hosting would have served, and the SPA's own router
+// takes it from there identically either way.
+var _indexHtmlCache = null;
+function serveSpaShell(res) {
+  try {
+    if (!_indexHtmlCache) {
+      _indexHtmlCache = fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf8');
+    }
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+    return res.status(200).end(_indexHtmlCache);
+  } catch (err) {
+    // index.html couldn't be read (e.g. includeFiles misconfigured) — a
+    // redirect to the bare domain is a worse experience than the SPA
+    // deep-linking straight to the property, but it's infinitely better
+    // than a 404: it still gets the visitor into the real app.
+    console.error('[property-og] failed to read index.html for a human visitor:', err.message);
+    res.setHeader('Location', '/');
+    return res.status(302).end();
+  }
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     res.setHeader('Allow', 'GET, HEAD');
     return res.status(405).end('Method not allowed');
+  }
+
+  var ua = (req.headers && req.headers['user-agent']) || '';
+  if (!isCrawlerRequest(ua)) {
+    return serveSpaShell(res);
   }
 
   var id = req.query && req.query.id;

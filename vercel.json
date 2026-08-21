@@ -6,13 +6,6 @@
   "rewrites": [
     {
       "source": "/property/:id",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": "(facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|redditbot|Pinterest|Applebot|SkypeUriPreview|vkShare|W3C_Validator|Google-InspectionTool|GoogleOther)"
-        }
-      ],
       "destination": "/api/property-og?id=:id"
     },
     {
@@ -20,6 +13,11 @@
       "destination": "/index.html"
     }
   ],
+  "functions": {
+    "api/property-og.js": {
+      "includeFiles": "index.html"
+    }
+  },
   "headers": [
     {
       "source": "/sw.js",
