@@ -12622,6 +12622,24 @@ var CLOUDINARY_CONFIG = {
   uploadPreset: 'komisyoneri_property_images'
 };
 
+// Cloudinary serves any size on demand via URL transformation params —
+// request an appropriately-sized, compressed version for the context an
+// image is actually rendered in, instead of the full original (uploads are
+// already capped at 1920px by PropImageUploader below, but that's still a
+// multi-hundred-KB download for e.g. a 68x52px gallery thumbnail) scaled
+// down by CSS after the fact. q_auto/f_auto let Cloudinary pick the best
+// quality/format for the requesting browser (real browsers — unlike some
+// social-preview crawlers, see api/property-og.js's f_jpg comment for why
+// that server-rendered path deliberately avoids f_auto — send a proper
+// Accept header, so f_auto is the right call here). Falls through
+// untouched for any non-Cloudinary URL (e.g. legacy Firebase Storage
+// images from before the Cloudinary migration).
+function _cldSize(url, w, h) {
+  if (typeof url !== 'string' || url.indexOf('res.cloudinary.com') === -1) return url;
+  var t = 'c_fill,w_' + w + (h ? ',h_' + h : '') + ',q_auto,f_auto';
+  return url.replace('/upload/', '/upload/' + t + '/');
+}
+
 var PropImageUploader = (function() {
   var MAX_IMAGES = 15;
   var MAX_DIMENSION = 1920;
@@ -13744,7 +13762,7 @@ function renderQsSuggestions(query, boxId) {
     var p=x.p;
     var hasImg = p.img1 && p.img1.length > 10;
     var thumb = hasImg
-      ? '<img class="qs-thumb" src="'+escapeHtml(p.img1)+'" loading="lazy" alt="'+escapeHtml(p.title)+'" onerror="this.style.display=\'none\'">'
+      ? '<img class="qs-thumb" src="'+escapeHtml(_cldSize(p.img1,96,80))+'" loading="lazy" alt="'+escapeHtml(p.title)+'" onerror="this.style.display=\'none\'">'
       : '<div class="qs-thumb-ph">🏠</div>';
     var loc = escapeHtml([p.district,p.sector].filter(Boolean).join(', '));
     return '<div class="qs-item" onclick="qs_openProp(\''+String(p.id)+'\',\''+boxId+'\')" role="button" tabindex="0">'+thumb
@@ -14085,7 +14103,7 @@ function usearchPropertyItemHtml(x) {
   var p = x.item;
   var loc = escapeHtml([p.district, p.sector].filter(Boolean).join(', '));
   return '<div class="usearch-result" onclick="usearchSelectProperty(\'' + String(p.id) + '\')" role="button" tabindex="0">'
-    + (p.img1 ? '<img class="usearch-result-ic" src="' + escapeHtml(p.img1) + '" loading="lazy" alt="">' : '<div class="usearch-result-ic">🏠</div>')
+    + (p.img1 ? '<img class="usearch-result-ic" src="' + escapeHtml(_cldSize(p.img1,88,80)) + '" loading="lazy" alt="">' : '<div class="usearch-result-ic">🏠</div>')
     + '<div class="usearch-result-info"><div class="usearch-result-title">' + escapeHtml(p.title || p.type || 'Property') + '</div>'
     + '<div class="usearch-result-meta">' + (loc || 'Rwanda') + (p.type ? ' · ' + escapeHtml(p.type) : '') + '</div></div>'
     + (p.price ? '<div class="usearch-result-price">' + fmtPriceSh(p.price) + '</div>' : '')
@@ -14550,7 +14568,7 @@ function renderUserPropCard(prop) {
 
   // Image — lazy-loaded: URL stashed in data-bg, applied by the IntersectionObserver
   // in lazyLoadPropImages() once the card scrolls near the viewport.
-  var imgBg = prop.img1 ? ' data-bg="' + prop.img1 + '" style="background-size:cover;background-position:center;background-repeat:no-repeat"' : '';
+  var imgBg = prop.img1 ? ' data-bg="' + _cldSize(prop.img1,480,390) + '" style="background-size:cover;background-position:center;background-repeat:no-repeat"' : '';
 
   // Badges
   var topBadges = '';
@@ -15664,7 +15682,7 @@ function loadSimilarProperties() {
         : Math.round(parseInt(prop.price)/1000) + 'K RWF')
       : '—';
     if (prop.service === 'Gukodesha') priceDisplay += '/mo';
-    var imgStyle = prop.img1 ? 'background:url(' + prop.img1 + ') center/cover no-repeat' : '';
+    var imgStyle = prop.img1 ? 'background:url(' + _cldSize(prop.img1,96,80) + ') center/cover no-repeat' : '';
     var colorClass = prop.img1 ? '' : colors[i % colors.length];
     var matchBadge = item.score === 2
       ? '<span style="font-size:.68rem;background:var(--green);color:#fff;border-radius:4px;padding:.1rem .35rem;margin-left:.3rem">✓ Ifanana</span>'
@@ -16995,13 +17013,28 @@ function openAdminAddProp() {
 // already offers an opt-in "Try demo listings!" button (see
 // _renderApprovedGrids()) — demo data should only ever appear via that
 // explicit user choice, not be seeded ahead of time on every visit.
+// loadApprovedProperties() targets #p-grid-main and loadHomepageRotation()
+// targets #p-grid-home — but every .page in this single-document SPA is
+// always present in the DOM (only CSS-hidden when inactive), so both
+// element-existence checks pass regardless of which page is actually
+// landed on. Left unguarded, a visitor landing directly on /property/{id}
+// (e.g. from a WhatsApp share) fired BOTH a 60-doc /listings query AND a
+// ~170-doc homepage-rotation query set on top of the detail page's own
+// fetch — pure waste. _isBootLandingPath() gates each to the one page it
+// actually belongs to; go()'s own listings-navigation and home-navigation
+// hooks (elsewhere in this file) still fire it correctly on later in-app
+// navigation regardless of this gate.
+function _isBootLandingPath(path) {
+  // Matches the DOMContentLoaded router's own path normalization below —
+  // stripping a trailing slash turns '/' itself into '', which needs the
+  // same '|| /' fallback or the home case can never match.
+  return (window.location.pathname.replace(/\/$/, '') || '/') === path;
+}
 document.addEventListener('DOMContentLoaded', function() {
-  loadApprovedProperties();
-  if (typeof loadHomepageRotation === 'function') loadHomepageRotation();
+  if (_isBootLandingPath('/listings')) loadApprovedProperties();
 });
 if (document.readyState !== 'loading') {
-  loadApprovedProperties();
-  if (typeof loadHomepageRotation === 'function') loadHomepageRotation();
+  if (_isBootLandingPath('/listings')) loadApprovedProperties();
 }
 
 
@@ -17226,7 +17259,7 @@ function openPropDetail(propId) {
   var heroBg = document.querySelector('.det-hero-bg');
   if(heroBg) {
     if(prop.img1) {
-      heroBg.style.backgroundImage = 'url('+prop.img1+')';
+      heroBg.style.backgroundImage = 'url('+_cldSize(prop.img1,1600,800)+')';
       heroBg.style.backgroundSize = 'cover';
       heroBg.style.backgroundPosition = 'center';
       heroBg.querySelector('svg') && (heroBg.querySelector('svg').style.display='none');
@@ -17243,8 +17276,11 @@ function openPropDetail(propId) {
     var gradients = ['g1','g2','g3','g4','g5'];
     thumbEls.forEach(function(th, i) {
       if (imgs[i]) {
-        th.setAttribute('data-img', imgs[i]);
-        th.style.backgroundImage = 'url(' + imgs[i] + ')';
+        // data-img is what the thumb-click handler (below) swaps into the
+        // hero background on click — size it for the hero, not the thumb
+        // it's stored on here.
+        th.setAttribute('data-img', _cldSize(imgs[i],1600,800));
+        th.style.backgroundImage = 'url(' + _cldSize(imgs[i],140,104) + ')';
         th.style.backgroundSize = 'cover';
         th.style.backgroundPosition = 'center';
         if (th.querySelector('svg')) th.querySelector('svg').style.display = 'none';
@@ -17531,7 +17567,7 @@ function openPropDetail(propId) {
   if(galleryEl) {
     if(imgs.length > 0) {
       galleryEl.innerHTML = imgs.map(function(img, i) {
-        return '<div class="det-thumb'+(i===0?' active':'')+'" style="background:url('+img+') center/cover no-repeat;width:68px;height:52px;border-radius:6px;cursor:pointer;flex-shrink:0;border:'+(i===0?'2px solid var(--navy)':'1.5px solid var(--border)')+'" onclick="switchGallery(this,\'' + img + '\')" role="button" tabindex="0"></div>';
+        return '<div class="det-thumb'+(i===0?' active':'')+'" style="background:url('+_cldSize(img,140,104)+') center/cover no-repeat;width:68px;height:52px;border-radius:6px;cursor:pointer;flex-shrink:0;border:'+(i===0?'2px solid var(--navy)':'1.5px solid var(--border)')+'" onclick="switchGallery(this,\'' + img + '\')" role="button" tabindex="0"></div>';
       }).join('');
       galleryEl.style.display = 'flex';
     } else {
@@ -17597,7 +17633,7 @@ function openPropDetail(propId) {
 
 function switchGallery(el, imgUrl) {
   var heroBg = document.querySelector('.det-hero-bg');
-  if(heroBg) { heroBg.style.backgroundImage = 'url('+imgUrl+')'; heroBg.style.backgroundSize='cover'; heroBg.style.backgroundPosition='center'; }
+  if(heroBg) { heroBg.style.backgroundImage = 'url('+_cldSize(imgUrl,1600,800)+')'; heroBg.style.backgroundSize='cover'; heroBg.style.backgroundPosition='center'; }
   document.querySelectorAll('.det-thumb').forEach(function(t){ t.style.border='1.5px solid var(--border)'; t.classList.remove('active'); });
   el.style.border = '2px solid var(--navy)'; el.classList.add('active');
 }
@@ -17717,10 +17753,10 @@ function _updatePropertyMeta(prop) {
     setMeta('meta[property="og:type"]', 'content', 'product');
     setMeta('meta[property="og:title"]', 'content', titleText);
     setMeta('meta[property="og:description"]', 'content', desc);
-    if (prop.img1) setMeta('meta[property="og:image"]', 'content', prop.img1);
+    if (prop.img1) setMeta('meta[property="og:image"]', 'content', _cldSize(prop.img1,1200,630));
     setMeta('meta[name="twitter:title"]', 'content', titleText);
     setMeta('meta[name="twitter:description"]', 'content', desc);
-    if (prop.img1) setMeta('meta[name="twitter:image"]', 'content', prop.img1);
+    if (prop.img1) setMeta('meta[name="twitter:image"]', 'content', _cldSize(prop.img1,1200,630));
     _propMetaActive = true;
   } catch (e) {}
 }
@@ -34251,7 +34287,20 @@ function loadLiveHomeStats() {
 }
 
 /* Hook loadLiveHomeStats + loadHomepageRotation into home page navigation,
-   initial page load, and auth settling */
+   initial page load, and auth settling.
+
+   The initial-page-load and auth-settling triggers both fire unconditionally
+   on EVERY page load — homepage, property detail, /listings, anywhere —
+   because (same issue as loadApprovedProperties()'s own boot hook) the
+   elements/grids these two functions look for live in the DOM at all times
+   in this single-document SPA, not just while the homepage happens to be
+   the visible page. Combined with the go('home') hook below (which fires
+   correctly, on genuine home navigation), a homepage visit could fire the
+   same ~170-doc rotation query and multi-query stats read up to three times
+   for one page load. _isBootLandingPath('/') gates the two boot-adjacent
+   triggers to when home is actually what's showing/being landed on; the
+   go('home') hook is unaffected since it's already correctly scoped to an
+   explicit navigation event. */
 (function() {
   var _goP7 = go;
   go = function(name) {
@@ -34262,10 +34311,12 @@ function loadLiveHomeStats() {
     }
   };
   document.addEventListener('DOMContentLoaded', function() {
+    if (!_isBootLandingPath('/')) return;
     setTimeout(loadLiveHomeStats, 1500);
     setTimeout(loadHomepageRotation, 1500);
   });
   firebase.auth().onAuthStateChanged(function() {
+    if (!_isBootLandingPath('/')) return;
     setTimeout(loadLiveHomeStats, 1500);
     setTimeout(loadHomepageRotation, 1500);
   });
@@ -34623,7 +34674,7 @@ function adminRender(filter) {
       var statusColor = st.toLowerCase()==='approved'?'#27A84A':st.toLowerCase()==='rejected'?'#e53e3e':'#F5A623';
       var imgs = (prop.images || []).filter(Boolean);
       var thumbSrc = imgs[0] || prop.img1 || '';
-      var thumbHtml = thumbSrc ? '<img src="'+escapeHtml(thumbSrc)+'" alt="'+escapeHtml(prop.title||'Property')+'" style="width:60px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0" loading="lazy">' : '';
+      var thumbHtml = thumbSrc ? '<img src="'+escapeHtml(_cldSize(thumbSrc,120,120))+'" alt="'+escapeHtml(prop.title||'Property')+'" style="width:60px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0" loading="lazy">' : '';
       return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.8rem;background:#fafbff">'
         + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;flex-wrap:wrap">'
         + thumbHtml
