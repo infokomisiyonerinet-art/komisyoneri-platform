@@ -25230,7 +25230,12 @@ function loadStaffReviewHistory(staffId) {
           + (r.comment ? '<div style="font-size:.82rem;margin-top:.25rem">' + escapeHtml(r.comment) + '</div>' : '')
           + '</div>';
       }).join('');
-    }).catch(function(e) { el.innerHTML = ''; console.error('[HR] loadStaffReviewHistory', e); });
+    }).catch(function(e) {
+      // Was el.innerHTML = '' — cleared the "Loading..." text but left a
+      // blank panel with no indication anything had gone wrong.
+      el.innerHTML = '<p style="color:var(--muted);font-size:.82rem" data-rw="Ntibyashobotse gukuramo amateka" data-en="Unable to load review history">Unable to load review history</p>';
+      console.error('[HR] loadStaffReviewHistory', e);
+    });
 }
 
 function saveStaffReview() {
@@ -26155,14 +26160,30 @@ function loadCustomerPortal() {
   loadCustAfterSale(cu.uid);
 }
 
+// _custErrors tracks which tabs' fetch actually failed vs genuinely have no
+// data yet — renderCust*() below check this to show a distinct "Unable to
+// load" state instead of silently rendering the "No X yet" empty state
+// (which was previously the only outcome ever shown, whether the array was
+// empty because there's really nothing there, or because the fetch never
+// even completed).
+var _custErrors = { deals: false, docs: false, viewings: false, aftersale: false };
+
 function loadCustDeals(uid) {
   db.collection('deals').where('clientId','==',uid).where('isActive','==',true)
     .orderBy('createdAt','desc').limit(50)
     .get().then(function(snap) {
       _custDeals = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+      _custErrors.deals = false;
       if(g('cst-deals')) g('cst-deals').textContent = _custDeals.length;
       if(_custTab === 'deals') renderCustDeals();
-    }).catch(function(e) { console.error('loadCustDeals', e); });
+    }).catch(function(e) {
+      // Was console-only — a failed fetch (permission-denied, missing
+      // index, offline) left cust-deals-list on its static "Loading..."
+      // placeholder forever, since renderCustDeals() was never reached.
+      console.error('loadCustDeals', e);
+      _custErrors.deals = true;
+      if(_custTab === 'deals') renderCustDeals();
+    });
 }
 
 function loadCustDocs(uid) {
@@ -26176,9 +26197,14 @@ function loadCustDocs(uid) {
       // check, or the contract-generator path) default to visible.
       _custDocs = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); })
         .filter(function(d) { return !d.accessRoles || d.accessRoles.indexOf('client') > -1; });
+      _custErrors.docs = false;
       if(g('cst-docs')) g('cst-docs').textContent = _custDocs.length;
       if(_custTab === 'docs') renderCustDocs();
-    }).catch(function(e) { console.error('loadCustDocs', e); });
+    }).catch(function(e) {
+      console.error('loadCustDocs', e);
+      _custErrors.docs = true;
+      if(_custTab === 'docs') renderCustDocs();
+    });
 }
 
 function loadCustViewings(uid) {
@@ -26186,9 +26212,14 @@ function loadCustViewings(uid) {
     .orderBy('scheduledAt','desc').limit(50)
     .get().then(function(snap) {
       _custViewings = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+      _custErrors.viewings = false;
       if(g('cst-viewings')) g('cst-viewings').textContent = _custViewings.length;
       if(_custTab === 'viewings') renderCustViewings();
-    }).catch(function(e) { console.error('loadCustViewings', e); });
+    }).catch(function(e) {
+      console.error('loadCustViewings', e);
+      _custErrors.viewings = true;
+      if(_custTab === 'viewings') renderCustViewings();
+    });
 }
 
 function loadCustAfterSale(uid) {
@@ -26204,9 +26235,14 @@ function loadCustAfterSale(uid) {
         .orderBy('createdAt','desc').limit(50);
   query.get().then(function(snap) {
       _custAfterSale = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+      _custErrors.aftersale = false;
       if(g('cst-aftersale')) g('cst-aftersale').textContent = _custAfterSale.length;
       if(_custTab === 'aftersale') renderCustAfterSale();
-    }).catch(function(e) { console.error('loadCustAfterSale', e); });
+    }).catch(function(e) {
+      console.error('loadCustAfterSale', e);
+      _custErrors.aftersale = true;
+      if(_custTab === 'aftersale') renderCustAfterSale();
+    });
 }
 
 /* ── Tab switching ── */
@@ -26229,6 +26265,13 @@ function switchCustTab(tab) {
 function renderCustDeals() {
   var el = g('cust-deals-list');
   if (!el) return;
+  if (_custErrors.deals) {
+    el.innerHTML = '<div class="cust-empty"><div class="cust-empty-icon">⚠️</div>'
+      + '<div class="cust-empty-title" data-rw="Ntibyashobotse gukuramo" data-en="Unable to load">Unable to load</div>'
+      + '<div class="cust-empty-sub" data-rw="Ongera ugerageze" data-en="Please try again">Please try again</div></div>';
+    if (typeof switchLang === 'function') switchLang(curLang);
+    return;
+  }
   if (!_custDeals.length) {
     el.innerHTML = '<div class="cust-empty"><div class="cust-empty-icon">🏠</div>'
       + '<div class="cust-empty-title" data-rw="Nta bikorwa bibonetse" data-en="No deals yet">No deals yet</div>'
@@ -26266,6 +26309,13 @@ function renderCustDeals() {
 function renderCustDocs() {
   var el = g('cust-docs-list');
   if (!el) return;
+  if (_custErrors.docs) {
+    el.innerHTML = '<div class="cust-empty"><div class="cust-empty-icon">⚠️</div>'
+      + '<div class="cust-empty-title" data-rw="Ntibyashobotse gukuramo" data-en="Unable to load">Unable to load</div>'
+      + '<div class="cust-empty-sub" data-rw="Ongera ugerageze" data-en="Please try again">Please try again</div></div>';
+    if (typeof switchLang === 'function') switchLang(curLang);
+    return;
+  }
   if (!_custDocs.length) {
     el.innerHTML = '<div class="cust-empty"><div class="cust-empty-icon">📄</div>'
       + '<div class="cust-empty-title" data-rw="Nta nyandiko zibonetse" data-en="No documents yet">No documents yet</div>'
@@ -26298,6 +26348,13 @@ function renderCustDocs() {
 function renderCustViewings() {
   var el = g('cust-viewings-list');
   if (!el) return;
+  if (_custErrors.viewings) {
+    el.innerHTML = '<div class="cust-empty"><div class="cust-empty-icon">⚠️</div>'
+      + '<div class="cust-empty-title" data-rw="Ntibyashobotse gukuramo" data-en="Unable to load">Unable to load</div>'
+      + '<div class="cust-empty-sub" data-rw="Ongera ugerageze" data-en="Please try again">Please try again</div></div>';
+    if (typeof switchLang === 'function') switchLang(curLang);
+    return;
+  }
   if (!_custViewings.length) {
     el.innerHTML = '<div class="cust-empty"><div class="cust-empty-icon">🔍</div>'
       + '<div class="cust-empty-title" data-rw="Nta nzibutso zibonetse" data-en="No viewings yet">No viewings yet</div>'
@@ -26328,6 +26385,13 @@ function renderCustViewings() {
 function renderCustAfterSale() {
   var el = g('cust-aftersale-list');
   if (!el) return;
+  if (_custErrors.aftersale) {
+    el.innerHTML = '<div class="cust-empty"><div class="cust-empty-icon">⚠️</div>'
+      + '<div class="cust-empty-title" data-rw="Ntibyashobotse gukuramo" data-en="Unable to load">Unable to load</div>'
+      + '<div class="cust-empty-sub" data-rw="Ongera ugerageze" data-en="Please try again">Please try again</div></div>';
+    if (typeof switchLang === 'function') switchLang(curLang);
+    return;
+  }
   if (!_custAfterSale.length) {
     el.innerHTML = '<div class="cust-empty"><div class="cust-empty-icon">🛠️</div>'
       + '<div class="cust-empty-title" data-rw="Nta serivisi zibonetse" data-en="No service requests yet">No service requests yet</div>'
@@ -32204,7 +32268,14 @@ function loadSitePlan(siteId) {
   if (typeof db === 'undefined') return;
 
   db.collection('sites').doc(siteId).get().then(function(doc) {
-    if (!doc.exists) { showToast('Site not found', 'error'); return; }
+    if (!doc.exists) {
+      // Was just a toast + bare return — the toast fades in a few seconds
+      // but nameEl was left showing "Loading..." forever with nothing else
+      // ever going to update it.
+      if (nameEl) nameEl.textContent = curLang === 'rw' ? 'Iyi site ntiboneka' : 'Site not found';
+      showToast('Site not found', 'error');
+      return;
+    }
     var s = doc.data(); s.id = doc.id;
     var lang = typeof curLang !== 'undefined' ? curLang : 'rw';
 
@@ -32264,6 +32335,10 @@ function loadSitePlan(siteId) {
       });
   }).catch(function(e) {
     console.error('[Sites] site load error', e);
+    // Same gap as the not-found branch above — nameEl was never told the
+    // fetch failed (permission-denied, missing index, offline, anything),
+    // so it stayed on "Loading..." forever after the toast faded.
+    if (nameEl) nameEl.textContent = curLang === 'rw' ? 'Ntibyashobotse gukuramo' : 'Could not load this site';
     showToast('Could not load site', 'error');
   });
 }
