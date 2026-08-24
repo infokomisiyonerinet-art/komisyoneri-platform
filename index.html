@@ -2627,7 +2627,7 @@ html,body{overscroll-behavior-x:none}
 .plot-overlay.plot-reserved{background:rgba(18,73,179,.7)}
 .plot-overlay.plot-sold{background:rgba(220,38,38,.75)}
 .plot-overlay.plot-sold::after{content:'✕';font-size:1rem;font-weight:900;position:absolute}
-.plot-overlay.plot-on-hold{background:rgba(100,116,139,.65)}
+.plot-overlay.plot-on_hold{background:rgba(100,116,139,.65)}
 
 /* Legend */
 .site-legend{display:flex;gap:.7rem;flex-wrap:wrap;padding:.7rem 0;font-size:.75rem}
@@ -2668,7 +2668,7 @@ html,body{overscroll-behavior-x:none}
 .plot-cell.plot-available{background:rgba(201,168,76,.2);border-color:var(--plot-available)}
 .plot-cell.plot-reserved{background:rgba(18,73,179,.15);border-color:var(--plot-reserved)}
 .plot-cell.plot-sold{background:rgba(220,38,38,.12);border-color:var(--plot-sold)}
-.plot-cell.plot-on-hold{background:rgba(100,116,139,.12);border-color:var(--plot-hold)}
+.plot-cell.plot-on_hold{background:rgba(100,116,139,.12);border-color:var(--plot-hold)}
 .plot-cell-num{font-weight:700;font-size:.78rem;color:var(--dark)}
 .plot-cell-size{font-size:.62rem;color:var(--muted)}
 
@@ -7900,7 +7900,15 @@ html,body{overscroll-behavior-x:none}
 
       <!-- STEP 3: Plots -->
       <div class="site-step" id="site-step-3">
-        <div style="display:flex;flex-direction:column;gap:.8rem">
+        <!-- Shown instead of the add-plot form when editing an existing
+             site (openSiteSubmit()) — this form only edits site-level
+             fields; plots already have their own reserve/status-change
+             flow (openPlotDetail()/openPlotStatusChange()) and are never
+             recreated or removed from here. -->
+        <div id="site-plots-step-editing-msg" style="display:none;background:var(--light);border-radius:10px;padding:1rem;font-size:.85rem;color:var(--muted)">
+          <span data-rw="Ibiraro ntibihindurwa hano — koresha urupapuro rwa site kugira ngo ucunge ibiraro kimwe kimwe." data-en="Plots aren't edited here — use the site page to manage individual plots one at a time.">Plots aren't edited here — use the site page to manage individual plots one at a time.</span>
+        </div>
+        <div id="site-plots-step-form" style="display:flex;flex-direction:column;gap:.8rem">
           <div style="background:var(--light);border-radius:10px;padding:.8rem;font-size:.82rem;color:var(--muted)">
             💡 <span data-rw="Ongeramo ibiraro buri kimwe. Ushobora kongera vuba inyuma yo gusabwa." data-en="Add plots one by one. You can add more after submission.">Add plots one by one. You can add more later.</span>
           </div>
@@ -7949,8 +7957,17 @@ html,body{overscroll-behavior-x:none}
               <span>KOMISIYONERI</span><strong style="color:var(--navy)">40%</strong>
             </div>
           </div>
-          <div class="field"><label data-rw="Shyiraho Itangazo ry'Isitey (Image)" data-en="Upload Site Plan Image" for="site-plan-file">Upload Site Plan (optional)</label>
-            <input type="file" id="site-plan-file" accept=".jpg,.jpeg,.png,.pdf" style="font-size:.82rem">
+          <div class="field">
+            <label data-rw="Shyiraho Itangazo ry'Isitey (Image)" data-en="Upload Site Plan Image" for="site-plan-file">Upload Site Plan (optional)</label>
+            <!-- Image only (JPG/PNG), not PDF — uploaded via Cloudinary's
+                 /image/upload endpoint (same as property photos), which
+                 doesn't accept PDFs. See uploadSitePlanImage()'s own
+                 comment on why this reuses that same upload approach. -->
+            <div id="site-plan-current-wrap" style="display:none;margin-bottom:.5rem">
+              <img id="site-plan-current-img" src="" alt="Current site plan" style="max-width:100%;max-height:160px;border-radius:8px;display:block;margin-bottom:.3rem">
+              <div style="font-size:.72rem;color:var(--muted)" data-rw="Iyi ni ifoto isanzwe — hitamo indi kugira ngo uyisimbuze." data-en="This is the current site plan — choose a new file below to replace it.">This is the current site plan — choose a new file below to replace it.</div>
+            </div>
+            <input type="file" id="site-plan-file" accept="image/*" style="font-size:.82rem">
             <div id="site-plan-upload-status" style="font-size:.72rem;color:var(--muted);margin-top:.25rem"></div>
           </div>
         </div>
@@ -32145,6 +32162,157 @@ var _siteCurrentStep = 1;
 var _pendingPlots = [];  // plots staged during form entry
 var _sitesCache = [];
 var _currentPlotId = null;
+var _pendingSitePlanFile = null; // File picked in step 4, uploaded on submitSiteForm()/submitSiteEditForm()
+
+// ── Site plan image upload ──────────────────────────
+// The #site-plan-file input existed in the DOM (both the create wizard's
+// step 4 and, once added below, the Edit Site flow) but nothing ever read
+// it, uploaded it, or wrote a URL anywhere — sites.siteMapUrl was always
+// hardcoded to '' in submitSiteForm(), confirmed via grep before writing
+// any of this. Reuses the exact same Cloudinary unsigned-upload approach
+// PropImageUploader already uses for property photos (same resilience:
+// client-side compression, progress, a hard timeout since Cloudinary can
+// occasionally never fire any xhr event at all — see PropImageUploader's
+// own comment on that — and one automatic retry on a timeout specifically,
+// not on a rules/config rejection, which retrying can never fix). Kept as
+// its own small function rather than routed through PropImageUploader
+// itself: that object's whole API (multi-item array, reorder, cover
+// selection) is built around a property's photo gallery, which doesn't
+// apply to a single site-plan image.
+//
+// Uses the SAME unsigned upload preset as property photos
+// (CLOUDINARY_CONFIG.uploadPreset) rather than a dedicated one — there is
+// no "site plans" preset configured in Cloudinary yet, and creating one
+// requires Cloudinary Console access this sandbox doesn't have. Site plan
+// images land in Cloudinary under the same Asset Folder as property
+// photos as a result; harmless functionally, just worth a dedicated
+// preset later if that folder mixing matters for reporting.
+function uploadSitePlanImage(file, siteId, onProgress) {
+  var MAX_DIMENSION = 2400; // site plans are read at a larger, zoomed-in size than a property thumbnail
+  var JPEG_QUALITY = 0.85;
+  var COMPRESS_TIMEOUT_MS = 8000;
+  var UPLOAD_TIMEOUT_MS = 60000;
+
+  function compress(f) {
+    return new Promise(function(resolve) {
+      var settled = false;
+      var finish = function(r) { if (settled) return; settled = true; resolve(r); };
+      if (!f.type || f.type.indexOf('image/') !== 0 || typeof document === 'undefined') { finish(f); return; }
+      var objUrl = URL.createObjectURL(f);
+      var timer = setTimeout(function() { try { URL.revokeObjectURL(objUrl); } catch(e) {} finish(f); }, COMPRESS_TIMEOUT_MS);
+      var img = new Image();
+      img.onload = function() {
+        try {
+          URL.revokeObjectURL(objUrl);
+          var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+          if (!w || !h) { clearTimeout(timer); finish(f); return; }
+          var scale = Math.min(1, MAX_DIMENSION / Math.max(w, h));
+          var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+          var canvas = document.createElement('canvas');
+          canvas.width = cw; canvas.height = ch;
+          var ctx = canvas.getContext('2d');
+          if (!ctx || typeof canvas.toBlob !== 'function') { clearTimeout(timer); finish(f); return; }
+          ctx.drawImage(img, 0, 0, cw, ch);
+          canvas.toBlob(function(blob) {
+            clearTimeout(timer);
+            if (!blob || blob.size >= f.size) { finish(f); return; }
+            finish(new File([blob], (f.name||'siteplan').replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' }));
+          }, 'image/jpeg', JPEG_QUALITY);
+        } catch (e) {
+          clearTimeout(timer); finish(f);
+        }
+      };
+      img.onerror = function() { clearTimeout(timer); try { URL.revokeObjectURL(objUrl); } catch(e) {} finish(f); };
+      img.src = objUrl;
+    });
+  }
+
+  function attempt(finalFile, attemptNum) {
+    return new Promise(function(resolve, reject) {
+      var safeName = (finalFile.name || 'siteplan.jpg').replace(/[^a-zA-Z0-9_.-]/g, '_').replace(/\.[^.]+$/, '');
+      var publicId = 'siteplans/' + (siteId || 'new') + '/' + Date.now() + '_' + safeName;
+
+      var form = new FormData();
+      form.append('file', finalFile);
+      form.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+      form.append('public_id', publicId);
+
+      var xhr = new XMLHttpRequest();
+      var settled = false;
+      var watchdog = setTimeout(function() {
+        if (settled) return;
+        settled = true;
+        try { xhr.abort(); } catch(e) {}
+        var timeoutErr = new Error('Upload timed out — no response from Cloudinary'); timeoutErr.code = 'timeout';
+        reject(timeoutErr);
+      }, UPLOAD_TIMEOUT_MS);
+
+      xhr.upload.addEventListener('progress', function(evt) {
+        if (settled || !evt.lengthComputable || typeof onProgress !== 'function') return;
+        onProgress(Math.round((evt.loaded / evt.total) * 100));
+      });
+      xhr.addEventListener('error', function() {
+        if (settled) return;
+        settled = true; clearTimeout(watchdog);
+        var netErr = new Error('Upload network error'); netErr.code = 'network-error';
+        reject(netErr);
+      });
+      xhr.addEventListener('load', function() {
+        if (settled) return;
+        settled = true; clearTimeout(watchdog);
+        var res; try { res = JSON.parse(xhr.responseText); } catch(e) { res = null; }
+        if (xhr.status >= 200 && xhr.status < 300 && res && res.secure_url) {
+          resolve(res.secure_url);
+        } else {
+          var code = (res && res.error && res.error.message) || ('http-' + xhr.status);
+          var uploadErr = new Error('Cloudinary upload failed: ' + code); uploadErr.code = code;
+          reject(uploadErr);
+        }
+      });
+
+      xhr.open('POST', 'https://api.cloudinary.com/v1_1/' + CLOUDINARY_CONFIG.cloudName + '/image/upload', true);
+      xhr.send(form);
+    });
+  }
+
+  return compress(file).then(function(finalFile) {
+    return attempt(finalFile, 1).catch(function(err) {
+      if (err && err.code === 'timeout') return attempt(finalFile, 2);
+      throw err;
+    });
+  });
+}
+
+// Wires #site-plan-file (present in both the create wizard's step 4 and
+// the Edit Site flow, since both reuse the same #site-submit-modal markup)
+// — picking a file only stages it in _pendingSitePlanFile and shows its
+// name; the actual Cloudinary upload happens once the whole form is
+// submitted (submitSiteForm()), matching how PropImageUploader defers
+// property photo uploads to submitProperty() rather than uploading on
+// pick. Static input present from initial page load, so this only needs
+// to run once.
+document.addEventListener('DOMContentLoaded', function() {
+  var input = document.getElementById('site-plan-file');
+  var status = document.getElementById('site-plan-upload-status');
+  if (!input) return;
+  input.addEventListener('change', function(e) {
+    var file = e.target.files && e.target.files[0];
+    _pendingSitePlanFile = file || null;
+    if (!status) return;
+    if (!file) { status.textContent = ''; return; }
+    if (file.type.indexOf('image/') !== 0) {
+      status.textContent = (typeof curLang !== 'undefined' && curLang === 'rw')
+        ? 'Hitamo ifoto (JPG cyangwa PNG gusa).' : 'Please choose an image file (JPG or PNG only).';
+      status.style.color = 'var(--error)';
+      _pendingSitePlanFile = null;
+      input.value = '';
+      return;
+    }
+    status.style.color = 'var(--muted)';
+    status.textContent = (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Byahiswemo: ' : 'Selected: ') +
+      file.name + ' (' + (file.size / 1024 / 1024).toFixed(1) + 'MB)';
+  });
+});
 
 var AMENITY_ICONS = {
   water: '💧 Water', electricity: '⚡ Electricity', road: '🛣️ Road',
@@ -32550,6 +32718,15 @@ function openSiteEnquiry(plotId) {
 }
 
 // ── Staff: Change plot status ────────────────────────
+// Maps a plot status to the site-level counter field that tracks it —
+// there is no 'on_hold' counter (sites/{id} only has totalPlots/
+// availablePlots/reservedPlots/soldPlots, matching the KPI strip's own 4
+// tiles — Total/Available/Reserved/Sold, no "On Hold" tile), so a plot
+// moving into or out of on_hold simply has no counter to touch on that
+// side of the transition; it's still visible individually in the plot
+// grid/legend, just not rolled into any of the 4 KPI numbers.
+var PLOT_STATUS_COUNTER_FIELD = { available: 'availablePlots', reserved: 'reservedPlots', sold: 'soldPlots' };
+
 function openPlotStatusChange(plotId, currentStatus) {
   var newStatus = prompt('Change plot status:\navailable / reserved / sold / on_hold\nCurrent: ' + currentStatus);
   if (!newStatus) return;
@@ -32557,15 +32734,41 @@ function openPlotStatusChange(plotId, currentStatus) {
   if (valid.indexOf(newStatus.trim()) === -1) { showToast('Invalid status', 'error'); return; }
   newStatus = newStatus.trim();
   var now = firebase.firestore.FieldValue.serverTimestamp();
+  var uid = currentUser.uid;
 
-  db.collection('plots').doc(plotId).update({
-    status:    newStatus,
-    updatedAt: now,
-    updatedBy: currentUser.uid
-  }).then(function() {
+  // Was a plain plots/{id}.update() with no matching adjustment to
+  // sites/{id}'s availablePlots/reservedPlots/soldPlots counters — those
+  // only ever got maintained by submitPlotReservation()'s own transaction
+  // (available -> reserved specifically). Any OTHER transition made
+  // through this function — reserved -> sold, a cancelled reservation
+  // back to available, etc. — left the counters silently wrong forever
+  // after the first use, since nothing here ever decremented the old
+  // status's counter or incremented the new one. Fixed by reading the
+  // plot's real current status fresh inside a transaction (not trusting
+  // the currentStatus argument, which reflects whatever the modal showed
+  // when it was opened and could be stale) and adjusting both counters
+  // atomically alongside the plot's own status write.
+  db.runTransaction(function(tx) {
+    var plotRef = db.collection('plots').doc(plotId);
+    return tx.get(plotRef).then(function(pd) {
+      if (!pd.exists) throw new Error('Plot not found');
+      var oldStatus = pd.data().status || 'available';
+      var siteId = pd.data().siteId;
+      tx.update(plotRef, { status: newStatus, updatedAt: now, updatedBy: uid });
+      if (siteId && oldStatus !== newStatus) {
+        var siteUpdate = { updatedAt: now, updatedBy: uid };
+        var oldField = PLOT_STATUS_COUNTER_FIELD[oldStatus];
+        var newField = PLOT_STATUS_COUNTER_FIELD[newStatus];
+        if (oldField) siteUpdate[oldField] = firebase.firestore.FieldValue.increment(-1);
+        if (newField) siteUpdate[newField] = firebase.firestore.FieldValue.increment(1);
+        if (oldField || newField) tx.update(db.collection('sites').doc(siteId), siteUpdate);
+      }
+      return oldStatus;
+    });
+  }).then(function(oldStatus) {
     logAudit('plot.status.changed', 'plots', plotId,
-      { status: currentStatus },
-      { status: newStatus, changedBy: currentUser.uid }
+      { status: oldStatus },
+      { status: newStatus, changedBy: uid }
     );
     showToast('Plot status updated to ' + newStatus, 'success');
     closePlotDetail();
@@ -32697,9 +32900,21 @@ function confirmRejectSite() {
 }
 
 // ── Site submission form ─────────────────────────────
+// editId used to be written to the hidden #site-edit-id field and then
+// never read anywhere — confirmed via grep before touching this —  so
+// "Edit Site" actually opened a blank form that, on submit, silently
+// created a brand-new duplicate site (and a brand-new duplicate set of
+// plots) rather than updating the one being edited. Fixed by fetching and
+// pre-filling the real site's fields below, and by giving
+// submitSiteForm() an actual edit branch (see its own comment) that
+// updates the existing doc and never touches plots at all — this modal
+// was never meant to add/remove plots for an existing site (that already
+// has its own reserve/status-change flow), only site-level fields
+// including the site plan image.
 function openSiteSubmit(editId) {
   if (!currentUser) { showToast(curLang==='rw' ? 'Injira mbere!' : 'Please log in first!', 'warn'); go('auth'); return; }
   _pendingPlots = [];
+  _pendingSitePlanFile = null;
   _siteCurrentStep = 1;
   var m = document.getElementById('site-submit-modal');
   if (!m) return;
@@ -32712,6 +32927,53 @@ function openSiteSubmit(editId) {
   });
   document.querySelectorAll('.site-amenity-cb').forEach(function(cb) { cb.checked = false; });
   document.getElementById('site-edit-id').value = editId || '';
+  var planFileEl = document.getElementById('site-plan-file'); if (planFileEl) planFileEl.value = '';
+  var planStatusEl = document.getElementById('site-plan-upload-status'); if (planStatusEl) planStatusEl.textContent = '';
+  var planCurWrap = document.getElementById('site-plan-current-wrap');
+  var planCurImg  = document.getElementById('site-plan-current-img');
+  if (planCurWrap) planCurWrap.style.display = 'none';
+
+  var plotsStepMsg = document.getElementById('site-plots-step-editing-msg');
+  var plotsStepForm = document.getElementById('site-plots-step-form');
+
+  if (editId) {
+    // Plots aren't touched by this form when editing — they have their
+    // own reserve/status-change flow already — so hide the "add a plot"
+    // entry form instead of showing a misleadingly-empty one.
+    if (plotsStepMsg)  plotsStepMsg.style.display  = '';
+    if (plotsStepForm) plotsStepForm.style.display = 'none';
+    db.collection('sites').doc(editId).get().then(function(doc) {
+      if (!doc.exists) { showToast('Site not found', 'error'); closeSiteSubmit(); return; }
+      var s = doc.data();
+      var set = function(id, val) { var el = document.getElementById(id); if (el) el.value = val || ''; };
+      set('site-name', s.name); set('site-name-rw', s.nameRW);
+      set('site-desc', s.description); set('site-desc-rw', s.descriptionRW);
+      set('site-district', s.district); set('site-sector', s.sector);
+      set('site-cell', s.cell); set('site-village', s.village);
+      set('site-lat', (s.coordinates||{}).lat); set('site-lng', (s.coordinates||{}).lng);
+      set('site-owner-name', s.ownerName); set('site-owner-phone', s.ownerPhone);
+      set('site-owner-type', s.ownerType || 'individual');
+      set('site-lotissement', s.lotissementRef); set('site-title-deed', s.titleDeedRef);
+      set('site-road', s.roadType || 'tarmac');
+      set('site-price-min', s.pricePerSqmMin); set('site-price-max', s.pricePerSqmMax);
+      set('site-commission-rate', String(s.commissionRate || 4));
+      (s.amenities || []).forEach(function(a) {
+        var cb = document.querySelector('.site-amenity-cb[value="' + a + '"]');
+        if (cb) cb.checked = true;
+      });
+      if (s.siteMapUrl && planCurWrap && planCurImg) {
+        planCurImg.src = s.siteMapUrl;
+        planCurWrap.style.display = '';
+      }
+    }).catch(function(e) {
+      console.error('[Sites] edit prefill error', e);
+      showToast('Could not load site for editing', 'error');
+    });
+  } else {
+    if (plotsStepMsg)  plotsStepMsg.style.display  = 'none';
+    if (plotsStepForm) plotsStepForm.style.display = '';
+  }
+
   renderPlotPreview();
   siteStepGo(1);
   m.style.display = 'flex';
@@ -32794,7 +33056,14 @@ function renderPlotPreview() {
 
 function submitSiteForm() {
   if (!currentUser) return;
-  if (_pendingPlots.length === 0) { showToast(curLang==='rw' ? 'Ongeramo nibura ikiraro kimwe.' : 'Add at least one plot.', 'warn'); return; }
+  var editId = ((document.getElementById('site-edit-id') || {}).value || '').trim();
+  // Editing an existing site never touches plots — see openSiteSubmit()'s
+  // comment — so the "add at least one plot" requirement only applies to
+  // creating a brand-new site.
+  if (!editId && _pendingPlots.length === 0) {
+    showToast(curLang==='rw' ? 'Ongeramo nibura ikiraro kimwe.' : 'Add at least one plot.', 'warn');
+    return;
+  }
 
   var btn = document.getElementById('site-submit-final-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
@@ -32807,103 +33076,164 @@ function submitSiteForm() {
   var role = currentUser.role || '';
   var autoApprove = (role === 'staff' || role === 'admin' || role === 'Admin' || role === 'super_admin');
 
-  var siteData = {
-    id:              '',
-    name:            ((document.getElementById('site-name')    || {}).value || '').trim(),
-    nameRW:          ((document.getElementById('site-name-rw') || {}).value || '').trim(),
-    description:     ((document.getElementById('site-desc')    || {}).value || '').trim(),
-    descriptionRW:   ((document.getElementById('site-desc-rw') || {}).value || '').trim(),
-    district:        (document.getElementById('site-district')  || {}).value || '',
-    sector:          ((document.getElementById('site-sector')   || {}).value || '').trim(),
-    cell:            ((document.getElementById('site-cell')     || {}).value || '').trim(),
-    village:         ((document.getElementById('site-village')  || {}).value || '').trim(),
-    coordinates: {
-      lat: parseFloat((document.getElementById('site-lat') || {}).value || '0') || 0,
-      lng: parseFloat((document.getElementById('site-lng') || {}).value || '0') || 0
-    },
-    ownerName:       ((document.getElementById('site-owner-name')  || {}).value || '').trim(),
-    ownerPhone:      ((document.getElementById('site-owner-phone') || {}).value || '').trim(),
-    ownerType:       (document.getElementById('site-owner-type')   || {}).value || 'individual',
-    lotissementRef:  ((document.getElementById('site-lotissement') || {}).value || '').trim(),
-    titleDeedRef:    ((document.getElementById('site-title-deed')  || {}).value || '').trim(),
-    roadType:        (document.getElementById('site-road') || {}).value || 'tarmac',
-    amenities:       amenities,
-    totalPlots:      _pendingPlots.length,
-    availablePlots:  _pendingPlots.length,
-    reservedPlots:   0,
-    soldPlots:       0,
-    pricePerSqmMin:  parseFloat((document.getElementById('site-price-min') || {}).value || '0') || 0,
-    pricePerSqmMax:  parseFloat((document.getElementById('site-price-max') || {}).value || '0') || 0,
-    totalValueRWF:   _pendingPlots.reduce(function(s, p) { return s + (p.price || 0); }, 0),
-    commissionRate:  parseInt((document.getElementById('site-commission-rate') || {}).value || '4'),
-    agentSplit:      60,
-    companySplit:    40,
-    siteMapUrl:      '',
-    siteMapSvgUrl:   '',
-    lotissementDocUrl: '',
-    titleDeedDocUrl:   '',
-    managingAgentId: uid,
-    developerId:     (role === 'developer') ? uid : '',
-    createdByRole:   role,
-    ownerId:         '',
-    approvedBy:      autoApprove ? uid : '',
-    approvedAt:      autoApprove ? now : null,
-    rejectedAt:      null,
-    rejectionReason: '',
-    status:          autoApprove ? 'active' : 'pending_review',
-    isActive:        true,
-    createdAt:       now,
-    updatedAt:       now,
-    createdBy:       uid,
-    updatedBy:       uid
-  };
+  // Uploads the picked site-plan file (if any) first, then resolves with
+  // its URL — or resolves with undefined if nothing was picked, so the
+  // caller can decide whether to touch siteMapUrl at all (edit mode
+  // should leave the existing image alone when no new file was chosen;
+  // create mode should just leave it '' as before).
+  var planStatusEl = document.getElementById('site-plan-upload-status');
+  var uploadPlanIfAny = _pendingSitePlanFile
+    ? uploadSitePlanImage(_pendingSitePlanFile, editId || null, function(pct) {
+        if (planStatusEl) planStatusEl.textContent = (curLang==='rw' ? 'Kohereza... ' : 'Uploading... ') + pct + '%';
+      }).then(function(url) {
+        if (planStatusEl) planStatusEl.textContent = curLang==='rw' ? 'Byoherejwe!' : 'Uploaded!';
+        return url;
+      }).catch(function(err) {
+        console.error('[Sites] site plan upload failed', err);
+        if (planStatusEl) planStatusEl.textContent = curLang==='rw' ? 'Kohereza byanze — isitey izabikwa idafite ifoto.' : 'Upload failed — site will be saved without the plan image.';
+        return undefined;
+      })
+    : Promise.resolve(undefined);
 
-  db.collection('sites').add(siteData).then(function(siteRef) {
-    var siteId = siteRef.id;
-    // Write back the id field
-    siteRef.update({ id: siteId });
-
-    // Save all plots
-    var plotPromises = _pendingPlots.map(function(p) {
-      var plotDoc = Object.assign({}, p, {
-        id:        '',
-        siteId:    siteId,
-        agentId:   uid,
-        clientId:  '',
-        reservedAt:    null,
-        reservedUntil: null,
-        depositAmount: 0,
-        depositPaid:   false,
-        soldAt:        null,
-        salePrice:     0,
-        commissionId:  '',
-        status:        'available',
-        isActive:      true,
-        createdAt:     now,
-        updatedAt:     now,
-        createdBy:     uid,
-        updatedBy:     uid
+  uploadPlanIfAny.then(function(siteMapUrl) {
+    if (editId) {
+      var editData = {
+        name:            ((document.getElementById('site-name')    || {}).value || '').trim(),
+        nameRW:          ((document.getElementById('site-name-rw') || {}).value || '').trim(),
+        description:     ((document.getElementById('site-desc')    || {}).value || '').trim(),
+        descriptionRW:   ((document.getElementById('site-desc-rw') || {}).value || '').trim(),
+        district:        (document.getElementById('site-district')  || {}).value || '',
+        sector:          ((document.getElementById('site-sector')   || {}).value || '').trim(),
+        cell:            ((document.getElementById('site-cell')     || {}).value || '').trim(),
+        village:         ((document.getElementById('site-village')  || {}).value || '').trim(),
+        coordinates: {
+          lat: parseFloat((document.getElementById('site-lat') || {}).value || '0') || 0,
+          lng: parseFloat((document.getElementById('site-lng') || {}).value || '0') || 0
+        },
+        ownerName:       ((document.getElementById('site-owner-name')  || {}).value || '').trim(),
+        ownerPhone:      ((document.getElementById('site-owner-phone') || {}).value || '').trim(),
+        ownerType:       (document.getElementById('site-owner-type')   || {}).value || 'individual',
+        lotissementRef:  ((document.getElementById('site-lotissement') || {}).value || '').trim(),
+        titleDeedRef:    ((document.getElementById('site-title-deed')  || {}).value || '').trim(),
+        roadType:        (document.getElementById('site-road') || {}).value || 'tarmac',
+        amenities:       amenities,
+        pricePerSqmMin:  parseFloat((document.getElementById('site-price-min') || {}).value || '0') || 0,
+        pricePerSqmMax:  parseFloat((document.getElementById('site-price-max') || {}).value || '0') || 0,
+        commissionRate:  parseInt((document.getElementById('site-commission-rate') || {}).value || '4'),
+        updatedAt:       now,
+        updatedBy:       uid
+      };
+      if (siteMapUrl) editData.siteMapUrl = siteMapUrl; // only overwrite if a new file was actually uploaded
+      return db.collection('sites').doc(editId).update(editData).then(function() {
+        logAudit('site.updated', 'sites', editId, {}, { name: editData.name });
+        return { siteId: editId, isEdit: true };
       });
-      return db.collection('plots').add(plotDoc).then(function(ref) {
-        return ref.update({ id: ref.id });
+    }
+
+    var siteData = {
+      id:              '',
+      name:            ((document.getElementById('site-name')    || {}).value || '').trim(),
+      nameRW:          ((document.getElementById('site-name-rw') || {}).value || '').trim(),
+      description:     ((document.getElementById('site-desc')    || {}).value || '').trim(),
+      descriptionRW:   ((document.getElementById('site-desc-rw') || {}).value || '').trim(),
+      district:        (document.getElementById('site-district')  || {}).value || '',
+      sector:          ((document.getElementById('site-sector')   || {}).value || '').trim(),
+      cell:            ((document.getElementById('site-cell')     || {}).value || '').trim(),
+      village:         ((document.getElementById('site-village')  || {}).value || '').trim(),
+      coordinates: {
+        lat: parseFloat((document.getElementById('site-lat') || {}).value || '0') || 0,
+        lng: parseFloat((document.getElementById('site-lng') || {}).value || '0') || 0
+      },
+      ownerName:       ((document.getElementById('site-owner-name')  || {}).value || '').trim(),
+      ownerPhone:      ((document.getElementById('site-owner-phone') || {}).value || '').trim(),
+      ownerType:       (document.getElementById('site-owner-type')   || {}).value || 'individual',
+      lotissementRef:  ((document.getElementById('site-lotissement') || {}).value || '').trim(),
+      titleDeedRef:    ((document.getElementById('site-title-deed')  || {}).value || '').trim(),
+      roadType:        (document.getElementById('site-road') || {}).value || 'tarmac',
+      amenities:       amenities,
+      totalPlots:      _pendingPlots.length,
+      availablePlots:  _pendingPlots.length,
+      reservedPlots:   0,
+      soldPlots:       0,
+      pricePerSqmMin:  parseFloat((document.getElementById('site-price-min') || {}).value || '0') || 0,
+      pricePerSqmMax:  parseFloat((document.getElementById('site-price-max') || {}).value || '0') || 0,
+      totalValueRWF:   _pendingPlots.reduce(function(s, p) { return s + (p.price || 0); }, 0),
+      commissionRate:  parseInt((document.getElementById('site-commission-rate') || {}).value || '4'),
+      agentSplit:      60,
+      companySplit:    40,
+      siteMapUrl:      siteMapUrl || '',
+      siteMapSvgUrl:   '',
+      lotissementDocUrl: '',
+      titleDeedDocUrl:   '',
+      managingAgentId: uid,
+      developerId:     (role === 'developer') ? uid : '',
+      createdByRole:   role,
+      ownerId:         '',
+      approvedBy:      autoApprove ? uid : '',
+      approvedAt:      autoApprove ? now : null,
+      rejectedAt:      null,
+      rejectionReason: '',
+      status:          autoApprove ? 'active' : 'pending_review',
+      isActive:        true,
+      createdAt:       now,
+      updatedAt:       now,
+      createdBy:       uid,
+      updatedBy:       uid
+    };
+
+    return db.collection('sites').add(siteData).then(function(siteRef) {
+      var siteId = siteRef.id;
+      // Write back the id field
+      siteRef.update({ id: siteId });
+
+      // Save all plots
+      var plotPromises = _pendingPlots.map(function(p) {
+        var plotDoc = Object.assign({}, p, {
+          id:        '',
+          siteId:    siteId,
+          agentId:   uid,
+          clientId:  '',
+          reservedAt:    null,
+          reservedUntil: null,
+          depositAmount: 0,
+          depositPaid:   false,
+          soldAt:        null,
+          salePrice:     0,
+          commissionId:  '',
+          status:        'available',
+          isActive:      true,
+          createdAt:     now,
+          updatedAt:     now,
+          createdBy:     uid,
+          updatedBy:     uid
+        });
+        return db.collection('plots').add(plotDoc).then(function(ref) {
+          return ref.update({ id: ref.id });
+        });
+      });
+
+      return Promise.all(plotPromises).then(function() {
+        logAudit('site.submitted', 'sites', siteId, {}, { name: siteData.name, status: siteData.status });
+        return { siteId: siteId, isEdit: false };
       });
     });
-
-    return Promise.all(plotPromises).then(function() {
-      logAudit('site.submitted', 'sites', siteId, {}, { name: siteData.name, status: siteData.status });
-      return siteId;
-    });
-  }).then(function(siteId) {
+  }).then(function(res) {
     closeSiteSubmit();
     _pendingPlots = [];
-    var msg = autoApprove
-      ? (curLang==='rw' ? 'Site yanditswe kandi iri mu isoko!' : 'Site created and now live!')
-      : (curLang==='rw' ? 'Site yoherejwe kandi irategura kwemezwa na Staff.' : 'Site submitted for Staff review.');
-    showToast(msg, 'success');
-    if (autoApprove) {
-      loadSites();
+    _pendingSitePlanFile = null;
+    if (res.isEdit) {
+      showToast(curLang==='rw' ? 'Site yahinduwe!' : 'Site updated!', 'success');
+      if (currentSiteId === res.siteId) loadSitePlan(res.siteId); else loadSites();
     } else {
-      go('sites');
+      var msg = autoApprove
+        ? (curLang==='rw' ? 'Site yanditswe kandi iri mu isoko!' : 'Site created and now live!')
+        : (curLang==='rw' ? 'Site yoherejwe kandi irategura kwemezwa na Staff.' : 'Site submitted for Staff review.');
+      showToast(msg, 'success');
+      if (autoApprove) {
+        loadSites();
+      } else {
+        go('sites');
+      }
     }
   }).catch(function(err) {
     console.error('[Sites] submit error', err);
