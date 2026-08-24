@@ -19541,8 +19541,12 @@ document.addEventListener('securitypolicyviolation', function(e) {
         s.forEach(function(c){ items.push(c.val()); });
         if (!items.length) return;
         _set('km_bookings', JSON.stringify(items));
-        if (currentUser && ['agent','Agent','admin','Admin','staff'].indexOf(currentUser.role) !== -1 && currentUser.email) {
-          var isAgentOnly = ['agent','Agent'].indexOf(currentUser.role) !== -1;
+        // Was a hand-rolled agent/Agent/admin/Admin/staff array — missing
+        // ceo, branch_manager, and the rest of ROLE_TIERS.STAFF, so those
+        // roles never got a desktop notification for new bookings. Purely
+        // a client-side notification trigger, no Firestore write.
+        if (currentUser && isInternalTeam(currentUser) && currentUser.email) {
+          var isAgentOnly = _roleOf(currentUser) === 'agent';
           items.forEach(function(bk) {
             var isMyBooking = !isAgentOnly || bk.agentEmail === currentUser.email;
             if (isMyBooking && bk.id && !_kmSeenBookings.has(bk.id)) {
@@ -29979,10 +29983,12 @@ function _openDealDetailWithData(deal) {
     }).join('');
   }
 
-  // Show counter section for agents/staff
-  var isAgent = typeof currentUser !== 'undefined' && currentUser &&
-    (currentUser.role === 'agent' || currentUser.role === 'staff' ||
-     currentUser.role === 'admin' || currentUser.role === 'Admin');
+  // Show counter section for agents/staff.
+  // Was a hand-rolled agent/staff/admin/Admin chain — missing ceo,
+  // branch_manager, and the rest of ROLE_TIERS.STAFF. deals/{id}'s own
+  // update rule already grants the full isAdminOrStaff() tier, so this
+  // was UI-visibility-only.
+  var isAgent = typeof currentUser !== 'undefined' && currentUser && isInternalTeam(currentUser);
   var cs = e('dd-counter-section');
   if (cs) cs.style.display = isAgent ? 'block' : 'none';
 
@@ -32189,11 +32195,17 @@ function loadSites() {
       grid.innerHTML = '<div class="crm-empty" style="grid-column:1/-1"><div class="crm-empty-icon">⚠️</div><div class="crm-empty-title">Could not load sites' + detail + '</div><div class="crm-empty-sub">' + escapeHtml((err && err.message) || '') + '</div></div>';
     });
 
-  // Show "Add Site" button for agents/staff/admin
+  // Show "Add Site" button for agents/staff/admin/developer.
+  // Was a hand-rolled agent/Agent/staff/admin/Admin/developer chain —
+  // missing ceo, branch_manager, and the rest of ROLE_TIERS.STAFF.
+  // 'developer' isn't part of any ROLE_TIERS bucket (it's its own role,
+  // matching sites/{id}'s create rule: isRole('agent') ||
+  // isRole('developer') || isAdminOrStaff()), so it stays a separate
+  // explicit check rather than folding into isInternalTeam().
   var btn = document.getElementById('site-submit-btn');
   if (btn && typeof currentUser !== 'undefined' && currentUser) {
     var r = currentUser.role || '';
-    if (r === 'agent' || r === 'Agent' || r === 'staff' || r === 'admin' || r === 'Admin' || r === 'developer') {
+    if (isInternalTeam(currentUser) || r === 'developer') {
       btn.style.display = 'flex';
     }
   }
@@ -32913,7 +32925,16 @@ function submitSiteForm() {
   var now = firebase.firestore.FieldValue.serverTimestamp();
   var uid = currentUser.uid;
   var role = currentUser.role || '';
-  var autoApprove = (role === 'staff' || role === 'admin' || role === 'Admin' || role === 'super_admin');
+  // Was a hand-rolled staff/admin/Admin/super_admin chain — missing ceo,
+  // branch_manager, director, and the rest of ROLE_TIERS.STAFF, so a CEO
+  // (or any other staff-tier role beyond plain staff/admin) submitting a
+  // new site got it silently stuck in pending_review instead of
+  // auto-approved. Unlike the UI-visibility instances of this same bug
+  // elsewhere in this file, this one actually decides what status gets
+  // WRITTEN to Firestore (see siteData.status below) — sites/{id}'s
+  // create rule places no constraint on that value at all, so this was
+  // the only thing deciding it.
+  var autoApprove = isAdminOrStaff(currentUser);
 
   // Uploads the picked site-plan file (if any) first, then resolves with
   // its URL — or resolves with undefined if nothing was picked, so the
@@ -35547,9 +35568,12 @@ function checkInViewingGPS(viewingId) {
         var crmWrap = document.querySelector('#page-crm .crm-wrap');
         if (!crmWrap) return;
         if (document.getElementById('my-viewings-section')) { loadMyViewings(); return; }
-        if (!currentUser || (currentUser.role !== 'agent' && currentUser.role !== 'Agent'
-          && currentUser.role !== 'admin' && currentUser.role !== 'Admin'
-          && currentUser.role !== 'super_admin' && currentUser.role !== 'staff')) return;
+        // Was a hand-rolled negated agent/Agent/admin/Admin/super_admin/
+        // staff chain — missing ceo, branch_manager, and the rest of
+        // ROLE_TIERS.STAFF, so those roles never saw their own "My
+        // Viewings" widget on the CRM page. Purely a DOM-injection
+        // visibility check — no Firestore write involved.
+        if (!currentUser || !isInternalTeam(currentUser)) return;
         var section = document.createElement('div');
         section.id = 'my-viewings-section';
         section.style.cssText = 'margin-top:1.5rem;border-top:2px solid var(--border);padding-top:1rem';
