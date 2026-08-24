@@ -128,8 +128,23 @@ service cloud.firestore {
       // this match block (not alongside the top-level helpers above) because
       // it reads the {uid} path binding, which only exists in this scope.
       function isSelfAgentApplication() {
+        // The exclusion here used to be a hand-rolled ['admin','super_admin',
+        // 'staff'] list — only 3 of the 15 roles isAdminOrStaff() actually
+        // covers — so a signed-in ceo, branch_manager, director, or any
+        // other staff-tier role NOT in that short list could still write
+        // role:'agent'/status:'pending' onto their own doc through this
+        // self-service path, contradicting this function's own stated intent
+        // (see the comment above: "an existing staff/admin/super_admin
+        // account can't use it to reset itself"). Found during a repo-wide
+        // audit for this exact class of drifted hand-rolled role list
+        // (triggered by an equivalent client-side bug already fixed
+        // elsewhere) and confirmed as a genuine, too-permissive gap — since
+        // request.auth.uid == uid is already required above, resource IS
+        // the caller's own doc here, so isAdminOrStaff() (which reads the
+        // caller's own role) is exactly equivalent to checking this
+        // document's current role, just correctly complete.
         return isAuth() && request.auth.uid == uid
-          && !(resource.data.get('role', 'client').lower() in ['admin','super_admin','staff'])
+          && !isAdminOrStaff()
           && request.resource.data.role == 'agent'
           && request.resource.data.status == 'pending'
           && request.resource.data.isActive == true
