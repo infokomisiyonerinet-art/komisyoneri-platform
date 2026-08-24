@@ -312,6 +312,16 @@
 <!-- ── PERFORMANCE: Preconnect + Preload ── -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- www.gstatic.com serves the 6 render-blocking Firebase compat SDK
+     script tags further down this document (no crossorigin attribute on
+     those — they're plain script-src loads, not CORS fetches, so the
+     preconnect should match that or the browser may open a connection
+     that doesn't get reused). Upgraded from dns-prefetch-only to a full
+     preconnect (DNS + TCP + TLS ahead of time) since this origin sits on
+     the page's critical path — see the Firebase SDK loading comment near
+     those script tags themselves for why those 6 requests can't be
+     bundled into one in this environment. -->
+<link rel="preconnect" href="https://www.gstatic.com">
 <link rel="dns-prefetch" href="https://www.google-analytics.com">
 <link rel="dns-prefetch" href="https://www.gstatic.com">
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
@@ -14399,46 +14409,6 @@ function updateCount() {
   el.textContent = applySearchFilters(getApprovedProps()).length;
 }
 
-// ── applyAndSearch: filter + show closest matches on zero results ──
-function applyAndSearch() {
-  var approved=getApprovedProps(), filtered=applySearchFilters(approved);
-  window._filtersActive=true;
-  closeSearch(); go('listings');
-  kmTrack('search',{query:window._qs_query||'',results:filtered.length});
-  setTimeout(function(){
-    var grids=document.querySelectorAll('#p-grid-main');
-    grids.forEach(function(grid){
-      grid.querySelectorAll('.user-prop-card').forEach(function(el){ el.remove(); });
-      grid.querySelectorAll('.empty-listings,.similar-results-note').forEach(function(el){ el.remove(); });
-      var countEl=document.getElementById('listings-count');
-      if (filtered.length===0) {
-        var qText=window._qs_query||(function(){var el=document.getElementById('sm-quick-search');return el?el.value.trim():'';})();
-        var similar=approved.map(function(p){return{p:p,s:kmScore(qText||'',p)};})
-          .sort(function(a,b){return b.s-a.s;}).slice(0,3);
-        var note=document.createElement('div');
-        note.className='similar-results-note';
-        note.style.cssText='grid-column:1/-1';
-        note.innerHTML='<span>🔍 '+(curLang==='rw'?'Nta mitungo ihuye — hano ni imitungo ifanana:':'No exact match — showing closest results:')+'</span>'
-          +'&nbsp;<button onclick="resetSearch()" class="btn btn-navy btn-sm" style="margin:0">Siba →</button>';
-        grid.appendChild(note);
-        similar.forEach(function(x){
-          var w=document.createElement('div');
-          w.className='user-prop-card'; w.setAttribute('data-pid',String(x.p.id));
-          w.innerHTML=renderUserPropCard(x.p); grid.appendChild(w);
-        });
-        if (countEl) countEl.textContent=0;
-      } else {
-        filtered.forEach(function(prop){
-          var w=document.createElement('div');
-          w.className='user-prop-card'; w.setAttribute('data-pid',String(prop.id));
-          w.innerHTML=renderUserPropCard(prop); grid.appendChild(w);
-        });
-        if (countEl) countEl.textContent=filtered.length;
-      }
-    });
-  }, 150);
-}
-
 // ESC + outside-click to close
 // Was unconditional — fired closeSearch() on every Escape press anywhere
 // in the app, even with search-modal not open. Harmless-looking on its
@@ -14707,44 +14677,6 @@ function renderUserPropCard(prop) {
 })();
 
 // --- INJECT APPROVED PROPERTIES INTO LISTINGS PAGE ---
-function loadApprovedProperties() {
-  var grids = document.querySelectorAll('#p-grid-main');
-  if (!grids.length) return;
-  var props = [];
-  try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-  // Show demos + approved real listings
-  var approved = props.filter(function(p){ return p.status === 'Approved'; });
-
-  grids.forEach(function(grid) {
-    grid.querySelectorAll('.user-prop-card,.sk-init').forEach(function(el){ el.remove(); });
-    var empty = grid.querySelector('.empty-listings');
-    if(empty) empty.remove();
-
-    if(approved.length === 0) {
-      var emptyDiv = document.createElement('div');
-      emptyDiv.className = 'empty-listings empty-state';
-      emptyDiv.innerHTML = '<div class="es-icon">🏠</div>'
-        + '<div class="es-title">' + t('noListings') + '</div>'
-        + '<div class="es-sub">' + (curLang==='rw'?'Nta mitungo yemejwe ubu. Gerageza demo!':'No approved listings yet. Try demo listings!') + '</div>'
-        + '<button onclick="loadDemoListings()" class="btn btn-navy btn-sm">'
-        + t('demoBtn') + '</button>';
-      grid.appendChild(emptyDiv);
-    } else {
-      // Add all approved (demos + real)
-      approved.forEach(function(prop) {
-        var wrapper = document.createElement('div');
-        wrapper.className = 'user-prop-card';
-        wrapper.setAttribute('data-pid', String(prop.id));
-        wrapper.innerHTML = renderUserPropCard(prop);
-        grid.appendChild(wrapper);
-      });
-    }
-  });
-
-  // Update count
-  var countEl = document.getElementById('listings-count');
-  if (countEl) countEl.textContent = approved.length;
-}
 
 // --- OPEN ADMIN PANEL ---
 function openAdmin() {
@@ -14788,64 +14720,6 @@ function adminFilter(status) {
   });
 }
 
-function adminRender(filter) {
-  var props = [];
-  try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-  // Update counts
-  ['pending','approved','rejected'].forEach(function(s) {
-    var el = document.getElementById('adm-count-'+s);
-    if(el) el.textContent = props.filter(function(p){return (p.status||'').toLowerCase()===s;}).length;
-  });
-  var allEl = document.getElementById('adm-count-all');
-  if(allEl) allEl.textContent = props.length;
-
-  var filtered = filter === 'all' ? props : props.filter(function(p){
-    return (p.status||'').toLowerCase() === filter;
-  });
-
-  // Update active tab style
-  ['all','pending','approved','rejected'].forEach(function(s) {
-    var btn = document.getElementById('adm-btn-'+s);
-    if(!btn) return;
-    if(s === filter) {
-      btn.style.background = 'var(--navy)'; btn.style.color = '#fff'; btn.style.border = 'none';
-    } else {
-      btn.style.background = '#fff'; btn.style.color = 'var(--dark)'; btn.style.border = '1.5px solid var(--border)';
-    }
-  });
-  var list = document.getElementById('admin-list');
-  if (!list) return;
-  if (filtered.length === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">' + t('noPropsCat') + '</div>';
-    return;
-  }
-  var propsIndexed = props.map(function(p, i) { return {p: p, idx: i}; });
-  var filteredIndexed = filter === 'all' ? propsIndexed : propsIndexed.filter(function(item) {
-    return (item.p.status||'').toLowerCase() === filter;
-  });
-  list.innerHTML = filteredIndexed.map(function(item) {
-    var prop = item.p;
-    var globalIdx = item.idx;
-    var priceDisplay = prop.price ? Number(prop.price).toLocaleString()+' RWF' : '—';
-    var statusColor = prop.status==='Approved'?'#27A84A':prop.status==='Rejected'?'#e53e3e':'#F5A623';
-    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.8rem;background:#fafbff">'
-      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;flex-wrap:wrap">'
-      + '<div style="flex:1">'
-      + '<div style="font-weight:700;color:var(--navy);font-size:.95rem">'+escapeHtml(prop.type||'')+' — '+escapeHtml(prop.district||'')+(prop.sector?', '+escapeHtml(prop.sector):'')+'</div>'
-      + '<div style="font-size:.8rem;color:var(--muted);margin:.2rem 0">👤 '+escapeHtml(prop.owner||'')+' | 📞 '+escapeHtml(prop.contact||'')+'</div>'
-      + '<div style="font-size:.8rem;color:var(--muted)">📧 '+escapeHtml(prop.ownerEmail||'—')+'</div>'
-      + '<div style="font-size:.85rem;margin:.4rem 0;font-weight:600">💰 '+priceDisplay+' ('+escapeHtml(prop.service||'')+')</div>'
-      + (prop.desc?'<div style="font-size:.78rem;color:#555;margin:.3rem 0;font-style:italic">'+escapeHtml(prop.desc.substring(0,100))+'...</div>':'')
-      + '<div style="font-size:.72rem;color:var(--muted)">📅 '+(prop.date?new Date(prop.date).toLocaleString():'—')+'</div>'
-      + '</div>'
-      + '<div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">'
-      + '<div style="font-size:.7rem;font-weight:700;color:'+statusColor+';text-align:center">'+escapeHtml(prop.status||'')+'</div>'
-      + (filter!=='approved'?'<button onclick="adminApprove('+globalIdx+')" style="background:#27A84A;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">✅ Emeza</button>':'')
-      + (filter!=='rejected'?'<button onclick="adminReject('+globalIdx+')" style="background:#e53e3e;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">❌ Kataa</button>':'')
-      + '<button onclick="adminDelete('+globalIdx+')" style="background:#718096;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem">🗑️ Siba</button>'
-      + '</div></div></div>';
-  }).join('');
-}
 
 function adminApprove(idx) {
   var props = [];
@@ -14893,67 +14767,12 @@ function adminDelete(idx) {
   loadApprovedProperties();
 }
 
-function adminDeleteAll(status) {
-  var label = status === 'approved' ? t('labApproved') : status === 'rejected' ? t('labRejected') : t('labAll');
-  if (!confirm(label + ': ' + t('delAllConfirm'))) return;
-  var props = [];
-  try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-  var kept = props.filter(function(p){ return (p.status||'').toLowerCase() !== status; });
-  try { localStorage.setItem('km_properties', JSON.stringify(kept)); } catch(e){}
-  showToast(t('delAllDone') + (props.length - kept.length) + ')');
-  adminRender(adminCurrentFilter);
-  loadApprovedProperties();
-}
 
 // --- MY PROPERTIES ---
 // This declaration is superseded by the later Firestore-backed
 // openMyProps() further down the file (last declaration wins) — fixed
 // here too anyway so dead code doesn't sit around modeling the bug we
 // just fixed everywhere else.
-function openMyProps() {
-  if (!currentUser) { go('auth'); return; }
-  if (!document.getElementById('my-props-modal')) return;
-  openModal('my-props-modal');
-  var props = [];
-  try { props = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-  var mine = props.filter(function(p){ return p.ownerEmail === currentUser.email; });
-  var list = document.getElementById('my-props-list');
-  if (!list) return;
-  if (mine.length === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">'
-      + '<div style="font-size:2rem;margin-bottom:.5rem">🏠</div>'
-      + '<div>' + t('noMyProps') + '</div>'
-      + '<button class="btn btn-navy btn-sm" style="margin-top:1rem" onclick="openAddProperty()">' + t('addProp') + '</button>'
-      + '</div>';
-    return;
-  }
-  list.innerHTML = mine.map(function(prop) {
-    var statusColor = prop.status==='Approved'?'#27A84A':prop.status==='Rejected'?'#e53e3e':'#F5A623';
-    var statusIcon = prop.status==='Approved'?'✅':prop.status==='Rejected'?'❌':'⏳';
-    var priceDisplay = prop.price ? Number(prop.price).toLocaleString()+' RWF' : '—';
-    var editBtn = prop.status === 'Pending'
-      ? '<button onclick=\'openEditProperty('+JSON.stringify(prop).replace(/\'/g,"\\'")+');closeModal("my-props-modal")\' '
-        + 'style="background:none;border:1.5px solid var(--navy);color:var(--navy);border-radius:7px;padding:.25rem .6rem;font-size:.72rem;font-weight:700;cursor:pointer;margin-top:.4rem">✏️ '
-        + (curLang==='rw'?'Hindura':'Edit') + '</button>'
-      : '';
-    var viewsHtml = prop.viewCount
-      ? '<span style="font-size:.72rem;color:var(--muted);margin-left:.5rem">&#128065; ' + Number(prop.viewCount).toLocaleString() + '</span>'
-      : '';
-    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:.9rem;margin-bottom:.7rem">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">'
-      + '<div style="flex:1">'
-      + '<div style="font-weight:700;color:var(--navy)">'+prop.type+' — '+prop.district+'</div>'
-      + '<div style="font-size:.82rem;color:var(--muted);margin:.2rem 0">'+prop.service+' | '+priceDisplay+viewsHtml+'</div>'
-      + (prop.desc?'<div style="font-size:.78rem;color:#555;font-style:italic">'+prop.desc.substring(0,60)+'...</div>':'')
-      + editBtn
-      + '</div>'
-      + '<div style="text-align:center;flex-shrink:0">'
-      + '<div style="font-size:1.2rem">'+statusIcon+'</div>'
-      + '<div style="font-size:.65rem;font-weight:700;color:'+statusColor+'">'+prop.status+'</div>'
-      + '</div>'
-      + '</div></div>';
-  }).join('');
-}
 
 // ── Public Market Analytics — computed live from real approved listings,
 // never fabricated. Replaces a previous version of this page that showed
@@ -15108,8 +14927,15 @@ go = function(page) {
   }
 };
 
-// Also load on page init — after demos are already in localStorage
-setTimeout(loadApprovedProperties, 400);
+// Also load on page init — after demos are already in localStorage.
+// Wrapped in a closure rather than passed as a bare function reference —
+// this line runs at parse time, well before loadApprovedProperties()'s own
+// declaration further down the file, so `setTimeout(loadApprovedProperties,
+// 400)` would throw ReferenceError immediately (bare identifiers are
+// resolved at the setTimeout() call itself, not when the timer fires).
+// Wrapping defers the name lookup to fire-time, by which point the rest of
+// this document has long since finished parsing.
+setTimeout(function() { loadApprovedProperties(); }, 400);
 
 
 // === BOOKING SYSTEM ===
@@ -18413,28 +18239,6 @@ go = function(page) {
 //  AGENTS PAGE — Nationwide Directory
 // ═══════════════════════════════════════════════════════════
 
-function loadAgentsPage() {
-  var agents = [];
-  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
-
-  // Add demo agents if none exist
-  if(agents.length === 0) {
-    agents = getDemoAgents();
-    try { localStorage.setItem('km_agents', JSON.stringify(agents)); } catch(e){}
-  }
-
-  var active = agents.filter(function(a){ return a.status === 'Active'; });
-  var zones = [...new Set(agents.map(function(a){ return a.zone; }))];
-
-  var tc = document.getElementById('agents-total-count');
-  var ac = document.getElementById('agents-active-count');
-  var zc = document.getElementById('agents-zones-count');
-  if(tc) tc.textContent = agents.length;
-  if(ac) ac.textContent = active.length;
-  if(zc) zc.textContent = zones.length;
-
-  renderAgentsGrid(agents);
-}
 
 function getDemoAgents() {
   return [
@@ -18508,20 +18312,6 @@ function renderAgentsGrid(agents) {
   }).join('');
 }
 
-function filterAgentsPage() {
-  var search = (document.getElementById('agent-search-inp').value||'').toLowerCase();
-  var zone = document.getElementById('agent-zone-filter').value;
-  var agents = [];
-  try { agents = JSON.parse(localStorage.getItem('km_agents')||'[]'); } catch(e){}
-  if(agents.length === 0) agents = getDemoAgents();
-
-  var filtered = agents.filter(function(a) {
-    var matchSearch = !search || (a.name||'').toLowerCase().includes(search) || (a.zone||'').toLowerCase().includes(search);
-    var matchZone = !zone || a.zone === zone;
-    return matchSearch && matchZone;
-  });
-  renderAgentsGrid(filtered);
-}
 
 // ═══════════════════════════════════════════════════════════
 //  ADMIN — Switch Tabs (Listings / Agents / Deals)
@@ -19403,6 +19193,34 @@ document.addEventListener('securitypolicyviolation', function(e) {
   }
 })();
 </script>
+<!-- These 6 requests are still render-blocking and un-bundled — investigated
+     bundling them into a single local file in the same pass that added the
+     preconnect hint above, and both routes turned out to be genuine dead
+     ends rather than a risk call:
+       1. Fetching the real gstatic.com CDN bundle contents to vendor
+          locally: blocked outright by this environment's network policy
+          (no route to www.gstatic.com from this sandbox).
+       2. Extracting an equivalent standalone browser bundle from the
+          `firebase` npm package (registry.npmjs.org IS reachable here):
+          the installed package only ships CJS (require()-based) and ESM
+          (import-based) builds for every compat module — there is no
+          global-`firebase`-attaching UMD/IIFE bundle anywhere in the
+          package tree. The actual gstatic.com CDN files are a separately
+          built artifact from Firebase's own release pipeline, not
+          something the npm package includes; reconstructing one by hand
+          would mean guessing at Firebase's internal bundler config for
+          code this foundational (auth/database/firestore/storage/
+          functions), which isn't something to ship unverified.
+     Real fix needs one of: (a) a session with network access to
+     www.gstatic.com to vendor these 6 files once (after that, swapping
+     these tags for one local script element is low-risk and would take
+     minutes), or (b) migrating off CDN-hosted script tags entirely to the
+     npm package + a bundler — the same architectural step already flagged for
+     per-route code splitting elsewhere in this pass. Left as synchronous,
+     unbundled, un-deferred script tags rather than shipping either an
+     unverified bundle or a defer/async reorder that risks the ~40 later
+     script blocks in this file that assume Firebase is already
+     initialized by the time they run. -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -30037,53 +29855,6 @@ function _loadDealsFallback() {
   updateDealStats();
 }
 
-function renderDealList() {
-  var list = document.getElementById('deal-list');
-  if (!list) return;
-
-  var filtered = _deals.filter(function(d) {
-    var matchStage = !_dealFilter || d.pipelineStage === _dealFilter;
-    var title  = (d.propertyTitle || '').toLowerCase();
-    var client = (d.clientName || '').toLowerCase();
-    var matchSearch = !_dealSearch ||
-      title.indexOf(_dealSearch.toLowerCase()) > -1 ||
-      client.indexOf(_dealSearch.toLowerCase()) > -1;
-    return matchStage && matchSearch;
-  });
-
-  if (filtered.length === 0) {
-    list.innerHTML = '<div class="crm-empty">'
-      + '<div class="crm-empty-icon">💼</div>'
-      + '<div class="crm-empty-title">' + (curLang === 'rw' ? 'Nta deals zibonetse' : 'No deals found') + '</div>'
-      + '<div style="font-size:.78rem;color:var(--muted);margin-top:.3rem">'
-      + (curLang === 'rw' ? 'Fungura deal nshya hejuru' : 'Open a new deal above') + '</div>'
-      + '</div>';
-    return;
-  }
-
-  list.innerHTML = filtered.map(function(deal) {
-    var stage = typeof getCrmStage === 'function' ? getCrmStage(deal.pipelineStage || 'new') : { labelEN: deal.pipelineStage || 'New', labelRW: deal.pipelineStage || 'Nshya', color: '#64748B' };
-    var stageLabel = curLang === 'rw' ? stage.labelRW : stage.labelEN;
-    var dealId     = deal._docId || deal.id || '';
-    var price      = deal.agreedPrice ? parseInt(deal.agreedPrice).toLocaleString() + ' RWF' : '—';
-    var commRate   = deal.commissionRate || 0.04;
-    var comm       = deal.agreedPrice ? Math.round(parseInt(deal.agreedPrice) * commRate).toLocaleString() + ' RWF' : '—';
-
-    return '<div class="deal-card" style="border-left-color:' + stage.color + '" onclick="openDealDetail(\'' + dealId + '\')" role="button" tabindex="0">'
-      + '<div class="deal-card-header">'
-      +   '<div class="deal-card-title">' + (deal.propertyTitle || 'Imitungo') + '</div>'
-      +   '<span class="deal-badge" style="background:' + stage.color + '">' + stageLabel + '</span>'
-      + '</div>'
-      + '<div class="deal-price">' + price + '</div>'
-      + '<div class="deal-card-meta">'
-      +   '<span>👤 ' + (deal.clientName || '—') + '</span>'
-      +   '<span>👔 ' + (deal.agentName || '—') + '</span>'
-      +   '<span>💰 Comm: ' + comm + '</span>'
-      +   '<span>📋 ' + (curLang === 'rw' ? deal.dealType === 'rental' ? 'Gukodesha' : 'Kugurisha' : deal.dealType === 'rental' ? 'Rental' : 'Sale') + '</span>'
-      + '</div>'
-      + '</div>';
-  }).join('');
-}
 
 function updateDealStats() {
   var total  = _deals.length;
@@ -30996,97 +30767,7 @@ function _loadCrmFallback() {
   updateCrmSidebarBadge();
 }
 
-function renderCrmLeads() {
-  var list = document.getElementById('crm-lead-list');
-  if (!list) return;
 
-  var now = Date.now();
-  var filtered = _crmLeads.filter(function(l) {
-    var matchStage = !_crmFilter || l.pipelineStage === _crmFilter;
-    var name  = (l.clientName || l.name || '').toLowerCase();
-    var phone = (l.clientPhone || l.phone || '').toLowerCase();
-    var matchSearch = !_crmSearch ||
-      name.indexOf(_crmSearch.toLowerCase()) > -1 ||
-      phone.indexOf(_crmSearch.toLowerCase()) > -1;
-    return matchStage && matchSearch;
-  });
-
-  if (filtered.length === 0) {
-    list.innerHTML = '<div class="crm-empty">'
-      + '<div class="crm-empty-icon">🔍</div>'
-      + '<div class="crm-empty-title">' + (curLang === 'rw' ? 'Nta leads zibonetse' : 'No leads found') + '</div>'
-      + '<div style="font-size:.78rem;color:var(--muted);margin-top:.3rem">'
-      + (curLang === 'rw' ? 'Hindura filters cyangwa wongere lead nshya' : 'Adjust filters or add a new lead') + '</div>'
-      + '</div>';
-    return;
-  }
-
-  list.innerHTML = filtered.map(function(lead) {
-    var stage     = getCrmStage(lead.pipelineStage || 'new');
-    var labelStage = curLang === 'rw' ? stage.labelRW : stage.labelEN;
-    var name      = lead.clientName || lead.name || 'Ntazwi';
-    var phone     = lead.clientPhone || lead.phone || '';
-    var zone      = lead.zone || lead.district || '—';
-    var intent    = lead.action || lead.type || '—';
-    var budMin    = lead.budgetMin ? parseInt(lead.budgetMin).toLocaleString() + ' RWF' : '';
-    var budMax    = lead.budgetMax ? parseInt(lead.budgetMax).toLocaleString() + ' RWF' : '';
-    var budget    = (budMin || budMax) ? (budMin || '?') + ' – ' + (budMax || '?') : '';
-    var agName    = lead.agentName || '';
-    var leadId    = lead._docId || lead.id || '';
-
-    // Follow-up overdue check
-    var cardClass = 'crm-card';
-    if (lead.nextFollowUp) {
-      var fuMs = 0;
-      if (lead.nextFollowUp && typeof lead.nextFollowUp.toDate === 'function') {
-        fuMs = lead.nextFollowUp.toDate().getTime();
-      } else if (lead.nextFollowUp) {
-        fuMs = new Date(lead.nextFollowUp).getTime();
-      }
-      if (fuMs > 0 && fuMs < now) cardClass += ' crm-overdue';
-      else if (fuMs > 0 && fuMs - now < 86400000) cardClass += ' crm-due-today';
-    }
-
-    var fuLabel = '';
-    if (lead.nextFollowUp) {
-      var fuD = typeof lead.nextFollowUp.toDate === 'function'
-        ? lead.nextFollowUp.toDate()
-        : new Date(lead.nextFollowUp);
-      fuLabel = '<span title="Next follow-up">🔔 ' + fuD.toLocaleDateString() + '</span>';
-    }
-
-    return '<div class="' + cardClass + '" style="border-left-color:' + stage.color + '" onclick="openLeadDetail(\'' + leadId + '\')" role="button" tabindex="0">'
-      + '<div class="crm-card-header">'
-      +   '<div class="crm-card-name">' + name + '</div>'
-      +   '<span class="crm-stage-badge" style="background:' + stage.color + '">' + labelStage + '</span>'
-      + '</div>'
-      + '<div class="crm-card-meta">'
-      +   (phone ? '<span>📞 ' + phone + '</span>' : '')
-      +   '<span>📍 ' + zone + '</span>'
-      +   '<span>🏠 ' + intent + '</span>'
-      +   (budget ? '<span>💰 ' + budget + '</span>' : '')
-      +   (agName ? '<span>👔 ' + agName + '</span>' : '')
-      +   fuLabel
-      + '</div>'
-      + '</div>';
-  }).join('');
-}
-
-function updateCrmStats() {
-  var total  = _crmLeads.length;
-  var newCt  = _crmLeads.filter(function(l){ return !l.pipelineStage || l.pipelineStage === 'new'; }).length;
-  var activeKeys = ['contacted','qualified','viewing_scheduled','viewing_completed',
-                    'offer_submitted','negotiation','due_diligence','financing','contract','closing'];
-  var active = _crmLeads.filter(function(l){ return activeKeys.indexOf(l.pipelineStage) > -1; }).length;
-  var won    = _crmLeads.filter(function(l){ return l.pipelineStage === 'closed_won'; }).length;
-
-  var e = document.getElementById.bind(document);
-  if(e('crm-stat-total')) e('crm-stat-total').textContent = total;
-  if(e('crm-stat-new'))   e('crm-stat-new').textContent   = newCt;
-  if(e('crm-stat-active'))e('crm-stat-active').textContent = active;
-  if(e('crm-stat-won'))   e('crm-stat-won').textContent   = won;
-  if(e('dash-kpi-leads')) e('dash-kpi-leads').textContent = total;
-}
 
 function updateCrmSidebarBadge() {
   var badge = document.getElementById('crm-sidebar-count');
