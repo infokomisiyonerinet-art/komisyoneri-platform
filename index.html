@@ -32307,12 +32307,19 @@ function loadSitePlan(siteId) {
       planWrap.style.display = 'none';
     }
 
-    // Staff actions visibility
+    // Staff actions visibility — isAdminOrStaff() is the canonical
+    // role-tier check (mirrors firestore.rules' isAdminOrStaff(); see
+    // ROLE_TIERS' own comment) covering every internal-staff-equivalent
+    // role — ceo, branch_manager, hr_manager, director, company_owner,
+    // etc. — not just the 4 values this used to hand-check. Before this
+    // fix a CEO (or director, company_owner, branch_manager, ...) viewing
+    // a site's own detail page never saw Staff Actions or Edit Site at
+    // all, despite being fully authorized to edit it.
     var staffBox = document.getElementById('site-staff-actions');
     if (staffBox && typeof currentUser !== 'undefined' && currentUser) {
-      var r = currentUser.role || '';
-      var isStaffAdmin = r === 'staff' || r === 'admin' || r === 'Admin' || r === 'super_admin';
-      var isAgent = (r === 'agent' || r === 'Agent') && s.managingAgentId === currentUser.uid;
+      var r = (currentUser.role || '').toLowerCase();
+      var isStaffAdmin = isAdminOrStaff(currentUser);
+      var isAgent = r === 'agent' && s.managingAgentId === currentUser.uid;
       staffBox.style.display = (isStaffAdmin || isAgent) ? 'block' : 'none';
       var approveBtn = document.getElementById('site-approve-btn');
       var rejectBtn  = document.getElementById('site-reject-btn');
@@ -32393,7 +32400,11 @@ function openPlotDetail(plotId) {
     var statusCls   = { available:'available', reserved:'reserved', sold:'sold', on_hold:'on_hold' };
     var lang = typeof curLang !== 'undefined' ? curLang : 'rw';
     var canReserve = p.status === 'available' && typeof currentUser !== 'undefined' && currentUser;
-    var isStaffAdmin = currentUser && (currentUser.role === 'staff' || currentUser.role === 'admin' || currentUser.role === 'Admin');
+    // Same isAdminOrStaff() fix as loadSitePlan()'s Staff Actions box above
+    // — this used the same stale, narrower hand-check (missing super_admin,
+    // ceo, and every other STAFF-tier role), hiding "Change Status" from
+    // anyone but a literal 'staff'/'admin'.
+    var isStaffAdmin = currentUser && isAdminOrStaff(currentUser);
 
     body.innerHTML =
       '<div class="plot-popup-num">' + (p.plotLabel || 'Plot ' + p.plotNumber) + '</div>' +
