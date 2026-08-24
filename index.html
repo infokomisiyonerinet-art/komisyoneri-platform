@@ -7910,13 +7910,18 @@ html,body{overscroll-behavior-x:none}
 
       <!-- STEP 3: Plots -->
       <div class="site-step" id="site-step-3">
-        <!-- Shown instead of the add-plot form when editing an existing
-             site (openSiteSubmit()) — this form only edits site-level
-             fields; plots already have their own reserve/status-change
-             flow (openPlotDetail()/openPlotStatusChange()) and are never
-             recreated or removed from here. -->
-        <div id="site-plots-step-editing-msg" style="display:none;background:var(--light);border-radius:10px;padding:1rem;font-size:.85rem;color:var(--muted)">
-          <span data-rw="Ibiraro ntibihindurwa hano — koresha urupapuro rwa site kugira ngo ucunge ibiraro kimwe kimwe." data-en="Plots aren't edited here — use the site page to manage individual plots one at a time.">Plots aren't edited here — use the site page to manage individual plots one at a time.</span>
+        <!-- Shown only when editing an existing site (openSiteSubmit()) —
+             a reminder that this form only APPENDS new plots; it can't
+             edit or remove a plot already on the site. Existing plots
+             keep their own reserve/status-change flow
+             (openPlotDetail()/openPlotStatusChange()), unaffected by this
+             step. The add-plot form below is otherwise identical between
+             create and edit mode — submitSiteForm()'s edit branch batches
+             any staged plots onto the existing site and bumps its
+             totalPlots/availablePlots counters, same shape as the
+             create-a-new-site path just below it. -->
+        <div id="site-plots-step-editing-msg" style="display:none;background:var(--light);border-radius:10px;padding:1rem;font-size:.85rem;color:var(--muted);margin-bottom:.8rem">
+          <span data-rw="Iyi ifishi yongeraho ibiraro bishya gusa — ntabwo ihindura cyangwa ikuraho ibiraro bisanzweho. Kugira ngo uhindure ikiraro kimwe, koresha urupapuro rwa site." data-en="This only adds new plots — it can't edit or remove a plot that already exists. To change an existing plot, use the site page instead.">This only adds new plots — it can't edit or remove a plot that already exists. To change an existing plot, use the site page instead.</span>
         </div>
         <div id="site-plots-step-form" style="display:flex;flex-direction:column;gap:.8rem">
           <div style="background:var(--light);border-radius:10px;padding:.8rem;font-size:.82rem;color:var(--muted)">
@@ -31959,10 +31964,11 @@ function _saveLeadReassign() {
 
 var currentSiteId = null;
 var _siteCurrentStep = 1;
-var _pendingPlots = [];  // plots staged during form entry
+var _pendingPlots = [];  // plots staged during form entry — appended to the site (new or existing) on submitSiteForm()
 var _sitesCache = [];
 var _currentPlotId = null;
 var _pendingSitePlanFile = null; // File picked in step 4, uploaded on submitSiteForm()/submitSiteEditForm()
+var _existingPlotNumbers = []; // lowercased/trimmed plotNumbers already on the site being edited — see openSiteSubmit()'s fetch and addPlotToList()'s duplicate check
 
 // ── Site plan image upload ──────────────────────────
 // The #site-plan-file input existed in the DOM (both the create wizard's
@@ -32854,6 +32860,7 @@ function confirmRejectSite() {
 function openSiteSubmit(editId) {
   if (!currentUser) { showToast(curLang==='rw' ? 'Injira mbere!' : 'Please log in first!', 'warn'); go('auth'); return; }
   _pendingPlots = [];
+  _existingPlotNumbers = [];
   _pendingSitePlanFile = null;
   _siteCurrentStep = 1;
   var m = document.getElementById('site-submit-modal');
@@ -32874,12 +32881,28 @@ function openSiteSubmit(editId) {
   var plotsStepMsg = document.getElementById('site-plots-step-editing-msg');
   var plotsStepForm = document.getElementById('site-plots-step-form');
 
+  // The add-plot form is now shown in both create and edit mode — editing
+  // an existing site can APPEND new plots the same way creating one does
+  // (see submitSiteForm()'s edit branch); it still never edits/removes an
+  // existing plot, which is why the reminder message only shows in edit
+  // mode.
+  if (plotsStepForm) plotsStepForm.style.display = '';
+
   if (editId) {
-    // Plots aren't touched by this form when editing — they have their
-    // own reserve/status-change flow already — so hide the "add a plot"
-    // entry form instead of showing a misleadingly-empty one.
-    if (plotsStepMsg)  plotsStepMsg.style.display  = '';
-    if (plotsStepForm) plotsStepForm.style.display = 'none';
+    if (plotsStepMsg) plotsStepMsg.style.display = '';
+    // Existing plotNumbers on this site, for addPlotToList()'s duplicate
+    // check below — best-effort: if this fetch is slow/fails, duplicate
+    // checking against already-persisted plots just silently doesn't
+    // trigger (still catches duplicates within this same session's
+    // staged batch), it never blocks opening the form.
+    db.collection('plots').where('siteId','==',editId).where('isActive','==',true).get()
+      .then(function(psnap) {
+        _existingPlotNumbers = [];
+        psnap.forEach(function(pd) {
+          var num = (pd.data().plotNumber || '').toString().trim().toLowerCase();
+          if (num) _existingPlotNumbers.push(num);
+        });
+      }).catch(function(e) { console.error('[Sites] existing-plots fetch for dup-check failed', e); });
     db.collection('sites').doc(editId).get().then(function(doc) {
       if (!doc.exists) { showToast('Site not found', 'error'); closeSiteSubmit(); return; }
       var s = doc.data();
@@ -32905,8 +32928,7 @@ function openSiteSubmit(editId) {
       showToast('Could not load site for editing', 'error');
     });
   } else {
-    if (plotsStepMsg)  plotsStepMsg.style.display  = 'none';
-    if (plotsStepForm) plotsStepForm.style.display = '';
+    if (plotsStepMsg) plotsStepMsg.style.display = 'none';
   }
 
   renderPlotPreview();
@@ -32954,6 +32976,16 @@ function addPlotToList() {
   if (!num)   { showToast('Enter plot number.', 'warn'); return; }
   if (!size)  { showToast('Enter plot size (m²).', 'warn'); return; }
   if (!price) { showToast('Enter plot price (RWF).', 'warn'); return; }
+  // Blocks a plot number colliding with one already staged this session
+  // OR (when editing) one already saved on this site — see
+  // _existingPlotNumbers' own comment. Applies in create mode too (a
+  // brand-new site had no duplicate check at all before this).
+  var normalizedNum = num.toLowerCase();
+  var dupInPending = _pendingPlots.some(function(p) { return p.plotNumber.toString().trim().toLowerCase() === normalizedNum; });
+  if (dupInPending || _existingPlotNumbers.indexOf(normalizedNum) > -1) {
+    showToast(curLang==='rw' ? 'Ikiraro gifite iyi numero gisanzweho kuri iyi site.' : 'A plot with this number already exists on this site.', 'warn');
+    return;
+  }
   var corner = (document.getElementById('plt-corner') || {}).checked;
   var road   = (document.getElementById('plt-road')   || {}).checked;
   _pendingPlots.push({
@@ -33073,7 +33105,53 @@ function submitSiteForm() {
       if (siteMapUrl) editData.siteMapUrl = siteMapUrl; // only overwrite if a new file was actually uploaded
       return db.collection('sites').doc(editId).update(editData).then(function() {
         logAudit('site.updated', 'sites', editId, {}, { name: editData.name });
-        return { siteId: editId, isEdit: true };
+        if (_pendingPlots.length === 0) {
+          return { siteId: editId, isEdit: true, plotsAdded: 0 };
+        }
+        // Append any newly staged plots to this EXISTING site — same doc
+        // shape as the create-a-new-site branch below, batched into one
+        // atomic write alongside a totalPlots/availablePlots/totalValueRWF
+        // increment on the site doc itself (those are denormalized
+        // counters, not a live count of the plots collection — see
+        // loadSitePlan()'s own comment — so a batch write is what a plain
+        // create() below never needed to worry about but appending does:
+        // this is the piece that was completely missing before, which is
+        // why a site's stat boxes could show far fewer plots than its
+        // uploaded site plan image actually shows).
+        var batch = db.batch();
+        _pendingPlots.forEach(function(p) {
+          var plotRef = db.collection('plots').doc();
+          batch.set(plotRef, Object.assign({}, p, {
+            id:        plotRef.id,
+            siteId:    editId,
+            agentId:   uid,
+            clientId:  '',
+            reservedAt:    null,
+            reservedUntil: null,
+            depositAmount: 0,
+            depositPaid:   false,
+            soldAt:        null,
+            salePrice:     0,
+            commissionId:  '',
+            status:        'available',
+            isActive:      true,
+            createdAt:     now,
+            updatedAt:     now,
+            createdBy:     uid,
+            updatedBy:     uid
+          }));
+        });
+        var addedValue = _pendingPlots.reduce(function(sum, p) { return sum + (p.price || 0); }, 0);
+        batch.update(db.collection('sites').doc(editId), {
+          totalPlots:     firebase.firestore.FieldValue.increment(_pendingPlots.length),
+          availablePlots: firebase.firestore.FieldValue.increment(_pendingPlots.length),
+          totalValueRWF:  firebase.firestore.FieldValue.increment(addedValue),
+          updatedAt: now, updatedBy: uid
+        });
+        return batch.commit().then(function() {
+          logAudit('site.plots_added', 'sites', editId, {}, { count: _pendingPlots.length });
+          return { siteId: editId, isEdit: true, plotsAdded: _pendingPlots.length };
+        });
       });
     }
 
@@ -33169,7 +33247,15 @@ function submitSiteForm() {
     _pendingPlots = [];
     _pendingSitePlanFile = null;
     if (res.isEdit) {
-      showToast(curLang==='rw' ? 'Site yahinduwe!' : 'Site updated!', 'success');
+      var updMsg;
+      if (res.plotsAdded > 0) {
+        updMsg = curLang==='rw'
+          ? 'Site yahinduwe! Wongeyeho ibiraro ' + res.plotsAdded + '.'
+          : 'Site updated! Added ' + res.plotsAdded + ' new plot' + (res.plotsAdded !== 1 ? 's' : '') + '.';
+      } else {
+        updMsg = curLang==='rw' ? 'Site yahinduwe!' : 'Site updated!';
+      }
+      showToast(updMsg, 'success');
       if (currentSiteId === res.siteId) loadSitePlan(res.siteId); else loadSites();
     } else {
       var msg = autoApprove
