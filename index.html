@@ -7969,15 +7969,19 @@ html,body{overscroll-behavior-x:none}
           </div>
           <div class="field">
             <label data-rw="Shyiraho Itangazo ry'Isitey (Image)" data-en="Upload Site Plan Image" for="site-plan-file">Upload Site Plan (optional)</label>
-            <!-- Image only (JPG/PNG), not PDF — uploaded via Cloudinary's
-                 /image/upload endpoint (same as property photos), which
-                 doesn't accept PDFs. See uploadSitePlanImage()'s own
-                 comment on why this reuses that same upload approach. -->
-            <div id="site-plan-current-wrap" style="display:none;margin-bottom:.5rem">
-              <img id="site-plan-current-img" src="" alt="Current site plan" style="max-width:100%;max-height:160px;border-radius:8px;display:block;margin-bottom:.3rem">
-              <div style="font-size:.72rem;color:var(--muted)" data-rw="Iyi ni ifoto isanzwe — hitamo indi kugira ngo uyisimbuze." data-en="This is the current site plan — choose a new file below to replace it.">This is the current site plan — choose a new file below to replace it.</div>
-            </div>
-            <input type="file" id="site-plan-file" accept="image/*" style="font-size:.82rem">
+            <!-- Same visual component as property photo upload (PropImageUploader
+                 further up this file) — img-uploader-drop / img-uploader-grid /
+                 img-uploader-item / img-uploader-btn CSS classes, same drag-and-drop
+                 zone, same thumbnail-card preview instead of raw filename text.
+                 Driven by SitePlanUploadUI (see its own comment, near
+                 uploadSitePlanImage()), scoped to a single image since a site only
+                 ever has one site plan, unlike a property's multi-photo gallery.
+                 UI/component swap only — the real Cloudinary upload still goes
+                 through uploadSitePlanImage() at submit time, unchanged. This one
+                 field/markup block is shared by both the create wizard (step 4)
+                 and Edit Site — see openSiteSubmit()'s own comment. -->
+            <div id="site-plan-uploader" class="img-uploader"></div>
+            <input type="file" id="site-plan-file" accept="image/*" style="display:none">
             <div id="site-plan-upload-status" style="font-size:.72rem;color:var(--muted);margin-top:.25rem"></div>
           </div>
         </div>
@@ -31989,34 +31993,157 @@ function uploadSitePlanImage(file, siteId, onProgress) {
   });
 }
 
+// ── Site plan single-image uploader UI ──────────────────────────
+// Same visual component/CSS classes as PropImageUploader (drop zone,
+// thumbnail card, remove button — the img-uploader-* classes are defined
+// once and shared by both), scoped to exactly one image instead of a
+// gallery, since a site only ever has one site-plan image. Deliberately
+// not built on top of PropImageUploader itself — see uploadSitePlanImage()'s
+// own comment above for why (that object's whole API is gallery-shaped:
+// multi-item array, reorder, cover selection, none of which applies here).
+//
+// This only manages file selection + preview, exactly like the plain-text
+// input it replaces did — it never uploads anything itself.
+// _pendingSitePlanFile is still the single source of truth submitSiteForm()
+// reads at submit time, and uploadSitePlanImage() (the actual Cloudinary
+// call above) is untouched. setProgress()/clearProgress() just let
+// submitSiteForm() reuse the same progress-bar-over-thumbnail visual
+// PropImageUploader shows mid-upload, instead of plain status text alone.
+var SitePlanUploadUI = (function() {
+  var containerEl = null;
+  var previewUrl = null;    // objectURL for a freshly picked file, or an existing siteMapUrl
+  var isExisting = false;   // true when previewUrl is the site's already-saved image, not a new pick
+  var uploadState = null;   // null | 'uploading' | 'error'
+  var uploadPct = 0;
+
+  function t(rw, en) { return (typeof curLang !== 'undefined' && curLang === 'rw') ? rw : en; }
+
+  function render() {
+    if (!containerEl) return;
+    if (!previewUrl) {
+      containerEl.innerHTML =
+          '<div class="img-uploader-drop" id="site-plan-drop" role="button" tabindex="0" onclick="SitePlanUploadUI.pick()">'
+        +   '<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>'
+        +   '<div class="img-uploader-drop-title">' + t('Kanda cyangwa ukurure ifoto hano', 'Click or drag a photo here') + '</div>'
+        +   '<div class="img-uploader-drop-sub">' + t('Cyangwa fata muri gallery/kamera kuri telefoni — JPEG/PNG, max 10MB', 'Or pick from your phone gallery/camera — JPEG/PNG, up to 10MB') + '</div>'
+        + '</div>';
+      var drop = document.getElementById('site-plan-drop');
+      if (drop) {
+        drop.addEventListener('dragover', function(e) { e.preventDefault(); drop.classList.add('dragover'); });
+        drop.addEventListener('dragleave', function() { drop.classList.remove('dragover'); });
+        drop.addEventListener('drop', function(e) {
+          e.preventDefault(); drop.classList.remove('dragover');
+          var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+          if (f) handleFile(f);
+        });
+      }
+      return;
+    }
+    var overlay = '';
+    if (uploadState === 'uploading') {
+      overlay = '<div class="img-uploader-progress"><div class="img-uploader-bar"><div class="img-uploader-bar-fill" style="width:' + uploadPct + '%"></div></div><span>' + uploadPct + '%</span></div>';
+    } else if (uploadState === 'error') {
+      overlay = '<div class="img-uploader-error">⚠️</div>';
+    }
+    containerEl.innerHTML =
+        '<div class="img-uploader-grid">'
+      +   '<div class="img-uploader-item" id="site-plan-item">'
+      +     '<img src="' + previewUrl + '" alt="Site plan preview">'
+      +     '<div class="img-uploader-item-actions"><button type="button" class="img-uploader-btn" aria-label="Remove site plan" onclick="SitePlanUploadUI.remove()">✕</button></div>'
+      +     overlay
+      +   '</div>'
+      + '</div>';
+  }
+
+  function pick() {
+    var input = document.getElementById('site-plan-file');
+    if (input) input.click();
+  }
+
+  function handleFile(file) {
+    var status = document.getElementById('site-plan-upload-status');
+    if (!file) return;
+    if (file.type.indexOf('image/') !== 0) {
+      if (status) { status.style.color = 'var(--error)'; status.textContent = t('Hitamo ifoto (JPG cyangwa PNG gusa).', 'Please choose an image file (JPG or PNG only).'); }
+      return;
+    }
+    _pendingSitePlanFile = file;
+    if (previewUrl && !isExisting) { try { URL.revokeObjectURL(previewUrl); } catch(e) {} }
+    previewUrl = URL.createObjectURL(file);
+    isExisting = false;
+    uploadState = null;
+    if (status) { status.style.color = 'var(--muted)'; status.textContent = t('Byahiswemo: ', 'Selected: ') + file.name + ' (' + (file.size / 1024 / 1024).toFixed(1) + 'MB)'; }
+    render();
+  }
+
+  function remove() {
+    if (previewUrl && !isExisting) { try { URL.revokeObjectURL(previewUrl); } catch(e) {} }
+    previewUrl = null;
+    isExisting = false;
+    uploadState = null;
+    _pendingSitePlanFile = null;
+    var input = document.getElementById('site-plan-file'); if (input) input.value = '';
+    var status = document.getElementById('site-plan-upload-status'); if (status) status.textContent = '';
+    render();
+  }
+
+  function mount(containerId) {
+    containerEl = document.getElementById(containerId);
+    render();
+  }
+
+  function reset() {
+    if (previewUrl && !isExisting) { try { URL.revokeObjectURL(previewUrl); } catch(e) {} }
+    previewUrl = null;
+    isExisting = false;
+    uploadState = null;
+    render();
+  }
+
+  function loadExisting(url) {
+    if (previewUrl && !isExisting) { try { URL.revokeObjectURL(previewUrl); } catch(e) {} }
+    previewUrl = url || null;
+    isExisting = !!url;
+    uploadState = null;
+    render();
+  }
+
+  function setProgress(pct) {
+    uploadState = 'uploading'; uploadPct = pct;
+    var item = containerEl && containerEl.querySelector('#site-plan-item');
+    var fill = item && item.querySelector('.img-uploader-bar-fill');
+    var label = item && item.querySelector('.img-uploader-progress span');
+    if (fill && label) { fill.style.width = pct + '%'; label.textContent = pct + '%'; return; }
+    render();
+  }
+
+  function clearProgress() {
+    uploadState = null;
+    render();
+  }
+
+  return {
+    mount: mount, reset: reset, loadExisting: loadExisting, pick: pick,
+    remove: remove, handleFile: handleFile, setProgress: setProgress, clearProgress: clearProgress
+  };
+})();
+
 // Wires #site-plan-file (present in both the create wizard's step 4 and
 // the Edit Site flow, since both reuse the same #site-submit-modal markup)
-// — picking a file only stages it in _pendingSitePlanFile and shows its
-// name; the actual Cloudinary upload happens once the whole form is
-// submitted (submitSiteForm()), matching how PropImageUploader defers
-// property photo uploads to submitProperty() rather than uploading on
-// pick. Static input present from initial page load, so this only needs
-// to run once.
+// to SitePlanUploadUI.handleFile() — picking a file only stages it in
+// _pendingSitePlanFile and shows its preview; the actual Cloudinary upload
+// still happens once the whole form is submitted (submitSiteForm()),
+// matching how PropImageUploader defers property photo uploads to
+// submitProperty() rather than uploading on pick. Static input present
+// from initial page load, so this only needs to run once.
 document.addEventListener('DOMContentLoaded', function() {
+  SitePlanUploadUI.mount('site-plan-uploader');
   var input = document.getElementById('site-plan-file');
-  var status = document.getElementById('site-plan-upload-status');
   if (!input) return;
   input.addEventListener('change', function(e) {
     var file = e.target.files && e.target.files[0];
-    _pendingSitePlanFile = file || null;
-    if (!status) return;
-    if (!file) { status.textContent = ''; return; }
-    if (file.type.indexOf('image/') !== 0) {
-      status.textContent = (typeof curLang !== 'undefined' && curLang === 'rw')
-        ? 'Hitamo ifoto (JPG cyangwa PNG gusa).' : 'Please choose an image file (JPG or PNG only).';
-      status.style.color = 'var(--error)';
-      _pendingSitePlanFile = null;
-      input.value = '';
-      return;
-    }
-    status.style.color = 'var(--muted)';
-    status.textContent = (typeof curLang !== 'undefined' && curLang === 'rw' ? 'Byahiswemo: ' : 'Selected: ') +
-      file.name + ' (' + (file.size / 1024 / 1024).toFixed(1) + 'MB)';
+    if (file) SitePlanUploadUI.handleFile(file);
+    e.target.value = ''; // matches PropImageUploader's own input — lets picking the exact same file again still fire 'change'
   });
 });
 
@@ -32635,9 +32762,7 @@ function openSiteSubmit(editId) {
   document.getElementById('site-edit-id').value = editId || '';
   var planFileEl = document.getElementById('site-plan-file'); if (planFileEl) planFileEl.value = '';
   var planStatusEl = document.getElementById('site-plan-upload-status'); if (planStatusEl) planStatusEl.textContent = '';
-  var planCurWrap = document.getElementById('site-plan-current-wrap');
-  var planCurImg  = document.getElementById('site-plan-current-img');
-  if (planCurWrap) planCurWrap.style.display = 'none';
+  SitePlanUploadUI.reset();
 
   var plotsStepMsg = document.getElementById('site-plots-step-editing-msg');
   var plotsStepForm = document.getElementById('site-plots-step-form');
@@ -32667,10 +32792,7 @@ function openSiteSubmit(editId) {
         var cb = document.querySelector('.site-amenity-cb[value="' + a + '"]');
         if (cb) cb.checked = true;
       });
-      if (s.siteMapUrl && planCurWrap && planCurImg) {
-        planCurImg.src = s.siteMapUrl;
-        planCurWrap.style.display = '';
-      }
+      if (s.siteMapUrl) SitePlanUploadUI.loadExisting(s.siteMapUrl);
     }).catch(function(e) {
       console.error('[Sites] edit prefill error', e);
       showToast('Could not load site for editing', 'error');
@@ -32791,12 +32913,15 @@ function submitSiteForm() {
   var uploadPlanIfAny = _pendingSitePlanFile
     ? uploadSitePlanImage(_pendingSitePlanFile, editId || null, function(pct) {
         if (planStatusEl) planStatusEl.textContent = (curLang==='rw' ? 'Kohereza... ' : 'Uploading... ') + pct + '%';
+        SitePlanUploadUI.setProgress(pct);
       }).then(function(url) {
         if (planStatusEl) planStatusEl.textContent = curLang==='rw' ? 'Byoherejwe!' : 'Uploaded!';
+        SitePlanUploadUI.clearProgress();
         return url;
       }).catch(function(err) {
         console.error('[Sites] site plan upload failed', err);
         if (planStatusEl) planStatusEl.textContent = curLang==='rw' ? 'Kohereza byanze — isitey izabikwa idafite ifoto.' : 'Upload failed — site will be saved without the plan image.';
+        SitePlanUploadUI.clearProgress();
         return undefined;
       })
     : Promise.resolve(undefined);
