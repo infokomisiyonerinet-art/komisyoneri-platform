@@ -12536,6 +12536,31 @@ function openAddProperty() {
   var m = document.getElementById('add-prop-modal');
   if(m) m.style.display='flex';
   propStep(1);
+
+  // Bug fix: neither this function nor closeAddProperty()/_propSubmitFinish()
+  // ever cleared the form fields after a submission, so opening "Add
+  // Property" again for a genuinely new, unrelated listing silently reused
+  // whatever was still sitting in every field from the LAST submission —
+  // confirmed by tracing submitProperty(), which reads these same ids
+  // (g('prop-district'), g('prop-sector'), etc.) directly off the DOM at
+  // submit time with no fallback to a fresh/empty value. district/sector
+  // are exactly the fields a user is most likely to leave untouched between
+  // two back-to-back submissions (unlike title/price, which are always
+  // retyped), which is what produced two different live properties sharing
+  // one identical, wrong-for-one-of-them location. openEditProperty() is a
+  // separate entry point into this same modal that explicitly pre-fills
+  // every one of these fields itself right after this — it never calls
+  // openAddProperty() — so this reset can't clobber an edit-in-progress.
+  ['prop-type','prop-service','prop-district','prop-sector','prop-price',
+   'prop-beds','prop-baths','prop-size','prop-desc','prop-title',
+   'prop-year','prop-deed','prop-floors','prop-parking',
+   'prop-doc-luc','prop-doc-id','prop-doc-permit','prop-lat','prop-lng',
+   'prop-video','prop-tour3d'
+  ].forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ''; });
+  ['garden','pool','garage','solar','fibre','security','generator'].forEach(function(a) {
+    var el = document.getElementById('am-' + a); if (el) el.checked = false;
+  });
+
   var c = document.getElementById('prop-contact');
   if(c && currentUser.phone) c.value = currentUser.phone;
 
@@ -34145,21 +34170,23 @@ function sortListings(value) {
   _renderApprovedGrids(data);
 }
 
-// Homepage "Plots for Sale" quick action — navigates to the real Properties
-// page and pre-applies the sidebar's Property Type filter to Land/Ubutaka
-// only (unchecking Villa/Apartment, which are checked by default), reusing
-// applySidebarFilters()'s existing type-matching logic rather than
-// duplicating it.
+// Homepage "Plots for Sale" quick action.
+//
+// Bug fix: this used to navigate to the Properties page and filter the
+// `properties` collection down to type Land/Ubutaka. That's the wrong
+// collection entirely for what this button means — the numbered,
+// individually-tracked plots it's actually named after (e.g. "Samuramba
+// site plots R1", plot 303/304/305 with their own Available/Reserved/
+// Sold status) live in the separate sites/plots collections built for the
+// New Sites feature, never as `properties` documents. A standalone
+// Ubutaka-type property listing is a real, different thing in this app
+// (a single parcel listed like a house) — filtering for it can never
+// surface an active development site's plots, which is what this button
+// is supposed to lead to and what the bug report's own example
+// ("Samuramba site plots R1") confirms. loadSites() below is the query
+// the New Sites page itself already uses to list exactly that data.
 function goPlotsForSale() {
-  go('listings');
-  var secs = document.querySelectorAll('.filters .filt-sec');
-  if (secs[0]) {
-    secs[0].querySelectorAll('input[type=checkbox]').forEach(function(cb) {
-      var label = (cb.nextElementSibling.textContent || '').trim().toLowerCase();
-      cb.checked = label.indexOf('ubutaka') > -1 || label.indexOf('land') > -1;
-    });
-  }
-  applySidebarFilters();
+  go('sites');
 }
 
 /* Apply sidebar filters to the listings grid */
