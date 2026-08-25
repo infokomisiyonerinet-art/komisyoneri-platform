@@ -363,6 +363,15 @@ var _sentryDsn='YOUR_SENTRY_DSN';
 if(typeof Sentry!=='undefined'&&_sentryDsn.indexOf('YOUR_')!==0){Sentry.init({dsn:_sentryDsn,release:'komisiyoneri@1.0.0',environment:location.hostname.includes('localhost')?'development':'production',tracesSampleRate:0.1,beforeSend:function(ev){return location.hostname==='localhost'?null:ev;}});}
 </script>
 
+<!-- Vercel Speed Insights — vanilla-JS integration (no build step in this
+     app, so the @vercel/speed-insights npm package doesn't apply; Vercel
+     serves this script directly at this same-origin path once Speed
+     Insights is enabled for the project). -->
+<script>
+  window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+
 <style>
 /* ══════════════════════════════════════
    RESET & TOKENS
