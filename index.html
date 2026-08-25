@@ -15036,16 +15036,51 @@ function submitBooking() {
   // auto-created CRM lead; the RTDB copy was pure redundant PII (client
   // name/phone) with no reader of its own.
 
+  // Bug fix: the success toast + closeBooking() used to fire
+  // unconditionally right after this block, regardless of whether the
+  // viewings.add() write below actually succeeded — a visitor was told
+  // their viewing was scheduled even when the write failed (or never ran
+  // at all, e.g. db/firebase not loaded) with only a console.warn no one
+  // ever sees. Now mirrors submitOffer()'s existing correct pattern:
+  // success only fires once the viewing document is confirmed saved
+  // (the auto-created CRM lead right after it is a convenience
+  // enhancement on top of an already-successful booking, not something
+  // the visitor's own confirmation should wait on or fail because of —
+  // its own independent .catch() below is unchanged).
+  function _bookingSubmitFailed() {
+    if(_bb){_bb.disabled=false;_bb.classList.remove('btn-loading');if(_bl)_bl.textContent='Emeza Gahunda';}
+    showToast(curLang==='rw' ? 'Habaye ikosa — ongera ugerageze' : 'Something went wrong — please try again.', 'error');
+  }
+
+  if (typeof db === 'undefined' || typeof firebase === 'undefined') {
+    _bookingSubmitFailed();
+    return;
+  }
+
   // Firestore — write to viewings collection (all 7 standard fields)
   try {
-    if (typeof db !== 'undefined' && typeof firebase !== 'undefined') {
-      var _vUid     = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.uid : '';
-      var _vAgentId = (cur && cur.agentId) ? cur.agentId : '';
-      /* Build scheduledAt Timestamp so viewings appear in agent calendar queries */
-      var _vSchedAt = firebase.firestore.Timestamp.fromDate(
-        new Date(bk.date + 'T' + (bk.time || '09:00:00'))
-      );
-      db.collection('viewings').add({
+    var _vUid     = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.uid : '';
+    var _vAgentId = (cur && cur.agentId) ? cur.agentId : '';
+    // book-time's <select> options are 12-hour display strings ("08:00 AM")
+    // with no value attribute, so bk.time comes through in that format —
+    // new Date(bk.date + 'T' + bk.time) can't parse "T08:00 AM" and throws
+    // (RangeError: Invalid time value) before the write below ever runs.
+    // Convert to 24-hour HH:MM:SS for the Date/Timestamp only; bk.time
+    // itself (used for scheduledTime and the agent notification text)
+    // stays untouched in its original display format.
+    var _vTime24 = (function(t) {
+      var m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec((t || '').trim());
+      if (!m) return null;
+      var h = parseInt(m[1], 10);
+      if (/PM/i.test(m[3]) && h !== 12) h += 12;
+      if (/AM/i.test(m[3]) && h === 12) h = 0;
+      return (h < 10 ? '0' : '') + h + ':' + m[2] + ':00';
+    }(bk.time));
+    /* Build scheduledAt Timestamp so viewings appear in agent calendar queries */
+    var _vSchedAt = firebase.firestore.Timestamp.fromDate(
+      new Date(bk.date + 'T' + (_vTime24 || '09:00:00'))
+    );
+    db.collection('viewings').add({
         id:             '',
         propertyId:     cur.id || bk.propId || '',
         propertyTitle:  bk.propTitle || '',
@@ -15072,6 +15107,17 @@ function submitBooking() {
           logAudit('viewing.scheduled', 'viewings', vRef.id, null,
             { clientName: bk.name, propertyId: cur.id || '', date: bk.date });
         }
+
+        // The viewing itself is confirmed saved at this point — this is
+        // the visitor-facing "your booking is scheduled" moment. The
+        // auto-created CRM lead below is a convenience enhancement for
+        // the agent's pipeline, not something the visitor's own success
+        // confirmation should wait on or fail because of.
+        if(_bb){_bb.disabled=false;_bb.classList.remove('btn-loading');if(_bl)_bl.textContent='Emeza Gahunda';}
+        closeBooking();
+        kmTrack('booking_request',{property_id:String(bk.propId||''),district:bk.district||'',date:bk.date||''});
+        showToast('Gahunda yashyizweho! Agent azakuhamagara kuri '+phone.value+'. ✅');
+
         /* Auto-create CRM lead so viewing appears in agent CRM pipeline */
         var _autoLead = {
           id:            '',
@@ -15112,14 +15158,14 @@ function submitBooking() {
               'viewing_confirmed', 'viewings', vRef.id);
           }
         }).catch(function(lErr) { console.warn('[Lead auto-create] error:', lErr); });
-      }).catch(function(vErr) { console.warn('[Viewing] Firestore save failed:', vErr); });
-    }
-  } catch(vE) { console.warn('[Viewing] error:', vE); }
-
-  if(_bb){_bb.disabled=false;_bb.classList.remove('btn-loading');if(_bl)_bl.textContent='Emeza Gahunda';}
-  closeBooking();
-  kmTrack('booking_request',{property_id:String(bk.propId||''),district:bk.district||'',date:bk.date||''});
-  showToast('Gahunda yashyizweho! Agent azakuhamagara kuri '+phone.value+'. ✅');
+      }).catch(function(vErr) {
+        console.warn('[Viewing] Firestore save failed:', vErr);
+        _bookingSubmitFailed();
+      });
+  } catch(vE) {
+    console.warn('[Viewing] error:', vE);
+    _bookingSubmitFailed();
+  }
 }
 
 // === MESSAGE OWNER SYSTEM ===
@@ -16514,64 +16560,87 @@ function submitLead() {
   leads.push(lead);
   try { localStorage.setItem('km_leads', JSON.stringify(leads)); } catch(e){}
 
+  // Bug fix: the success toast + closeLead() used to fire unconditionally
+  // right after this block, regardless of whether the Firestore write
+  // below actually succeeded — a visitor was told their lead was sent
+  // even when the write failed (or never ran at all, e.g. db/firebase
+  // not loaded) with only a console.warn no one ever sees. Now mirrors
+  // submitOffer()'s existing correct pattern elsewhere in this file:
+  // success only fires after a confirmed write; any failure shows a
+  // real error, re-enables the button, and leaves the modal open so the
+  // visitor can retry instead of believing a lost lead went through.
+  function _leadSubmitFailed() {
+    if(_lb){_lb.disabled=false;_lb.classList.remove('btn-loading');if(_ll)_ll.textContent='Ohereza — Agent Azakuhamagara!';}
+    showToast(curLang==='rw' ? 'Habaye ikosa — ongera ugerageze' : 'Something went wrong — please try again.', 'error');
+  }
+
+  if (typeof db === 'undefined' || typeof firebase === 'undefined') {
+    _leadSubmitFailed();
+    return;
+  }
+
   // Firestore — write to leads collection (all 7 standard fields + CRM stage)
   try {
-    if (typeof db !== 'undefined' && typeof firebase !== 'undefined') {
-      var _uid = currentUser ? currentUser.uid : '';
-      db.collection('leads').add({
-        id:            '',
-        clientId:      _uid,
-        clientName:    lead.clientName,
-        clientPhone:   lead.clientPhone,
-        agentId:       lead.assignedAgent || '',
-        agentName:     lead.agentName || '',
-        propertyId:    lead.propertyId || '',
-        action:        lead.action,
-        zone:          lead.zone,
-        district:      lead.zone,
-        budgetMin:     lead.budgetMin,
-        budgetMax:     lead.budgetMax,
-        notes:         lead.notes,
-        source:      (function(){var u={};try{u=JSON.parse(sessionStorage.getItem('km_utm')||'{}');}catch(e){}return u.utm_source||'website';}()),
-        utmSource:   (function(){var u={};try{u=JSON.parse(sessionStorage.getItem('km_utm')||'{}');}catch(e){}return u.utm_source||'';}()),
-        utmMedium:   (function(){var u={};try{u=JSON.parse(sessionStorage.getItem('km_utm')||'{}');}catch(e){}return u.utm_medium||'';}()),
-        utmCampaign: (function(){var u={};try{u=JSON.parse(sessionStorage.getItem('km_utm')||'{}');}catch(e){}return u.utm_campaign||'';}()),
-        pipelineStage: 'new',
-        priority:      'normal',
-        contactLog:    [],
-        nextFollowUp:  null,
-        status:        'new',
-        isActive:      true,
-        createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
-        createdBy:     _uid || 'anonymous',
-        updatedBy:     _uid || 'anonymous'
-      }).then(function(ref) {
-        ref.update({ id: ref.id });
-        if (typeof logAudit === 'function') {
-          logAudit('lead.created', 'leads', ref.id, null, { clientName: lead.clientName, zone: lead.zone, pipelineStage: 'new' });
-        }
-        if (typeof updateCrmSidebarBadge === 'function') updateCrmSidebarBadge();
-        // Agent assignment + the agent's "new lead" notification are now
-        // handled by onLeadCreated (functions/index.js), which fires on
-        // this same write and picks the right agent by district/workload.
-      }).catch(function(fsErr) { console.warn('[Lead] Firestore save failed:', fsErr); });
-    }
-  } catch(fsE) { console.warn('[Lead] Firestore error:', fsE); }
+    var _uid = currentUser ? currentUser.uid : '';
+    db.collection('leads').add({
+      id:            '',
+      clientId:      _uid,
+      clientName:    lead.clientName,
+      clientPhone:   lead.clientPhone,
+      agentId:       lead.assignedAgent || '',
+      agentName:     lead.agentName || '',
+      propertyId:    lead.propertyId || '',
+      action:        lead.action,
+      zone:          lead.zone,
+      district:      lead.zone,
+      budgetMin:     lead.budgetMin,
+      budgetMax:     lead.budgetMax,
+      notes:         lead.notes,
+      source:      (function(){var u={};try{u=JSON.parse(sessionStorage.getItem('km_utm')||'{}');}catch(e){}return u.utm_source||'website';}()),
+      utmSource:   (function(){var u={};try{u=JSON.parse(sessionStorage.getItem('km_utm')||'{}');}catch(e){}return u.utm_source||'';}()),
+      utmMedium:   (function(){var u={};try{u=JSON.parse(sessionStorage.getItem('km_utm')||'{}');}catch(e){}return u.utm_medium||'';}()),
+      utmCampaign: (function(){var u={};try{u=JSON.parse(sessionStorage.getItem('km_utm')||'{}');}catch(e){}return u.utm_campaign||'';}()),
+      pipelineStage: 'new',
+      priority:      'normal',
+      contactLog:    [],
+      nextFollowUp:  null,
+      status:        'new',
+      isActive:      true,
+      createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy:     _uid || 'anonymous',
+      updatedBy:     _uid || 'anonymous'
+    }).then(function(ref) {
+      ref.update({ id: ref.id });
+      if (typeof logAudit === 'function') {
+        logAudit('lead.created', 'leads', ref.id, null, { clientName: lead.clientName, zone: lead.zone, pipelineStage: 'new' });
+      }
+      if (typeof updateCrmSidebarBadge === 'function') updateCrmSidebarBadge();
+      // Agent assignment + the agent's "new lead" notification are now
+      // handled by onLeadCreated (functions/index.js), which fires on
+      // this same write and picks the right agent by district/workload.
 
-  if(_lb){_lb.disabled=false;_lb.classList.remove('btn-loading');if(_ll)_ll.textContent='Ohereza — Agent Azakuhamagara!';}
-  closeLead();
-  kmTrack('generate_lead',{zone:lead.zone||'',agent:lead.agentName||'',intent:lead.preference||''});
+      if(_lb){_lb.disabled=false;_lb.classList.remove('btn-loading');if(_ll)_ll.textContent='Ohereza — Agent Azakuhamagara!';}
+      closeLead();
+      kmTrack('generate_lead',{zone:lead.zone||'',agent:lead.agentName||'',intent:lead.preference||''});
 
-  // Agent assignment is now async (server-side, by onLeadCreated), so the
-  // client never knows the assigned agent's name/phone/email synchronously
-  // at submit time — show the generic "we'll match you" message and notify
-  // admin via WhatsApp, same as the original's no-match fallback path.
-  showToast('✅ Lead yoherejwe! KOMISIYONERI izakuhuza na agent vuba.');
-  var msg = 'LEAD NSHYA - Zone:'+zone+' - Client:'+lead.clientName+' - Tel:'+lead.clientPhone;
-  setTimeout(function(){
-    window.open('https://wa.me/250783177254?text=' + encodeURIComponent(msg), '_blank');
-  }, 500);
+      // Agent assignment is now async (server-side, by onLeadCreated), so the
+      // client never knows the assigned agent's name/phone/email synchronously
+      // at submit time — show the generic "we'll match you" message and notify
+      // admin via WhatsApp, same as the original's no-match fallback path.
+      showToast('✅ Lead yoherejwe! KOMISIYONERI izakuhuza na agent vuba.');
+      var msg = 'LEAD NSHYA - Zone:'+zone+' - Client:'+lead.clientName+' - Tel:'+lead.clientPhone;
+      setTimeout(function(){
+        window.open('https://wa.me/250783177254?text=' + encodeURIComponent(msg), '_blank');
+      }, 500);
+    }).catch(function(fsErr) {
+      console.warn('[Lead] Firestore save failed:', fsErr);
+      _leadSubmitFailed();
+    });
+  } catch(fsE) {
+    console.warn('[Lead] Firestore error:', fsE);
+    _leadSubmitFailed();
+  }
 }
 
 // === ADMIN LEAD DASHBOARD ===
@@ -17390,27 +17459,42 @@ function openPropDetail(propId) {
     var subEl = document.getElementById('det-ag-sub');
     var vEl = document.getElementById('det-ag-verified');
     if (avEl && nameEl && subEl && vEl) {
-      var agentUser = null;
-      if (prop.agentId) {
-        try {
-          var _detUsers = JSON.parse(localStorage.getItem('km_users') || '[]');
-          agentUser = _detUsers.find(function(u) { return u.uid === prop.agentId || u.id === prop.agentId; });
-        } catch (e) {}
-      }
-      if (agentUser && agentUser.name) {
-        var _initials = agentUser.name.split(' ').map(function(w){ return w[0] || ''; }).join('').toUpperCase().slice(0, 2) || 'A';
-        avEl.textContent = _initials;
-        nameEl.textContent = agentUser.name;
-        subEl.removeAttribute('data-rw'); subEl.removeAttribute('data-en');
-        subEl.textContent = curLang === 'rw' ? 'Umukomisiyoneri' : 'Property Agent';
-        vEl.style.display = (agentUser.role === 'Agent') ? 'inline-flex' : 'none';
-      } else {
+      function _showGenericAgentCard() {
         avEl.textContent = 'KM';
         nameEl.textContent = 'KOMISIYONERI Team';
         subEl.setAttribute('data-rw', "Itsinda ry'Ubufasha");
         subEl.setAttribute('data-en', 'Support Team');
         subEl.textContent = curLang === 'rw' ? "Itsinda ry'Ubufasha" : 'Support Team';
         vEl.style.display = 'none';
+      }
+      function _showRealAgentCard(agentUser) {
+        var _initials = agentUser.name.split(' ').map(function(w){ return w[0] || ''; }).join('').toUpperCase().slice(0, 2) || 'A';
+        avEl.textContent = _initials;
+        nameEl.textContent = agentUser.name;
+        subEl.removeAttribute('data-rw'); subEl.removeAttribute('data-en');
+        subEl.textContent = curLang === 'rw' ? 'Umukomisiyoneri' : 'Property Agent';
+        vEl.style.display = 'inline-flex';
+      }
+      // The old km_users/RTDB-cache lookup here was always empty in
+      // practice — rules/database.rules.json has no `users` path read
+      // carve-out, so the rtdb.ref('users').on('value', ...) listener that
+      // was supposed to populate km_users was permission-denied for every
+      // visitor. Firestore's users/{uid} rule already has a public
+      // verified-agent read branch (built for loadAgentsPage()'s Verified
+      // Agent Network directory), so read the agent doc directly from
+      // there instead — same isVerified/verified check already proven
+      // working in loadLiveHomeStats()/loadAgentsPage().
+      _showGenericAgentCard();
+      if (prop.agentId && typeof db !== 'undefined') {
+        db.collection('users').doc(prop.agentId).get().then(function(doc) {
+          if (!doc.exists) return;
+          var data = doc.data();
+          var name = data.displayName || data.name;
+          var isVerified = data.isVerified === true || data.verified === true;
+          if (name && isVerified) _showRealAgentCard({ name: name });
+        }).catch(function(err) {
+          console.warn('[Prop Detail] agent lookup failed:', err && err.code);
+        });
       }
     }
     // Views placeholder — will be updated once Firestore resolves
