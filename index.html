@@ -2098,7 +2098,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 /* Hero stats — refreshed */
 .hero-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: .8rem;
   margin-top: 2.5rem;
   padding-top: 2.2rem;
@@ -2613,6 +2613,7 @@ html,body{overscroll-behavior-x:none}
   --plot-reserved:#1249B3;
   --plot-sold:#DC2626;
   --plot-hold:#64748B;
+  --plot-unavailable:#9CA3AF;
 }
 
 /* Site listing cards */
@@ -2640,6 +2641,12 @@ html,body{overscroll-behavior-x:none}
 .site-plan-wrap{position:relative;width:100%;background:#0a0f1e;border-radius:12px;overflow:hidden;touch-action:pan-y pinch-zoom}
 .site-plan-img{width:100%;display:block;max-height:70vh;object-fit:contain}
 .site-plan-overlay{position:absolute;inset:0;pointer-events:none}
+/* Same branded fallback renderSitesGrid()'s card already shows when a
+   site has no siteMapUrl — used here too so the detail page never shows
+   an unexplained blank area where the plan image would go. */
+.site-plan-placeholder{width:100%;min-height:220px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.4rem;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff}
+.site-plan-placeholder-icon{font-size:2.4rem}
+.site-plan-placeholder-label{font-size:.82rem;font-weight:600}
 .plot-overlay{position:absolute;border:2px solid rgba(255,255,255,.5);border-radius:4px;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7);transition:all .15s;min-width:44px;min-height:44px}
 .plot-overlay:hover,.plot-overlay:focus{border-color:#fff;filter:brightness(1.15);z-index:10}
 .plot-overlay.plot-available{background:rgba(201,168,76,.65)}
@@ -2647,6 +2654,7 @@ html,body{overscroll-behavior-x:none}
 .plot-overlay.plot-sold{background:rgba(220,38,38,.75)}
 .plot-overlay.plot-sold::after{content:'✕';font-size:1rem;font-weight:900;position:absolute}
 .plot-overlay.plot-on_hold{background:rgba(100,116,139,.65)}
+.plot-overlay.plot-unavailable{background:rgba(156,163,175,.65)}
 
 /* Legend */
 .site-legend{display:flex;gap:.7rem;flex-wrap:wrap;padding:.7rem 0;font-size:.75rem}
@@ -2656,6 +2664,7 @@ html,body{overscroll-behavior-x:none}
 .legend-dot.resv{background:var(--plot-reserved)}
 .legend-dot.sold{background:var(--plot-sold)}
 .legend-dot.hold{background:var(--plot-hold)}
+.legend-dot.unavail{background:var(--plot-unavailable)}
 
 /* Plot popup (appears near plot) */
 .plot-popup{position:absolute;z-index:50;background:var(--surface);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.22);border:1.5px solid var(--border);padding:1rem;min-width:200px;max-width:240px;pointer-events:all}
@@ -2666,6 +2675,7 @@ html,body{overscroll-behavior-x:none}
 .plot-popup-status.reserved{background:rgba(18,73,179,.12);color:var(--blue)}
 .plot-popup-status.sold{background:rgba(220,38,38,.1);color:var(--error)}
 .plot-popup-status.on_hold{background:rgba(100,116,139,.12);color:var(--muted)}
+.plot-popup-status.unavailable{background:rgba(156,163,175,.18);color:var(--muted)}
 .plot-popup-row{display:flex;justify-content:space-between;font-size:.78rem;color:var(--dark);margin-bottom:.2rem}
 .plot-popup-row span:last-child{font-weight:600;color:var(--navy)}
 .plot-popup-btns{display:flex;flex-direction:column;gap:.4rem;margin-top:.7rem}
@@ -2688,6 +2698,7 @@ html,body{overscroll-behavior-x:none}
 .plot-cell.plot-reserved{background:rgba(18,73,179,.15);border-color:var(--plot-reserved)}
 .plot-cell.plot-sold{background:rgba(220,38,38,.12);border-color:var(--plot-sold)}
 .plot-cell.plot-on_hold{background:rgba(100,116,139,.12);border-color:var(--plot-hold)}
+.plot-cell.plot-unavailable{background:rgba(156,163,175,.15);border-color:var(--plot-unavailable)}
 .plot-cell-num{font-weight:700;font-size:.78rem;color:var(--dark)}
 .plot-cell-size{font-size:.62rem;color:var(--muted)}
 
@@ -4122,6 +4133,7 @@ html,body{overscroll-behavior-x:none}
 
         <div class="hero-stats">
           <div><span class="hero-stat-val" id="hero-stat-listings">0</span><span class="hero-stat-lbl" data-rw="Imitungo Yanditswe" data-en="Listed Properties">Imitungo Yanditswe</span></div>
+          <div><span class="hero-stat-val" id="hero-stat-sites">0</span><span class="hero-stat-lbl" data-rw="Ibibanza mu Iterambere" data-en="Development Sites">Development Sites</span></div>
           <div><span class="hero-stat-val" id="hero-stat-clients">0</span><span class="hero-stat-lbl" data-rw="Abakiliya Bashimye" data-en="Happy Clients">Abakiliya Bashimye</span></div>
           <div><span class="hero-stat-val" id="hero-stat-agents">0</span><span class="hero-stat-lbl" data-rw="Agents Bemewe" data-en="Verified Agents">Agents Bemewe</span></div>
           <div><span class="hero-stat-val">30</span><span class="hero-stat-lbl" data-rw="Akarere ka Rwanda" data-en="Districts in Rwanda">Akarere ka Rwanda</span></div>
@@ -7752,11 +7764,16 @@ html,body{overscroll-behavior-x:none}
       <div class="legend-item"><div class="legend-dot resv"></div><span data-rw="Bibitswe" data-en="Reserved">Reserved</span></div>
       <div class="legend-item"><div class="legend-dot sold"></div><span data-rw="Bigurishijwe" data-en="Sold">Sold</span></div>
       <div class="legend-item"><div class="legend-dot hold"></div><span data-rw="Bihagaritswe" data-en="On Hold">On Hold</span></div>
+      <div class="legend-item"><div class="legend-dot unavail"></div><span data-rw="Ntibihari" data-en="Unavailable">Unavailable</span></div>
     </div>
 
     <!-- Site Plan (image + overlay) -->
     <div id="site-plan-wrap" class="site-plan-wrap" style="margin-bottom:1rem;display:none">
-      <img id="site-plan-img" class="site-plan-img" src="" alt="Site Plan" onerror="this.style.display='none'">
+      <img id="site-plan-img" class="site-plan-img" src="" alt="Site Plan" style="display:none">
+      <div id="site-plan-placeholder" class="site-plan-placeholder" style="display:none">
+        <div class="site-plan-placeholder-icon">🏗️</div>
+        <div class="site-plan-placeholder-label" data-rw="Nta gishushanyo cy'ubutaka kirimo" data-en="No site plan image yet">No site plan image yet</div>
+      </div>
       <div class="site-plan-overlay" id="site-plan-overlay"></div>
     </div>
 
@@ -32408,14 +32425,33 @@ function loadSitePlan(siteId) {
       return '<span class="site-amenity-icon">' + (AMENITY_ICONS[a] || a) + '</span>';
     }).join('');
 
-    // Site plan image
-    var planWrap = document.getElementById('site-plan-wrap');
-    var planImg  = document.getElementById('site-plan-img');
-    if (planWrap && planImg && s.siteMapUrl) {
-      planImg.src = s.siteMapUrl;
+    // Site plan image — always show either the real plan or the same
+    // branded placeholder renderSitesGrid()'s card already falls back to
+    // when siteMapUrl is empty (never just hide this block: that used to
+    // leave nothing but the blue header above the KPI strip, reading as
+    // "the image is missing" for a site that simply has no plan uploaded
+    // yet). Also covers a broken/expired URL the same way, via onerror,
+    // instead of the old onerror="this.style.display='none'" which left a
+    // blank gap with no explanation.
+    var planWrap        = document.getElementById('site-plan-wrap');
+    var planImg         = document.getElementById('site-plan-img');
+    var planPlaceholder = document.getElementById('site-plan-placeholder');
+    if (planWrap && planImg) {
+      if (s.siteMapUrl) {
+        planImg.onerror = function() {
+          planImg.onerror = null; // one-shot — never re-trigger from the fallback state itself
+          planImg.style.display = 'none';
+          if (planPlaceholder) planPlaceholder.style.display = 'flex';
+        };
+        planImg.src = s.siteMapUrl;
+        planImg.style.display = 'block';
+        if (planPlaceholder) planPlaceholder.style.display = 'none';
+      } else {
+        planImg.onerror = null;
+        planImg.style.display = 'none';
+        if (planPlaceholder) planPlaceholder.style.display = 'flex';
+      }
       planWrap.style.display = 'block';
-    } else if (planWrap) {
-      planWrap.style.display = 'none';
     }
 
     // Staff actions visibility — isAdminOrStaff() is the canonical
@@ -32507,8 +32543,8 @@ function openPlotDetail(plotId) {
   db.collection('plots').doc(plotId).get().then(function(doc) {
     if (!doc.exists) { body.innerHTML = '<p>Plot not found.</p>'; return; }
     var p = doc.data(); p.id = doc.id;
-    var statusLabel = { available:'✅ Available', reserved:'🔵 Reserved', sold:'🔴 Sold', on_hold:'⏸️ On Hold' };
-    var statusCls   = { available:'available', reserved:'reserved', sold:'sold', on_hold:'on_hold' };
+    var statusLabel = { available:'✅ Available', reserved:'🔵 Reserved', sold:'🔴 Sold', on_hold:'⏸️ On Hold', unavailable:'⚪ Unavailable' };
+    var statusCls   = { available:'available', reserved:'reserved', sold:'sold', on_hold:'on_hold', unavailable:'unavailable' };
     var lang = typeof curLang !== 'undefined' ? curLang : 'rw';
     var canReserve = p.status === 'available' && typeof currentUser !== 'undefined' && currentUser;
     // Same isAdminOrStaff() fix as loadSitePlan()'s Staff Actions box above
@@ -32681,13 +32717,34 @@ function openSiteEnquiry(plotId) {
 // side of the transition; it's still visible individually in the plot
 // grid/legend, just not rolled into any of the 4 KPI numbers.
 var PLOT_STATUS_COUNTER_FIELD = { available: 'availablePlots', reserved: 'reservedPlots', sold: 'soldPlots' };
+// unavailable has no counter, same as on_hold above — it's still visible
+// per-plot in the grid/legend, just not rolled into any KPI tile.
+
+// transactionSource is a separate, independent concept from status — it
+// only ever records what staff explicitly confirms (never inferred): did
+// KOMISIYONERI broker this, did it happen externally, or is that unknown.
+// Only asked for on a transition INTO 'sold' or 'unavailable', since
+// those are the two states where "did this happen through us" actually
+// matters. Every plot created before this fix has no transactionSource
+// field at all — every reader of it (there's currently only one, the
+// commission-calc guard below) must already treat that as 'unknown'/
+// not-external, so old documents keep behaving exactly as before.
+var VALID_TRANSACTION_SOURCES = ['komisyoneri', 'external', 'unknown'];
 
 function openPlotStatusChange(plotId, currentStatus) {
-  var newStatus = prompt('Change plot status:\navailable / reserved / sold / on_hold\nCurrent: ' + currentStatus);
+  var newStatus = prompt('Change plot status:\navailable / reserved / sold / on_hold / unavailable\nCurrent: ' + currentStatus);
   if (!newStatus) return;
-  var valid = ['available','reserved','sold','on_hold'];
-  if (valid.indexOf(newStatus.trim()) === -1) { showToast('Invalid status', 'error'); return; }
+  var valid = ['available','reserved','sold','on_hold','unavailable'];
   newStatus = newStatus.trim();
+  if (valid.indexOf(newStatus) === -1) { showToast('Invalid status', 'error'); return; }
+
+  var transactionSource = null;
+  if (newStatus === 'sold' || newStatus === 'unavailable') {
+    var srcInput = prompt('Transaction source — did this happen through KOMISIYONERI or externally?\nkomisyoneri / external / unknown\n(leave blank if unsure — defaults to "unknown")');
+    var src = (srcInput || '').trim().toLowerCase();
+    transactionSource = VALID_TRANSACTION_SOURCES.indexOf(src) > -1 ? src : 'unknown';
+  }
+
   var now = firebase.firestore.FieldValue.serverTimestamp();
   var uid = currentUser.uid;
 
@@ -32709,7 +32766,9 @@ function openPlotStatusChange(plotId, currentStatus) {
       if (!pd.exists) throw new Error('Plot not found');
       var oldStatus = pd.data().status || 'available';
       var siteId = pd.data().siteId;
-      tx.update(plotRef, { status: newStatus, updatedAt: now, updatedBy: uid });
+      var plotUpdate = { status: newStatus, updatedAt: now, updatedBy: uid };
+      if (transactionSource) plotUpdate.transactionSource = transactionSource;
+      tx.update(plotRef, plotUpdate);
       if (siteId && oldStatus !== newStatus) {
         var siteUpdate = { updatedAt: now, updatedBy: uid };
         var oldField = PLOT_STATUS_COUNTER_FIELD[oldStatus];
@@ -32721,14 +32780,18 @@ function openPlotStatusChange(plotId, currentStatus) {
       return oldStatus;
     });
   }).then(function(oldStatus) {
-    logAudit('plot.status.changed', 'plots', plotId,
-      { status: oldStatus },
-      { status: newStatus, changedBy: uid }
-    );
+    var newAuditValue = { status: newStatus, changedBy: uid };
+    if (transactionSource) newAuditValue.transactionSource = transactionSource;
+    logAudit('plot.status.changed', 'plots', plotId, { status: oldStatus }, newAuditValue);
     showToast('Plot status updated to ' + newStatus, 'success');
     closePlotDetail();
     if (currentSiteId) loadSitePlan(currentSiteId);
-    if (newStatus === 'sold') calculatePlotCommission(plotId);
+    // A KOMISIYONERI commission is only owed on a sale KOMISIYONERI
+    // actually brokered — auto-generating one for a confirmed EXTERNAL
+    // sale would credit a KOMISIYONERI agent for a deal they had no part
+    // in. 'komisyoneri' and 'unknown' (the pre-existing default for every
+    // sale marked before this fix) keep today's behavior unchanged.
+    if (newStatus === 'sold' && transactionSource !== 'external') calculatePlotCommission(plotId);
   }).catch(function(e) {
     showToast('Error updating status', 'error');
     console.error(e);
@@ -34697,7 +34760,8 @@ function loadLiveHomeStats() {
   var elListings = document.getElementById('hero-stat-listings');
   var elClients  = document.getElementById('hero-stat-clients');
   var elAgents   = document.getElementById('hero-stat-agents');
-  if (!elListings && !elClients && !elAgents) return;
+  var elSites    = document.getElementById('hero-stat-sites');
+  if (!elListings && !elClients && !elAgents && !elSites) return;
 
   function fmtCount(n) { return (n || 0).toLocaleString(); }
 
@@ -34732,6 +34796,18 @@ function loadLiveHomeStats() {
       if (!doc.exists) return; // updateHomepageStats hasn't run yet (e.g. right after deploy) — leave the honest "0" placeholder
       elClients.textContent = fmtCount(doc.data().activeClients);
     }).catch(function(){});
+  }
+
+  if (elSites) {
+    // "Development Sites" is a separate metric from "Listed Properties"
+    // above — sites/plots are a distinct listing type (see goPlotsForSale()'s
+    // own comment), never merged into the properties count. Same query
+    // loadSites() already uses for the public Sites page itself, so this
+    // number always matches exactly what a visitor sees if they click
+    // through — never a wider or different definition of "available".
+    db.collection('sites').where('status', '==', 'active').where('isActive', '==', true).get()
+      .then(function(snap) { elSites.textContent = fmtCount(snap.size); })
+      .catch(function(err) { console.warn('[Home Stats] sites count failed:', err && err.code); });
   }
 }
 
