@@ -6660,6 +6660,7 @@ html,body{overscroll-behavior-x:none}
     <button class="off-tab" id="hrtab-btn-lifecycle" onclick="switchHRTab('lifecycle')" data-rw="Amashami n'Intangiriro" data-en="Departments & Lifecycle">Departments & Lifecycle</button>
     <button class="off-tab" id="hrtab-btn-recruitment" onclick="switchHRTab('recruitment')" data-rw="Gushaka Abakozi" data-en="Recruitment">Recruitment</button>
     <button class="off-tab" id="hrtab-btn-assets" onclick="switchHRTab('assets')" data-rw="Ibikoresho" data-en="Assets">Assets</button>
+    <button class="off-tab" id="hrtab-btn-permissions" onclick="switchHRTab('permissions')" data-rw="Uburenganzira bw'Imirimo" data-en="Role Permissions">Role Permissions</button>
   </div>
 
   <!-- STAFF DIRECTORY PANE -->
@@ -6753,6 +6754,24 @@ html,body{overscroll-behavior-x:none}
       </button>
     </div>
     <div id="hr-assets-list" class="hr-staff-grid"></div>
+  </div>
+
+  <!-- ROLE PERMISSIONS PANE — Dynamic RBAC / Progressive Governance. This
+       whole page (#page-hr) is already gated to isAdmin(currentUser) in
+       loadHR(), and role_permissions/{role} is Admin-write-only server-side
+       (rules/firestore.rules) — this pane is the ONE authorized place a
+       role's granular permission set is ever edited, per the governance
+       requirement that permissions be managed only through the Admin UI. -->
+  <div class="off-pane" id="hrtab-permissions" style="display:none">
+    <div class="off-pane-hdr">
+      <div style="font-weight:700;color:var(--navy)" data-rw="Uburenganzira bw'Imirimo" data-en="Role Permissions">Role Permissions</div>
+      <select id="rp-role-select" class="off-filter" onchange="loadRolePermissions()" aria-label="Select role to edit"></select>
+    </div>
+    <div style="padding:.5rem 0 1rem;color:var(--muted);font-size:.82rem" data-rw="Hitamo umurimo hejuru urebe cyangwa uhindure uburenganzira bwawo. 'admin' na 'super_admin' bafite uburenganzira bwose ku buryo budahinduka." data-en="Select a role above to view or edit its permissions. 'admin' and 'super_admin' always have full access and are not configurable here.">Select a role above to view or edit its permissions. 'admin' and 'super_admin' always have full access and are not configurable here.</div>
+    <div id="rp-checklist" class="hr-staff-grid"></div>
+    <div style="margin-top:1rem">
+      <button class="btn btn-primary" onclick="saveRolePermissions()" data-rw="Bika" data-en="Save Permissions">Save Permissions</button>
+    </div>
   </div>
 </div>
 
@@ -11515,9 +11534,23 @@ var _pendingAction = null;
 var ROLE_TIERS = {
   ADMIN:         ['super_admin', 'admin'],
   EXEC:          ['super_admin', 'admin', 'ceo'],
-  STAFF:         ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser'],        // == firestore.rules isAdminOrStaff()
-  INTERNAL_TEAM: ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser', 'agent'] // == firestore.rules isInternalTeam()
+  STAFF:         ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'operations', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser'],        // == firestore.rules isAdminOrStaff()
+  INTERNAL_TEAM: ['super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'operations', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser', 'agent'] // == firestore.rules isInternalTeam()
 };
+// ── Dynamic RBAC / Progressive Governance: granular permission layer ──
+// Mirrors rules/firestore.rules' hasPerm() — UX-only (hide/disable a button
+// a user can't use), NEVER the real security boundary; that's always the
+// Firestore rule re-checking role_permissions/{role} server-side. Populated
+// once at login (see restoreUserSession()) into currentUser.permissions.
+// Admin/super_admin always return true without ever consulting the fetched
+// permission set — same unconditional-bypass guarantee as isAdmin() in
+// rules/firestore.rules, so a missing/empty permissions doc can never hide
+// an action from Admin.
+function hasPerm(perm, user) {
+  var u = user || currentUser;
+  if (isAdmin(u)) return true;
+  return !!(u && Array.isArray(u.permissions) && u.permissions.indexOf(perm) > -1);
+}
 function _roleOf(user) { return ((user || currentUser || {}).role || '').toLowerCase(); }
 function isAdmin(user)        { return ROLE_TIERS.ADMIN.indexOf(_roleOf(user)) > -1; }
 function isExec(user)         { return ROLE_TIERS.EXEC.indexOf(_roleOf(user)) > -1; }
@@ -12017,8 +12050,27 @@ function restoreUserSession(fbUser) {
       if (typeof go === 'function') go('auth');
       return;
     }
-    console.log('[AUTH] restoreUserSession: calling saveUser() with role=' + user.role + ' provider=' + user.provider);
-    saveUser(user);
+    // Dynamic RBAC: populate currentUser.permissions from role_permissions/
+    // {role} for the hasPerm() UX helper above. UI-only — the real
+    // enforcement is rules/firestore.rules' hasPerm(), which reads this same
+    // collection server-side and never trusts this client-side copy.
+    // Skipped for admin/super_admin (isAdmin() always short-circuits
+    // hasPerm() to true, so the read is pure waste for them) and defaults to
+    // an empty array on any failure — deny-by-default, matching hasPerm()'s
+    // own default for a role with no configured permissions.
+    var _finishRestoreLogin = function() {
+      console.log('[AUTH] restoreUserSession: calling saveUser() with role=' + user.role + ' provider=' + user.provider);
+      saveUser(user);
+    };
+    var _roleLower = (user.role || '').toLowerCase();
+    if (_roleLower === 'admin' || _roleLower === 'super_admin') {
+      _finishRestoreLogin();
+    } else {
+      db.collection('role_permissions').doc(_roleLower).get().then(function(permDoc) {
+        user.permissions = (permDoc.exists && Array.isArray(permDoc.data().permissions)) ? permDoc.data().permissions : [];
+        _finishRestoreLogin();
+      }).catch(function() { user.permissions = []; _finishRestoreLogin(); });
+    }
   }).catch(function(e) {
     console.error('[AUTH] restoreUserSession: users/' + fbUser.uid + ' GET failed (likely a Firestore rules rejection):', e.code || '', e.message);
   });
@@ -23449,13 +23501,13 @@ var ROLE_DEPARTMENT = {
   ceo: 'Executive', director: 'Executive',
   accountant: 'Finance', chief_broker: 'Brokerage', marketing_manager: 'Marketing',
   customer_support_manager: 'CustomerSupport', it_manager: 'IT',
-  hr_manager: 'HR', legal_adviser: 'Legal'
+  hr_manager: 'HR', legal_adviser: 'Legal', operations: 'Operations'
 };
 var ROLE_JOBTITLE = {
   ceo: 'Founder & CEO', director: 'Operations Director',
   accountant: 'Director of Finance', chief_broker: 'Chief Broker', marketing_manager: 'Marketing Manager',
   customer_support_manager: 'Customer Support Manager', it_manager: 'IT / Product Manager',
-  hr_manager: 'HR Manager', legal_adviser: 'Legal Adviser'
+  hr_manager: 'HR Manager', legal_adviser: 'Legal Adviser', operations: 'Operations Manager'
 };
 // Superior ROLES (not literal uids) a given role reports to — resolved to
 // real, currently-active uids at assignment time by resolveReportsTo()
@@ -23468,7 +23520,8 @@ var ROLE_SUPERIOR_ROLES = {
   customer_support_manager: ['director'],
   it_manager: ['ceo', 'director'],
   hr_manager: ['director', 'ceo'],
-  legal_adviser: ['ceo']
+  legal_adviser: ['ceo'],
+  operations: ['director', 'ceo']
 };
 // Static, role-invariant restriction tags — display/UI-guard use only (e.g.
 // "Requires CEO Approval" badges, audit flagging). The actual enforcement
@@ -23560,7 +23613,7 @@ function loadHRStats() {
 
 function switchHRTab(tab) {
   _resetTabScroll();
-  ['staff','payroll','performance','lifecycle','recruitment','assets'].forEach(function(t) {
+  ['staff','payroll','performance','lifecycle','recruitment','assets','permissions'].forEach(function(t) {
     var btn  = g('hrtab-btn-' + t);
     var pane = g('hrtab-' + t);
     if (btn)  btn.classList.toggle('active', t === tab);
@@ -23572,6 +23625,110 @@ function switchHRTab(tab) {
   else if (tab === 'lifecycle') loadHRLifecycle();
   else if (tab === 'recruitment') loadJobPostings();
   else if (tab === 'assets') loadAssets();
+  else if (tab === 'permissions') initRolePermissionsUI();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  DYNAMIC RBAC / PROGRESSIVE GOVERNANCE — Role Permissions admin UI
+//  (rules/firestore.rules' hasPerm()/role_permissions collection)
+// ══════════════════════════════════════════════════════════════
+// The small, coherent permission vocabulary this app actually uses for the
+// high-risk actions gated server-side — see rules/firestore.rules' hasPerm()
+// call sites (properties/sites/plots approve+status, agents verify/suspend,
+// commissions/payouts approval). Intentionally does NOT include
+// 'users.manage_roles' or 'audit.export' — those are hardcoded to
+// isAdmin()/isCEO() in rules and can never be granted through this UI or
+// this collection, by design (see rules/firestore.rules' role_permissions
+// match block comment).
+var RBAC_PERMISSIONS = [
+  { key: 'properties.view',          label: 'View properties' },
+  { key: 'properties.approve',       label: 'Approve property listings' },
+  { key: 'properties.reject',        label: 'Reject property listings' },
+  { key: 'sites.view',               label: 'View sites' },
+  { key: 'sites.approve',            label: 'Approve sites' },
+  { key: 'plots.change_status',      label: 'Change plot status (reserve / hold / release)' },
+  { key: 'plots.mark_sold',          label: 'Mark a plot sold' },
+  { key: 'agents.view',              label: 'View agents' },
+  { key: 'agents.verify',            label: 'Verify a pending agent' },
+  { key: 'agents.suspend',           label: 'Suspend an agent' },
+  { key: 'leads.view',               label: 'View all leads' },
+  { key: 'leads.view_assigned',      label: 'View own assigned leads' },
+  { key: 'leads.assign',             label: 'Assign leads to agents' },
+  { key: 'commissions.view',         label: 'View commissions' },
+  { key: 'commissions.manage',       label: 'Approve / pay commissions & payouts' }
+];
+// Roles configurable through this panel — every AS_PROVISIONABLE_ROLES entry
+// except 'staff' is a real governance role; 'admin'/'super_admin' are
+// deliberately excluded (their access is the unconditional hardcoded
+// bypass in rules/firestore.rules' isAdmin(), never sourced from this
+// collection, so editing a doc for them here would be misleading no-op UI).
+var _rpCurrentRole = '';
+var _rpOriginalPerms = [];
+
+function initRolePermissionsUI() {
+  var sel = g('rp-role-select');
+  if (!sel) return;
+  if (!sel.options.length) {
+    sel.innerHTML = AS_PROVISIONABLE_ROLES
+      .map(function(r) { return '<option value="' + r + '">' + (HR_ROLE_LABELS[r] || r) + '</option>'; }).join('');
+  }
+  loadRolePermissions();
+}
+
+function loadRolePermissions() {
+  var sel = g('rp-role-select');
+  var role = sel ? sel.value : '';
+  if (!role) return;
+  _rpCurrentRole = role;
+  var list = g('rp-checklist');
+  if (list) list.innerHTML = '<div style="padding:1rem;color:var(--muted)">Loading…</div>';
+  if (typeof db === 'undefined') return;
+  db.collection('role_permissions').doc(role).get().then(function(doc) {
+    _rpOriginalPerms = (doc.exists && Array.isArray(doc.data().permissions)) ? doc.data().permissions : [];
+    renderRolePermissionsChecklist(_rpOriginalPerms);
+  }).catch(function() {
+    _rpOriginalPerms = [];
+    renderRolePermissionsChecklist([]);
+  });
+}
+
+function renderRolePermissionsChecklist(activePerms) {
+  var list = g('rp-checklist');
+  if (!list) return;
+  list.innerHTML = RBAC_PERMISSIONS.map(function(p) {
+    var checked = activePerms.indexOf(p.key) > -1 ? 'checked' : '';
+    return '<label class="hr-staff-card" style="display:flex;align-items:center;gap:.6rem;cursor:pointer">'
+      + '<input type="checkbox" class="rp-perm-checkbox" value="' + p.key + '" ' + checked + '>'
+      + '<span>' + escapeHtml(p.label) + ' <code style="color:var(--muted);font-size:.72rem">' + p.key + '</code></span>'
+      + '</label>';
+  }).join('');
+}
+
+// Writable only by isAdmin() server-side (role_permissions' own rules) — this
+// client-side call fails closed for anyone else, same as every other
+// admin-only write in this app. Every change is audited with the full
+// before/after permission set, actor, and timestamp (governance spec's
+// "audit every role/permission configuration change" requirement).
+function saveRolePermissions() {
+  if (!_rpCurrentRole || typeof db === 'undefined' || !currentUser) return;
+  var checked = Array.prototype.slice.call(document.querySelectorAll('.rp-perm-checkbox:checked')).map(function(el) { return el.value; });
+  var role = _rpCurrentRole;
+  var uid = currentUser.uid;
+  var now = firebase.firestore.FieldValue.serverTimestamp();
+  db.collection('role_permissions').doc(role).set({
+    role: role,
+    permissions: checked,
+    createdAt: now, updatedAt: now,
+    createdBy: uid, updatedBy: uid
+  }, { merge: true }).then(function() {
+    logAudit('permissions.role_config.changed', 'role_permissions', role,
+      { permissions: _rpOriginalPerms }, { permissions: checked });
+    _rpOriginalPerms = checked;
+    showToast(curLang === 'rw' ? 'Uburenganzira bwabitswe!' : 'Permissions saved!', 'success');
+  }).catch(function(e) {
+    console.error('[RBAC] saveRolePermissions failed:', e);
+    showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error saving permissions', 'error');
+  });
 }
 
 /* ── DEPARTMENTS ── */
@@ -24337,7 +24494,8 @@ function changeUserRole(uid) {
   }
   var adminUid = currentUser ? currentUser.uid : 'admin';
   var existingUser = _hrStaff.find(function(x){ return x.id === uid; });
-  var wasStaffTier = ROLE_TIERS.STAFF.indexOf(((existingUser && existingUser.role) || '').toLowerCase()) > -1;
+  var oldRole = (existingUser && existingUser.role) || '';
+  var wasStaffTier = ROLE_TIERS.STAFF.indexOf((oldRole || '').toLowerCase()) > -1;
   var updatePayload = {
     role:      newRole,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -24368,7 +24526,7 @@ function changeUserRole(uid) {
   // reassignment for every governance role.
   if (newRole === 'agent') updatePayload.status = 'active';
   db.collection('users').doc(uid).update(updatePayload).then(function() {
-    logAudit('user.role.changed', 'users', uid, null, { newRole: newRole });
+    logAudit('user.role.changed', 'users', uid, { role: oldRole }, { role: newRole });
     var u = _hrStaff.find(function(x){ return x.id === uid; });
     if (u) { u.role = newRole; }
     // First time this person becomes internal staff (not staff-tier
@@ -24399,7 +24557,7 @@ function changeUserRole(uid) {
 // Same role set the Cloud Function accepts — kept in sync manually with
 // PROVISIONABLE_STAFF_ROLES there, same as ROLE_DEPARTMENT/ROLE_JOBTITLE/
 // ROLE_SUPERIOR_ROLES already are between this file and that one.
-var AS_PROVISIONABLE_ROLES = ['ceo','director','accountant','chief_broker','marketing_manager','customer_support_manager','it_manager','hr_manager','legal_adviser','staff'];
+var AS_PROVISIONABLE_ROLES = ['ceo','director','accountant','chief_broker','marketing_manager','customer_support_manager','it_manager','hr_manager','legal_adviser','operations','staff'];
 var _asAccountsList = [];
 var _asEmailAvailable = null; // null = not checked yet, true/false = last check result
 
@@ -35207,10 +35365,14 @@ function _fsAdminApprove(idx) {
 function _fsAdminReject(idx) {
   var prop = _adminAllProps[idx]; if (!prop) return;
   var fsId = prop._fsId;
+  // Accountability without operational friction (governance spec §12): a
+  // rejection is a high-risk, agent-visible decision, so capture a reason —
+  // but don't block the reject entirely if the admin skips the prompt.
+  var reason = prompt(curLang === 'rw' ? 'Impamvu yo kwanga (bidasabwa):' : 'Reason for rejection (optional):') || '';
   prop.status = 'Rejected';
   if (typeof db !== 'undefined' && fsId) {
     db.collection('properties').doc(fsId).update({
-      status:'rejected', updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
+      status:'rejected', rejectionReason: reason, updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
     }).then(function() {
       // Audit log + agent notification now happen server-side, in the
       // onPropertyStatusChanged Cloud Function reacting to this same

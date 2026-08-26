@@ -105,19 +105,34 @@ describe('Ownership & self-escalation', function () {
 
     // isSelfAgentApplication()'s own exclusion list only names the literal
     // roles 'admin'/'super_admin'/'staff' — but every one of those (and
-    // every other staff-tier role, e.g. hr_manager here) already has
-    // blanket update access via the isAdminOrStaff() disjunct earlier in
-    // the same `allow update`. So this update succeeds regardless of the
-    // loophole — there's no reachable case where the exclusion clause is
-    // the thing standing between a staff-tier account and this write, since
-    // isAdminOrStaff() is a strict superset of what the loophole would
-    // grant. Documenting that as the real, current behavior.
-    it('a staff-tier account CAN still update its own doc (via isAdminOrStaff, not the loophole)', async () => {
+    // every other staff-tier role, e.g. hr_manager here) used to have
+    // blanket update access, INCLUDING the `role` field itself, via the
+    // isAdminOrStaff() disjunct earlier in the same `allow update` — a real
+    // self-role-escalation gap (an hr_manager could rewrite their own
+    // `role` field to anything, not just 'agent'), independent of and
+    // unguarded by the isSelfAgentApplication() carve-out this describe
+    // block is about. Closed by the Dynamic RBAC / Progressive Governance
+    // work (see rules/firestore.rules' _isRoleFieldChange()): `role` is now
+    // Admin/CEO-only to write, full stop — see
+    // 08-dynamic-rbac-permissions.spec.js's "Structural safeguards" for the
+    // dedicated coverage. This test now documents the closure instead of
+    // the gap: a staff-tier account keeps full self-edit rights on every
+    // OTHER field of its own doc, just never its own `role`.
+    it('a staff-tier account CANNOT rewrite its own role field via the old blanket grant', async () => {
       const ctx = testEnv.authenticatedContext(UIDS.hr);
-      await assertSucceeds(
+      await assertFails(
         ctx.firestore().doc(`users/${UIDS.hr}`).update({
           role: 'agent', status: 'pending', isActive: true, isVerified: false,
           updatedAt: new Date().toISOString()
+        })
+      );
+    });
+
+    it('a staff-tier account CAN still update other fields of its own doc', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.hr);
+      await assertSucceeds(
+        ctx.firestore().doc(`users/${UIDS.hr}`).update({
+          jobTitle: 'Senior HR Manager', updatedAt: new Date().toISOString()
         })
       );
     });

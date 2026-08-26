@@ -24,6 +24,37 @@ service cloud.firestore {
     function isRole(r) {
       return isAuth() && getRole() != null && getRole().lower() == r.lower();
     }
+    // Unconditional hardcoded bypass — never derived from role_permissions,
+    // so a missing/corrupt/misconfigured permission document can never lock
+    // Admin out, and no configurable role can ever grant itself this tier
+    // (see hasPerm() below, which checks isAdmin() FIRST, before ever
+    // reading role_permissions). Ultimate Authority per governance spec §1/§6.
+    function isAdmin() {
+      return isAuth() && getRole() != null && getRole().lower() in ['admin', 'super_admin'];
+    }
+    // ── Granular permission layer (Dynamic RBAC / Progressive Governance) ──
+    // Sits UNDERNEATH isAdminOrStaff() below — it narrows a small set of
+    // high-risk transitions (property/site/plot approve+status, agent
+    // verify/suspend, commission/payout approval) to whichever roles are
+    // actually configured for them, instead of the blanket staff-tier trust
+    // every OTHER action in this file still uses. Config lives in
+    // role_permissions/{role} (see that collection's own rules below) so a
+    // brand-new role's permission set — or a change to an existing one — is
+    // pure Firestore data, editable from the Admin UI with zero redeploy.
+    // isAdmin() is checked first and short-circuits: Admin's access to every
+    // hasPerm()-gated action NEVER depends on this collection existing or
+    // being correctly populated (absent-staff fallback, governance spec §7).
+    // Deliberately excludes 'users.manage_roles' and 'audit.export' from ever
+    // being resolvable this way — those two stay hardcoded to isAdmin()/
+    // isCEO() at their own call sites, so no role's role_permissions
+    // document, however it's edited, can ever grant Admin-level authority
+    // (governance spec's mandatory safeguard).
+    function hasPerm(p) {
+      return isAdmin()
+        || (isAuth() && getRole() != null
+            && exists(/databases/$(database)/documents/role_permissions/$(getRole().lower()))
+            && p in get(/databases/$(database)/documents/role_permissions/$(getRole().lower())).data.get('permissions', []));
+    }
     function isAdminOrStaff() {
       // Includes 'ceo': the client UI has always treated ceo as
       // admin-equivalent in ~20 places (approve/reject actions, HR admin
@@ -39,11 +70,11 @@ service cloud.firestore {
       // has) — see ROLE_TIERS.STAFF in index.html, which this list must
       // stay in sync with.
       return isAuth() && getRole() != null &&
-        getRole().lower() in ['admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser'];
+        getRole().lower() in ['admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'operations', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser'];
     }
     function isInternalTeam() {
       return isAuth() && getRole() != null &&
-        getRole().lower() in ['agent', 'staff', 'admin', 'super_admin', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser'];
+        getRole().lower() in ['agent', 'staff', 'admin', 'super_admin', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'operations', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser'];
     }
     // CEO vs Operations Director governance boundary: both are staff-tier
     // (isAdminOrStaff() above still covers their day-to-day access), but a
@@ -69,7 +100,7 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/users/$(uid))
         && get(/databases/$(database)/documents/users/$(uid)).data.role.lower() in
            ['ceo', 'company_owner', 'branch_manager', 'hr_manager', 'operations_manager',
-            'marketing_manager', 'director', 'accountant', 'chief_broker',
+            'operations', 'marketing_manager', 'director', 'accountant', 'chief_broker',
             'customer_support_manager', 'it_manager', 'legal_adviser'];
     }
     // Final Management Org Chart — department is DERIVED from role (this app
@@ -86,6 +117,7 @@ service cloud.firestore {
         : r == 'it_manager' ? 'IT'
         : r == 'hr_manager' ? 'HR'
         : r == 'legal_adviser' ? 'Legal'
+        : r == 'operations' ? 'Operations'
         : '';
     }
     function inDept(dept) {
@@ -176,8 +208,49 @@ service cloud.firestore {
       // doc. This is a deliberate, scoped exception to the otherwise-uniform
       // staff-tier trust model documented in
       // tests/rules/test/03-staff-tier-uniform-trust.spec.js.
-      allow update: if (isAdminOrStaff() && !isDirector())
-                    || (isDirector() && (request.auth.uid == uid || !isSeniorManager(uid)))
+      // `role` itself is Admin/CEO-only — users.manage_roles is deliberately
+      // never resolvable from role_permissions (see hasPerm()'s own
+      // comment), so this is the one and only place role reassignment is
+      // authorized, hardcoded, immune to any config/permission drift. This
+      // was previously reachable by ANY isAdminOrStaff() role via the
+      // blanket grant below (no field allowlist on that branch) — closing a
+      // pure server-side privilege-escalation gap, not a working workflow:
+      // the only client UI that ever calls changeUserRole() is the HR org
+      // chart panel, itself already gated to isAdmin(currentUser) in
+      // index.html's loadHR(), so no legitimate non-admin path is affected.
+      function _isRoleFieldChange() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']);
+      }
+      // Agent verification/suspension — the flip of isVerified/verified or
+      // status on an agent's own doc (_fsPendingApprove()/_fsPendingReject()
+      // and any future suspend action) — is scoped to whichever roles are
+      // actually configured with agents.verify/agents.suspend, instead of
+      // every one of the 14+ staff-tier roles today. Every OTHER user-doc
+      // edit an admin/staff account makes (org-chart fields, status changes
+      // on non-agent accounts, HR fields, etc.) is completely unaffected.
+      function _isAgentVerifySuspendChange() {
+        return resource.data.get('role', '').lower() == 'agent'
+          && request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['isVerified', 'verified', 'status']);
+      }
+      function _agentGovernanceOK() {
+        return (!_isRoleFieldChange() || isAdmin() || isCEO())
+          && (!_isAgentVerifySuspendChange() || hasPerm('agents.verify') || hasPerm('agents.suspend'));
+      }
+      // Factored out so _agentGovernanceOK() (which internally short-circuits
+      // to isAdmin()/hasPerm() calls, each a get()) is evaluated exactly
+      // ONCE per request rather than once per branch below — evaluating it
+      // twice (once in the isAdminOrStaff() branch, once in the isDirector()
+      // branch, as an earlier version of this rule did) pushed this rule
+      // over Firestore's ~1000-expression-per-request evaluation ceiling and
+      // made every users/{uid} update fail with "Unable to evaluate the
+      // expression as the maximum...has been reached" instead of a normal
+      // allow/deny. Caught by tests/rules' own suite, not discovered live.
+      function _isStaffTierEditableUser(uid) {
+        return (isAdminOrStaff() && !isDirector())
+          || (isDirector() && (request.auth.uid == uid || !isSeniorManager(uid)));
+      }
+      allow update: if (_isStaffTierEditableUser(uid) && _agentGovernanceOK())
                     || isSelfAgentApplication()
                     || (isAuth() && request.auth.uid == uid
                         && request.resource.data.diff(resource.data).affectedKeys()
@@ -234,7 +307,24 @@ service cloud.firestore {
       // This branch already only ever fires while status is Pending (the
       // client never lets an owner/agent reach this for an Approved
       // listing), so it needs no separate CEO carve-out of its own.
-      allow update: if (isAdminOrStaff() && !_isApprovedContentEditByNonCEO())
+      // Approve/reject is the actual admin-review decision this whole
+      // collection exists to gate — narrowed from blanket isAdminOrStaff()
+      // to whichever roles are configured with properties.approve/reject
+      // (governance spec §9/§14: "do not assume every Staff member needs
+      // the same status permissions"). Every other write an admin/staff
+      // account makes to a property (isActive toggle, featured, images,
+      // investmentDetails, etc.) is untouched — this only fires when the
+      // write actually moves `status` into 'approved' or 'rejected'.
+      function _isPropertyApproveRejectChange() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
+          && request.resource.data.get('status', '').lower() in ['approved', 'rejected'];
+      }
+      function _propertyGovernanceOK() {
+        return !_isPropertyApproveRejectChange()
+          || (request.resource.data.get('status', '').lower() == 'approved' && hasPerm('properties.approve'))
+          || (request.resource.data.get('status', '').lower() == 'rejected' && hasPerm('properties.reject'));
+      }
+      allow update: if (isAdminOrStaff() && !_isApprovedContentEditByNonCEO() && _propertyGovernanceOK())
                     || ((resource.data.agentId == request.auth.uid || resource.data.ownerId == request.auth.uid)
                         && request.resource.data.diff(resource.data).affectedKeys()
                            .hasOnly(['type','category','district','sector','price','bedrooms',
@@ -311,7 +401,12 @@ service cloud.firestore {
                     || (isAuth() && resource.data.agentId == request.auth.uid);
       allow create: if isAuth() && hasStandardFields()
                     && request.resource.data.status == 'pending';
-      allow update: if isAdminOrStaff();
+      // Approve/pay is the money-moving transition — narrowed to
+      // commissions.manage (ceo/accountant/admin in the default matrix)
+      // instead of every staff-tier role. A staff-tier account without that
+      // permission keeps its existing read access (unaffected above) but
+      // can no longer move a commission out of 'pending' itself.
+      allow update: if isAdminOrStaff() && hasPerm('commissions.manage');
       allow delete: if false;
     }
 
@@ -383,12 +478,16 @@ service cloud.firestore {
       // time before moving anything, since server-verified state can go
       // stale between verification and approval (e.g. a commission paid
       // out via a different, concurrent request).
+      // Approving a payout (the actual money-moving transition) additionally
+      // requires commissions.manage — rejecting stays open to the full
+      // isAdminOrStaff() tier as before (not a financial action on its own).
       allow update: if (request.resource.data.serverVerified == resource.data.serverVerified
                         && request.resource.data.verifiedAmount == resource.data.verifiedAmount
                         && request.resource.data.verifiedAt == resource.data.verifiedAt)
                     && ((isAdminOrStaff()
                          && (request.resource.data.status != 'approved'
-                             || (resource.data.status == 'pending' && resource.data.serverVerified == true)))
+                             || (resource.data.status == 'pending' && resource.data.serverVerified == true
+                                 && hasPerm('commissions.manage'))))
                         || (isAuth() && resource.data.agentId == request.auth.uid
                             && resource.data.status == 'pending'
                             && request.resource.data.status == 'cancelled'));
@@ -658,6 +757,29 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ── Dynamic RBAC / Progressive Governance permission config ─────────
+    // One doc per role, id == lowercased role value (e.g.
+    // role_permissions/operations), shape: { role, permissions: [...],
+    // createdAt, updatedAt, createdBy, updatedBy }. Read by hasPerm() above
+    // via get(). Writable ONLY by isAdmin() — "Role permissions must be
+    // managed only through the authorized Admin UI" — not even isCEO()/
+    // isAdminOrStaff(), so a staff-tier account (even one with e.g.
+    // users.view) can never edit its own or another role's permission set.
+    // The permissions-array check below blocks the two Admin-level
+    // capabilities (users.manage_roles, audit.export) from ever being
+    // written into ANY role's permissions array, even by Admin — those stay
+    // exclusively hardcoded at their own call sites (see isAdmin()'s own
+    // comment above), so this collection can never be used, accidentally or
+    // otherwise, to hand out Admin-equivalent authority to a configurable role.
+    match /role_permissions/{role} {
+      allow read:   if isAdminOrStaff();
+      allow create, update: if isAdmin()
+                    && request.resource.data.role == role
+                    && !request.resource.data.get('permissions', []).hasAny(
+                         ['users.manage_roles', 'audit.export', 'admin.bypass']);
+      allow delete: if isAdmin();
+    }
+
     match /auditlogs/{id} {
       // Immutable — no updates or deletes ever
       allow read:   if isAdminOrStaff();
@@ -673,7 +795,18 @@ service cloud.firestore {
       allow create: if isAuth()
                     && (isRole('agent') || isRole('developer') || isAdminOrStaff())
                     && hasStandardFields();
-      allow update: if isAdminOrStaff()
+      // Same shape as properties' _isPropertyApproveRejectChange() above —
+      // narrows only the admin-review status transition on the isAdminOrStaff()
+      // branch; the managingAgentId/developerId ownership branches (an agent
+      // or developer managing their own site) are completely untouched.
+      function _isSiteApproveChange() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
+          && request.resource.data.get('status', '').lower() == 'approved';
+      }
+      function _siteGovernanceOK() {
+        return !_isSiteApproveChange() || hasPerm('sites.approve');
+      }
+      allow update: if (isAdminOrStaff() && _siteGovernanceOK())
                     || (isAuth() && isRole('agent')
                         && resource.data.managingAgentId == request.auth.uid)
                     || (isAuth() && isRole('developer')
@@ -686,7 +819,18 @@ service cloud.firestore {
       allow create: if isAuth()
                     && (isRole('agent') || isAdminOrStaff())
                     && hasStandardFields();
-      allow update: if isAdminOrStaff()
+      // 'sold' is the one plot transition that finalizes a sale (triggers
+      // calculatePlotCommission() client-side) — narrowed to
+      // plots.mark_sold; every other status value (reserved/available/
+      // on_hold) needs only plots.change_status. The managingAgentId
+      // ownership branch and the client's own narrow reservation-field
+      // branch below are both completely untouched.
+      function _plotStatusOK() {
+        return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
+          || (request.resource.data.get('status', '').lower() == 'sold' && hasPerm('plots.mark_sold'))
+          || (request.resource.data.get('status', '').lower() != 'sold' && hasPerm('plots.change_status'));
+      }
+      allow update: if (isAdminOrStaff() && _plotStatusOK())
                     || (isAuth()
                         && get(/databases/$(database)/documents/sites/$(resource.data.siteId))
                            .data.managingAgentId == request.auth.uid)
@@ -817,7 +961,7 @@ service cloud.firestore {
       // serverVerified:true; onApprovalDecided performs the real privileged
       // write to the target collection (via sourceDocRef/type) server-side
       // once CEO approves. Same P0.1 security pattern already proven here.
-      allow read:   if isCEO()
+      allow read:   if isCEO() || isAdmin()
                     || (isAuth() && resource.data.requestedBy == request.auth.uid);
       allow create: if isAuth() && hasStandardFields()
                     && request.resource.data.requestedBy == request.auth.uid
@@ -826,18 +970,22 @@ service cloud.firestore {
                     && request.resource.data.decidedBy == null
                     && request.resource.data.decidedAt == null;
       // Decision authority: isCEO() always (unchanged, covers every approval
-      // type that predates the Final Org Chart work), OR — new — the caller's
-      // uid is listed in the request's own `routedTo` array. routedTo lets a
+      // type that predates the Final Org Chart work), isAdmin() always (new
+      // — Ultimate Authority / absent-staff fallback: an Admin-only company
+      // with no CEO account must still be able to decide an escalated
+      // approval; mirrors the same admin-inclusive fix applied to
+      // onApprovalDecided in functions/index.js), OR the caller's uid is
+      // listed in the request's own `routedTo` array. routedTo lets a
       // deniedActions-triggered request (see index.html's requestApproval())
       // be routed to whichever of a role's reportsTo superiors should decide
       // it (e.g. HR's routes to Operations Director OR CEO, either
       // sufficient) without hardcoding CEO as the only possible approver.
-      // Purely additive: a doc with no routedTo field falls back to isCEO()
-      // exactly as before (resource.data.get('routedTo', []) is empty, so
-      // the `in` check can never match), so this doesn't change behavior for
-      // any of the existing CEO-only approval types.
+      // Purely additive: a doc with no routedTo field falls back to
+      // isCEO()/isAdmin() exactly as before (resource.data.get('routedTo',
+      // []) is empty, so the `in` check can never match), so this doesn't
+      // change behavior for any of the existing CEO-only approval types.
       allow update: if request.resource.data.serverVerified == resource.data.serverVerified
-                    && (isCEO() || (isAuth() && request.auth.uid in resource.data.get('routedTo', [])))
+                    && (isCEO() || isAdmin() || (isAuth() && request.auth.uid in resource.data.get('routedTo', [])))
                     && resource.data.status == 'pending'
                     && resource.data.serverVerified == true
                     && request.resource.data.status in ['approved', 'rejected'];
