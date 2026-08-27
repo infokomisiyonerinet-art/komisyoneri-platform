@@ -6,19 +6,29 @@ ever touches the real `komisiyoneri-platform-prod` project.
 
 ## What this actually tests
 
-The original request for this suite assumed a data model (a `department`
-field, `partnerOrgId`, `orgType`, a `permissions` array, a
-`users/{uid}/compensation` sub-collection, an `agentVerified` field) that
-does not exist anywhere in this codebase — confirmed by a full read of
-`rules/firestore.rules` and an exhaustive grep of `index.html`. The real
-model is a single `users/{uid}.role` string field, and every staff-tier role
-(`hr_manager`, `accountant`, `marketing_manager`, `branch_manager`,
-`director`, `chief_broker`, `ceo`, `company_owner`, `admin`, `super_admin`,
-`staff`) has **identical** trust level by design — there is no
-per-department or per-permission sub-tier. This suite tests the real rules
-as they actually exist, not the assumed model. See the "Failures" section
-format below and `03-staff-tier-uniform-trust.spec.js` in particular, which
-documents the uniform-trust behavior as intended rather than a gap.
+An earlier version of this note said a `permissions` array (among other
+fields) "does not exist anywhere in this codebase." That's no longer true:
+the Dynamic RBAC / Progressive Governance work added a real, small
+`role_permissions/{role}` collection and a `hasPerm()` rules helper that
+narrows a handful of high-risk transitions (property/site approve+reject,
+plot status, agent verify/suspend, commission/payout approval, `role`
+reassignment) away from the blanket staff-tier trust described below — see
+`08-dynamic-rbac-permissions.spec.js`. `partnerOrgId`, `orgType`, and a
+`users/{uid}/compensation` sub-collection still don't exist anywhere in this
+codebase, confirmed the same way (a full read of `rules/firestore.rules`
+and an exhaustive grep of `index.html`).
+
+Outside of that new, narrow permission layer, the model is still a single
+`users/{uid}.role` string field, and every staff-tier role (`hr_manager`,
+`accountant`, `marketing_manager`, `branch_manager`, `director`,
+`chief_broker`, `ceo`, `company_owner`, `admin`, `super_admin`, `staff`,
+`operations`) has **identical** trust level for everything NOT explicitly
+gated by `hasPerm()` — there is no blanket per-department sub-tier. This
+suite tests the real rules as they actually exist. See the "Failures"
+section format below, `03-staff-tier-uniform-trust.spec.js` (which documents
+the remaining uniform-trust behavior as intended, not a gap), and
+`08-dynamic-rbac-permissions.spec.js` (which documents where that uniform
+trust is now deliberately narrowed, and why).
 
 ## Layout
 
@@ -44,6 +54,15 @@ tests/rules/
     03-staff-tier-uniform-trust.spec.js
     04-public-read-collections.spec.js
     05-messages-dual-shape.spec.js
+    06-ceo-vs-operations-director.spec.js
+    07-org-chart-hr-legal-reports.spec.js
+    08-dynamic-rbac-permissions.spec.js — role_permissions/hasPerm(): Admin's
+                                        unconditional bypass, a configured
+                                        role succeeding, a non-configured
+                                        staff role and an unconfigured role
+                                        both denying by default, and the
+                                        Admin-only/no-self-escalation
+                                        safeguards on the collection itself
   out/                  — generated at run time: results.json, RULES_TEST_REPORT.md
 ```
 

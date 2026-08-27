@@ -98,7 +98,7 @@ async function notifyUser(db, targetUserId, title, body, type, relatedCollection
 // small; if either cap is ever hit for real, this should move to a
 // dedicated broadcast mechanism instead of fanning out individual
 // notification writes.
-const STAFF_ROLES = ['admin', 'Admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser'];
+const STAFF_ROLES = ['admin', 'Admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'operations', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser'];
 async function notifyStaff(db, title, body, type, relatedCollection, relatedId, actingUid) {
   const roleBatches = [STAFF_ROLES.slice(0, 10), STAFF_ROLES.slice(10)];
   const snaps = await Promise.all(roleBatches.map((roles) =>
@@ -383,11 +383,11 @@ exports.onPropertyStatusChanged = onDocumentUpdated({ document: 'properties/{pro
         'property_approved', 'properties', propertyId, actingUid);
     }
   } else {
-    await logAudit(db, 'property.rejected', 'properties', propertyId, { status: before.status || 'pending' }, { status: after.status }, actingUid);
+    await logAudit(db, 'property.rejected', 'properties', propertyId, { status: before.status || 'pending' }, { status: after.status, reason: after.rejectionReason || '' }, actingUid);
     if (after.agentId) {
       await notifyUser(db, after.agentId,
         '❌ Property Not Approved',
-        propTitle + ' was not approved. Please contact admin for more details.',
+        propTitle + ' was not approved.' + (after.rejectionReason ? ' Reason: ' + after.rejectionReason : ' Please contact admin for more details.'),
         'system', 'properties', propertyId, actingUid);
     }
   }
@@ -1131,7 +1131,13 @@ exports.onApprovalDecided = onDocumentUpdated({ document: 'approvals/{approvalId
     // firestore.rules, and this re-verification disagreed about who was
     // really allowed to decide.
     const routedTo = Array.isArray(after.routedTo) ? after.routedTo : [];
-    const isAuthorized = actorRole === 'ceo' || routedTo.indexOf(decidedBy) > -1;
+    // admin/super_admin added alongside ceo — mirrors the same
+    // Ultimate-Authority/absent-staff-fallback fix applied to
+    // createStaffOrPartnerAccount/deleteApprovedAgent and to the /approvals
+    // update rule in rules/firestore.rules (all three re-check this
+    // identically; keep them in sync).
+    const isAuthorized = actorRole === 'ceo' || actorRole === 'admin' || actorRole === 'super_admin'
+      || routedTo.indexOf(decidedBy) > -1;
     if (!isAuthorized) {
       await ref.update({
         status: 'rejected',
@@ -1195,19 +1201,19 @@ exports.onApprovalDecided = onDocumentUpdated({ document: 'approvals/{approvalId
  */
 const PROVISIONABLE_STAFF_ROLES = [
   'ceo', 'director', 'accountant', 'chief_broker', 'marketing_manager',
-  'customer_support_manager', 'it_manager', 'hr_manager', 'legal_adviser', 'staff'
+  'customer_support_manager', 'it_manager', 'hr_manager', 'legal_adviser', 'operations', 'staff'
 ];
 const ROLE_DEPARTMENT = {
   ceo: 'Executive', director: 'Executive',
   accountant: 'Finance', chief_broker: 'Brokerage', marketing_manager: 'Marketing',
   customer_support_manager: 'CustomerSupport', it_manager: 'IT',
-  hr_manager: 'HR', legal_adviser: 'Legal'
+  hr_manager: 'HR', legal_adviser: 'Legal', operations: 'Operations'
 };
 const ROLE_JOBTITLE = {
   ceo: 'Founder & CEO', director: 'Operations Director',
   accountant: 'Director of Finance', chief_broker: 'Chief Broker', marketing_manager: 'Marketing Manager',
   customer_support_manager: 'Customer Support Manager', it_manager: 'IT / Product Manager',
-  hr_manager: 'HR Manager', legal_adviser: 'Legal Adviser'
+  hr_manager: 'HR Manager', legal_adviser: 'Legal Adviser', operations: 'Operations Manager'
 };
 const ROLE_SUPERIOR_ROLES = {
   director: ['ceo'],
@@ -1217,7 +1223,8 @@ const ROLE_SUPERIOR_ROLES = {
   customer_support_manager: ['director'],
   it_manager: ['ceo', 'director'],
   hr_manager: ['director', 'ceo'],
-  legal_adviser: ['ceo']
+  legal_adviser: ['ceo'],
+  operations: ['director', 'ceo']
 };
 
 // Never shown to anyone or emailed anywhere — the account's very first
@@ -1240,9 +1247,15 @@ exports.createStaffOrPartnerAccount = onCall({ region: REGION }, async (request)
   // this file re-checks against (see onApprovalDecided above).
   const callerDoc = await db.collection('users').doc(auth.uid).get();
   const callerRole = callerDoc.exists ? String(callerDoc.data().role || '').toLowerCase() : '';
-  if (callerRole !== 'ceo') {
-    logger.warn('createStaffOrPartnerAccount: rejected — caller is not CEO', { callerUid: auth.uid, callerRole });
-    throw new HttpsError('permission-denied', 'Only the CEO can provision staff or partner accounts.');
+  // Admin/super_admin are equally-trusted callers alongside CEO — Ultimate
+  // Authority / absent-staff fallback (governance spec §1/§7/§20): an
+  // Admin-only company with no CEO account must still be able to provision
+  // its first staff account without a code change. This was previously
+  // CEO-only, literally, which meant Admin could not onboard anyone until a
+  // CEO account existed — a real gap, not an intentional restriction.
+  if (callerRole !== 'ceo' && callerRole !== 'admin' && callerRole !== 'super_admin') {
+    logger.warn('createStaffOrPartnerAccount: rejected — caller is not CEO/Admin', { callerUid: auth.uid, callerRole });
+    throw new HttpsError('permission-denied', 'Only the CEO or an Admin can provision staff or partner accounts.');
   }
 
   const data = request.data || {};
@@ -1381,9 +1394,11 @@ exports.deleteApprovedAgent = onCall({ region: REGION }, async (request) => {
 
   const callerDoc = await db.collection('users').doc(auth.uid).get();
   const callerRole = callerDoc.exists ? String(callerDoc.data().role || '').toLowerCase() : '';
-  if (callerRole !== 'ceo') {
-    logger.warn('deleteApprovedAgent: rejected — caller is not CEO', { callerUid: auth.uid, callerRole });
-    throw new HttpsError('permission-denied', 'Only the CEO can permanently delete an agent.');
+  // Same admin-inclusive fix as createStaffOrPartnerAccount above — see its
+  // comment.
+  if (callerRole !== 'ceo' && callerRole !== 'admin' && callerRole !== 'super_admin') {
+    logger.warn('deleteApprovedAgent: rejected — caller is not CEO/Admin', { callerUid: auth.uid, callerRole });
+    throw new HttpsError('permission-denied', 'Only the CEO or an Admin can permanently delete an agent.');
   }
 
   const targetUid = String((request.data || {}).uid || '').trim();
