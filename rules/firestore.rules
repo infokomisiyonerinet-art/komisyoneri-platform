@@ -221,6 +221,22 @@ service cloud.firestore {
       function _isRoleFieldChange() {
         return request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']);
       }
+      // CRITICAL, found during the pre-production governance audit: an
+      // earlier version of this rule let isCEO() authorize ANY role-field
+      // value, including 'admin'/'super_admin' — meaning a CEO could
+      // promote any account (including their own) straight to Admin,
+      // bypassing Ultimate Authority being an Admin-only tier entirely and
+      // making role_permissions' own Admin-only write gate moot (why edit
+      // permissions when you can just become Admin?). CEO retains org-chart
+      // authority to assign every OTHER role (director, accountant,
+      // operations, etc. — createStaffOrPartnerAccount's own
+      // PROVISIONABLE_STAFF_ROLES already never included admin/super_admin
+      // for NEW accounts; this closes the matching gap for reassigning an
+      // EXISTING account's role) — only escalation INTO admin/super_admin
+      // is Admin-only, hardcoded, no exception.
+      function _isEscalationToAdminRole() {
+        return request.resource.data.get('role', '').lower() in ['admin', 'super_admin'];
+      }
       // Agent verification/suspension — the flip of isVerified/verified or
       // status on an agent's own doc (_fsPendingApprove()/_fsPendingReject()
       // and any future suspend action) — is scoped to whichever roles are
@@ -234,7 +250,7 @@ service cloud.firestore {
              .hasAny(['isVerified', 'verified', 'status']);
       }
       function _agentGovernanceOK() {
-        return (!_isRoleFieldChange() || isAdmin() || isCEO())
+        return (!_isRoleFieldChange() || isAdmin() || (isCEO() && !_isEscalationToAdminRole()))
           && (!_isAgentVerifySuspendChange() || hasPerm('agents.verify') || hasPerm('agents.suspend'));
       }
       // Factored out so _agentGovernanceOK() (which internally short-circuits

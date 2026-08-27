@@ -256,5 +256,38 @@ describe('Dynamic RBAC — role_permissions / hasPerm()', function () {
         ctx.firestore().doc(`users/${UIDS.marketing}`).update({ role: 'operations' })
       );
     });
+
+    // CRITICAL — found during the pre-production governance audit: CEO must
+    // never be able to escalate ANY account (including their own) straight
+    // to admin/super_admin. That would make Ultimate Authority not actually
+    // Admin-only, and would render role_permissions' own Admin-only write
+    // gate pointless (why edit permissions when you can just become Admin).
+    it('ceo CANNOT promote another user to admin', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.ceo);
+      await assertFails(
+        ctx.firestore().doc(`users/${UIDS.marketing}`).update({ role: 'admin' })
+      );
+    });
+
+    it('ceo CANNOT promote another user to super_admin', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.ceo);
+      await assertFails(
+        ctx.firestore().doc(`users/${UIDS.marketing}`).update({ role: 'super_admin' })
+      );
+    });
+
+    it('ceo CANNOT self-promote to admin', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.ceo);
+      await assertFails(
+        ctx.firestore().doc(`users/${UIDS.ceo}`).update({ role: 'admin' })
+      );
+    });
+
+    it('admin CAN promote a user to admin', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.admin);
+      await assertSucceeds(
+        ctx.firestore().doc(`users/${UIDS.marketing}`).update({ role: 'admin' })
+      );
+    });
   });
 });
