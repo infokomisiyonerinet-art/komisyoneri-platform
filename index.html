@@ -14677,6 +14677,8 @@ function renderUserPropCard(prop) {
   // top-left, same slot DEMO would use (never co-occurs with it: a sold
   // card is never a demo card).
   if(prop._sold) topBadges += '<span style="position:absolute;top:.4rem;left:.4rem;z-index:4;background:#DC2626;color:#fff;border-radius:20px;padding:.1rem .5rem;font-size:.6rem;font-weight:800">' + t('soldBadge') + '</span>';
+  // Mutually exclusive with the SOLD badge above (a property is never both).
+  else if(prop._reserved) topBadges += '<span style="position:absolute;top:.4rem;left:.4rem;z-index:4;background:#1249B3;color:#fff;border-radius:20px;padding:.1rem .5rem;font-size:.6rem;font-weight:800">' + (curLang==='rw'?'BYABITSWE':'RESERVED') + '</span>';
   if(prop.verified) topBadges += '<span style="position:absolute;top:.4rem;right:.4rem;z-index:4;background:rgba(39,168,74,.9);color:#fff;border-radius:20px;padding:.1rem .4rem;font-size:.6rem;font-weight:700">✅</span>';
   if(prop.rating) topBadges += '<span style="position:absolute;bottom:.4rem;right:.4rem;z-index:4;background:rgba(0,0,0,.6);color:#fff;border-radius:20px;padding:.1rem .45rem;font-size:.65rem;font-weight:700">★ '+prop.rating+'</span>';
 
@@ -17423,8 +17425,12 @@ function openPropDetail(propId) {
     if (typeValEl) typeValEl.textContent = prop.type || '—';
     var statusValEl = document.getElementById('det-status-val');
     if (statusValEl) {
-      statusValEl.textContent = prop.status === 'Approved' ? (curLang==='rw'?'Iboneka':'Available') : (prop.status||'—');
-      statusValEl.style.color = prop.status === 'Approved' ? 'var(--green)' : 'var(--muted)';
+      var availLabel = prop._sold ? (curLang==='rw'?'Byagurishijwe':'Sold')
+        : prop._reserved ? (curLang==='rw'?'Byabitswe':'Reserved')
+        : (curLang==='rw'?'Iboneka':'Available');
+      statusValEl.textContent = prop.status === 'Approved' ? availLabel : (prop.status||'—');
+      statusValEl.style.color = prop.status !== 'Approved' ? 'var(--muted)'
+        : prop._sold ? 'var(--error)' : prop._reserved ? 'var(--blue)' : 'var(--green)';
     }
     var tdEl = document.getElementById('det-title-deed');
     if (tdEl) {
@@ -23661,6 +23667,7 @@ var RBAC_PERMISSIONS = [
   { key: 'properties.view',          label: 'View properties' },
   { key: 'properties.approve',       label: 'Approve property listings' },
   { key: 'properties.reject',        label: 'Reject property listings' },
+  { key: 'properties.change_status', label: 'Change property availability (Available / Reserved / Sold)' },
   { key: 'sites.view',               label: 'View sites' },
   { key: 'sites.approve',            label: 'Approve sites' },
   { key: 'plots.change_status',      label: 'Change plot status (reserve / hold / release)' },
@@ -34015,7 +34022,15 @@ function _normalizePropDoc(data, docId) {
     ownerId:   data.ownerId || '',
     isActive:  data.isActive !== false,
     isDemo:    false,
-    status:    st.charAt(0).toUpperCase() + st.slice(1)
+    status:    st.charAt(0).toUpperCase() + st.slice(1),
+    // Availability (Available/Reserved/Sold) — a separate concept from the
+    // approval `status` above. _sold also stays true for a legacy
+    // deal-closed property that has soldAt but was never explicitly
+    // flipped to availability:'sold' (backward compatible with the
+    // pre-existing deal-driven marker).
+    availability: data.availability || 'available',
+    _sold:     !!data.soldAt || data.availability === 'sold',
+    _reserved: data.availability === 'reserved'
   };
 }
 
@@ -35056,6 +35071,7 @@ function _savePropToFirestoreFS(propData, status, userId, isVerified) {
     rating:      isVerified ? 5.0 : 0,
     reviews:     0,
     status:      status,
+    availability: 'available',
     isActive:    true,
     createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
@@ -35379,6 +35395,23 @@ function adminRender(filter) {
         // which this button feeds into (re-checked there and in
         // rules/firestore.rules, not just hidden here).
         + (st.toLowerCase()==='approved' && _roleOf(currentUser)==='ceo'?'<button onclick="_ceoEditApprovedProperty('+globalIdx+')" style="background:#0D3B8C;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">✏️ Hindura</button>':'')
+        // Availability (Available/Reserved/Sold) — only meaningful once a
+        // listing is actually live, and only for roles configured with
+        // properties.change_status (hasPerm() — UX only, the real gate is
+        // rules/firestore.rules). Independent of Approve/Reject above: a
+        // role can have one permission without the other.
+        + (st.toLowerCase()==='approved' && hasPerm('properties.change_status')
+           ? '<div style="display:flex;gap:.3rem;align-items:center">'
+             + '<select id="prop-avail-'+globalIdx+'" style="font-size:.72rem;padding:.3rem .4rem;border-radius:6px;border:1px solid var(--border)" aria-label="Property availability">'
+             +   ['available','reserved','sold'].map(function(v) {
+                   var sel = (prop.availability || 'available') === v ? ' selected' : '';
+                   var lbl = v === 'available' ? '✅ Available' : v === 'reserved' ? '🔵 Reserved' : '🔴 Sold';
+                   return '<option value="'+v+'"'+sel+'>'+lbl+'</option>';
+                 }).join('')
+             + '</select>'
+             + '<button onclick="_fsAdminSetAvailability('+globalIdx+')" style="background:#1249B3;color:#fff;border:none;padding:.35rem .6rem;border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:700">Set</button>'
+             + '</div>'
+           : '')
         + '<button onclick="_fsAdminDelete('+globalIdx+')" style="background:#718096;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem">🗑️ Siba</button>'
         + '</div></div></div>';
     }).join('');
@@ -35483,6 +35516,39 @@ function _ceoEditApprovedProperty(idx) {
 }
 
 /* Soft-delete a property */
+// Sets a property's availability (Available/Reserved/Sold) — a separate
+// concept from the Approve/Reject workflow above (see the property/status
+// audit this exists to close). Only ever reaches this UI for an approved
+// listing where hasPerm('properties.change_status') is true (rendered
+// above); the real enforcement is rules/firestore.rules' matching gate.
+// Reason is only prompted for 'sold' (governance spec §12: capture a
+// reason for sensitive/consequential status changes, not every ordinary
+// toggle) — always written as a string (possibly empty) since Firestore's
+// compat SDK throws synchronously on a literal `undefined` field value.
+function _fsAdminSetAvailability(idx) {
+  var prop = _adminAllProps[idx]; if (!prop) return;
+  var fsId = prop._fsId;
+  if (!fsId || typeof db === 'undefined') { showToast(curLang==='rw'?'Iyi mitungo ntiraboneka kuri Firestore.':'This property is not yet on Firestore.', 'error'); return; }
+  var sel = document.getElementById('prop-avail-' + idx);
+  var newAvail = sel ? sel.value : '';
+  if (['available','reserved','sold'].indexOf(newAvail) === -1) return;
+  var reason = '';
+  if (newAvail === 'sold') {
+    reason = prompt(curLang==='rw' ? 'Impamvu (bidasabwa):' : 'Reason / note (optional):') || '';
+  }
+  db.collection('properties').doc(fsId).update({
+    availability: newAvail,
+    availabilityReason: reason,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: currentUser.uid
+  }).then(function() {
+    prop.availability = newAvail;
+    showToast(curLang==='rw' ? 'Uko biri byahinduwe!' : 'Availability updated!', 'success');
+    invalidatePropsCache();
+    adminRender(adminCurrentFilter);
+  }).catch(function() { showToast(curLang==='rw' ? 'Habaye ikosa' : 'Error updating availability', 'error'); });
+}
+
 function _fsAdminDelete(idx) {
   var prop = _adminAllProps[idx]; if (!prop) return;
   if (!confirm(t('delConfirm')||'Confirm delete?')) return;

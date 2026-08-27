@@ -435,4 +435,81 @@ describe('Dynamic RBAC — role_permissions / hasPerm()', function () {
       );
     });
   });
+
+  // Property availability (Available/Reserved/Sold) — a separate concept
+  // from the approval `status` field this whole file otherwise tests.
+  // Gated by properties.change_status, independent of properties.approve/
+  // reject (a role can have one without the other — confirmed matrix:
+  // ceo/operations/director get it, chief_broker does not, matching
+  // "Chief Broker = brokerage/agent authority, not operational status
+  // authority").
+  describe('Property availability (properties.change_status)', () => {
+    beforeEach(async () => {
+      await testEnv.withSecurityRulesDisabled(async (ctx) => {
+        const db = ctx.firestore();
+        await db.collection('role_permissions').doc('ceo').set({
+          role: 'ceo',
+          permissions: ['properties.view', 'properties.approve', 'properties.reject', 'properties.change_status'],
+          createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+          createdBy: 'seed', updatedBy: 'seed'
+        });
+        await db.collection('role_permissions').doc('operations').set({
+          role: 'operations',
+          permissions: ['properties.view', 'properties.approve', 'properties.reject', 'properties.change_status'],
+          createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+          createdBy: 'seed', updatedBy: 'seed'
+        });
+        // chief_broker deliberately does NOT get properties.change_status —
+        // matches the confirmed matrix (view/agents.verify only).
+        await db.collection('role_permissions').doc('chief_broker').set({
+          role: 'chief_broker',
+          permissions: ['properties.view', 'agents.view', 'agents.verify'],
+          createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+          createdBy: 'seed', updatedBy: 'seed'
+        });
+      });
+    });
+
+    it('ceo CAN mark a property sold', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.ceo);
+      await assertSucceeds(
+        ctx.firestore().doc(`properties/${DOC_IDS.property}`).update({ availability: 'sold' })
+      );
+    });
+
+    it('operations CAN mark a property reserved', async () => {
+      const ctx = testEnv.authenticatedContext(OPERATIONS_UID);
+      await assertSucceeds(
+        ctx.firestore().doc(`properties/${DOC_IDS.property}`).update({ availability: 'reserved' })
+      );
+    });
+
+    it('chief_broker CANNOT change property availability (no properties.change_status)', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.chiefBroker);
+      await assertFails(
+        ctx.firestore().doc(`properties/${DOC_IDS.property}`).update({ availability: 'sold' })
+      );
+    });
+
+    it('hr_manager CANNOT change property availability (no role_permissions/hr_manager doc)', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.hr);
+      await assertFails(
+        ctx.firestore().doc(`properties/${DOC_IDS.property}`).update({ availability: 'sold' })
+      );
+    });
+
+    it('the owning agent CANNOT self-mark their own property sold', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.agentA);
+      await assertFails(
+        ctx.firestore().doc(`properties/${DOC_IDS.property}`).update({ availability: 'sold' })
+      );
+    });
+
+    it('admin CAN change property availability with no role_permissions/admin doc at all', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.admin);
+      await assertSucceeds(
+        ctx.firestore().doc(`properties/${DOC_IDS.property}`).update({ availability: 'available' })
+      );
+    });
+  });
 });

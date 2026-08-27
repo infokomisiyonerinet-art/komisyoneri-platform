@@ -335,10 +335,21 @@ service cloud.firestore {
         return request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
           && request.resource.data.get('status', '').lower() in ['approved', 'rejected'];
       }
+      // Availability (Available/Reserved/Sold) is a genuinely separate
+      // concept from the approval `status` field above — see the property/
+      // status audit this governs. Gated the same way: narrowed from
+      // blanket isAdminOrStaff() to properties.change_status, independent
+      // of properties.approve/reject (a role can have one without the
+      // other — e.g. chief_broker has neither, matching "Chief Broker =
+      // brokerage/agent authority, not operational status authority").
+      function _isPropertyAvailabilityChange() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasAny(['availability']);
+      }
       function _propertyGovernanceOK() {
-        return !_isPropertyApproveRejectChange()
+        return (!_isPropertyApproveRejectChange()
           || (request.resource.data.get('status', '').lower() == 'approved' && hasPerm('properties.approve'))
-          || (request.resource.data.get('status', '').lower() == 'rejected' && hasPerm('properties.reject'));
+          || (request.resource.data.get('status', '').lower() == 'rejected' && hasPerm('properties.reject')))
+          && (!_isPropertyAvailabilityChange() || hasPerm('properties.change_status'));
       }
       allow update: if (isAdminOrStaff() && !_isApprovedContentEditByNonCEO() && _propertyGovernanceOK())
                     || ((resource.data.agentId == request.auth.uid || resource.data.ownerId == request.auth.uid)
