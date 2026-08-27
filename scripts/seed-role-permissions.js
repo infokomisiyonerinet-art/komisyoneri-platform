@@ -38,7 +38,7 @@ const DEFAULT_MATRIX = {
   director: [
     'properties.view', 'properties.approve',
     'sites.view', 'sites.approve',
-    'plots.view', 'plots.change_status',
+    'plots.view', 'plots.change_status', 'plots.mark_sold',
     'agents.view',
     'leads.view', 'leads.assign',
     'commissions.view'

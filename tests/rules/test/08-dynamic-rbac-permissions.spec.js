@@ -28,9 +28,15 @@
 
 const { assertFails, assertSucceeds } = require('@firebase/rules-unit-testing');
 const { makeTestEnv } = require('../testenv');
-const { seed, UIDS, DOC_IDS } = require('../seed');
+const { seed, UIDS, DOC_IDS, standardFields } = require('../seed');
 
 const OPERATIONS_UID = 'operations_test_user';
+const TEST_SITE_ID = 'rbac_test_site';
+const TEST_PLOT_ID = 'rbac_test_plot';
+// Owned by a third party (neither director nor chiefBroker) so the plots
+// rule's managingAgentId ownership branch never fires — isolating exactly
+// the isAdminOrStaff()+hasPerm() branch these tests are about.
+const PLOT_OWNING_AGENT_UID = 'plot_owning_agent_test_user';
 
 describe('Dynamic RBAC — role_permissions / hasPerm()', function () {
   this.timeout(20000);
@@ -287,6 +293,145 @@ describe('Dynamic RBAC — role_permissions / hasPerm()', function () {
       const ctx = testEnv.authenticatedContext(UIDS.admin);
       await assertSucceeds(
         ctx.firestore().doc(`users/${UIDS.marketing}`).update({ role: 'admin' })
+      );
+    });
+  });
+
+  // Confirmed final matrix decisions from the pre-production audit:
+  //   "Director is the Operations Director and MUST have plots.view,
+  //    plots.change_status, plots.mark_sold. Chief Broker MUST have
+  //    plots.view. Chief Broker must NOT have plots.change_status or
+  //    plots.mark_sold." — and separately, that accountant's
+  //    commissions.manage must not leak into any other high-risk permission
+  //    (property/site/plot status, agent verify/suspend, role changes,
+  //    role_permissions writes).
+  describe('Confirmed final matrix decisions', () => {
+    beforeEach(async () => {
+      await testEnv.withSecurityRulesDisabled(async (ctx) => {
+        const db = ctx.firestore();
+        await db.collection('users').doc(PLOT_OWNING_AGENT_UID).set({
+          id: PLOT_OWNING_AGENT_UID, uid: PLOT_OWNING_AGENT_UID, displayName: 'Plot Owning Agent',
+          email: PLOT_OWNING_AGENT_UID + '@test.local', phone: '+250700000098', role: 'agent',
+          isActive: true, status: 'active', photoURL: '',
+          createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+          createdBy: 'seed', updatedBy: 'seed'
+        });
+        await db.collection('sites').doc(TEST_SITE_ID).set(standardFields({
+          id: TEST_SITE_ID, name: 'RBAC Test Site', managingAgentId: PLOT_OWNING_AGENT_UID,
+          developerId: '', availablePlots: 9, reservedPlots: 0, soldPlots: 0
+        }));
+        await db.collection('plots').doc(TEST_PLOT_ID).set(standardFields({
+          id: TEST_PLOT_ID, siteId: TEST_SITE_ID, clientId: '', status: 'available'
+        }));
+        // Director's confirmed permissions: plots.view, plots.change_status,
+        // plots.mark_sold (plus the properties/sites/agents/leads/commissions
+        // permissions already agreed and unchanged from the earlier matrix).
+        await db.collection('role_permissions').doc('director').set({
+          role: 'director',
+          permissions: ['properties.view', 'properties.approve', 'sites.view', 'sites.approve',
+            'plots.view', 'plots.change_status', 'plots.mark_sold', 'agents.view',
+            'leads.view', 'leads.assign', 'commissions.view'],
+          createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+          createdBy: 'seed', updatedBy: 'seed'
+        });
+        // Chief Broker's confirmed permissions: plots.view ONLY (no
+        // change_status/mark_sold) — brokerage/agent authority, not
+        // operational status authority.
+        await db.collection('role_permissions').doc('chief_broker').set({
+          role: 'chief_broker',
+          permissions: ['properties.view', 'sites.view', 'plots.view', 'agents.view',
+            'agents.verify', 'leads.view', 'leads.assign', 'commissions.view'],
+          createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+          createdBy: 'seed', updatedBy: 'seed'
+        });
+        // Accountant's confirmed permissions: commissions.view + manage
+        // ONLY — no numeric limit introduced this phase, and no bleed into
+        // any other high-risk permission.
+        await db.collection('role_permissions').doc('accountant').set({
+          role: 'accountant',
+          permissions: ['properties.view', 'sites.view', 'plots.view', 'commissions.view', 'commissions.manage'],
+          createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+          createdBy: 'seed', updatedBy: 'seed'
+        });
+      });
+    });
+
+    it('director (Operations Director) CAN change plot status', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.director);
+      await assertSucceeds(
+        ctx.firestore().doc(`plots/${TEST_PLOT_ID}`).update({ status: 'reserved' })
+      );
+    });
+
+    it('director CAN mark a plot sold', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.director);
+      await assertSucceeds(
+        ctx.firestore().doc(`plots/${TEST_PLOT_ID}`).update({ status: 'sold' })
+      );
+    });
+
+    it('chief_broker CANNOT change plot status', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.chiefBroker);
+      await assertFails(
+        ctx.firestore().doc(`plots/${TEST_PLOT_ID}`).update({ status: 'reserved' })
+      );
+    });
+
+    it('chief_broker CANNOT mark a plot sold', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.chiefBroker);
+      await assertFails(
+        ctx.firestore().doc(`plots/${TEST_PLOT_ID}`).update({ status: 'sold' })
+      );
+    });
+
+    it('chief_broker still CAN read plots (view retained)', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.chiefBroker);
+      await assertSucceeds(ctx.firestore().doc(`plots/${TEST_PLOT_ID}`).get());
+    });
+
+    it('accountant CAN approve/manage commissions', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.finance);
+      await assertSucceeds(
+        ctx.firestore().doc(`commissions/${DOC_IDS.commission}`).update({ status: 'approved' })
+      );
+    });
+
+    it('accountant CANNOT approve a property despite having commissions.manage', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.finance);
+      await assertFails(
+        ctx.firestore().doc(`properties/${DOC_IDS.property}`).update({ status: 'approved' })
+      );
+    });
+
+    it('accountant CANNOT change plot status despite having commissions.manage', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.finance);
+      await assertFails(
+        ctx.firestore().doc(`plots/${TEST_PLOT_ID}`).update({ status: 'reserved' })
+      );
+    });
+
+    it('accountant CANNOT verify an agent despite having commissions.manage', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.finance);
+      await assertFails(
+        ctx.firestore().doc(`users/${UIDS.agentA}`).update({ isVerified: true })
+      );
+    });
+
+    it('accountant CANNOT change a user\'s role despite having commissions.manage', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.finance);
+      await assertFails(
+        ctx.firestore().doc(`users/${UIDS.marketing}`).update({ role: 'operations' })
+      );
+    });
+
+    it('accountant CANNOT write role_permissions despite having commissions.manage', async () => {
+      const ctx = testEnv.authenticatedContext(UIDS.finance);
+      await assertFails(
+        ctx.firestore().collection('role_permissions').doc('accountant').set({
+          role: 'accountant', permissions: ['properties.approve'],
+          createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+          createdBy: UIDS.finance, updatedBy: UIDS.finance
+        })
       );
     });
   });
