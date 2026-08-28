@@ -28,7 +28,7 @@ const admin = require('firebase-admin');
 
 const DEFAULT_MATRIX = {
   ceo: [
-    'properties.view', 'properties.approve', 'properties.reject',
+    'properties.view', 'properties.approve', 'properties.reject', 'properties.change_status',
     'sites.view', 'sites.approve',
     'plots.view', 'plots.change_status', 'plots.mark_sold',
     'agents.view', 'agents.verify', 'agents.suspend',
@@ -36,7 +36,7 @@ const DEFAULT_MATRIX = {
     'commissions.view', 'commissions.manage'
   ],
   director: [
-    'properties.view', 'properties.approve',
+    'properties.view', 'properties.approve', 'properties.change_status',
     'sites.view', 'sites.approve',
     'plots.view', 'plots.change_status', 'plots.mark_sold',
     'agents.view',
@@ -44,7 +44,7 @@ const DEFAULT_MATRIX = {
     'commissions.view'
   ],
   operations: [
-    'properties.view', 'properties.approve', 'properties.reject',
+    'properties.view', 'properties.approve', 'properties.reject', 'properties.change_status',
     'sites.view', 'sites.approve',
     'plots.view', 'plots.change_status', 'plots.mark_sold',
     'agents.view', 'agents.verify',

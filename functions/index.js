@@ -364,35 +364,56 @@ exports.onDealClosedWon = onDocumentUpdated({ document: 'deals/{dealId}', region
 exports.onPropertyStatusChanged = onDocumentUpdated({ document: 'properties/{propertyId}', region: REGION }, async (event) => {
   const before = event.data.before.data() || {};
   const after = event.data.after.data() || {};
-  const beforeStatus = String(before.status || '').toLowerCase();
-  const afterStatus = String(after.status || '').toLowerCase();
-  if (beforeStatus === afterStatus) return;
-  if (afterStatus !== 'approved' && afterStatus !== 'rejected') return; // only these two transitions exist today
-
   const propertyId = event.params.propertyId;
   const db = getFirestore();
   const actingUid = after.updatedBy || 'system';
   const propTitle = after.title || after.titleEN || 'Property';
 
-  if (afterStatus === 'approved') {
-    await logAudit(db, 'property.approved', 'properties', propertyId, { status: before.status || 'pending' }, { status: after.status }, actingUid);
-    if (after.agentId) {
-      await notifyUser(db, after.agentId,
-        '✅ Property Approved!',
-        propTitle + ' has been approved and is now live.',
-        'property_approved', 'properties', propertyId, actingUid);
+  const beforeStatus = String(before.status || '').toLowerCase();
+  const afterStatus = String(after.status || '').toLowerCase();
+  if (beforeStatus !== afterStatus && (afterStatus === 'approved' || afterStatus === 'rejected')) {
+    // only these two transitions exist today for the approval `status` field
+    if (afterStatus === 'approved') {
+      await logAudit(db, 'property.approved', 'properties', propertyId, { status: before.status || 'pending' }, { status: after.status }, actingUid);
+      if (after.agentId) {
+        await notifyUser(db, after.agentId,
+          '✅ Property Approved!',
+          propTitle + ' has been approved and is now live.',
+          'property_approved', 'properties', propertyId, actingUid);
+      }
+    } else {
+      await logAudit(db, 'property.rejected', 'properties', propertyId, { status: before.status || 'pending' }, { status: after.status, reason: after.rejectionReason || '' }, actingUid);
+      if (after.agentId) {
+        await notifyUser(db, after.agentId,
+          '❌ Property Not Approved',
+          propTitle + ' was not approved.' + (after.rejectionReason ? ' Reason: ' + after.rejectionReason : ' Please contact admin for more details.'),
+          'system', 'properties', propertyId, actingUid);
+      }
     }
-  } else {
-    await logAudit(db, 'property.rejected', 'properties', propertyId, { status: before.status || 'pending' }, { status: after.status, reason: after.rejectionReason || '' }, actingUid);
-    if (after.agentId) {
-      await notifyUser(db, after.agentId,
-        '❌ Property Not Approved',
-        propTitle + ' was not approved.' + (after.rejectionReason ? ' Reason: ' + after.rejectionReason : ' Please contact admin for more details.'),
-        'system', 'properties', propertyId, actingUid);
-    }
+    logger.info('Property ' + propertyId + ' status change (' + beforeStatus + ' -> ' + afterStatus + ') notification sent');
   }
 
-  logger.info('Property ' + propertyId + ' status change (' + beforeStatus + ' -> ' + afterStatus + ') notification sent');
+  // Availability (Available/Reserved/Sold) — a separate concept from the
+  // approval `status` above (see the property/status audit this governs).
+  // Independent of the status branch: either, both, or neither can fire on
+  // a given write, since they're two unrelated fields that can change
+  // together (e.g. a listing approved and marked available in one write)
+  // or apart.
+  const beforeAvail = String(before.availability || '').toLowerCase();
+  const afterAvail = String(after.availability || '').toLowerCase();
+  if (beforeAvail !== afterAvail && ['available', 'reserved', 'sold'].includes(afterAvail)) {
+    await logAudit(db, 'property.availability_changed', 'properties', propertyId,
+      { availability: before.availability || 'available' },
+      { availability: after.availability, reason: after.availabilityReason || '' }, actingUid);
+    if (after.agentId) {
+      const label = afterAvail === 'sold' ? '🔴 Sold' : afterAvail === 'reserved' ? '🔵 Reserved' : '✅ Available';
+      await notifyUser(db, after.agentId,
+        'Property Availability Updated',
+        propTitle + ' marked ' + label + '.' + (after.availabilityReason ? ' Note: ' + after.availabilityReason : ''),
+        'property_availability_changed', 'properties', propertyId, actingUid);
+    }
+    logger.info('Property ' + propertyId + ' availability change (' + beforeAvail + ' -> ' + afterAvail + ') notification sent');
+  }
 });
 
 /**
