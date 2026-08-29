@@ -1,0 +1,8 @@
+{
+  "name": "komisyoneri-scripts",
+  "description": "One-off/admin Node scripts in scripts/ — not the app itself (index.html has no build step) and not functions/ (its own package.json). Exists only to pin firebase-admin so `npm install` here can't silently drift onto a newer major than functions/ already runs.",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}
