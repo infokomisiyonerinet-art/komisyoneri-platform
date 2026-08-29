@@ -10042,28 +10042,11 @@ html,body{overscroll-behavior-x:none}
       <div style="background:var(--light);border-radius:10px;padding:.75rem 1rem;margin-bottom:.75rem">
         <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.5rem" data-en="Admin Actions">Admin Actions</div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.5rem">
-          <select id="sp-role-select" class="form-control" style="flex:1;font-size:.8rem;padding:.4rem .6rem" aria-label="Change user role" onchange="renderOrgChartFields()">
-            <option value="client">Client</option>
-            <option value="owner">Property Owner</option>
-            <option value="agent">Agent</option>
-            <option value="partner">Partner</option>
-            <option value="investor">Investor</option>
-            <option value="staff">Staff</option>
-            <option value="branch_manager">Branch Manager</option>
-            <option value="hr_manager">HR Manager</option>
-            <option value="operations_manager">Operations Manager</option>
-            <option value="marketing_manager">Marketing Manager</option>
-            <option value="director">Director</option>
-            <option value="accountant">Accountant</option>
-            <option value="chief_broker">Chief Broker</option>
-            <option value="customer_support_manager">Customer Support Manager</option>
-            <option value="it_manager">IT / Product Manager</option>
-            <option value="legal_adviser">Legal Adviser</option>
-            <option value="developer">Developer</option>
-            <option value="admin">Admin</option>
-            <option value="ceo">CEO</option>
-            <option value="company_owner">Company Owner</option>
-          </select>
+          <!-- Options populated by openStaffProfile() from CHANGE_ROLE_ROLES
+               (index.html), not hardcoded here — see that array's own
+               comment for why (this exact hardcoded list drifted out of
+               sync with AS_PROVISIONABLE_ROLES before). -->
+          <select id="sp-role-select" class="form-control" style="flex:1;font-size:.8rem;padding:.4rem .6rem" aria-label="Change user role" onchange="renderOrgChartFields()"></select>
           <button class="btn btn-sm btn-navy" onclick="changeUserRole(_spProfileId)" style="font-size:.78rem" data-en="Change Role">Change Role</button>
         </div>
         <!-- Final Management Org Chart: department/jobTitle are derived
@@ -23506,7 +23489,7 @@ var HR_ROLE_LABELS = {
   super_admin: 'Super Admin', admin: 'Admin', ceo: 'CEO',
   staff: 'Staff', branch_manager: 'Branch Manager', hr_manager: 'HR Manager', operations_manager: 'Operations Manager',
   marketing_manager: 'Marketing Manager', company_owner: 'Company Owner', agent: 'Agent', partner: 'Partner',
-  owner: 'Owner', client: 'Client', investor: 'Investor',
+  owner: 'Owner', client: 'Client', investor: 'Investor', developer: 'Developer', operations: 'Operations Manager',
   director: 'Director', accountant: 'Accountant', chief_broker: 'Chief Broker',
   customer_support_manager: 'Customer Support Manager', it_manager: 'IT / Product Manager', legal_adviser: 'Legal Adviser'
 };
@@ -23591,7 +23574,16 @@ function loadHR() {
   // already blocked the actual staff-list/payroll reads for a non-admin,
   // so this closes a UX gap (a blank/broken page instead of a clear
   // message), not a real data-exposure gap.
-  if (!isAdmin(currentUser)) {
+  // Was isAdmin() (admin/super_admin only), excluding ceo entirely — found
+  // in this session's admin-workflow audit: a CEO account could never
+  // reach this page at all (not even "Access restricted" — no sidebar
+  // link either, see the go('hr') nav rule below), despite the modal's
+  // own Admin Actions section already correctly gating on isExec() a few
+  // hundred lines below (openStaffProfile()). isExec() = admin/super_admin/
+  // ceo — the same three-role tier already used for that inner check and
+  // for the Exec Dashboard — is the canonical, already-established
+  // predicate for this, not a second bespoke gate.
+  if (!isExec(currentUser)) {
     var hrPg = g('page-hr');
     if (hrPg) hrPg.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--muted)"><div style="font-size:2rem;margin-bottom:.5rem">&#128274;</div><div data-rw="Ntaburenganzira" data-en="Access restricted">Access restricted</div></div>';
     return;
@@ -24422,9 +24414,16 @@ function openStaffProfile(uid) {
   if (adminSec) {
     adminSec.style.display = _isExecUser ? '' : 'none';
     if (_isExecUser) {
-      /* Pre-select current role */
+      /* Populate options from the canonical CHANGE_ROLE_ROLES list, then
+         pre-select the current role — see that array's own comment for
+         why this isn't a hardcoded <option> list in the HTML anymore. */
       var spRoleSel = g('sp-role-select');
-      if (spRoleSel) spRoleSel.value = u.role || 'client';
+      if (spRoleSel) {
+        spRoleSel.innerHTML = CHANGE_ROLE_ROLES.map(function(r) {
+          return '<option value="' + r + '">' + escapeHtml(HR_ROLE_LABELS[r] || r) + '</option>';
+        }).join('');
+        spRoleSel.value = u.role || 'client';
+      }
       renderOrgChartFields();
       /* Set verify/suspend button labels */
       var verBtn = g('sp-verify-btn');
@@ -24582,13 +24581,47 @@ function changeUserRole(uid) {
 // PROVISIONABLE_STAFF_ROLES there, same as ROLE_DEPARTMENT/ROLE_JOBTITLE/
 // ROLE_SUPERIOR_ROLES already are between this file and that one.
 var AS_PROVISIONABLE_ROLES = ['ceo','director','accountant','chief_broker','marketing_manager','customer_support_manager','it_manager','hr_manager','legal_adviser','operations','staff'];
+// Full option set for the "Change Role" dropdown in the Staff Profile
+// modal (openStaffProfile()'s #sp-role-select) — unlike Add Staff (which
+// only ever provisions NEW staff/partner accounts, so AS_PROVISIONABLE_ROLES
+// alone is its complete set), this dropdown reassigns an EXISTING account
+// of ANY kind, so it needs the non-staff roles too (client/agent/owner/
+// etc.) plus admin/super_admin/company_owner, which are deliberately never
+// in AS_PROVISIONABLE_ROLES (a new admin/super_admin account can never be
+// *created* through Add Staff — see createStaffOrPartnerAccount's own
+// PROVISIONABLE_STAFF_ROLES — but an EXISTING account can still be
+// reassigned TO one here). branch_manager/operations_manager are legacy
+// roles (see the pre-production governance audit) kept here unchanged,
+// not provisionable via AS_PROVISIONABLE_ROLES, but still selectable since
+// they were already selectable before and haven't been confirmed unused
+// in production.
+//
+// Built as a UNION with AS_PROVISIONABLE_ROLES (not a second, independently
+// hand-maintained list) specifically so this dropdown can never drift out
+// of sync with it again — this is exactly the bug this comment replaces:
+// the previous hardcoded <option> list here was never updated when
+// 'operations' was added to AS_PROVISIONABLE_ROLES, and never included
+// 'super_admin' at all.
+var CHANGE_ROLE_EXTRA_ROLES = ['client','owner','agent','partner','investor','branch_manager','operations_manager','developer','admin','super_admin','company_owner'];
+var CHANGE_ROLE_ROLES = CHANGE_ROLE_EXTRA_ROLES.concat(
+  AS_PROVISIONABLE_ROLES.filter(function(r) { return CHANGE_ROLE_EXTRA_ROLES.indexOf(r) === -1; })
+);
 var _asAccountsList = [];
 var _asEmailAvailable = null; // null = not checked yet, true/false = last check result
 
 function loadAddStaffPage() {
   var restricted = g('as-restricted');
   var content = g('as-content');
-  if (!isCEOClient(currentUser)) {
+  // Was isCEOClient() (ceo only) — found in this session's admin-workflow
+  // audit: createStaffOrPartnerAccount (functions/index.js) was already
+  // fixed earlier this session to accept admin/super_admin alongside ceo
+  // (the Ultimate-Authority/absent-staff-fallback fix), but this client-
+  // side page gate was never updated to match, so Admin/Super Admin had
+  // no way to reach the form at all despite the backend already accepting
+  // them. isExec() (admin/super_admin/ceo) is the same canonical tier
+  // already used for loadHR()'s gate and openStaffProfile()'s Admin
+  // Actions section — reused here rather than inventing another gate.
+  if (!isExec(currentUser)) {
     if (restricted) restricted.style.display = '';
     if (content) content.style.display = 'none';
     return;
@@ -38257,8 +38290,13 @@ function _autoCreateLead(opts) {
     { match: "go('accounting')",   roles: _STAFF },
     { match: "go('customer')",     roles: _ALL },
     { match: "go('office')",       roles: _STAFF },
-    { match: "go('hr')",           roles: _ADMIN },
-    { match: "go('add-staff')",    roles: ['ceo'] },
+    // Both match loadHR()'s/loadAddStaffPage()'s own page-level gates
+    // exactly (isExec() = admin/super_admin/ceo) — was _ADMIN (excluding
+    // ceo) and ['ceo'] (excluding admin/super_admin) respectively, found
+    // in this session's admin-workflow audit: neither role tier could see
+    // BOTH sidebar links even though isExec() already governs both pages.
+    { match: "go('hr')",           roles: _EXEC },
+    { match: "go('add-staff')",    roles: _EXEC },
     { match: "go('exec')",         roles: _EXEC.concat(['investor', 'company_owner', 'director']) },
     { match: "go('bi')",           roles: _STAFF },
     { match: "go('branches')",     roles: _EXEC },
