@@ -108,8 +108,28 @@ async function notifyStaff(db, title, body, type, relatedCollection, relatedId, 
   await Promise.all(docs.map((d) => notifyUser(db, d.id, title, body, type, relatedCollection, relatedId, actingUid)));
 }
 
+// Governance hardening P3.13: userRole below used to be hardcoded 'system'
+// unconditionally, even when actingUid names a real user — so every
+// server-side audit entry (property/site/plot status changes, deal
+// closures, etc.) looked like an anonymous system action, discarding
+// exactly the "who" an audit trail exists to answer. This independently
+// re-reads the actor's role straight from Firestore (never trusts a
+// caller-supplied role, matching every other actor-authorization check in
+// this file) — a genuine system-initiated write (actingUid is falsy or the
+// literal string 'system') still logs 'system', unchanged.
+async function getActorRole(db, actingUid) {
+  if (!actingUid || actingUid === 'system') return 'system';
+  try {
+    const doc = await db.collection('users').doc(actingUid).get();
+    return doc.exists ? (doc.data().role || 'unknown') : 'unknown';
+  } catch (e) {
+    return 'unknown';
+  }
+}
+
 async function logAudit(db, action, collection, docId, oldValue, newValue, actingUid) {
   const ref = db.collection('auditlogs').doc();
+  const userRole = await getActorRole(db, actingUid);
   await ref.set({
     id: ref.id,
     action,
@@ -119,7 +139,7 @@ async function logAudit(db, action, collection, docId, oldValue, newValue, actin
     newValue: newValue || null,
     performedBy: actingUid,
     performedAt: FieldValue.serverTimestamp(),
-    userRole: 'system',
+    userRole,
     ipAddress: '',
     isActive: true,
     status: 'logged',
@@ -321,9 +341,21 @@ exports.onDealClosedWon = onDocumentUpdated({ document: 'deals/{dealId}', region
   // Additive only: does NOT touch the property's own approval `status`
   // field, so it keeps appearing in the normal approved-listings pipeline
   // exactly as before; only loadHomepageRotation() treats soldAt specially.
+  // Governance hardening P2.12: also flips `availability` to 'sold' here —
+  // before this, a deal closing won only ever set soldAt, so a property
+  // could sit indefinitely reading "Available" on every UI surface that
+  // reads availability (see _normalizePropDoc()'s own _sold check, which
+  // already treats soldAt as equivalent — this just makes the underlying
+  // field agree with what the UI already implies) unless a staff member
+  // separately remembered to click "Mark Sold" in the admin panel. This
+  // write is additive alongside the existing soldAt marker, not a
+  // replacement for it — onPropertyStatusChanged below still independently
+  // logs/notifies on the availability change, same as a manual one.
   if (deal.propertyId) {
     await db.collection('properties').doc(deal.propertyId).update({
       soldAt: FieldValue.serverTimestamp(),
+      availability: 'sold',
+      availabilityReason: 'Deal closed won (deal ' + dealId + ')',
       updatedAt: FieldValue.serverTimestamp(),
       updatedBy: actingUid
     }).catch((e) => {
@@ -414,6 +446,99 @@ exports.onPropertyStatusChanged = onDocumentUpdated({ document: 'properties/{pro
     }
     logger.info('Property ' + propertyId + ' availability change (' + beforeAvail + ' -> ' + afterAvail + ') notification sent');
   }
+});
+
+/**
+ * Governance hardening P0.5 — plots/sites had NO Cloud Function audit
+ * backstop at all (unlike properties' onPropertyStatusChanged above), so a
+ * status change made through a direct Firestore write that satisfied the
+ * rules (or, before this same hardening pass, one of the now-closed
+ * managingAgentId/clientId rule bypasses) left zero audit trail if it also
+ * skipped the client's own logAudit() call. These two triggers close that
+ * gap the same way onPropertyStatusChanged does: fire on every actual
+ * status transition regardless of which code path wrote it, and
+ * independently read the actor's role from Firestore via logAudit() (never
+ * trusting anything the client claims about itself).
+ *
+ * The client-side logAudit()/notifyUser() calls these replace
+ * (submitPlotReservation(), openPlotStatusChange(), approveSite(),
+ * confirmRejectSite()) were removed from index.html in the same pass, so a
+ * status change now produces exactly one audit entry and one notification,
+ * not two.
+ */
+exports.onPlotStatusChanged = onDocumentUpdated({ document: 'plots/{plotId}', region: REGION }, async (event) => {
+  const before = event.data.before.data() || {};
+  const after = event.data.after.data() || {};
+  const plotId = event.params.plotId;
+  const db = getFirestore();
+  const actingUid = after.updatedBy || 'system';
+  const plotLabel = after.plotLabel || ('Plot ' + (after.plotNumber || plotId));
+
+  const beforeStatus = String(before.status || '').toLowerCase();
+  const afterStatus = String(after.status || '').toLowerCase();
+  if (beforeStatus === afterStatus) return;
+
+  // 'plot.reserved' preserves the specific action name the removed
+  // client-side call used for this one transition (anything reading the
+  // audit trail for that name keeps working); every other transition logs
+  // as the more general 'plot.status.changed', matching openPlotStatusChange()'s
+  // own prior naming.
+  const action = afterStatus === 'reserved' ? 'plot.reserved' : 'plot.status.changed';
+  const oldValue = { status: before.status || 'available' };
+  const newValue = { status: after.status };
+  if (after.clientId) newValue.clientId = after.clientId;
+  if (after.transactionSource) newValue.transactionSource = after.transactionSource;
+  if (after.statusChangeReason) newValue.reason = after.statusChangeReason;
+  await logAudit(db, action, 'plots', plotId, oldValue, newValue, actingUid);
+
+  if (after.agentId) {
+    const label = afterStatus === 'sold' ? '🔴 Sold' : afterStatus === 'reserved' ? '🔵 Reserved'
+      : afterStatus === 'unavailable' ? '⚪ Unavailable' : afterStatus === 'on_hold' ? '⏸️ On Hold' : '✅ Available';
+    await notifyUser(db, after.agentId,
+      afterStatus === 'reserved' ? 'Plot Reserved' : 'Plot Status Updated',
+      afterStatus === 'reserved'
+        ? plotLabel + ' has been reserved by a client.'
+        : plotLabel + ' marked ' + label + '.' + (after.statusChangeReason ? ' Reason: ' + after.statusChangeReason : ''),
+      afterStatus === 'reserved' ? 'plot_reserved' : 'plot_status_changed', 'plots', plotId, actingUid);
+  }
+  logger.info('Plot ' + plotId + ' status change (' + beforeStatus + ' -> ' + afterStatus + ') notification sent');
+});
+
+exports.onSiteStatusChanged = onDocumentUpdated({ document: 'sites/{siteId}', region: REGION }, async (event) => {
+  const before = event.data.before.data() || {};
+  const after = event.data.after.data() || {};
+  const siteId = event.params.siteId;
+  const db = getFirestore();
+  const actingUid = after.updatedBy || 'system';
+  const siteName = after.name || 'Site';
+  const recipientUid = after.managingAgentId || after.developerId || '';
+
+  const beforeStatus = String(before.status || '').toLowerCase();
+  const afterStatus = String(after.status || '').toLowerCase();
+  if (beforeStatus === afterStatus || (afterStatus !== 'active' && afterStatus !== 'rejected')) return;
+
+  if (afterStatus === 'active') {
+    await logAudit(db, 'site.approved', 'sites', siteId,
+      { status: before.status || 'pending_review' },
+      { status: after.status, approvedBy: after.approvedBy || actingUid }, actingUid);
+    if (recipientUid) {
+      await notifyUser(db, recipientUid,
+        '✅ Site Approved!',
+        siteName + ' has been approved and is now live on the marketplace.',
+        'site_approved', 'sites', siteId, actingUid);
+    }
+  } else {
+    await logAudit(db, 'site.rejected', 'sites', siteId,
+      { status: before.status || 'pending_review' },
+      { status: after.status, reason: after.rejectionReason || '' }, actingUid);
+    if (recipientUid) {
+      await notifyUser(db, recipientUid,
+        '❌ Site Not Approved',
+        siteName + ' was not approved.' + (after.rejectionReason ? ' Reason: ' + after.rejectionReason : ' Please contact admin for more details.'),
+        'system', 'sites', siteId, actingUid);
+    }
+  }
+  logger.info('Site ' + siteId + ' status change (' + beforeStatus + ' -> ' + afterStatus + ') notification sent');
 });
 
 /**
@@ -517,6 +642,74 @@ exports.nightlyFollowupReminderSweep = onSchedule({
   }
 
   logger.info('Nightly follow-up sweep complete', { checked: snap.size, sent });
+});
+
+/**
+ * Governance hardening P2.10 — submitPlotReservation() (index.html) sets a
+ * 7-day reservedUntil on every reservation, but nothing ever read it back:
+ * an expired reservation held a plot 'reserved' — removed from the site's
+ * availablePlots count — indefinitely, until a staff member happened to
+ * notice and manually revert it via openPlotStatusChange(). Runs hourly
+ * (reservations are date-only granularity, so this is frequent enough to
+ * matter without being wasteful) and re-verifies each candidate inside a
+ * transaction (not trusting the query snapshot, which can be stale by the
+ * time the write happens) so it can never race a client confirming a sale
+ * or cancelling in the same window: if the plot's real status or
+ * reservedUntil has already moved on since the query ran, this is a no-op
+ * for that plot. The resulting status write (reserved -> available) is
+ * picked up by onPlotStatusChanged above like any other status change, so
+ * the audit log entry and agent notification come from that one shared
+ * code path rather than being duplicated here.
+ */
+exports.expireStaleReservations = onSchedule({
+  schedule: '0 * * * *',
+  timeZone: 'Africa/Kigali',
+  region: REGION
+}, async () => {
+  const db = getFirestore();
+  const now = new Date();
+  const snap = await db.collection('plots')
+    .where('status', '==', 'reserved')
+    .where('reservedUntil', '<=', now)
+    .get();
+
+  let expired = 0;
+  for (const doc of snap.docs) {
+    const plotId = doc.id;
+    try {
+      await db.runTransaction(async (tx) => {
+        const plotRef = db.collection('plots').doc(plotId);
+        const pd = await tx.get(plotRef);
+        if (!pd.exists) return;
+        const p = pd.data();
+        if (p.status !== 'reserved') return; // already changed since the query ran
+        const ru = p.reservedUntil && p.reservedUntil.toDate ? p.reservedUntil.toDate() : new Date(p.reservedUntil);
+        if (!(ru.getTime() <= now.getTime())) return; // extended/changed since the query ran
+        tx.update(plotRef, {
+          status: 'available',
+          clientId: '',
+          reservedAt: null,
+          reservedUntil: null,
+          depositPaid: false,
+          statusChangeReason: 'Reservation expired (reservedUntil passed)',
+          updatedAt: FieldValue.serverTimestamp(),
+          updatedBy: 'system'
+        });
+        if (p.siteId) {
+          tx.update(db.collection('sites').doc(p.siteId), {
+            reservedPlots: FieldValue.increment(-1),
+            availablePlots: FieldValue.increment(1),
+            updatedAt: FieldValue.serverTimestamp(),
+            updatedBy: 'system'
+          });
+        }
+      });
+      expired++;
+    } catch (e) {
+      logger.error('expireStaleReservations: failed to expire plot ' + plotId, e);
+    }
+  }
+  if (expired) logger.info('expireStaleReservations: expired ' + expired + ' stale plot reservation(s)');
 });
 
 /**

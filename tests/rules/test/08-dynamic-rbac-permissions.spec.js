@@ -366,7 +366,7 @@ describe('Dynamic RBAC — role_permissions / hasPerm()', function () {
     it('director CAN mark a plot sold', async () => {
       const ctx = testEnv.authenticatedContext(UIDS.director);
       await assertSucceeds(
-        ctx.firestore().doc(`plots/${TEST_PLOT_ID}`).update({ status: 'sold' })
+        ctx.firestore().doc(`plots/${TEST_PLOT_ID}`).update({ status: 'sold', statusChangeReason: 'Confirmed cash sale' })
       );
     });
 
@@ -473,7 +473,7 @@ describe('Dynamic RBAC — role_permissions / hasPerm()', function () {
     it('ceo CAN mark a property sold', async () => {
       const ctx = testEnv.authenticatedContext(UIDS.ceo);
       await assertSucceeds(
-        ctx.firestore().doc(`properties/${DOC_IDS.property}`).update({ availability: 'sold' })
+        ctx.firestore().doc(`properties/${DOC_IDS.property}`).update({ availability: 'sold', availabilityReason: 'Confirmed cash sale' })
       );
     });
 

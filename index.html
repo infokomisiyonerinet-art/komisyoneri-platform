@@ -32669,8 +32669,14 @@ function loadSitePlan(siteId) {
       var approveBtn = document.getElementById('site-approve-btn');
       var rejectBtn  = document.getElementById('site-reject-btn');
       var editBtn    = document.getElementById('site-edit-btn');
-      if (approveBtn) approveBtn.style.display = (isStaffAdmin && s.status === 'pending_review') ? 'inline-flex' : 'none';
-      if (rejectBtn)  rejectBtn.style.display  = (isStaffAdmin && s.status === 'pending_review') ? 'inline-flex' : 'none';
+      // Governance hardening P4.15: was isStaffAdmin alone — the write
+      // itself is gated by sites.approve (see rules/firestore.rules'
+      // _siteGovernanceOK()), so a staff-tier role without that permission
+      // (e.g. hr_manager, it_manager) previously saw a button that would
+      // fail on click. UI-only narrowing; the rule above is the real gate.
+      var canApproveSite = hasPerm('sites.approve', currentUser);
+      if (approveBtn) approveBtn.style.display = (canApproveSite && s.status === 'pending_review') ? 'inline-flex' : 'none';
+      if (rejectBtn)  rejectBtn.style.display  = (canApproveSite && s.status === 'pending_review') ? 'inline-flex' : 'none';
       if (editBtn)    editBtn.style.display    = (isAgent || isStaffAdmin) ? 'inline-flex' : 'none';
     }
 
@@ -32745,11 +32751,14 @@ function openPlotDetail(plotId) {
     var statusCls   = { available:'available', reserved:'reserved', sold:'sold', on_hold:'on_hold', unavailable:'unavailable' };
     var lang = typeof curLang !== 'undefined' ? curLang : 'rw';
     var canReserve = p.status === 'available' && typeof currentUser !== 'undefined' && currentUser;
-    // Same isAdminOrStaff() fix as loadSitePlan()'s Staff Actions box above
-    // — this used the same stale, narrower hand-check (missing super_admin,
-    // ceo, and every other STAFF-tier role), hiding "Change Status" from
-    // anyone but a literal 'staff'/'admin'.
-    var isStaffAdmin = currentUser && isAdminOrStaff(currentUser);
+    // Governance hardening P4.15: was isAdminOrStaff(currentUser) — showed
+    // "Change Status" to every staff-tier role even though the write it
+    // triggers is actually gated by plots.change_status/plots.mark_sold
+    // (see rules/firestore.rules' _plotStatusOK()). This is a UI-only
+    // narrowing to match what the button can actually do — the rules above
+    // remain the real security boundary either way.
+    var isStaffAdmin = currentUser &&
+      (hasPerm('plots.change_status', currentUser) || hasPerm('plots.mark_sold', currentUser));
 
     body.innerHTML =
       '<div class="plot-popup-num">' + (p.plotLabel || 'Plot ' + p.plotNumber) + '</div>' +
@@ -32874,21 +32883,13 @@ function submitPlotReservation() {
       }).then(function() { return res; });
     });
   }).then(function(res) {
-    logAudit('plot.reserved', 'plots', plotId,
-      { status: 'available' },
-      { status: 'reserved', clientId: uid }
-    );
-    // Notify agent — was a legacy rtdb.ref('notifications/'+...).push(),
-    // a database node nothing else in this app reads. notifyUser() is the
-    // same Firestore-backed notification path every other feature in this
-    // file uses (see _fsPendingApprove(), _startFsNotifListener()) — the
-    // one that actually feeds the notification bell/panel.
-    if (typeof notifyUser === 'function') {
-      notifyUser(res.p.agentId || uid,
-        'Plot Reserved',
-        'Plot ' + (res.p.plotNumber || '') + ' has been reserved by a client.',
-        'plot_reserved', 'plots', plotId);
-    }
+    // Audit log + agent notification now happen server-side, in the
+    // onPlotStatusChanged Cloud Function reacting to this same status
+    // write — see functions/index.js — same pattern as
+    // onPropertyStatusChanged, so a reservation made this way and one made
+    // via any other direct write are equally captured (a matching gap for
+    // this exact write is what let a direct-Firestore write escape audit
+    // entirely before this hardening pass).
     closeReservePlot();
     showToast(curLang==='rw' ? 'Ikiraro kibitswe neza! Agent azatumanahana nawe.' : 'Plot reserved! Agent will contact you shortly.', 'success');
     // Refresh site view
@@ -32937,10 +32938,16 @@ function openPlotStatusChange(plotId, currentStatus) {
   if (valid.indexOf(newStatus) === -1) { showToast('Invalid status', 'error'); return; }
 
   var transactionSource = null;
+  var statusChangeReason = null;
   if (newStatus === 'sold' || newStatus === 'unavailable') {
     var srcInput = prompt('Transaction source — did this happen through KOMISIYONERI or externally?\nkomisyoneri / external / unknown\n(leave blank if unsure — defaults to "unknown")');
     var src = (srcInput || '').trim().toLowerCase();
     transactionSource = VALID_TRANSACTION_SOURCES.indexOf(src) > -1 ? src : 'unknown';
+    // Required — rules/firestore.rules' _plotStatusReasonOK() rejects this
+    // write server-side without a non-empty reason, so enforce it here too
+    // rather than letting the user fill the prompt only to see it fail.
+    statusChangeReason = (prompt('Reason for marking this plot "' + newStatus + '" (required):') || '').trim();
+    if (!statusChangeReason) { showToast('A reason is required for this status change.', 'error'); return; }
   }
 
   var now = firebase.firestore.FieldValue.serverTimestamp();
@@ -32966,6 +32973,7 @@ function openPlotStatusChange(plotId, currentStatus) {
       var siteId = pd.data().siteId;
       var plotUpdate = { status: newStatus, updatedAt: now, updatedBy: uid };
       if (transactionSource) plotUpdate.transactionSource = transactionSource;
+      if (statusChangeReason) plotUpdate.statusChangeReason = statusChangeReason;
       tx.update(plotRef, plotUpdate);
       if (siteId && oldStatus !== newStatus) {
         var siteUpdate = { updatedAt: now, updatedBy: uid };
@@ -32978,9 +32986,11 @@ function openPlotStatusChange(plotId, currentStatus) {
       return oldStatus;
     });
   }).then(function(oldStatus) {
-    var newAuditValue = { status: newStatus, changedBy: uid };
-    if (transactionSource) newAuditValue.transactionSource = transactionSource;
-    logAudit('plot.status.changed', 'plots', plotId, { status: oldStatus }, newAuditValue);
+    // Audit log + client notification now happen server-side, in the
+    // onPlotStatusChanged Cloud Function reacting to this same status
+    // write — see functions/index.js — same pattern as
+    // onPropertyStatusChanged, so a status change made this way and one
+    // made via any other direct write are equally captured.
     showToast('Plot status updated to ' + newStatus, 'success');
     closePlotDetail();
     if (currentSiteId) loadSitePlan(currentSiteId);
@@ -33079,10 +33089,9 @@ function approveSite() {
     updatedAt:   now,
     updatedBy:   currentUser.uid
   }).then(function() {
-    logAudit('site.approved', 'sites', currentSiteId,
-      { status: 'pending_review' },
-      { status: 'active', approvedBy: currentUser.uid }
-    );
+    // Audit log + developer/agent notification now happen server-side, in
+    // the onSiteStatusChanged Cloud Function reacting to this same status
+    // write — see functions/index.js.
     showToast(curLang==='rw' ? 'Site yemejwe kandi iri mu isoko!' : 'Site approved and now live!', 'success');
     loadSitePlan(currentSiteId);
   }).catch(function(e) { showToast('Error: ' + e.message, 'error'); });
@@ -33106,10 +33115,9 @@ function confirmRejectSite() {
     updatedAt:       now,
     updatedBy:       currentUser.uid
   }).then(function() {
-    logAudit('site.rejected', 'sites', currentSiteId,
-      { status: 'pending_review' },
-      { status: 'rejected', reason: reason }
-    );
+    // Audit log + developer/agent notification now happen server-side, in
+    // the onSiteStatusChanged Cloud Function reacting to this same status
+    // write — see functions/index.js.
     showToast('Site rejected. Agent has been notified.', 'info');
     go('sites');
   }).catch(function(e) { showToast('Error: ' + e.message, 'error'); });
@@ -35567,7 +35575,10 @@ function _fsAdminSetAvailability(idx) {
   if (['available','reserved','sold'].indexOf(newAvail) === -1) return;
   var reason = '';
   if (newAvail === 'sold') {
-    reason = prompt(curLang==='rw' ? 'Impamvu (bidasabwa):' : 'Reason / note (optional):') || '';
+    // Required — rules/firestore.rules' _isPropertySoldReasonOK() rejects
+    // this write server-side without a non-empty reason.
+    reason = (prompt(curLang==='rw' ? 'Impamvu (bisabwa):' : 'Reason / note (required):') || '').trim();
+    if (!reason) { showToast(curLang==='rw' ? 'Impamvu irasabwa.' : 'A reason is required.', 'error'); return; }
   }
   db.collection('properties').doc(fsId).update({
     availability: newAvail,
