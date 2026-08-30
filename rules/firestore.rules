@@ -370,15 +370,61 @@ service cloud.firestore {
       // non-empty availabilityReason. The UI (_fsAdminSetAvailability())
       // already prompts for this on 'sold' but previously accepted an empty
       // string; enforced here too so a direct Firestore write can't skip it.
+      // Extended (Property Status Governance Hardening) to ALSO require a
+      // reason when REVERSING out of 'sold' — undoing a finalized sale is
+      // exactly as consequential as making one.
+      //
+      // Requires availabilityReason to be part of THIS write's own diff, not
+      // just non-empty in the merged result — an .update() that omits the
+      // field leaves whatever reason string is already stored on the
+      // document untouched, so a plain size()>0 check on the post-merge
+      // value could be satisfied by a STALE reason left over from a
+      // completely different, earlier transition (e.g. the original sale's
+      // reason still sitting there when someone later reverses it without
+      // supplying a new one of their own). Caught by this hardening pass's
+      // own adversarial tests (#13/#15 in
+      // 10-property-status-governance-hardening.spec.js) using a seeded
+      // "already sold" fixture that — realistically — already has a reason
+      // string from when it was sold; the original per-entry-only version
+      // of this check only ever passed against a fixture with no prior
+      // availabilityReason at all, which is why the gap was never exercised
+      // before.
       function _isPropertySoldReasonOK() {
-        return request.resource.data.get('availability', '').lower() != 'sold'
-          || request.resource.data.get('availabilityReason', '').size() > 0;
+        return !(request.resource.data.get('availability', '').lower() == 'sold'
+                  || resource.data.get('availability', '').lower() == 'sold')
+          || (request.resource.data.diff(resource.data).affectedKeys().hasAny(['availabilityReason'])
+              && request.resource.data.get('availabilityReason', '').size() > 0);
+      }
+      // Property Status Governance Hardening: undoing an already-finalized
+      // 'sold' state back to available/reserved is a HIGH-RISK REVERSAL,
+      // deliberately governed separately from the FORWARD transitions in
+      // _isPropertyAvailabilityChange() (available->reserved, available->
+      // sold), which stay ordinary properties.change_status actions per the
+      // approved governance matrix. A role holding everyday
+      // properties.change_status authority (e.g. director, operations) must
+      // NOT automatically gain the power to unwind a completed sale —
+      // narrowed to the separate properties.reverse_sold permission, which
+      // is never granted by default to any role (must be explicitly added
+      // via the Admin role-permissions panel). This mirrors plots.mark_sold's
+      // direction-aware _plotStatusOK() above, but is intentionally NOT the
+      // same permission name or the same trigger condition: plots.mark_sold
+      // also gates the forward transition into 'sold' (see that function's
+      // own comment), while here the forward available->sold transition
+      // stays a normal change_status action — only the reversal is elevated
+      // — matching this collection's own explicitly-specified governance
+      // matrix (available->sold is listed under normal AVAILABILITY, not
+      // under HIGH-RISK REVERSALS).
+      function _isPropertyHighRiskReversal() {
+        return resource.data.get('availability', '').lower() == 'sold'
+          && request.resource.data.get('availability', '').lower() in ['available', 'reserved'];
       }
       function _propertyGovernanceOK() {
         return (!_isPropertyApproveRejectChange()
           || (request.resource.data.get('status', '').lower() == 'approved' && hasPerm('properties.approve'))
           || (request.resource.data.get('status', '').lower() == 'rejected' && hasPerm('properties.reject')))
-          && (!_isPropertyAvailabilityChange() || (hasPerm('properties.change_status') && _isPropertySoldReasonOK()));
+          && (!_isPropertyAvailabilityChange()
+              || (_isPropertyHighRiskReversal() ? hasPerm('properties.reverse_sold') : hasPerm('properties.change_status')))
+          && _isPropertySoldReasonOK();
       }
       allow update: if (isAdminOrStaff() && !_isApprovedContentEditByNonCEO() && _propertyGovernanceOK())
                     || ((resource.data.agentId == request.auth.uid || resource.data.ownerId == request.auth.uid)
