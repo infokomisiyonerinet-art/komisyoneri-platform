@@ -1591,6 +1591,14 @@
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "reservedUntil", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "auditlogs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "action", "order": "ASCENDING" },
+        { "fieldPath": "performedAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

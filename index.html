@@ -5059,6 +5059,7 @@ html,body{overscroll-behavior-x:none}
       <div class="dn" onclick="go('hr')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg><span data-rw="Ubucuruzi bw'Abakozi" data-en="HR Management">HR Management</span><span class="ds-badge" id="hr-sidebar-count"></span></div>
       <div class="dn" onclick="go('add-staff')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg><span data-rw="Ongeramo Umukozi/Umufatanyabikorwa" data-en="Add Staff / Partner">Add Staff / Partner</span></div>
       <div class="ds-section" data-rw="UBUYOBOZI" data-en="EXECUTIVE">UBUYOBOZI</div>
+      <div class="dn" onclick="go('super-admin')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg><span data-rw="SUPER ADMIN — Ikigo cy'Igenzura" data-en="Super Admin Control Center">Super Admin Control Center</span></div>
       <div class="dn" onclick="go('exec')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h2v5H7zm4-3h2v8h-2zm4 2h2v6h-2z"/></svg><span data-rw="Ikigega cy'Ubuyobozi" data-en="Executive Dashboard">Executive Dashboard</span><span class="ds-badge" id="exec-sidebar-badge"></span></div>
       <div class="dn" onclick="go('bi')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg><span data-rw="Ubushakashatsi bw'Amakuru" data-en="Business Intelligence">Business Intelligence</span><span class="ds-badge" id="bi-sidebar-badge"></span></div>
       <div class="dn" onclick="go('branches')" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-rw="Amashami y'Igihugu" data-en="Branch Network">Branch Network</span><span class="ds-badge" id="branch-sidebar-badge"></span></div>
@@ -7256,6 +7257,98 @@ html,body{overscroll-behavior-x:none}
       <div class="exec-panel">
         <div class="exec-panel-hdr" data-rw="Ibikorwa (Tasks)" data-en="Task Completion Rate">Task Completion Rate</div>
         <div id="exec-task-rate"><div class="exec-empty">Loading...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: SUPER ADMIN CONTROL CENTER ═══
+     Exclusive to role === 'super_admin' — the existing Admin Panel
+     (openAdmin()/adminRender()) is unchanged and still serves 'admin'.
+     Reuses .exec-* CSS/markup patterns from #page-exec above (KPI strip,
+     panel cards, health grid, activity feed) rather than introducing a
+     second styling system. The real security boundary for every read/write
+     this page performs is rules/firestore.rules (isAdminOrStaff()/isAdmin()/
+     hasPerm() — unchanged by this page); the role check below is UX only,
+     same as loadHR()'s own isExec() gate. -->
+<div class="page" id="page-super-admin">
+  <div class="page-hdr">
+    <h2 data-rw="SUPER ADMIN — Ikigo cy'Igenzura" data-en="SUPER ADMIN — Control Center">SUPER ADMIN — Control Center</h2>
+  </div>
+  <div id="sa-access-denied" style="display:none;padding:2rem;text-align:center;color:var(--muted)">
+    <div style="font-size:2rem;margin-bottom:.5rem">&#128274;</div>
+    <div data-rw="Ntaburenganzira" data-en="Access restricted">Access restricted</div>
+  </div>
+  <div id="sa-content">
+    <div style="margin:-.5rem 0 1rem;color:var(--muted);font-size:.82rem">
+      <strong>KOMISIYONERI ConnectPro Services</strong> — <span data-rw="Igenzura ry'Ikigo n'Umuryango" data-en="Platform &amp; Company Governance">Platform &amp; Company Governance</span>
+    </div>
+
+    <!-- A. PLATFORM OVERVIEW -->
+    <div class="exec-kpi-strip" id="sa-kpi-strip">
+      <div class="exec-kpi-card"><span class="exec-kpi-val" id="sa-kpi-users-total">—</span><span class="exec-kpi-lbl">Total Users</span></div>
+      <div class="exec-kpi-card"><span class="exec-kpi-val" id="sa-kpi-users-active">—</span><span class="exec-kpi-lbl">Active</span></div>
+      <div class="exec-kpi-card"><span class="exec-kpi-val" id="sa-kpi-users-suspended">—</span><span class="exec-kpi-lbl">Suspended</span></div>
+      <div class="exec-kpi-card"><span class="exec-kpi-val" id="sa-kpi-agents">—</span><span class="exec-kpi-lbl">Agents</span></div>
+      <div class="exec-kpi-card"><span class="exec-kpi-val" id="sa-kpi-props-pending">—</span><span class="exec-kpi-lbl">Properties Pending</span></div>
+      <div class="exec-kpi-card"><span class="exec-kpi-val" id="sa-kpi-plots-sold">—</span><span class="exec-kpi-lbl">Plots Sold</span></div>
+      <div class="exec-kpi-card"><span class="exec-kpi-val" id="sa-kpi-payouts-pending">—</span><span class="exec-kpi-lbl">Payouts Pending</span></div>
+      <div class="exec-kpi-card"><span class="exec-kpi-val" id="sa-kpi-deals-active">—</span><span class="exec-kpi-lbl">Active Deals</span></div>
+    </div>
+
+    <div class="exec-two-col" style="margin-top:16px">
+      <!-- B. SECURITY & ACCESS -->
+      <div class="exec-panel">
+        <div class="exec-panel-hdr">Security &amp; Access</div>
+        <div id="sa-security-panel"><div class="exec-loading">Loading...</div></div>
+      </div>
+      <!-- G. AUDIT & COMPLIANCE (recent security-sensitive events) -->
+      <div class="exec-panel">
+        <div class="exec-panel-hdr">Recent Security Events (Audit Trail)</div>
+        <div id="sa-audit-list"><div class="exec-loading">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- C. USER & ROLE GOVERNANCE + I. EMERGENCY CONTROLS -->
+    <div class="exec-panel" style="margin-top:16px">
+      <div class="exec-panel-hdr">User &amp; Role Governance — Emergency Controls</div>
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:.6rem" data-en="Suspend or reactivate any account. Every action is written to the immutable audit log with your identity and the reason given — this is enforced by rules/firestore.rules, not by this screen.">Suspend or reactivate any account. Every action is written to the immutable audit log with your identity and the reason given — this is enforced by rules/firestore.rules, not by this screen.</div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.7rem">
+        <input type="text" id="sa-user-lookup" placeholder="User email or UID" style="flex:1;min-width:220px;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem">
+        <button class="btn btn-outline btn-sm" onclick="saLookupUser()">Look up</button>
+      </div>
+      <div id="sa-user-lookup-result"></div>
+    </div>
+
+    <!-- D/E/F. PROPERTY / SITE / PLOT / COMMISSION GOVERNANCE -->
+    <div class="exec-two-col" style="margin-top:16px">
+      <div class="exec-panel">
+        <div class="exec-panel-hdr">Property, Site &amp; Plot Governance</div>
+        <div id="sa-governance-panel"><div class="exec-loading">Loading...</div></div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem">
+          <button class="btn btn-sm btn-outline" onclick="openAdmin()">Property Admin Panel</button>
+          <button class="btn btn-sm btn-outline" onclick="go('sites')">Sites &amp; Plots</button>
+        </div>
+      </div>
+      <div class="exec-panel">
+        <div class="exec-panel-hdr">Transaction &amp; Commission Integrity</div>
+        <div id="sa-integrity-panel"><div class="exec-loading">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- H. SYSTEM HEALTH -->
+    <div class="exec-panel" style="margin-top:16px">
+      <div class="exec-panel-hdr">System Health</div>
+      <div class="exec-health-grid" id="sa-health-grid"></div>
+    </div>
+
+    <!-- J. CONFIGURATION — links to existing screens, not duplicated -->
+    <div class="exec-panel" style="margin-top:16px">
+      <div class="exec-panel-hdr">Configuration</div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+        <button class="btn btn-sm btn-outline" onclick="go('hr');setTimeout(function(){switchHRTab('permissions');},200)">⚙️ Role Permissions</button>
+        <button class="btn btn-sm btn-outline" onclick="go('hr')">👥 HR Management</button>
+        <button class="btn btn-sm btn-outline" onclick="go('add-staff')">➕ Add Staff / Partner</button>
       </div>
     </div>
   </div>
@@ -11553,6 +11646,17 @@ function hasPerm(perm, user) {
 }
 function _roleOf(user) { return ((user || currentUser || {}).role || '').toLowerCase(); }
 function isAdmin(user)        { return ROLE_TIERS.ADMIN.indexOf(_roleOf(user)) > -1; }
+// Exact-match, unlike isAdmin() above (which is the admin+super_admin tier
+// used everywhere for the Ultimate Authority bypass — unchanged, still
+// covers both). This is ONLY for gating the Super Admin Control Center
+// itself: 'admin' keeps the existing Admin Panel and does not get this
+// dedicated governance screen (see index.html's #page-super-admin comment).
+// This is a UI-only distinction — the underlying Firestore reads/writes the
+// Control Center performs stay governed by the unchanged isAdminOrStaff()/
+// isAdmin()/hasPerm() rules, which still treat admin and super_admin as the
+// same tier, per this session's standing "never weaken the Admin bypass"
+// safeguard.
+function isSuperAdminExact(user) { return _roleOf(user) === 'super_admin'; }
 function isExec(user)         { return ROLE_TIERS.EXEC.indexOf(_roleOf(user)) > -1; }
 function isAdminOrStaff(user) { return ROLE_TIERS.STAFF.indexOf(_roleOf(user)) > -1; }
 function isInternalTeam(user) { return ROLE_TIERS.INTERNAL_TEAM.indexOf(_roleOf(user)) > -1; }
@@ -19106,6 +19210,9 @@ go = function(page) {
   if(page === 'exec') {
     setTimeout(loadExecDash, 150);
   }
+  if(page === 'super-admin') {
+    setTimeout(loadSuperAdminControlCenter, 150);
+  }
   if(page === 'bi') {
     setTimeout(loadBIDash, 150);
   }
@@ -22511,6 +22618,280 @@ function loadExecHealth() {
       var cnt = g('exec-health-cnt-' + m.key);
       if (cnt) cnt.textContent = snap.size;
     }).catch(function(err) { console.error('[ExecDash] health count for ' + m.key + ' failed:', err.code || '', err.message); });
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   SUPER ADMIN CONTROL CENTER
+   Exclusive to role === 'super_admin' (see isSuperAdminExact()). Every
+   query below reads collections that already exist and were already
+   readable by admin/super_admin under rules/firestore.rules (isAdminOrStaff()
+   / isAdmin()) — this page adds no new Firestore rule surface for reads.
+   The one write action (suspend/reactivate a user) goes through the exact
+   same users/{uid} update path _fsPendingApprove()/_fsPendingReject() already
+   use, governed by the unchanged rule (isAdminOrStaff()-tier for a non-agent
+   target, agents.verify/agents.suspend hasPerm() for an agent target — super
+   admin bypasses both via isAdmin(), same as every other role tier here).
+   Counts use .count().get() aggregation queries (Firestore 10.x, server-side
+   count — does not download matching documents), not full collection reads,
+   per the "no expensive unbounded queries" requirement.
+   ══════════════════════════════════════════════════════════════════════ */
+function loadSuperAdminControlCenter() {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var denied = g('sa-access-denied'), content = g('sa-content');
+  if (!isSuperAdminExact(currentUser)) {
+    if (denied) denied.style.display = '';
+    if (content) content.style.display = 'none';
+    return;
+  }
+  if (denied) denied.style.display = 'none';
+  if (content) content.style.display = '';
+
+  _saLoadPlatformOverview();
+  _saLoadSecurityPanel();
+  _saLoadAuditFeed();
+  _saLoadGovernancePanel();
+  _saLoadIntegrityPanel();
+  _saLoadHealthGrid();
+  g('sa-user-lookup-result').innerHTML = '';
+}
+
+function _saCount(query) {
+  // .count() aggregation — falls back to a capped .get() if the SDK/
+  // emulator in use doesn't support it, rather than throwing and leaving
+  // every KPI card stuck on "—".
+  if (typeof query.count === 'function') {
+    return query.count().get().then(function(snap) { return snap.data().count; });
+  }
+  return query.limit(1000).get().then(function(snap) { return snap.size; });
+}
+
+function _saSetKPI(id, promise) {
+  var el = g(id);
+  if (!el) return;
+  promise.then(function(n) { el.textContent = n; }).catch(function(err) {
+    el.textContent = '—';
+    console.error('[SuperAdmin] KPI ' + id + ' failed:', err.code || '', err.message);
+  });
+}
+
+function _saLoadPlatformOverview() {
+  _saSetKPI('sa-kpi-users-total',      _saCount(db.collection('users')));
+  _saSetKPI('sa-kpi-users-active',     _saCount(db.collection('users').where('isActive','==',true)));
+  _saSetKPI('sa-kpi-users-suspended',  _saCount(db.collection('users').where('isActive','==',false)));
+  _saSetKPI('sa-kpi-agents',           _saCount(db.collection('users').where('role','==','agent')));
+  _saSetKPI('sa-kpi-props-pending',    _saCount(db.collection('properties').where('status','==','pending')));
+  _saSetKPI('sa-kpi-plots-sold',       _saCount(db.collection('plots').where('status','==','sold')));
+  _saSetKPI('sa-kpi-payouts-pending',  _saCount(db.collection('payout_requests').where('status','==','pending')));
+  _saSetKPI('sa-kpi-deals-active',     _saCount(db.collection('deals').where('isActive','==',true)));
+}
+
+function _saLoadSecurityPanel() {
+  var el = g('sa-security-panel');
+  if (!el) return;
+  Promise.all([
+    _saCount(db.collection('users').where('role','==','admin')),
+    _saCount(db.collection('users').where('role','==','super_admin')),
+    _saCount(db.collection('users').where('isActive','==',false))
+  ]).then(function(r) {
+    el.innerHTML =
+      '<div class="exec-activity-row"><span>Signed in as</span><span>' + escapeHtml(currentUser.displayName || currentUser.email || currentUser.uid) + ' (super_admin)</span></div>' +
+      '<div class="exec-activity-row"><span>Admin accounts</span><span>' + r[0] + '</span></div>' +
+      '<div class="exec-activity-row"><span>Super Admin accounts</span><span>' + r[1] + '</span></div>' +
+      '<div class="exec-activity-row"><span>Suspended accounts</span><span>' + r[2] + '</span></div>';
+  }).catch(function(err) {
+    el.innerHTML = '<div class="exec-empty">Security summary unavailable</div>';
+    console.error('[SuperAdmin] security panel failed:', err.code || '', err.message);
+  });
+}
+
+// Curated to the security-sensitive action names this codebase's logAudit()
+// calls actually use (see rules/firestore.rules' _isEscalationToAdminRole()
+// and functions/index.js' logAudit() call sites) — not a blanket "show every
+// audit entry" feed, which would bury these in routine content edits.
+var SA_SECURITY_AUDIT_ACTIONS = [
+  'user.role.changed', 'user.approved', 'user.rejected',
+  'property.approved', 'property.rejected',
+  'site.approved', 'site.rejected',
+  'plot.status.changed', 'plot.reserved',
+  'deal.closed_won.rejected_untrusted_actor'
+];
+function _saLoadAuditFeed() {
+  var el = g('sa-audit-list');
+  if (!el) return;
+  db.collection('auditlogs').where('action','in', SA_SECURITY_AUDIT_ACTIONS)
+    .orderBy('performedAt','desc').limit(15).get().then(function(snap) {
+      if (snap.empty) { el.innerHTML = '<div class="exec-empty">No recent security events</div>'; return; }
+      el.innerHTML = snap.docs.map(function(d) {
+        var data = d.data();
+        var ts = data.performedAt && data.performedAt.toDate ? data.performedAt.toDate() : new Date();
+        var timeStr = ts.toLocaleDateString('en-RW', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+        return '<div class="exec-activity-row"><span class="exec-act-action">' + escapeHtml(data.action || '') +
+          ' <span style="color:var(--muted);font-weight:400">(' + escapeHtml(data.userRole || 'system') + ')</span></span>' +
+          '<span class="exec-act-time">' + timeStr + '</span></div>';
+      }).join('');
+    }).catch(function(err) {
+      // Most likely a missing composite index the first time this runs —
+      // same self-service pattern as the pending-approvals panel elsewhere
+      // in this file: surface the Firebase Console link instead of a bare
+      // permission-denied-looking blank panel.
+      var consoleLinkMatch = /https:\/\/console\.firebase\.google\.com\S*/.exec(err.message || '');
+      el.innerHTML = '<div class="exec-empty">Audit feed unavailable' +
+        (consoleLinkMatch ? ' — <a href="' + escapeHtml(consoleLinkMatch[0]) + '" target="_blank" rel="noopener">create the missing index</a>' : ' (' + escapeHtml(err.code || '') + ')') +
+        '</div>';
+      console.error('[SuperAdmin] audit feed failed:', err.code || '', err.message);
+    });
+}
+
+function _saLoadGovernancePanel() {
+  var el = g('sa-governance-panel');
+  if (!el) return;
+  Promise.all([
+    _saCount(db.collection('properties').where('status','==','approved')),
+    _saCount(db.collection('properties').where('status','==','rejected')),
+    _saCount(db.collection('sites')),
+    _saCount(db.collection('plots').where('status','==','available')),
+    _saCount(db.collection('plots').where('status','==','reserved'))
+  ]).then(function(r) {
+    el.innerHTML =
+      '<div class="exec-activity-row"><span>Properties approved / rejected</span><span>' + r[0] + ' / ' + r[1] + '</span></div>' +
+      '<div class="exec-activity-row"><span>Sites (total)</span><span>' + r[2] + '</span></div>' +
+      '<div class="exec-activity-row"><span>Plots available / reserved</span><span>' + r[3] + ' / ' + r[4] + '</span></div>';
+  }).catch(function(err) {
+    el.innerHTML = '<div class="exec-empty">Governance summary unavailable</div>';
+    console.error('[SuperAdmin] governance panel failed:', err.code || '', err.message);
+  });
+}
+
+function _saLoadIntegrityPanel() {
+  var el = g('sa-integrity-panel');
+  if (!el) return;
+  Promise.all([
+    _saCount(db.collection('commissions').where('status','==','pending')),
+    _saCount(db.collection('commissions').where('status','==','approved')),
+    _saCount(db.collection('payout_requests').where('status','==','pending')),
+    // Flags plots recorded as an external (non-KOMISIYONERI-brokered) sale —
+    // the one field this session's plot/site governance hardening (F-1/
+    // transactionSource) specifically protects from unauthorized self-
+    // declaration. A rising count here is a legitimate fraud-review signal,
+    // not evidence of wrongdoing by itself — every write to this field is
+    // already gated behind plots.mark_sold and independently audited.
+    _saCount(db.collection('plots').where('transactionSource','==','external'))
+  ]).then(function(r) {
+    el.innerHTML =
+      '<div class="exec-activity-row"><span>Commissions pending / approved</span><span>' + r[0] + ' / ' + r[1] + '</span></div>' +
+      '<div class="exec-activity-row"><span>Payout requests pending</span><span>' + r[2] + '</span></div>' +
+      '<div class="exec-activity-row"><span>Plots marked external transaction</span><span>' + r[3] + '</span></div>';
+  }).catch(function(err) {
+    el.innerHTML = '<div class="exec-empty">Integrity summary unavailable</div>';
+    console.error('[SuperAdmin] integrity panel failed:', err.code || '', err.message);
+  });
+}
+
+function _saLoadHealthGrid() {
+  var grid = g('sa-health-grid');
+  if (!grid) return;
+  // 'Scheduled Jobs' reads the real timestamp updateHomepageStats() (runs
+  // every 15 min, see functions/index.js) last wrote to stats/homepage —
+  // an honest proxy for "is the Cloud Functions deployment actually
+  // running", not a fabricated indicator. Firestore/Auth connectivity is
+  // simply "did the query this page just ran succeed" — this function only
+  // runs after _saLoadPlatformOverview() etc. have already fired, so if
+  // those resolved, Firestore is reachable.
+  grid.innerHTML =
+    '<div class="exec-health-card" id="sa-health-firestore"><div class="exec-health-dot exec-health-ok"></div><div class="exec-health-lbl">Firestore</div><div class="exec-health-count">Connected</div></div>' +
+    '<div class="exec-health-card" id="sa-health-auth"><div class="exec-health-dot ' + (firebase.auth().currentUser ? 'exec-health-ok' : 'exec-health-err') + '"></div><div class="exec-health-lbl">Auth Session</div><div class="exec-health-count">' + (firebase.auth().currentUser ? 'Active' : 'None') + '</div></div>' +
+    '<div class="exec-health-card" id="sa-health-jobs"><div class="exec-health-dot exec-health-loading"></div><div class="exec-health-lbl">Scheduled Jobs</div><div class="exec-health-count" id="sa-health-jobs-val">—</div></div>';
+  db.collection('stats').doc('homepage').get().then(function(doc) {
+    var dot = g('sa-health-jobs').querySelector('.exec-health-dot');
+    var val = g('sa-health-jobs-val');
+    if (!doc.exists) { dot.className = 'exec-health-dot exec-health-err'; val.textContent = 'No data'; return; }
+    var d = doc.data();
+    var ts = d.updatedAt && d.updatedAt.toDate ? d.updatedAt.toDate() : null;
+    if (!ts) { dot.className = 'exec-health-dot exec-health-err'; val.textContent = 'Unknown'; return; }
+    var ageMin = (Date.now() - ts.getTime()) / 60000;
+    // updateHomepageStats runs every 15 min — anything past ~35 min stale
+    // means the scheduled function has stopped running, not just mid-cycle.
+    dot.className = 'exec-health-dot ' + (ageMin < 35 ? 'exec-health-ok' : 'exec-health-err');
+    val.textContent = ageMin < 60 ? Math.round(ageMin) + ' min ago' : ts.toLocaleDateString('en-RW', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+  }).catch(function() {
+    var card = g('sa-health-jobs');
+    if (card) { card.querySelector('.exec-health-dot').className = 'exec-health-dot exec-health-err'; g('sa-health-jobs-val').textContent = 'Unavailable'; }
+  });
+}
+
+// ── Emergency control: suspend / reactivate any account ──────────────
+// Deliberately NOT a global "lock platform" switch (explicitly forbidden —
+// a UI toggle with no backend enforcement is not a security control). This
+// is scoped to one account at a time, requires a mandatory reason, writes
+// through the existing governed users/{uid} rule, and is captured in the
+// immutable audit log — same shape _fsPendingApprove()/_fsPendingReject()
+// already use for agent approval, generalized to any account.
+function saLookupUser() {
+  var input = (g('sa-user-lookup').value || '').trim();
+  var result = g('sa-user-lookup-result');
+  if (!input || !result) return;
+  result.innerHTML = '<div class="exec-loading">Looking up...</div>';
+  var lookup = input.indexOf('@') > -1
+    ? db.collection('users').where('email','==',input).limit(2).get()
+    : db.collection('users').doc(input).get().then(function(doc) { return { empty: !doc.exists, size: doc.exists ? 1 : 0, docs: doc.exists ? [doc] : [] }; });
+  lookup.then(function(snap) {
+    if (snap.empty || snap.size === 0) { result.innerHTML = '<div class="exec-empty">No user found</div>'; return; }
+    if (snap.size > 1) { result.innerHTML = '<div class="exec-empty">Ambiguous — more than one account matches that email</div>'; return; }
+    var doc = snap.docs[0];
+    var u = doc.data();
+    var isSelf = doc.id === currentUser.uid;
+    var isActive = u.isActive !== false;
+    result.innerHTML =
+      '<div class="exec-activity-row"><span>' + escapeHtml(u.displayName || u.email || doc.id) + '</span><span>role: ' + escapeHtml(u.role || '—') + ' · ' + (isActive ? 'Active' : 'Suspended') + '</span></div>' +
+      '<div style="display:flex;gap:.5rem;margin-top:.5rem">' +
+      (isSelf
+        ? '<span style="font-size:.75rem;color:var(--muted)">You cannot suspend your own account here.</span>'
+        : (isActive
+            ? '<button class="btn btn-sm" style="background:#e53e3e;color:#fff" onclick="saSetUserActive(\'' + doc.id + '\',false)">Suspend</button>'
+            : '<button class="btn btn-sm btn-gold" onclick="saSetUserActive(\'' + doc.id + '\',true)">Reactivate</button>')) +
+      '</div>';
+  }).catch(function(err) {
+    result.innerHTML = '<div class="exec-empty">Lookup failed (' + escapeHtml(err.code || err.message || '') + ')</div>';
+  });
+}
+
+function saSetUserActive(uid, makeActive) {
+  if (!uid || uid === currentUser.uid) return;
+  var action = makeActive ? 'reactivate' : 'suspend';
+  var reason = (prompt('Reason to ' + action + ' this account (required):') || '').trim();
+  if (!reason) { showToast('A reason is required.', 'error'); return; }
+  if (!confirm('Confirm: ' + action + ' this account now?')) return;
+  var now = firebase.firestore.FieldValue.serverTimestamp();
+  db.collection('users').doc(uid).get().then(function(doc) {
+    if (!doc.exists) throw new Error('User not found');
+    var oldStatus = doc.data().status || '';
+    var oldActive = doc.data().isActive !== false;
+    return db.collection('users').doc(uid).update({
+      isActive: makeActive,
+      status: makeActive ? 'active' : 'suspended',
+      suspensionReason: makeActive ? '' : reason,
+      updatedAt: now,
+      updatedBy: currentUser.uid
+    }).then(function() { return { oldStatus: oldStatus, oldActive: oldActive }; });
+  }).then(function(old) {
+    logAudit('user.' + action + 'd', 'users', uid,
+      { isActive: old.oldActive, status: old.oldStatus },
+      { isActive: makeActive, status: makeActive ? 'active' : 'suspended', reason: reason }
+    );
+    if (typeof notifyUser === 'function') {
+      notifyUser(uid,
+        makeActive ? 'Account Reactivated' : 'Account Suspended',
+        makeActive ? 'Your KOMISIYONERI account has been reactivated.' : 'Your KOMISIYONERI account has been suspended. Reason: ' + reason,
+        'system', 'users', uid);
+    }
+    showToast('Account ' + action + 'd.', 'success');
+    saLookupUser();
+    _saLoadSecurityPanel();
+    _saLoadPlatformOverview();
+  }).catch(function(err) {
+    showToast('Error: ' + (err.message || 'could not ' + action + ' account'), 'error');
+    console.error('[SuperAdmin] saSetUserActive failed:', err);
   });
 }
 
@@ -38336,7 +38717,16 @@ function _autoCreateLead(opts) {
       if (!onclick) { item.style.display = ''; return; }
       /* openProfile / Settings — always show */
       if (onclick.indexOf('openProfile') !== -1) { item.style.display = ''; return; }
-      /* Admins see everything */
+      /* Super Admin Control Center — exclusive to super_admin, checked
+         BEFORE the "admins see everything" shortcut below so plain 'admin'
+         does not get it (see isSuperAdminExact()'s own comment: this is a
+         deliberately narrower UI carve-out, not a change to the isAdmin()
+         tier used everywhere else). */
+      if (onclick.indexOf("go('super-admin')") !== -1) {
+        item.style.display = isSuperAdminExact(user) ? '' : 'none';
+        return;
+      }
+      /* Admins see everything else */
       if (isSuper) { item.style.display = ''; return; }
       var visible = false;
       for (var i = 0; i < _NAV_RULES.length; i++) {
