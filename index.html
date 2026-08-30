@@ -24041,6 +24041,7 @@ var RBAC_PERMISSIONS = [
   { key: 'properties.approve',       label: 'Approve property listings' },
   { key: 'properties.reject',        label: 'Reject property listings' },
   { key: 'properties.change_status', label: 'Change property availability (Available / Reserved / Sold)' },
+  { key: 'properties.reverse_sold',  label: 'Reverse a Sold property back to Available / Reserved (high-risk)' },
   { key: 'sites.view',               label: 'View sites' },
   { key: 'sites.approve',            label: 'Approve sites' },
   { key: 'plots.change_status',      label: 'Change plot status (reserve / hold / release)' },
@@ -35943,10 +35944,14 @@ function _ceoEditApprovedProperty(idx) {
 // audit this exists to close). Only ever reaches this UI for an approved
 // listing where hasPerm('properties.change_status') is true (rendered
 // above); the real enforcement is rules/firestore.rules' matching gate.
-// Reason is only prompted for 'sold' (governance spec §12: capture a
-// reason for sensitive/consequential status changes, not every ordinary
-// toggle) — always written as a string (possibly empty) since Firestore's
-// compat SDK throws synchronously on a literal `undefined` field value.
+// Reason is prompted whenever EITHER side of the transition is 'sold'
+// (governance spec §12: capture a reason for sensitive/consequential
+// status changes, not every ordinary toggle) — originally only entering
+// 'sold', extended (Property Status Governance Hardening) to also cover
+// reversing OUT of 'sold', matching rules/firestore.rules'
+// _isPropertySoldReasonOK() exactly. Always written as a string (possibly
+// empty) since Firestore's compat SDK throws synchronously on a literal
+// `undefined` field value.
 function _fsAdminSetAvailability(idx) {
   var prop = _adminAllProps[idx]; if (!prop) return;
   var fsId = prop._fsId;
@@ -35954,10 +35959,24 @@ function _fsAdminSetAvailability(idx) {
   var sel = document.getElementById('prop-avail-' + idx);
   var newAvail = sel ? sel.value : '';
   if (['available','reserved','sold'].indexOf(newAvail) === -1) return;
+  var wasSold = (prop.availability || '').toLowerCase() === 'sold';
+  // High-risk reversal (sold -> available/reserved) needs a SEPARATE,
+  // narrower permission than everyday properties.change_status — see
+  // rules/firestore.rules' _isPropertyHighRiskReversal(). UX-only fast
+  // rejection with a clear message; the real gate is the rule itself, same
+  // as the properties.change_status check that already gated showing this
+  // whole control (comment above).
+  if (wasSold && newAvail !== 'sold' && !hasPerm('properties.reverse_sold')) {
+    showToast(curLang==='rw'
+      ? 'Ntabwo wemerewe guhindura imitungo yagurishijwe.'
+      : 'You do not have permission to reverse a sold property.', 'error');
+    return;
+  }
   var reason = '';
-  if (newAvail === 'sold') {
+  if (newAvail === 'sold' || wasSold) {
     // Required — rules/firestore.rules' _isPropertySoldReasonOK() rejects
-    // this write server-side without a non-empty reason.
+    // this write server-side without a non-empty reason, on either side of
+    // a transition touching 'sold'.
     reason = (prompt(curLang==='rw' ? 'Impamvu (bisabwa):' : 'Reason / note (required):') || '').trim();
     if (!reason) { showToast(curLang==='rw' ? 'Impamvu irasabwa.' : 'A reason is required.', 'error'); return; }
   }
