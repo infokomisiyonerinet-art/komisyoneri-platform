@@ -885,7 +885,29 @@ service cloud.firestore {
     match /auditlogs/{id} {
       // Immutable — no updates or deletes ever
       allow read:   if isAdminOrStaff();
-      allow create: if isAuth() && hasStandardFields();
+      // CRITICAL fix (final security audit, finding F-1): this used to be
+      // `isAuth() && hasStandardFields()` with NO constraint at all on
+      // performedBy/createdBy/updatedBy (or action/userRole/oldValue/
+      // newValue) — any authenticated user, including a plain 'client',
+      // could create a permanent, immutable audit entry claiming a
+      // DIFFERENT uid performed an arbitrary action, since auditlogs allows
+      // create but never update/delete. index.html's one and only
+      // audit-log write path (logAudit(), the sole `.add()` call site) has
+      // always set performedBy/createdBy/updatedBy to the caller's own real
+      // currentUser.uid — never a parameter, never another identity — so
+      // this pins that already-true invariant into the rule itself, closing
+      // the direct-Firestore-write forgery path without touching any
+      // legitimate caller. Deliberately narrow: this is an IDENTITY-
+      // attribution fix only (a user can no longer name someone ELSE as the
+      // actor). It does not constrain action/userRole/collection/docId/
+      // oldValue/newValue — a self-attributed entry can still misrepresent
+      // what happened, and userRole can still drift from the caller's real
+      // stored role, which is a separate, disclosed finding (F-3-adjacent),
+      // not fixed here.
+      allow create: if isAuth() && hasStandardFields()
+                    && request.resource.data.performedBy == request.auth.uid
+                    && request.resource.data.createdBy == request.auth.uid
+                    && request.resource.data.updatedBy == request.auth.uid;
       allow update: if false;
       allow delete: if false;
     }
