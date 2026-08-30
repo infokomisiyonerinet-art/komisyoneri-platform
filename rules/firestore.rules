@@ -311,7 +311,34 @@ service cloud.firestore {
 
     match /properties/{id} {
       allow read:   if true;
-      allow create: if isAuth() && hasStandardFields();
+      // P0-1 governance closure: create-time was only checking that the
+      // standard-field KEYS existed (hasStandardFields()), never that
+      // `status`/`availability` held a legitimate INITIAL value — so any
+      // authenticated user, agent included, could create a brand-new
+      // property already status:'approved' or availability:'sold',
+      // completely bypassing properties.approve and every other review
+      // gate below. A normal create must land in 'pending' (matches
+      // submitProperty()'s non-admin path); the one authorized fast-path
+      // this preserves is the existing admin/staff one-step create used by
+      // _isPropAdmin() accounts (submitProperty() writes status:'approved'
+      // directly for them today) — narrowed to whoever actually holds
+      // properties.approve, the same permission already gating this exact
+      // status value via update, so this grants no new privilege. Rejected/
+      // sold/reserved/etc. can never be a create-time value for anyone.
+      // availability is separately pinned to 'available' (or left absent)
+      // — _savePropToFirestoreFS() hardcodes 'available' for every new
+      // listing; no legitimate flow ever creates a property already sold.
+      function _isPropertyCreateStatusOK() {
+        return request.resource.data.get('status', '').lower() == 'pending'
+          || (request.resource.data.get('status', '').lower() == 'approved'
+              && hasPerm('properties.approve'));
+      }
+      function _isPropertyCreateAvailabilityOK() {
+        return !('availability' in request.resource.data)
+          || request.resource.data.get('availability', '').lower() == 'available';
+      }
+      allow create: if isAuth() && hasStandardFields()
+                    && _isPropertyCreateStatusOK() && _isPropertyCreateAvailabilityOK();
       // Editing an already-Approved listing's own content is CEO-only —
       // index.html's openEditProperty() only exposes this via a
       // CEO-visible "Edit" button in the admin panel, but the client UI
@@ -916,9 +943,27 @@ service cloud.firestore {
 
     match /sites/{siteId} {
       allow read:   if true;
+      // P0-1 governance closure (same class of bug as properties above):
+      // create-time placed no constraint on `status` at all, so any agent/
+      // developer could create a new site already status:'active',
+      // bypassing sites.approve entirely. A normal create must land in
+      // 'pending_review' (submitSiteForm()'s non-auto-approve path); the
+      // one authorized fast-path preserved is the existing admin/staff
+      // one-step create (submitSiteForm() writes status:'active' directly
+      // when isAdminOrStaff(currentUser) is true today) — narrowed to
+      // whoever actually holds sites.approve, the same permission already
+      // gating this exact value via update, so this grants no new
+      // privilege. 'rejected' (sites never legitimately use this value —
+      // see _isSiteApproveChange()'s own comment) can never be a create-
+      // time value for anyone.
+      function _isSiteCreateStatusOK() {
+        return request.resource.data.get('status', '').lower() == 'pending_review'
+          || (request.resource.data.get('status', '').lower() == 'active'
+              && hasPerm('sites.approve'));
+      }
       allow create: if isAuth()
                     && (isRole('agent') || isRole('developer') || isAdminOrStaff())
-                    && hasStandardFields();
+                    && hasStandardFields() && _isSiteCreateStatusOK();
       // Same shape as properties' _isPropertyApproveRejectChange() above —
       // narrows the admin-review status transition on the isAdminOrStaff()
       // branch to sites.approve. CRITICAL fix (found by this hardening
@@ -975,9 +1020,19 @@ service cloud.firestore {
 
     match /plots/{plotId} {
       allow read:   if true;
+      // P0-1 governance closure: unlike properties/sites, plots have no
+      // legitimate authorized fast-path at all — every real plot-creation
+      // call site (submitSiteForm()'s create AND append-to-existing-site
+      // branches, index.html) hardcodes status:'available' unconditionally,
+      // for agent/developer/staff creators alike. So this is a strict,
+      // exception-free requirement: create must always be 'available',
+      // never 'sold'/'reserved'/'on_hold'/'unavailable', regardless of role.
+      function _isPlotCreateStatusOK() {
+        return request.resource.data.get('status', '').lower() == 'available';
+      }
       allow create: if isAuth()
                     && (isRole('agent') || isAdminOrStaff())
-                    && hasStandardFields();
+                    && hasStandardFields() && _isPlotCreateStatusOK();
       // 'sold' is the one plot transition that finalizes a sale (triggers
       // calculatePlotCommission() client-side) — narrowed to
       // plots.mark_sold; every other status value (reserved/available/
@@ -1014,10 +1069,26 @@ service cloud.firestore {
       // must carry a non-empty statusChangeReason — same principle as
       // properties' availabilityReason above, applied to plots' own status
       // field (which has two "finalizing" values, not just one).
+      //
+      // P0-2 fix: this used to accept a STALE reason already sitting on the
+      // document from a prior, unrelated transition — reasonSize()>0 was
+      // checked against the post-merge value, not this write's own diff, so
+      // an .update() that omitted statusChangeReason entirely still passed
+      // as long as some old string happened to be stored there already
+      // (exactly the bug already fixed for properties' availabilityReason
+      // above — see _isPropertySoldReasonOK()'s own comment). Also extended
+      // to require a FRESH reason when REVERSING a plot back out of 'sold'
+      // (available/reserved/on_hold/etc.), not just when entering it —
+      // undoing a finalized sale is exactly as consequential as making one
+      // (mirrors plots.mark_sold's own direction-aware _plotStatusOK()
+      // above). 'unavailable' stays entry-only exactly as before — no
+      // reversal-from-unavailable requirement was asked for or added here.
       function _plotStatusReasonOK() {
         return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
-          || !(request.resource.data.get('status', '').lower() in ['sold', 'unavailable'])
-          || request.resource.data.get('statusChangeReason', '').size() > 0;
+          || (!(request.resource.data.get('status', '').lower() in ['sold', 'unavailable'])
+              && resource.data.get('status', '').lower() != 'sold')
+          || (request.resource.data.diff(resource.data).affectedKeys().hasAny(['statusChangeReason'])
+              && request.resource.data.get('statusChangeReason', '').size() > 0);
       }
       // Field allowlist for the managingAgentId ownership branch — CRITICAL
       // fix (audit finding F-1). Was completely unrestricted: any managing
