@@ -55,6 +55,25 @@ service cloud.firestore {
             && exists(/databases/$(database)/documents/role_permissions/$(getRole().lower()))
             && p in get(/databases/$(database)/documents/role_permissions/$(getRole().lower())).data.get('permissions', []));
     }
+    // Caller-authority isActive gate. Defaults to true when the field is
+    // absent (every legacy user doc predating this field keeps working
+    // exactly as before — no forced backfill required). Deliberately NOT
+    // folded into isAdmin() itself: Admin's bypass must stay the one
+    // unconditional guarantee in this file (governance spec §1/§6, "Ultimate
+    // Authority" — see isAdmin()'s own comment) so a corrupted/mistakenly-
+    // false isActive flag on the one remaining Admin account can never
+    // brick the platform's own recovery path the way a bad role_permissions
+    // doc already can't. Every OTHER authority tier below (isAdminOrStaff(),
+    // isInternalTeam(), isCEO(), isDirector()) explicitly ORs isAdmin() first
+    // and only requires this check on the non-admin branch, so Admin's
+    // access through any of them is equally unconditional; suspending any
+    // other role (isActive:false) now actually revokes that role's write
+    // authority, closing a gap where suspension only ever blocked new
+    // logins, never a session/role already resolved through these helpers.
+    function _callerIsActive() {
+      return isAuth() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && callerDoc().data.get('isActive', true) == true;
+    }
     function isAdminOrStaff() {
       // Includes 'ceo': the client UI has always treated ceo as
       // admin-equivalent in ~20 places (approve/reject actions, HR admin
@@ -68,13 +87,15 @@ service cloud.firestore {
       // per-department write restriction exists for 'staff' either, so
       // these introduce no new permission beyond what that tier already
       // has) — see ROLE_TIERS.STAFF in index.html, which this list must
-      // stay in sync with.
-      return isAuth() && getRole() != null &&
-        getRole().lower() in ['admin', 'super_admin', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'operations', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser'];
+      // stay in sync with. 'admin'/'super_admin' are handled via the
+      // unconditional isAdmin() OR below, not this list — see
+      // _callerIsActive()'s own comment.
+      return isAdmin() || (isAuth() && getRole() != null && _callerIsActive() &&
+        getRole().lower() in ['staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'operations', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser']);
     }
     function isInternalTeam() {
-      return isAuth() && getRole() != null &&
-        getRole().lower() in ['agent', 'staff', 'admin', 'super_admin', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'operations', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser'];
+      return isAdmin() || (isAuth() && getRole() != null && _callerIsActive() &&
+        getRole().lower() in ['agent', 'staff', 'ceo', 'branch_manager', 'hr_manager', 'operations_manager', 'operations', 'marketing_manager', 'company_owner', 'director', 'accountant', 'chief_broker', 'customer_support_manager', 'it_manager', 'legal_adviser']);
     }
     // CEO vs Operations Director governance boundary: both are staff-tier
     // (isAdminOrStaff() above still covers their day-to-day access), but a
@@ -85,10 +106,10 @@ service cloud.firestore {
     // (see that match block below). 'director' is this app's real "Operations
     // Director" role value — see ROLE_TIERS.STAFF in index.html.
     function isCEO() {
-      return isRole('ceo');
+      return isRole('ceo') && _callerIsActive();
     }
     function isDirector() {
-      return isRole('director');
+      return isRole('director') && _callerIsActive();
     }
     function isExecutive() {
       return isCEO() || isDirector();
@@ -345,11 +366,19 @@ service cloud.firestore {
       function _isPropertyAvailabilityChange() {
         return request.resource.data.diff(resource.data).affectedKeys().hasAny(['availability']);
       }
+      // Governance hardening P2.9: a transition INTO 'sold' must carry a
+      // non-empty availabilityReason. The UI (_fsAdminSetAvailability())
+      // already prompts for this on 'sold' but previously accepted an empty
+      // string; enforced here too so a direct Firestore write can't skip it.
+      function _isPropertySoldReasonOK() {
+        return request.resource.data.get('availability', '').lower() != 'sold'
+          || request.resource.data.get('availabilityReason', '').size() > 0;
+      }
       function _propertyGovernanceOK() {
         return (!_isPropertyApproveRejectChange()
           || (request.resource.data.get('status', '').lower() == 'approved' && hasPerm('properties.approve'))
           || (request.resource.data.get('status', '').lower() == 'rejected' && hasPerm('properties.reject')))
-          && (!_isPropertyAvailabilityChange() || hasPerm('properties.change_status'));
+          && (!_isPropertyAvailabilityChange() || (hasPerm('properties.change_status') && _isPropertySoldReasonOK()));
       }
       allow update: if (isAdminOrStaff() && !_isApprovedContentEditByNonCEO() && _propertyGovernanceOK())
                     || ((resource.data.agentId == request.auth.uid || resource.data.ownerId == request.auth.uid)
@@ -823,21 +852,56 @@ service cloud.firestore {
                     && (isRole('agent') || isRole('developer') || isAdminOrStaff())
                     && hasStandardFields();
       // Same shape as properties' _isPropertyApproveRejectChange() above —
-      // narrows only the admin-review status transition on the isAdminOrStaff()
-      // branch; the managingAgentId/developerId ownership branches (an agent
-      // or developer managing their own site) are completely untouched.
+      // narrows the admin-review status transition on the isAdminOrStaff()
+      // branch to sites.approve. CRITICAL fix (found by this hardening
+      // pass's own adversarial tests): this used to compare against
+      // 'approved', but sites never actually use that value — approveSite()
+      // (index.html) writes status:'active' for the approved state ('approved'
+      // is properties' own value, not sites'). That mismatch meant this
+      // function was permanently false in real use, so sites.approve never
+      // actually gated anything — any isAdminOrStaff() account could approve
+      // any site regardless of role_permissions.
       function _isSiteApproveChange() {
         return request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
-          && request.resource.data.get('status', '').lower() == 'approved';
+          && request.resource.data.get('status', '').lower() == 'active';
       }
       function _siteGovernanceOK() {
         return !_isSiteApproveChange() || hasPerm('sites.approve');
       }
+      // Field allowlist for the managingAgentId/developerId ownership
+      // branches below — CRITICAL fix (audit finding F-2). Those branches
+      // used to allow a completely unrestricted update once the caller
+      // matched the site's own managingAgentId/developerId, letting the
+      // owning agent/developer silently self-approve their own site
+      // (status:'approved'), rewrite approvedBy/approvedAt/rejectionReason,
+      // reassign managingAgentId/developerId to hijack the site, or
+      // falsify the totalPlots/availablePlots/reservedPlots/soldPlots/
+      // totalValueRWF inventory counters that are only ever meant to be
+      // maintained transactionally by the plot-status-change code path.
+      // This allowlist is exactly submitSiteEditForm()'s own `editData`
+      // field set (index.html) — the one legitimate "owner edits their own
+      // site" UI this app has — plus updatedAt/updatedBy, so no existing
+      // feature loses capability. commissionRate is deliberately EXCLUDED
+      // even though the edit form also sends it: it feeds
+      // calculatePlotCommission()'s payout formula directly, so letting the
+      // owning agent silently raise their own commission rate is the same
+      // class of self-dealing risk this pass closes on plots' price field
+      // below — a rate change now has to go through isAdminOrStaff().
+      function _isSiteOwnerContentEditOK() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name','nameRW','description','descriptionRW','district','sector','cell','village',
+          'coordinates','ownerName','ownerPhone','ownerType','lotissementRef','titleDeedRef',
+          'roadType','amenities','pricePerSqmMin','pricePerSqmMax','siteMapUrl',
+          'updatedAt','updatedBy'
+        ]);
+      }
       allow update: if (isAdminOrStaff() && _siteGovernanceOK())
-                    || (isAuth() && isRole('agent')
-                        && resource.data.managingAgentId == request.auth.uid)
-                    || (isAuth() && isRole('developer')
-                        && resource.data.developerId == request.auth.uid);
+                    || (isAuth() && isRole('agent') && _callerIsActive()
+                        && resource.data.managingAgentId == request.auth.uid
+                        && _isSiteOwnerContentEditOK())
+                    || (isAuth() && isRole('developer') && _callerIsActive()
+                        && resource.data.developerId == request.auth.uid
+                        && _isSiteOwnerContentEditOK());
       allow delete: if false;
     }
 
@@ -849,21 +913,91 @@ service cloud.firestore {
       // 'sold' is the one plot transition that finalizes a sale (triggers
       // calculatePlotCommission() client-side) — narrowed to
       // plots.mark_sold; every other status value (reserved/available/
-      // on_hold) needs only plots.change_status. The managingAgentId
-      // ownership branch and the client's own narrow reservation-field
-      // branch below are both completely untouched.
+      // on_hold) needs only plots.change_status. Direction-aware
+      // (governance hardening P2.7): REVERSING a plot back out of 'sold'
+      // needs plots.mark_sold too, not just plots.change_status — undoing a
+      // finalized sale is exactly as sensitive as making one, and without
+      // this a change_status-only role could quietly unwind a completed
+      // sale (and whatever commission was already generated for it).
       function _plotStatusOK() {
         return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
-          || (request.resource.data.get('status', '').lower() == 'sold' && hasPerm('plots.mark_sold'))
-          || (request.resource.data.get('status', '').lower() != 'sold' && hasPerm('plots.change_status'));
+          || ((request.resource.data.get('status', '').lower() == 'sold'
+               || resource.data.get('status', '').lower() == 'sold')
+              && hasPerm('plots.mark_sold'))
+          || (request.resource.data.get('status', '').lower() != 'sold'
+              && resource.data.get('status', '').lower() != 'sold'
+              && hasPerm('plots.change_status'));
       }
-      allow update: if (isAdminOrStaff() && _plotStatusOK())
-                    || (isAuth()
+      // transactionSource (CRITICAL fix, audit finding — previously had NO
+      // rule constraint at all) records whether KOMISIYONERI brokered a
+      // sale/removal or it happened externally, and directly gates whether
+      // calculatePlotCommission() runs (index.html's openPlotStatusChange())
+      // — so the ability to set it is exactly as sensitive as marking a
+      // plot sold. Reuses plots.mark_sold rather than a new permission: the
+      // client only ever prompts for it alongside a transition into
+      // sold/unavailable anyway (see VALID_TRANSACTION_SOURCES' own
+      // comment), so there is no scenario where a role should be able to
+      // set this without also holding plots.mark_sold.
+      function _plotTransactionSourceOK() {
+        return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['transactionSource'])
+          || hasPerm('plots.mark_sold');
+      }
+      // Governance hardening P2.9: a transition INTO 'sold' or 'unavailable'
+      // must carry a non-empty statusChangeReason — same principle as
+      // properties' availabilityReason above, applied to plots' own status
+      // field (which has two "finalizing" values, not just one).
+      function _plotStatusReasonOK() {
+        return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
+          || !(request.resource.data.get('status', '').lower() in ['sold', 'unavailable'])
+          || request.resource.data.get('statusChangeReason', '').size() > 0;
+      }
+      // Field allowlist for the managingAgentId ownership branch — CRITICAL
+      // fix (audit finding F-1). Was completely unrestricted: any managing
+      // agent could silently mark their own site's plots 'sold', set
+      // transactionSource:'external' to dodge commission, hijack clientId,
+      // or inflate price right before a staff-driven sale to inflate the
+      // commission calculatePlotCommission() later derives from it. There
+      // is currently no "edit an existing plot" UI feature at all (creation
+      // and status-change are the only two write paths — confirmed by
+      // reading every plots/{id} write in index.html), so this allowlist is
+      // deliberately narrow: true descriptive content only, nothing that
+      // touches status, transactionSource, ownership, or price/commission
+      // integrity. Price is intentionally excluded even though it's a
+      // plausible "content" field, because it feeds
+      // calculatePlotCommission()'s formula directly and unsupervised —
+      // legitimate price corrections go through isAdminOrStaff() instead.
+      function _isPlotOwnerContentEditOK() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'plotNumber','plotLabel','size','isCorner','facesRoad','shape','mapPosition','currency',
+          'updatedAt','updatedBy'
+        ]);
+      }
+      // A client cancelling their own reservation may only move status back
+      // to 'available' (clearing the reservation fields) — never to 'sold'
+      // or any other value, and never once the plot has already actually
+      // been sold. Previously this branch let a client with a matching
+      // clientId set status to ANY value including 'sold', self-finalizing
+      // a sale with zero staff/payment involvement.
+      function _isClientOwnReservationCancelOK() {
+        return resource.data.get('status', '').lower() != 'sold'
+          && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status','clientId','reservedAt','reservedUntil','updatedAt','updatedBy'])
+          && request.resource.data.get('status', '').lower() == 'available';
+      }
+      // No isRole('agent') gate here, matching the original branch exactly:
+      // managingAgentId is set to whichever account created the site
+      // (index.html's submitSiteForm() writes `managingAgentId: uid`
+      // unconditionally, for agent/developer/staff creators alike), so a
+      // role restriction here would silently break plot management for
+      // developer-created sites — _callerIsActive() plus the content
+      // allowlist above is the actual fix, not narrowing who this applies to.
+      allow update: if (isAdminOrStaff() && _plotStatusOK() && _plotTransactionSourceOK() && _plotStatusReasonOK())
+                    || (isAuth() && _callerIsActive()
                         && get(/databases/$(database)/documents/sites/$(resource.data.siteId))
-                           .data.managingAgentId == request.auth.uid)
-                    || (isAuth() && resource.data.clientId == request.auth.uid
-                        && request.resource.data.diff(resource.data).affectedKeys()
-                           .hasOnly(['status','clientId','reservedAt','reservedUntil','updatedAt','updatedBy']));
+                           .data.managingAgentId == request.auth.uid
+                        && _isPlotOwnerContentEditOK())
+                    || (isAuth() && _callerIsActive() && resource.data.clientId == request.auth.uid
+                        && _isClientOwnReservationCancelOK());
       allow delete: if false;
     }
 
