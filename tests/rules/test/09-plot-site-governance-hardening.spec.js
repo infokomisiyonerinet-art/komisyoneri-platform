@@ -233,9 +233,16 @@ describe('Plot/Site Governance Hardening (P0-P2)', function () {
     });
 
     it('plots.mark_sold CAN revert an already-sold plot back to available', async () => {
+      // P0-2 hardening: a reversal out of 'sold' now requires its own fresh
+      // statusChangeReason (see rules/firestore.rules' _plotStatusReasonOK()) —
+      // this fixture call is updated to supply one so it keeps testing what
+      // it always meant to ("reversal succeeds when authorized"), now
+      // correctly satisfying that requirement instead of relying on the gap
+      // this same hardening pass closes (see 11-*-spec.js for the
+      // adversarial coverage of the gap itself).
       const ctx = testEnv.authenticatedContext(UIDS.director);
       await assertSucceeds(
-        ctx.firestore().doc(`plots/${SOLD_PLOT_ID}`).update({ status: 'available' })
+        ctx.firestore().doc(`plots/${SOLD_PLOT_ID}`).update({ status: 'available', statusChangeReason: 'Deal fell through' })
       );
     });
   });
