@@ -33222,7 +33222,6 @@ function submitPlotReservation() {
 
     return db.runTransaction(function(tx) {
       var plotRef = db.collection('plots').doc(plotId);
-      var siteRef = db.collection('sites').doc(siteId);
       return tx.get(plotRef).then(function(pd) {
         if (!pd.exists || pd.data().status !== 'available') throw new Error('Plot unavailable');
         tx.update(plotRef, {
@@ -33234,12 +33233,12 @@ function submitPlotReservation() {
           updatedAt:     now,
           updatedBy:     uid
         });
-        tx.update(siteRef, {
-          availablePlots: firebase.firestore.FieldValue.increment(-1),
-          reservedPlots:  firebase.firestore.FieldValue.increment(1),
-          updatedAt:      now,
-          updatedBy:      uid
-        });
+        // sites/{siteId}'s availablePlots/reservedPlots counters are now
+        // maintained server-side by onPlotStatusChanged (functions/index.js),
+        // reacting to this same plot status write — not here. Client code
+        // never needs (and, per rules/firestore.rules, no longer has) write
+        // access to those fields; the transaction only ever needs to touch
+        // the one document the reserving client actually owns.
         return { siteId: siteId, p: p };
       });
     }).then(function(res) {
@@ -33290,16 +33289,12 @@ function openSiteEnquiry(plotId) {
 }
 
 // ── Staff: Change plot status ────────────────────────
-// Maps a plot status to the site-level counter field that tracks it —
-// there is no 'on_hold' counter (sites/{id} only has totalPlots/
-// availablePlots/reservedPlots/soldPlots, matching the KPI strip's own 4
-// tiles — Total/Available/Reserved/Sold, no "On Hold" tile), so a plot
-// moving into or out of on_hold simply has no counter to touch on that
-// side of the transition; it's still visible individually in the plot
-// grid/legend, just not rolled into any of the 4 KPI numbers.
-var PLOT_STATUS_COUNTER_FIELD = { available: 'availablePlots', reserved: 'reservedPlots', sold: 'soldPlots' };
-// unavailable has no counter, same as on_hold above — it's still visible
-// per-plot in the grid/legend, just not rolled into any KPI tile.
+// sites/{siteId}'s availablePlots/reservedPlots/soldPlots counters (there
+// is no 'on_hold'/'unavailable' counter — sites/{id} only has totalPlots/
+// availablePlots/reservedPlots/soldPlots, matching the site detail page's
+// own 4 KPI tiles) are maintained server-side by onPlotStatusChanged
+// (functions/index.js, PLOT_STATUS_COUNTER_FIELD there) — no client-side
+// equivalent exists in this file anymore.
 
 // transactionSource is a separate, independent concept from status — it
 // only ever records what staff explicitly confirms (never inferred): did
@@ -33335,36 +33330,24 @@ function openPlotStatusChange(plotId, currentStatus) {
   var now = firebase.firestore.FieldValue.serverTimestamp();
   var uid = currentUser.uid;
 
-  // Was a plain plots/{id}.update() with no matching adjustment to
-  // sites/{id}'s availablePlots/reservedPlots/soldPlots counters — those
-  // only ever got maintained by submitPlotReservation()'s own transaction
-  // (available -> reserved specifically). Any OTHER transition made
-  // through this function — reserved -> sold, a cancelled reservation
-  // back to available, etc. — left the counters silently wrong forever
-  // after the first use, since nothing here ever decremented the old
-  // status's counter or incremented the new one. Fixed by reading the
-  // plot's real current status fresh inside a transaction (not trusting
-  // the currentStatus argument, which reflects whatever the modal showed
-  // when it was opened and could be stale) and adjusting both counters
-  // atomically alongside the plot's own status write.
+  // sites/{siteId}'s availablePlots/reservedPlots/soldPlots counters are
+  // now maintained server-side by onPlotStatusChanged (functions/index.js),
+  // reacting to this same plot status write, using the identical
+  // PLOT_STATUS_COUNTER_FIELD mapping this function used to apply
+  // client-side — not here. That trigger derives the plot's real old/new
+  // status from Firestore's own before/after event data, so it can't be
+  // fooled by a stale `currentStatus` argument the way this function's own
+  // client-side counter code previously could be. This transaction now
+  // only ever needs to touch the one plot document being changed.
   db.runTransaction(function(tx) {
     var plotRef = db.collection('plots').doc(plotId);
     return tx.get(plotRef).then(function(pd) {
       if (!pd.exists) throw new Error('Plot not found');
       var oldStatus = pd.data().status || 'available';
-      var siteId = pd.data().siteId;
       var plotUpdate = { status: newStatus, updatedAt: now, updatedBy: uid };
       if (transactionSource) plotUpdate.transactionSource = transactionSource;
       if (statusChangeReason) plotUpdate.statusChangeReason = statusChangeReason;
       tx.update(plotRef, plotUpdate);
-      if (siteId && oldStatus !== newStatus) {
-        var siteUpdate = { updatedAt: now, updatedBy: uid };
-        var oldField = PLOT_STATUS_COUNTER_FIELD[oldStatus];
-        var newField = PLOT_STATUS_COUNTER_FIELD[newStatus];
-        if (oldField) siteUpdate[oldField] = firebase.firestore.FieldValue.increment(-1);
-        if (newField) siteUpdate[newField] = firebase.firestore.FieldValue.increment(1);
-        if (oldField || newField) tx.update(db.collection('sites').doc(siteId), siteUpdate);
-      }
       return oldStatus;
     });
   }).then(function(oldStatus) {
@@ -33447,13 +33430,16 @@ function calculatePlotCommission(plotId) {
         logAudit('commission.calculated', 'commissions', ref.id, {},
           { plotId: plotId, siteId: p.siteId, total: total, agentShare: total * agSpl }
         );
-        // Update site counters
-        db.collection('sites').doc(p.siteId).update({
-          soldPlots:      firebase.firestore.FieldValue.increment(1),
-          availablePlots: firebase.firestore.FieldValue.increment(-1),
-          updatedAt:      now,
-          updatedBy:      uid
-        });
+        // Site counters (availablePlots/reservedPlots/soldPlots) are now
+        // maintained server-side by onPlotStatusChanged (functions/index.js)
+        // reacting to the plot's own status write that triggered this whole
+        // function — not here. This also fixes a real pre-existing bug in
+        // the write this replaces: it unconditionally decremented
+        // availablePlots, even when the plot's prior status was actually
+        // 'reserved' (the common reserve-then-sell path), which should have
+        // decremented reservedPlots instead. onPlotStatusChanged derives the
+        // correct field from the plot's real before/after status, not a
+        // hardcoded assumption.
       });
     });
   }).catch(function(e) { console.error('[Commission] error', e); });
