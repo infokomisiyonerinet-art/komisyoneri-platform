@@ -3715,6 +3715,21 @@ html,body{overscroll-behavior-x:none}
       <span data-rw="Admin Panel" data-en="Admin Panel">Admin Panel</span>
     </button>
 
+    <!-- Super Admin Control Center (hidden unless role === 'super_admin'
+         exactly — see isSuperAdminExact()). Menu-discoverability fix: the
+         Control Center (#page-super-admin, gated the same way inside
+         loadSuperAdminControlCenter() itself) was previously reachable only
+         via Dashboard -> sidebar -> EXECUTIVE section, several taps deeper
+         than Admin Panel's one-tap reach from this same menu — easy to miss
+         entirely, which is exactly what happened. go() works from any
+         screen (it just swaps which #page-* is active), so this is a
+         same-shape sibling of hm-admin-btn above, gated by the narrower
+         check instead of isAdmin(). Toggled in updateHamburgerAuth(). -->
+    <button id="hm-super-admin-btn" onclick="go('super-admin');closeHamburger()" class="hm-item" style="display:none;color:var(--gold);font-weight:700">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
+      <span data-rw="SUPER ADMIN — Ikigo cy'Igenzura" data-en="Super Admin Control Center">Super Admin Control Center</span>
+    </button>
+
     <!-- Logout -->
     <button id="hm-logout-btn" onclick="handleLogout();closeHamburger()" class="hm-item" style="display:none;color:#e53e3e">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
@@ -18506,6 +18521,10 @@ function updateHamburgerAuth() {
   show('hm-agent-btn', isLoggedIn);
   show('hm-logout-btn', isLoggedIn);
   show('hm-admin-btn', isAdminUser);
+  // Menu-discoverability fix: exact role check (not isAdmin(), which also
+  // includes plain 'admin') — see isSuperAdminExact()'s own comment. Plain
+  // admin must not see this; it keeps the existing Admin Panel above.
+  show('hm-super-admin-btn', isLoggedIn && isSuperAdminExact(currentUser));
   // Install button - always show unless already installed
   // Install button always visible - shows instructions if no prompt
   var installBtn2 = document.getElementById('hm-install-btn');
