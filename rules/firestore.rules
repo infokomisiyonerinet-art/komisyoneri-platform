@@ -149,6 +149,47 @@ service cloud.firestore {
         'id','createdAt','updatedAt','createdBy','updatedBy','status','isActive'
       ]);
     }
+    // D-1 remediation (final pre-production security verification): an
+    // attribution field naming WHO performed a write (updatedBy, and the
+    // collection-specific approvedBy/decidedBy below) must actually be the
+    // caller, never an arbitrary uid the payload claims. Several Cloud
+    // Function triggers (onPlotStatusChanged, onPropertyStatusChanged,
+    // onSiteStatusChanged, onDealClosedWon, onApprovalDecided —
+    // functions/index.js) read exactly these fields off the AFTER document
+    // as the acting identity for the immutable auditlogs entry they write
+    // (and, for onDealClosedWon/onApprovalDecided, as part of their own
+    // server-side re-verification) — without this, any authenticated user
+    // performing an otherwise-legitimate write could name a different real
+    // user as having done it, the same class of gap already closed for
+    // auditlogs' own create rule (see that match block's F-1 comment).
+    //
+    // Scoped to UPDATE only, on collections where a real Cloud Function
+    // consumes the field as an identity: properties, plots, sites, deals,
+    // approvals, messages, users, investments, payout_requests, and
+    // commissions.updatedBy (NOT commissions.approvedBy — that field
+    // deliberately stores a display NAME, not a uid, per
+    // submitCommissionDecision() in index.html; pinning it to
+    // request.auth.uid would misunderstand the schema and break that
+    // legitimate write). CREATE-time forgery of createdBy/updatedBy was
+    // investigated and deliberately left out of this pass: hasStandardFields()
+    // already makes both keys mandatory, but at least one confirmed
+    // legitimate flow (_fsAdminApprove()'s localStorage-backfill branch,
+    // index.html) intentionally creates a property with createdBy set to
+    // the ORIGINAL submitting agent's uid, not the admin's own — pinning
+    // create-time values would break that flow, so it needs its own,
+    // separately-approved design rather than reusing this pattern verbatim.
+    //
+    // Diff-gated so a write that doesn't touch the field is completely
+    // unaffected (the field simply keeps whatever value it already had —
+    // never a reason to deny an unrelated field update), and a write that
+    // DOES touch it must set it to the caller's own uid — matching the
+    // same diff-based freshness pattern already used by
+    // _isPropertySoldReasonOK()/_plotStatusReasonOK() above (never judge a
+    // write by a stale value already sitting on the document).
+    function _updateAttributionOK(field) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([field])
+        || request.resource.data.get(field, request.auth.uid) == request.auth.uid;
+    }
     // ── EXISTING collections ──────────────────────────
 
     match /users/{uid} {
@@ -287,12 +328,19 @@ service cloud.firestore {
         return (isAdminOrStaff() && !isDirector())
           || (isDirector() && (request.auth.uid == uid || !isSeniorManager(uid)));
       }
-      allow update: if (_isStaffTierEditableUser(uid) && _agentGovernanceOK())
-                    || isSelfAgentApplication()
-                    || (isAuth() && request.auth.uid == uid
-                        && request.resource.data.diff(resource.data).affectedKeys()
-                           .hasOnly(['phone','location','preference','photoURL','themePref',
-                                     'referralCode','favorites','language','updatedAt','updatedBy']));
+      // D-1: updatedBy hoisted to a single extra top-level AND term — this
+      // rule already needed the _isStaffTierEditableUser()/_agentGovernanceOK()
+      // once-only factoring above to stay under Firestore's ~1000-expression
+      // ceiling (see that fix's own comment), so this must add exactly ONE
+      // evaluation to the whole rule, never one per branch.
+      allow update: if _updateAttributionOK('updatedBy') && (
+                      (_isStaffTierEditableUser(uid) && _agentGovernanceOK())
+                      || isSelfAgentApplication()
+                      || (isAuth() && request.auth.uid == uid
+                          && request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['phone','location','preference','photoURL','themePref',
+                                       'referralCode','favorites','language','updatedAt','updatedBy']))
+                    );
       allow delete: if false;
     }
 
@@ -453,12 +501,17 @@ service cloud.firestore {
               || (_isPropertyHighRiskReversal() ? hasPerm('properties.reverse_sold') : hasPerm('properties.change_status')))
           && _isPropertySoldReasonOK();
       }
-      allow update: if (isAdminOrStaff() && !_isApprovedContentEditByNonCEO() && _propertyGovernanceOK())
-                    || ((resource.data.agentId == request.auth.uid || resource.data.ownerId == request.auth.uid)
-                        && request.resource.data.diff(resource.data).affectedKeys()
-                           .hasOnly(['type','category','district','sector','price','bedrooms',
-                                     'bathrooms','area','description','title','amenities',
-                                     'images','updatedAt','updatedBy']));
+      // D-1: updatedBy is writable on both branches, approvedBy only via
+      // the isAdminOrStaff() branch (_fsAdminApprove()) — hoisted once,
+      // shared across both.
+      allow update: if _updateAttributionOK('updatedBy') && _updateAttributionOK('approvedBy') && (
+                      (isAdminOrStaff() && !_isApprovedContentEditByNonCEO() && _propertyGovernanceOK())
+                      || ((resource.data.agentId == request.auth.uid || resource.data.ownerId == request.auth.uid)
+                          && request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['type','category','district','sector','price','bedrooms',
+                                       'bathrooms','area','description','title','amenities',
+                                       'images','updatedAt','updatedBy']))
+                    );
       allow delete: if false;
     }
 
@@ -503,10 +556,14 @@ service cloud.firestore {
                     && (isAdminOrStaff()
                         || request.resource.data.agentId == request.auth.uid
                         || request.resource.data.clientId == request.auth.uid);
-      allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.agentId == request.auth.uid
-                        && request.resource.data.agentId == request.auth.uid
-                        && request.resource.data.pipelineStage != 'closed_won');
+      // D-1: updatedBy is read directly as actingUid by onDealClosedWon
+      // (functions/index.js) — hoisted once, shared across both branches.
+      allow update: if _updateAttributionOK('updatedBy') && (
+                      isAdminOrStaff()
+                      || (isAuth() && resource.data.agentId == request.auth.uid
+                          && request.resource.data.agentId == request.auth.uid
+                          && request.resource.data.pipelineStage != 'closed_won')
+                    );
       allow delete: if false;
     }
 
@@ -535,7 +592,12 @@ service cloud.firestore {
       // instead of every staff-tier role. A staff-tier account without that
       // permission keeps its existing read access (unaffected above) but
       // can no longer move a commission out of 'pending' itself.
-      allow update: if isAdminOrStaff() && hasPerm('commissions.manage');
+      // D-1: updatedBy only — approvedBy on this collection deliberately
+      // stores a display NAME (submitCommissionDecision(), index.html), not
+      // a uid, so it is intentionally NOT pinned here (see this file's
+      // _updateAttributionOK() comment above).
+      allow update: if isAdminOrStaff() && hasPerm('commissions.manage')
+                    && _updateAttributionOK('updatedBy');
       allow delete: if false;
     }
 
@@ -610,9 +672,12 @@ service cloud.firestore {
       // Approving a payout (the actual money-moving transition) additionally
       // requires commissions.manage — rejecting stays open to the full
       // isAdminOrStaff() tier as before (not a financial action on its own).
+      // D-1: approvedBy is read directly (via after.approvedBy||after.updatedBy)
+      // as actingUid by onPayoutRequestApproved — both fields hoisted once.
       allow update: if (request.resource.data.serverVerified == resource.data.serverVerified
                         && request.resource.data.verifiedAmount == resource.data.verifiedAmount
                         && request.resource.data.verifiedAt == resource.data.verifiedAt)
+                    && _updateAttributionOK('updatedBy') && _updateAttributionOK('approvedBy')
                     && ((isAdminOrStaff()
                          && (request.resource.data.status != 'approved'
                              || (resource.data.status == 'pending' && resource.data.serverVerified == true
@@ -849,10 +914,13 @@ service cloud.firestore {
                     || (isAuth() && resource.data.investorId == request.auth.uid);
       allow create: if isAuth() && hasStandardFields()
                     && request.resource.data.investorId == request.auth.uid;
-      allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.investorId == request.auth.uid
-                        && request.resource.data.diff(resource.data).affectedKeys()
-                           .hasOnly(['status','updatedAt','updatedBy']));
+      // D-1: updatedBy hoisted once, shared across both branches.
+      allow update: if _updateAttributionOK('updatedBy') && (
+                      isAdminOrStaff()
+                      || (isAuth() && resource.data.investorId == request.auth.uid
+                          && request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['status','updatedAt','updatedBy']))
+                    );
       allow delete: if false;
     }
 
@@ -879,10 +947,13 @@ service cloud.firestore {
                       ('participants' in request.resource.data && request.auth.uid in request.resource.data.participants)
                       || ('channel' in request.resource.data && isInternalTeam())
                     );
-      allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.toId == request.auth.uid
-                        && request.resource.data.diff(resource.data).affectedKeys()
-                           .hasOnly(['read','updatedAt','updatedBy']));
+      // D-1: updatedBy hoisted once, shared across both branches.
+      allow update: if _updateAttributionOK('updatedBy') && (
+                      isAdminOrStaff()
+                      || (isAuth() && resource.data.toId == request.auth.uid
+                          && request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['read','updatedAt','updatedBy']))
+                    );
       allow delete: if false;
     }
 
@@ -1008,13 +1079,17 @@ service cloud.firestore {
           'updatedAt','updatedBy'
         ]);
       }
-      allow update: if (isAdminOrStaff() && _siteGovernanceOK())
-                    || (isAuth() && isRole('agent') && _callerIsActive()
-                        && resource.data.managingAgentId == request.auth.uid
-                        && _isSiteOwnerContentEditOK())
-                    || (isAuth() && isRole('developer') && _callerIsActive()
-                        && resource.data.developerId == request.auth.uid
-                        && _isSiteOwnerContentEditOK());
+      // D-1: updatedBy is writable on all three branches, approvedBy only
+      // via the isAdminOrStaff() branch (approveSite()) — hoisted once.
+      allow update: if _updateAttributionOK('updatedBy') && _updateAttributionOK('approvedBy') && (
+                      (isAdminOrStaff() && _siteGovernanceOK())
+                      || (isAuth() && isRole('agent') && _callerIsActive()
+                          && resource.data.managingAgentId == request.auth.uid
+                          && _isSiteOwnerContentEditOK())
+                      || (isAuth() && isRole('developer') && _callerIsActive()
+                          && resource.data.developerId == request.auth.uid
+                          && _isSiteOwnerContentEditOK())
+                    );
       // No client-writable branch for availablePlots/reservedPlots/
       // soldPlots: a security review found that giving clients even a
       // narrowly-bounded direct write to these fields (considered here for
@@ -1202,15 +1277,22 @@ service cloud.firestore {
       // test while incorrectly denying a legitimate ALLOW case that should
       // have succeeded — this factoring removes the risk rather than
       // leaving it to chance.
-      allow update: if (isAdminOrStaff() && _plotStatusOK() && _plotTransactionSourceOK() && _plotStatusReasonOK())
-                    || (isAuth() && _callerIsActive() && (
-                          (get(/databases/$(database)/documents/sites/$(resource.data.siteId))
-                             .data.managingAgentId == request.auth.uid
-                           && _isPlotOwnerContentEditOK())
-                          || (resource.data.clientId == request.auth.uid
-                              && _isClientOwnReservationCancelOK())
-                          || _isClientFirstReservationOK()
-                        ));
+      // D-1: attribution check hoisted to a single top-level AND term (not
+      // duplicated per branch) — same expression-conservation discipline as
+      // the isAuth() && _callerIsActive() factoring right below, which this
+      // rule already needed once before to stay under Firestore's
+      // ~1000-expression ceiling (see that fix's own comment above).
+      allow update: if _updateAttributionOK('updatedBy') && (
+                      (isAdminOrStaff() && _plotStatusOK() && _plotTransactionSourceOK() && _plotStatusReasonOK())
+                      || (isAuth() && _callerIsActive() && (
+                            (get(/databases/$(database)/documents/sites/$(resource.data.siteId))
+                               .data.managingAgentId == request.auth.uid
+                             && _isPlotOwnerContentEditOK())
+                            || (resource.data.clientId == request.auth.uid
+                                && _isClientOwnReservationCancelOK())
+                            || _isClientFirstReservationOK()
+                          ))
+                    );
       allow delete: if false;
     }
 
@@ -1358,11 +1440,14 @@ service cloud.firestore {
       // isCEO()/isAdmin() exactly as before (resource.data.get('routedTo',
       // []) is empty, so the `in` check can never match), so this doesn't
       // change behavior for any of the existing CEO-only approval types.
+      // D-1: decidedBy is read directly (via after.decidedBy||after.updatedBy)
+      // as the decision-maker identity by onApprovalDecided.
       allow update: if request.resource.data.serverVerified == resource.data.serverVerified
                     && (isCEO() || isAdmin() || (isAuth() && request.auth.uid in resource.data.get('routedTo', [])))
                     && resource.data.status == 'pending'
                     && resource.data.serverVerified == true
-                    && request.resource.data.status in ['approved', 'rejected'];
+                    && request.resource.data.status in ['approved', 'rejected']
+                    && _updateAttributionOK('decidedBy') && _updateAttributionOK('updatedBy');
       allow delete: if false;
     }
 
