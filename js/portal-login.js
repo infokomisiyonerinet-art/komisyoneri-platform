@@ -20,9 +20,9 @@
 
   var STAFF_ROLE_TIER = [
     'super_admin', 'admin', 'staff', 'ceo', 'branch_manager', 'hr_manager',
-    'operations_manager', 'marketing_manager', 'company_owner', 'director',
-    'accountant', 'chief_broker', 'customer_support_manager', 'it_manager',
-    'legal_adviser'
+    'operations_manager', 'operations', 'marketing_manager', 'company_owner',
+    'director', 'accountant', 'chief_broker', 'customer_support_manager',
+    'it_manager', 'legal_adviser'
   ];
 
   function roleAllowed(role) {
