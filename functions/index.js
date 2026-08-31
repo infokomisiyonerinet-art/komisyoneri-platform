@@ -448,6 +448,13 @@ exports.onPropertyStatusChanged = onDocumentUpdated({ document: 'properties/{pro
   }
 });
 
+// Mirrors index.html's own PLOT_STATUS_COUNTER_FIELD exactly — keep the two
+// in sync. on_hold/unavailable intentionally have no counter (same
+// precedent as that client-side mapping: sites/{id} only tracks
+// totalPlots/availablePlots/reservedPlots/soldPlots, matching the site
+// detail page's own 4 KPI tiles).
+const PLOT_STATUS_COUNTER_FIELD = { available: 'availablePlots', reserved: 'reservedPlots', sold: 'soldPlots' };
+
 /**
  * Governance hardening P0.5 — plots/sites had NO Cloud Function audit
  * backstop at all (unlike properties' onPropertyStatusChanged above), so a
@@ -465,6 +472,20 @@ exports.onPropertyStatusChanged = onDocumentUpdated({ document: 'properties/{pro
  * confirmRejectSite()) were removed from index.html in the same pass, so a
  * status change now produces exactly one audit entry and one notification,
  * not two.
+ *
+ * Also maintains sites/{siteId}'s availablePlots/reservedPlots/soldPlots
+ * counters server-side (added in the security review that closed a live
+ * finding: submitPlotReservation() needed a way to adjust these same
+ * counters for an ordinary client's own first-time reservation, and the
+ * only options were either granting clients a narrow but genuine direct
+ * write capability on sites/{siteId} — rejected as broader than the
+ * reservation flow actually needed — or moving the maintenance in here,
+ * where it runs via the Admin SDK and bypasses rules/firestore.rules
+ * entirely, so no client, of any role, ever needs write access to these
+ * three fields again). This is now the ONLY place they're written —
+ * submitPlotReservation()'s and openPlotStatusChange()'s own client-side
+ * counter-increment code was removed in the same change, to avoid
+ * double-counting the same transition twice.
  */
 exports.onPlotStatusChanged = onDocumentUpdated({ document: 'plots/{plotId}', region: REGION }, async (event) => {
   const before = event.data.before.data() || {};
@@ -501,6 +522,18 @@ exports.onPlotStatusChanged = onDocumentUpdated({ document: 'plots/{plotId}', re
         : plotLabel + ' marked ' + label + '.' + (after.statusChangeReason ? ' Reason: ' + after.statusChangeReason : ''),
       afterStatus === 'reserved' ? 'plot_reserved' : 'plot_status_changed', 'plots', plotId, actingUid);
   }
+
+  if (after.siteId) {
+    const oldField = PLOT_STATUS_COUNTER_FIELD[beforeStatus];
+    const newField = PLOT_STATUS_COUNTER_FIELD[afterStatus];
+    if (oldField || newField) {
+      const siteUpdate = { updatedAt: FieldValue.serverTimestamp(), updatedBy: actingUid };
+      if (oldField) siteUpdate[oldField] = FieldValue.increment(-1);
+      if (newField) siteUpdate[newField] = FieldValue.increment(1);
+      await db.collection('sites').doc(after.siteId).update(siteUpdate);
+    }
+  }
+
   logger.info('Plot ' + plotId + ' status change (' + beforeStatus + ' -> ' + afterStatus + ') notification sent');
 });
 
