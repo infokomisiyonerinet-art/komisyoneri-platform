@@ -556,13 +556,48 @@ service cloud.firestore {
                     && (isAdminOrStaff()
                         || request.resource.data.agentId == request.auth.uid
                         || request.resource.data.clientId == request.auth.uid);
+      // D-2 security closure (final pre-production security verification):
+      // the owning-agent update branch had NO field restriction beyond
+      // agentId/pipelineStage — an agent could freely rewrite agreedPrice
+      // or dealType (which selects the commission RATE in
+      // calcCommissionAmount()/COMMISSION_RATES, functions/index.js) at
+      // any point before staff closes the deal, with nothing tying either
+      // value to a real negotiation. Verified against every real
+      // deals/{id} update call site in index.html: advanceDealStage()/the
+      // counter-offer stage bump only ever touch pipelineStage+status;
+      // toggleDealMilestone() only touches milestones; saveDealNotes()
+      // only touches notes; closeDealLost() touches pipelineStage+status+
+      // closedAt+lostReason. dealType/propertyId/clientId/commissionRate
+      // are NEVER touched by any update call site — only at deal
+      // CREATION — so they can be frozen outright for this branch.
+      // agreedPrice IS legitimately updated once, by acceptOffer(): the
+      // exact moment a client's offer is accepted, in the same batch as
+      // that offers/{id} document being marked 'accepted', copying
+      // offer.amount verbatim (never an agent-typed value) into
+      // agreedPrice alongside pipelineStage/status moving to 'contract'.
+      // _isDealAgreedPriceChangeOK() pins agreedPrice changes to exactly
+      // that shape — closing the "rewrite the price at will" gap without
+      // breaking the one real flow that legitimately updates it.
+      function _isDealOwnershipAndTypeStableOK() {
+        return !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['dealType','propertyId','clientId','commissionRate']);
+      }
+      function _isDealAgreedPriceChangeOK() {
+        return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['agreedPrice','price'])
+          || (request.resource.data.get('pipelineStage', '') == 'contract'
+              && request.resource.data.get('status', '') == 'contract'
+              && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['pipelineStage','status','agreedPrice','updatedAt','updatedBy']));
+      }
       // D-1: updatedBy is read directly as actingUid by onDealClosedWon
       // (functions/index.js) — hoisted once, shared across both branches.
       allow update: if _updateAttributionOK('updatedBy') && (
                       isAdminOrStaff()
                       || (isAuth() && resource.data.agentId == request.auth.uid
                           && request.resource.data.agentId == request.auth.uid
-                          && request.resource.data.pipelineStage != 'closed_won')
+                          && request.resource.data.pipelineStage != 'closed_won'
+                          && _isDealOwnershipAndTypeStableOK()
+                          && _isDealAgreedPriceChangeOK())
                     );
       allow delete: if false;
     }
@@ -714,7 +749,21 @@ service cloud.firestore {
       allow read:   if isAdminOrStaff()
                     || (isAuth() && (resource.data.fromUserId == request.auth.uid
                         || resource.data.toUserId == request.auth.uid));
-      allow create: if isAuth() && hasStandardFields();
+      // D-2-adjacent closure: fromUserId (the ONLY identity field this
+      // create rule constrained at all before this) was previously
+      // unchecked — any authenticated user could create an offer claiming
+      // to be FROM someone else, which acceptOffer() (index.html) then
+      // trusts to copy offer.amount verbatim into deals.agreedPrice.
+      // Pinning it here closes the most direct way to fabricate a
+      // legitimate-looking "accepted offer" to justify an arbitrary
+      // agreedPrice through that flow — matching the same self-authorship
+      // pin every other collection in this file already requires (e.g.
+      // leads/viewings/messages' fromId). Does not attempt to verify
+      // dealId genuinely belongs to a deal this caller is a party to —
+      // that's a materially larger, separate cross-collection check left
+      // for its own review, not silently expanded into this pass.
+      allow create: if isAuth() && hasStandardFields()
+                    && request.resource.data.fromUserId == request.auth.uid;
       allow update: if isAdminOrStaff()
                     || (isAuth() && (resource.data.fromUserId == request.auth.uid
                         || resource.data.toUserId == request.auth.uid));
