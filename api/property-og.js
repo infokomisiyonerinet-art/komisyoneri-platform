@@ -51,7 +51,19 @@ const DEFAULT_IMAGE = SITE_URL + '/images/kigali-skyline.jpg';
 // apart. Google's own crawlers are the one deliberate exception: they
 // legitimately run on Chrome-based infrastructure even as the real bot.
 const LIGHTWEIGHT_BOT_RE = /facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|redditbot|Pinterest|Applebot|SkypeUriPreview|vkShare|W3C_Validator/i;
-const GOOGLE_BOT_RE = /Google-InspectionTool|GoogleOther/i;
+// CRITICAL fix (SEO indexability audit, P0-1): this used to be
+// /Google-InspectionTool|GoogleOther/i — Search Console's "Inspect URL" tool
+// and the GoogleOther auxiliary crawler, but never the literal string
+// "Googlebot" itself, which is what Google's actual indexing crawler sends
+// (e.g. "...Chrome/W.X.Y.Z Mobile Safari/537.36 (compatible; Googlebot/2.1;
+// +http://www.google.com/bot.html)"). Real Googlebot was falling through to
+// serveSpaShell() below — the same generic, un-rendered shell a human gets —
+// instead of this file's own property-specific renderHtml() path, which is
+// the entire reason this endpoint exists. Matches Google's own documented
+// verification guidance (a plain "Googlebot" substring check) and is
+// consistent with this file's existing trust model: every other bot pattern
+// here is UA-string matching only, no IP/reverse-DNS verification.
+const GOOGLE_BOT_RE = /Googlebot|Google-InspectionTool|GoogleOther/i;
 const REAL_BROWSER_ENGINE_RE = /Chrome\/|CriOS\/|FxiOS\/|Firefox\//i;
 
 function isCrawlerRequest(ua) {

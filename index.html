@@ -14835,6 +14835,17 @@ function renderUserPropCard(prop) {
   // site plan page instead, and drop the two property-only actions.
   var isSiteLinked = !!prop._siteLink;
   var detailOnClick = isSiteLinked ? ('loadSitePlan(\'' + prop._siteLink + '\')') : ('openPropDetail(\'' + pid + '\')');
+  // Real crawlable <a href> so Googlebot (and any other crawler) can discover
+  // /property/{id} pages by following links, not just via sitemap.xml. Only
+  // for real properties — site-linked synthetic cards (see isSiteLinked above)
+  // have no /property/{id} page to link to. Applied to .p-body only: .p-img
+  // still has the fav button nested inside it, and a real <a> wrapping a
+  // <button> would be a nested-interactive-control violation; .p-body has no
+  // interactive children, so it's the safe place for the one real link.
+  var bodyTag = isSiteLinked ? 'div' : 'a';
+  var bodyHrefAttr = isSiteLinked ? '' : (' href="/property/' + encodeURIComponent(pid) + '"');
+  var bodyOnClick = isSiteLinked ? detailOnClick : ('event.preventDefault();' + detailOnClick);
+  var bodyRoleAttrs = isSiteLinked ? ' role="button" tabindex="0"' : ' style="display:block;text-decoration:none;color:inherit"';
   var favBtnHtml = isSiteLinked ? '' : '<button class="p-fav" data-pid="' + pid + '" onclick="event.stopPropagation();toggleFav(\'' + pid + '\',event)" title="Save to favorites" aria-label="Save to favorites"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>';
   var compareBtnHtml = isSiteLinked ? '' : '<button title="Add to Compare" onclick="event.stopPropagation();addToCompare(\'' + pid + '\')" style="padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-size:.82rem;color:var(--muted);transition:var(--tr)" onmouseover="this.style.borderColor=\'var(--navy)\';this.style.color=\'var(--navy)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--muted)\'">⚖️</button>';
   var shareBtnHtml = isSiteLinked ? '' : '<button title="Share" aria-label="Share property" onclick="event.stopPropagation();sharePropLink(\'' + pid + '\',event)" style="padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-size:.82rem;color:var(--muted);transition:var(--tr)" onmouseover="this.style.borderColor=\'var(--navy)\';this.style.color=\'var(--navy)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--muted)\'"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>';
@@ -14848,13 +14859,13 @@ function renderUserPropCard(prop) {
     +   verifiedBadge
     +   favBtnHtml
     + '</div>'
-    + '<div class="p-body" onclick="' + detailOnClick + '" role="button" tabindex="0">'
+    + '<' + bodyTag + ' class="p-body"' + bodyHrefAttr + ' onclick="' + bodyOnClick + '"' + bodyRoleAttrs + '>'
     +   '<div class="p-loc">' + locHtml + '</div>'
     +   '<div class="p-rating">' + ratingRowHtml + photoCountHtml + (prop.viewCount ? '<span style="margin-left:auto;font-size:.68rem;color:var(--muted)">&#128065; ' + Number(prop.viewCount).toLocaleString() + '</span>' : '') + '</div>'
     +   '<div class="p-title">' + propNameHtml + '</div>'
     +   (shortDesc ? '<div style="font-size:.76rem;color:#6b7280;line-height:1.45;margin:.2rem 0">' + shortDesc + '</div>' : '')
     +   '<div class="p-feats">' + featsHtml + '</div>'
-    + '</div>'
+    + '</' + bodyTag + '>'
     + '<div class="p-card-footer">'
     +   '<button class="p-btn-detail" onclick="' + detailOnClick + '">' + t('viewDetail') + '</button>'
     +   compareBtnHtml
@@ -15792,14 +15803,21 @@ function loadSimilarProperties() {
     var matchBadge = item.score === 2
       ? '<span style="font-size:.68rem;background:var(--green);color:#fff;border-radius:4px;padding:.1rem .35rem;margin-left:.3rem">✓ Ifanana</span>'
       : (item.score === 1 ? '<span style="font-size:.68rem;background:var(--light);color:var(--muted);border-radius:4px;padding:.1rem .35rem;margin-left:.3rem">~ ' + escapeHtml(prop.type === (cur&&cur.type) ? prop.type : prop.district) + '</span>' : '');
-    return '<div style="display:flex;align-items:center;gap:.7rem;cursor:pointer;padding:.5rem;border-radius:9px;transition:var(--tr)" '
+    // Real <a href="/property/{id}"> for crawlability (was a role="button" div
+    // whose onclick passed openPropDetail() the whole prop object via
+    // JSON.stringify — openPropDetail(propId) only ever matches a plain
+    // string id via String(p.id) === String(propId), so that call always
+    // fell through to "Property not found"; fixed here to pass the id
+    // directly, same convention as every other openPropDetail() call site).
+    var simPid = String(prop.id);
+    return '<a href="/property/' + encodeURIComponent(simPid) + '" style="display:flex;align-items:center;gap:.7rem;cursor:pointer;padding:.5rem;border-radius:9px;transition:var(--tr);text-decoration:none;color:inherit" '
       + 'onmouseover="this.style.background=\'var(--light)\'" onmouseout="this.style.background=\'\'" '
-      + 'onclick="openPropDetail(' + JSON.stringify(prop).replace(/"/g,'&quot;') + ')" role="button" tabindex="0">'
+      + 'onclick="event.preventDefault();openPropDetail(\'' + simPid + '\')">'
       + '<div style="width:52px;height:46px;border-radius:8px;flex-shrink:0;' + imgStyle + '" class="' + colorClass + '"></div>'
       + '<div style="flex:1;min-width:0">'
       + '<div style="font-size:.84rem;font-weight:600;display:flex;align-items:center;flex-wrap:wrap">' + escapeHtml(prop.title || (prop.type + ' — ' + (prop.district||''))) + matchBadge + '</div>'
       + '<div style="font-size:.76rem;color:var(--muted)">' + priceDisplay + '</div>'
-      + '</div></div>';
+      + '</div></a>';
   }).join('');
 }
 
@@ -17453,7 +17471,7 @@ function openPropDetail(propId) {
           '@type': 'RealEstateListing',
           name: propTitleText,
           description: prop.desc || propTitleText,
-          url: 'https://komisiyoneri.co.rw/listings',
+          url: _propShareUrl(prop.id),
           image: prop.img1 || undefined,
           datePosted: prop.createdAt || undefined,
           address: {
