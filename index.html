@@ -7864,10 +7864,16 @@ html,body{overscroll-behavior-x:none}
 <div class="page" id="page-site">
   <div class="list-hdr">
     <div class="wrap">
-      <button onclick="go('sites')" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:.35rem .8rem;font-size:.78rem;cursor:pointer;margin-bottom:.7rem;display:inline-flex;align-items:center;gap:.4rem">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-        <span data-rw="Garuka" data-en="Back">Back</span>
-      </button>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.7rem">
+        <button onclick="go('sites')" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:.35rem .8rem;font-size:.78rem;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span data-rw="Garuka" data-en="Back">Back</span>
+        </button>
+        <button onclick="shareSiteLink(currentSiteId,event)" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:.35rem .8rem;font-size:.78rem;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem" title="Share this development">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <span data-rw="Sangira" data-en="Share">Share</span>
+        </button>
+      </div>
       <div class="eyebrow tag-green" id="site-detail-district">📍 District</div>
       <h1 class="h1" id="site-detail-name">Site Name</h1>
       <p style="color:rgba(255,255,255,.82);font-size:.85rem" id="site-detail-desc">Description</p>
@@ -14809,22 +14815,6 @@ function renderUserPropCard(prop) {
   // Verified bottom-left badge
   var verifiedBadge = prop.verified ? '<div class="p-verified"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' + t('verified') + '</div>' : '';
 
-  // WhatsApp message — kept raw (not HTML-escaped): this goes into a wa.me
-  // URL's text parameter, not into innerHTML, so HTML entities would show
-  // up literally in the WhatsApp message text.
-  var propName = (prop.type||'Imitungo') + (prop.district ? ' — '+prop.district : '');
-  var propNameHtml = escapeHtml(propName);
-  // Same "Title | Price | District, Sector <link>" text sharePropLink()
-  // sends — always the general KOMISIYONERI line (no per-agent WhatsApp
-  // routing), with the property's own share link included so staff can see
-  // exactly which listing a client means without asking them to repeat it.
-  var waText = encodeURIComponent(_propShareText(prop) + ' ' + _propShareUrl(pid));
-  var waPhone = '250783177254';
-
-  // Photo has no <img>/alt (CSS background, for lazy-load perf) — role+aria-label
-  // gives screen readers and AI content parsers the same context an alt would.
-  var imgAriaLabel = escapeHtml((prop.title || propName) + (loc ? ' — ' + loc : '') + ' photo');
-
   // loadHomepageRotation()'s "Plots for Sale" / "Site Nshya" slots hand this
   // renderer a synthetic prop built from a sites/{id} or plots/{id} document
   // (see _normalizeSiteAsProp()/_normalizePlotAsProp()), tagged with
@@ -14835,6 +14825,28 @@ function renderUserPropCard(prop) {
   // site plan page instead, and drop the two property-only actions.
   var isSiteLinked = !!prop._siteLink;
   var detailOnClick = isSiteLinked ? ('loadSitePlan(\'' + prop._siteLink + '\')') : ('openPropDetail(\'' + pid + '\')');
+
+  // WhatsApp message — kept raw (not HTML-escaped): this goes into a wa.me
+  // URL's text parameter, not into innerHTML, so HTML entities would show
+  // up literally in the WhatsApp message text.
+  var propName = (prop.type||'Imitungo') + (prop.district ? ' — '+prop.district : '');
+  var propNameHtml = escapeHtml(propName);
+  // Same "Title | Price | District, Sector <link>" text sharePropLink()/
+  // shareSiteLink() send — always the general KOMISIYONERI line (no
+  // per-agent WhatsApp routing), with the listing's own share link included
+  // so staff can see exactly which listing a client means without asking
+  // them to repeat it. isSiteLinked cards must use the real site's own
+  // shareable link (_siteShareUrl) here, never _propShareUrl(pid) — pid for
+  // these synthetic cards is 'site_'+id or 'plot_'+id, never a real
+  // properties/{id} doc, so _propShareUrl(pid) would build a broken
+  // /property/site_xxx link.
+  var waShareUrl = isSiteLinked ? _siteShareUrl(prop._siteLink) : _propShareUrl(pid);
+  var waText = encodeURIComponent(_propShareText(prop) + ' ' + waShareUrl);
+  var waPhone = '250783177254';
+
+  // Photo has no <img>/alt (CSS background, for lazy-load perf) — role+aria-label
+  // gives screen readers and AI content parsers the same context an alt would.
+  var imgAriaLabel = escapeHtml((prop.title || propName) + (loc ? ' — ' + loc : '') + ' photo');
   // Real crawlable <a href> so Googlebot (and any other crawler) can discover
   // /property/{id} pages by following links, not just via sitemap.xml. Only
   // for real properties — site-linked synthetic cards (see isSiteLinked above)
@@ -14848,7 +14860,14 @@ function renderUserPropCard(prop) {
   var bodyRoleAttrs = isSiteLinked ? ' role="button" tabindex="0"' : ' style="display:block;text-decoration:none;color:inherit"';
   var favBtnHtml = isSiteLinked ? '' : '<button class="p-fav" data-pid="' + pid + '" onclick="event.stopPropagation();toggleFav(\'' + pid + '\',event)" title="Save to favorites" aria-label="Save to favorites"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>';
   var compareBtnHtml = isSiteLinked ? '' : '<button title="Add to Compare" onclick="event.stopPropagation();addToCompare(\'' + pid + '\')" style="padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-size:.82rem;color:var(--muted);transition:var(--tr)" onmouseover="this.style.borderColor=\'var(--navy)\';this.style.color=\'var(--navy)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--muted)\'">⚖️</button>';
-  var shareBtnHtml = isSiteLinked ? '' : '<button title="Share" aria-label="Share property" onclick="event.stopPropagation();sharePropLink(\'' + pid + '\',event)" style="padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-size:.82rem;color:var(--muted);transition:var(--tr)" onmouseover="this.style.borderColor=\'var(--navy)\';this.style.color=\'var(--navy)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--muted)\'"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>';
+  // Share stays available for isSiteLinked cards too (a Site or Plot slot
+  // from loadHomepageRotation()) — it now points at the real site's own
+  // #site= deep link (shareSiteLink()) instead of the property share flow,
+  // which would look up a synthetic id that has no properties/{id} doc.
+  var shareOnClick = isSiteLinked
+    ? ('shareSiteLink(\'' + prop._siteLink + '\',event)')
+    : ('sharePropLink(\'' + pid + '\',event)');
+  var shareBtnHtml = '<button title="Share" aria-label="' + (isSiteLinked ? 'Share this development' : 'Share property') + '" onclick="event.stopPropagation();' + shareOnClick + '" style="padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-size:.82rem;color:var(--muted);transition:var(--tr)" onmouseover="this.style.borderColor=\'var(--navy)\';this.style.color=\'var(--navy)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--muted)\'"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>';
 
   return '<div class="p-card" data-pid="' + pid + '" style="cursor:pointer">'
     + '<div class="p-img ' + gclass + '" role="img" aria-label="' + imgAriaLabel + '"' + imgBg + ' style="position:relative' + (imgBg ? ';background-size:cover;background-position:center' : '') + '" onclick="' + detailOnClick + '">'
@@ -17851,6 +17870,43 @@ function sharePropLink(propId, event) {
   openShareFallback(url, text);
 }
 
+// === SHAREABLE SITE (NEW DEVELOPMENT) LINKS ===
+// Sites have no server-rendered /site/{id} route (no api/site-og.js, no
+// vercel.json rewrite — unlike /property/{id}) — this is a deliberate,
+// minimal deep link only: a hash fragment, resolved entirely client-side
+// by checkUrlHash() below. Link previews on WhatsApp/Facebook won't get
+// rich Open Graph tags the way a shared property link does, but the link
+// itself genuinely opens the right site, which the platform could not do
+// at all before this. Building the equivalent of property-og.js for sites
+// is a separate, larger piece of work, not silently folded into this one.
+// Named distinctly from the pre-existing global _sitesCache (an ARRAY used
+// by loadSites()/filterSites() for the sites listing page's own filtering)
+// — this is a separate id-keyed lookup map for the Share feature only.
+window._siteShareCache = window._siteShareCache || {};
+function _cacheSite(site) { if (site && site.id) window._siteShareCache[site.id] = site; }
+function _findSiteById(siteId) { return window._siteShareCache[siteId] || null; }
+
+function _siteShareUrl(siteId) {
+  return 'https://komisiyoneri.co.rw/#site=' + encodeURIComponent(siteId);
+}
+function _siteShareText(site) {
+  var title = (site && site.name) || (curLang === 'rw' ? 'Site Nshya' : 'New Development');
+  var loc = site ? [site.district, site.sector].filter(Boolean).join(', ') : '';
+  return [title, loc].filter(Boolean).join(' | ');
+}
+function shareSiteLink(siteId, event) {
+  if (event && event.stopPropagation) event.stopPropagation();
+  if (!siteId) return;
+  var site = _findSiteById(siteId);
+  var url = _siteShareUrl(siteId);
+  var text = _siteShareText(site);
+  if (navigator.share) {
+    navigator.share({ title: (site && site.name) || 'KOMISIYONERI', text: text, url: url }).catch(function(){});
+    return;
+  }
+  openShareFallback(url, text);
+}
+
 // Desktop / unsupported-browser fallback: navigator.share() isn't
 // available (mainly desktop browsers), so show direct share links instead.
 // TikTok has no reliable web share-intent URL — it shares fine through the
@@ -17960,6 +18016,15 @@ function checkUrlHash() {
     var propId = hash.replace('#prop=', '');
     setTimeout(function() {
       openPropDetail(propId);
+    }, 800);
+    return;
+  }
+  // Sites have no server-rendered path route (see _siteShareUrl()'s own
+  // comment) — this hash is the only shareable/deep-linkable form.
+  if(hash && hash.indexOf('#site=') === 0) {
+    var siteId = hash.replace('#site=', '');
+    setTimeout(function() {
+      loadSitePlan(siteId);
     }, 800);
     return;
   }
@@ -32962,6 +33027,7 @@ function renderSitesGrid(sites) {
     grid.innerHTML = '<div class="crm-empty" style="grid-column:1/-1"><div class="crm-empty-icon">🏗️</div><div class="crm-empty-title" data-rw="Nta sitey ihari" data-en="No sites found">No development sites found</div></div>';
     return;
   }
+  sites.forEach(_cacheSite);
   grid.innerHTML = sites.map(function(s) {
     var avail = s.availablePlots || 0;
     var resv  = s.reservedPlots  || 0;
@@ -32993,6 +33059,9 @@ function renderSitesGrid(sites) {
         '<div class="site-card-footer">' +
           '<button class="btn btn-navy btn-sm" onclick="event.stopPropagation();loadSitePlan(\'' + s.id + '\')" data-rw="Reba Imishinga" data-en="View Site Plan">View Site Plan</button>' +
           '<button class="btn btn-gold btn-sm" onclick="event.stopPropagation();loadSitePlan(\'' + s.id + '\')" data-rw="Ibiraro" data-en="View Plots">View Plots</button>' +
+          '<button class="btn btn-outline btn-sm" title="Share" aria-label="Share this development" onclick="event.stopPropagation();shareSiteLink(\'' + s.id + '\',event)">' +
+            '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>' +
+          '</button>' +
         '</div>' +
       '</div>' +
     '</div>';
@@ -33005,6 +33074,16 @@ function loadSitePlan(siteId) {
   if (!siteId) return;
   currentSiteId = siteId;
   go('site');
+
+  // go('site') already pushed a history entry (hash-based, since 'site'
+  // isn't in go()'s CLEAN_PATHS) — replace it with the specific #site=
+  // deep link so the address bar and any copy-paste-the-URL sharing match
+  // what shareSiteLink() generates. Mirrors openPropDetail()'s identical
+  // replaceState call for /property/{id}; see _siteShareUrl()'s own
+  // comment for why this is a hash, not a real server-rendered path.
+  if (window.history && window.history.replaceState) {
+    window.history.replaceState({ page: 'site', siteId: siteId }, '', '#site=' + encodeURIComponent(siteId));
+  }
 
   var nameEl  = document.getElementById('site-detail-name');
   var descEl  = document.getElementById('site-detail-desc');
@@ -33023,6 +33102,7 @@ function loadSitePlan(siteId) {
       return;
     }
     var s = doc.data(); s.id = doc.id;
+    _cacheSite(s);
     var lang = typeof curLang !== 'undefined' ? curLang : 'rw';
 
     if (nameEl) nameEl.textContent = s.name || 'Site';
@@ -34895,6 +34975,11 @@ function loadHomepageRotation() {
     var pools = results[0];
     var sites = results[1];
     var soldProp = results[2];
+    // Warm the Share-lookup cache for the "New Development" / "Plots for
+    // Sale" slots below — both are keyed to a real site via _siteLink, and
+    // shareSiteLink() needs the real site's name/district synchronously
+    // when that button is clicked.
+    sites.forEach(_cacheSite);
 
     var usedIds = {};
     function takeFromPool(type) {
