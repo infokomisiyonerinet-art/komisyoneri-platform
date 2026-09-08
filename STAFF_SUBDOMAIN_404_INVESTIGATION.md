@@ -1,5 +1,12 @@
 # staff.komisiyoneri.co.rw — 404 Investigation
 
+> **Update:** the same "🧭 Page Not Found" symptom has since been confirmed
+> on the main `www.komisiyoneri.co.rw` domain too, not just `staff.` — see
+> `VERCEL_404_RECURRING_INVESTIGATION.md` for the widened investigation,
+> the method for telling this page apart from the SPA's own `#page-404`
+> from a screenshot alone, and the updated dashboard-side decision tree.
+> Everything below still holds for the `staff.`-specific case.
+
 ## Report
 
 Visiting `https://staff.komisiyoneri.co.rw` returns **Vercel's own "Page Not
