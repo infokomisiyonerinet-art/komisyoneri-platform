@@ -214,7 +214,7 @@ module.exports = async function handler(req, res) {
     var resp = await fetch(apiUrl);
 
     if (!resp.ok) {
-      res.setHeader('Cache-Control', 'public, max-age=60');
+      res.setHeader('Cache-Control', 'private, max-age=60');
       return res.status(resp.status === 404 ? 404 : 502).end(renderHtml({
         title: 'KOMISIYONERI', desc: 'Property not found — view all listings on KOMISIYONERI.',
         image: DEFAULT_IMAGE, url: propUrl
@@ -255,8 +255,8 @@ module.exports = async function handler(req, res) {
     var isPublic = isActive !== false && (status === 'approved' || status === 'sold');
 
     res.setHeader('Cache-Control', isPublic
-      ? 'public, max-age=300, s-maxage=600, stale-while-revalidate=3600'
-      : 'public, max-age=60');
+      ? 'private, max-age=300'
+      : 'private, max-age=60');
 
     if (!isPublic) {
       return res.status(200).end(renderHtml({
