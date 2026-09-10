@@ -19812,7 +19812,21 @@ document.addEventListener('securitypolicyviolation', function(e) {
       // into the "request permission" flow below with nothing to show for it.
       if (_fsNotifList.length > 0 || (typeof Notification !== 'undefined' && Notification.permission === 'granted')) {
         if (panel && panel.style.display !== 'none') { closeNotifPanel(); return; }
-        openNotifPanel(); return;
+        // Explicit window.openNotifPanel() — NOT a bare openNotifPanel()
+        // call. This function shares its enclosing IIFE with the retired
+        // local `function openNotifPanel() {}` a few lines above (kept only
+        // so `window.openNotifPanel = openNotifPanel` below has a value to
+        // bind at that point in script execution) — a bare call here
+        // resolves via normal JS lexical scoping to THAT local no-op
+        // instead of the real, Firestore-aware implementation the later
+        // "NOTIFICATION CENTER" script block reassigns window.openNotifPanel
+        // to, since reassigning a global doesn't change what an
+        // already-in-scope local name refers to. That's what silently
+        // broke the bell (badge showing a count, click doing nothing, no
+        // console error) — going through window.openNotifPanel explicitly
+        // reaches the correct implementation regardless of this file's own
+        // local shadow.
+        window.openNotifPanel(); return;
       }
       // First time — request permission
       if (!currentUser) { showToast(curLang==='rw' ? 'Injira kugira ngo wemeze notifications.' : 'Log in to enable notifications.'); return; }
@@ -19821,7 +19835,7 @@ document.addEventListener('securitypolicyviolation', function(e) {
         if (perm === 'granted') {
           showToast(curLang==='rw' ? '✅ Notifications zemewe!' : '✅ Notifications enabled!');
           kmNotify('KOMISIYONERI', curLang==='rw' ? 'Uzabona leads, bookings na approvals vuba!' : 'You will be notified for leads, bookings and approvals!', 'welcome');
-          openNotifPanel();
+          window.openNotifPanel(); // see comment above — same shadow risk
         } else {
           showToast(curLang==='rw' ? 'Notifications zananiwe. Hindura settings za browser.' : 'Notifications blocked. Update your browser settings.');
         }
