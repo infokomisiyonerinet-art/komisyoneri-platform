@@ -12341,7 +12341,7 @@ function renderDashboardListings(props) {
   var gradients = ['g1','g2','g3','g4','g5','g6','g7'];
   el.innerHTML = props.slice(0,4).map(function(prop, i) {
     var gc = gradients[i % 7];
-    var price = prop.price ? (Number(prop.price)>=1000000 ? (Number(prop.price)/1000000).toFixed(0)+'M RWF' : Number(prop.price).toLocaleString()+' RWF') : '—';
+    var price = formatPropPriceAbbrev(prop.price);
     var statusColor = prop.status==='Approved' ? 'sd-green' : prop.status==='Pending' ? 'sd-gold' : 'sd-muted';
     var statusLabel = prop.status==='Approved' ? (curLang==='rw'?'Iraboneka':'Active')
                     : prop.status==='Pending'  ? (curLang==='rw'?'Irasabwa':'Pending') : escapeHtml(prop.status||'');
@@ -14741,6 +14741,86 @@ window.addEventListener('DOMContentLoaded', function() {
 
 var adminCurrentFilter = 'pending';
 
+// ══════════════════════════════════════════════════════════════════════
+// CANONICAL PROPERTY PRICE — single source of truth for parsing a
+// user-typed RWF amount and for formatting properties/{id}.price for
+// display. properties/{id}.price itself stays the one canonical numeric
+// field (Number, full RWF amount, e.g. 1500000) — nothing here ever
+// introduces a second competing price field or stores a formatted
+// string as the canonical value.
+//
+// Fixes the price-integrity audit's two confirmed bugs:
+// 1. Card/Home Featured/Similar Properties/My Listings each independently
+//    reimplemented Math.round(price/1e6) (or .toFixed(0), same effect),
+//    which rounds to the nearest whole million — e.g. 3,800,000 silently
+//    became "4M RWF" — while the detail page's own exact
+//    toLocaleString() correctly showed "3,800,000 RWF". Both read the
+//    identical stored value; only the abbreviation was lossy. All of
+//    those call sites now share formatPropPriceAbbrev() below.
+// 2. Property create/edit used parseInt() on the raw price input, which
+//    truncates any decimal with no warning (parseInt("1.5") -> 1) —
+//    silently storing a wrong amount instead of rejecting an ambiguous
+//    one. parsePropertyPriceInput() below replaces that.
+//
+// The existing parseP() (applySearchFilters(), this file) explicitly
+// supports an "80M" shorthand — inspected and deliberately left
+// untouched: it parses a free-text SEARCH threshold, where that
+// shorthand is the whole point, not a strict RWF amount entry field.
+// The Add/Edit Property price input is a plain type="number" field
+// labeled "Price (RWF)" with no unit selector (its own placeholder,
+// "urugero: 85000000", is a full digit-by-digit example) — so a bare
+// decimal like "1.5" has no defined meaning there and must be rejected,
+// never guessed at as "1.5 million".
+// ══════════════════════════════════════════════════════════════════════
+
+// Returns the parsed non-negative INTEGER RWF amount, or null if raw
+// isn't a valid whole-number amount (empty, non-numeric, negative, or
+// fractional). Callers must treat null as "reject this submission" —
+// never fall back to a truncated/guessed number.
+function parsePropertyPriceInput(raw) {
+  if (raw === null || raw === undefined) return null;
+  var s = String(raw).trim();
+  if (!s) return null;
+  var n = Number(s);
+  if (!isFinite(n) || isNaN(n)) return null;
+  if (n < 0) return null;
+  if (Math.floor(n) !== n) return null;
+  return n;
+}
+
+// Abbreviated display ("3.8M RWF", "1.5M RWF", "500K RWF") — for every
+// card/list surface (property cards, Home Featured, search results,
+// Similar Properties, Agent dashboard "My Listings"). Never rounds to a
+// whole million/thousand; keeps one decimal place when the amount isn't
+// an exact multiple, and trims a trailing ".0". Safe for null/undefined/
+// 0/NaN/negative/non-numeric-string input — returns '—' rather than a
+// misleading number.
+function formatPropPriceAbbrev(price) {
+  var n = Number(price);
+  if (!isFinite(n) || isNaN(n) || n <= 0) return '—';
+  function oneDecimal(v) {
+    var r = Math.round(v * 10) / 10; // avoids floating-point tails like 3.8000000000000003
+    return (r % 1 === 0) ? String(r) : r.toFixed(1);
+  }
+  if (n >= 1000000) return oneDecimal(n / 1000000) + 'M RWF';
+  if (n >= 1000) return oneDecimal(n / 1000) + 'K RWF';
+  return Math.round(n) + ' RWF';
+}
+
+// Exact display ("3,800,000 RWF") — the property detail page, and
+// anywhere else the full, unabbreviated amount should read as provably
+// the same number as the abbreviated card ("3.8M RWF" vs "3,800,000
+// RWF" are the same amount to a reader). service adds the '/mo' rental
+// suffix, matching the card/detail convention elsewhere in this file.
+function formatPropPriceExact(price, service) {
+  var priceNum = parseInt(price) || 0;
+  var priceStr = priceNum >= 1000000
+    ? priceNum.toLocaleString() + ' RWF'
+    : (priceNum >= 1000 ? priceNum.toLocaleString() + ' RWF' : '—');
+  if (service === 'Gukodesha') priceStr += '/mo';
+  return priceStr;
+}
+
 // --- RENDER USER PROPERTY CARD ---
 function renderUserPropCard(prop) {
   var pid = String(prop.id);
@@ -14748,12 +14828,9 @@ function renderUserPropCard(prop) {
   var gidx = pid.split('').reduce(function(a,c){return a+(c.charCodeAt(0));},0) % 7;
   var gclass = gradients[gidx];
 
-  // Price
-  var priceNum = parseInt(prop.price) || 0;
-  var priceLabel = priceNum >= 1000000
-    ? (Math.round(priceNum/1000000)) + 'M RWF'
-    : priceNum >= 1000 ? (Math.round(priceNum/1000)) + 'K RWF'
-    : priceNum + ' RWF';
+  // Price — canonical formatter (see the CANONICAL PROPERTY PRICE block
+  // above); never rounds away sub-million/sub-thousand precision.
+  var priceLabel = formatPropPriceAbbrev(prop.price);
   if(prop.service === 'Gukodesha') priceLabel += '/mo';
 
   // Service badge — t('rentBadge')/t('saleBadge') so this follows the
@@ -15811,11 +15888,7 @@ function loadSimilarProperties() {
 
   list.innerHTML = show.map(function(item, i) {
     var prop = item.p;
-    var priceDisplay = prop.price
-      ? (parseInt(prop.price) >= 1000000
-        ? Math.round(parseInt(prop.price)/1000000) + 'M RWF'
-        : Math.round(parseInt(prop.price)/1000) + 'K RWF')
-      : '—';
+    var priceDisplay = formatPropPriceAbbrev(prop.price);
     if (prop.service === 'Gukodesha') priceDisplay += '/mo';
     var imgStyle = prop.img1 ? 'background:url(' + _cldSize(prop.img1,96,80) + ') center/cover no-repeat' : '';
     var colorClass = prop.img1 ? '' : colors[i % colors.length];
@@ -17349,6 +17422,19 @@ function openPropDetail(propId) {
   window._currentProp = prop;
   kmTrack('view_item',{item_id:String(prop.id),item_name:prop.title||'',price:prop.price||'',district:prop.district||'',type:prop.type||''});
 
+  // Price-integrity audit finding: this whole function is cache-first
+  // (km_properties in localStorage) with no freshness check — a price
+  // edited in Firestore after this device last cached the property can
+  // stay invisible here indefinitely, even though Home
+  // Featured/cards/search (which always query Firestore fresh) would
+  // already show the new number. Render from cache above stays instant;
+  // this patches the price in place, non-blocking, if Firestore
+  // disagrees. Demo-only properties have no properties/{id} doc to
+  // revalidate against.
+  if (!prop.isDemo && typeof db !== 'undefined') {
+    _revalidatePropDetailPrice(String(prop.id));
+  }
+
   // Property view tracking — increment Firestore counter, session-deduped
   (function _trackPropView(pid, isDemo) {
     if (!window._viewedProps) window._viewedProps = {};
@@ -17413,12 +17499,8 @@ function openPropDetail(propId) {
     }
   }, 100);
 
-  // === PRICE ===
-  var priceNum = parseInt(prop.price)||0;
-  var priceStr = priceNum >= 1000000
-    ? priceNum.toLocaleString() + ' RWF'
-    : (priceNum >= 1000 ? priceNum.toLocaleString() + ' RWF' : '—');
-  if(prop.service === 'Gukodesha') priceStr += '/mo';
+  // === PRICE === (canonical exact formatter — see formatPropPriceExact())
+  var priceStr = formatPropPriceExact(prop.price, prop.service);
 
   // === HERO IMAGE ===
   var heroBg = document.querySelector('.det-hero-bg');
@@ -17813,6 +17895,41 @@ function openPropDetail(propId) {
     window.history.replaceState({ page: 'detail', propId: prop.id }, '', '/property/' + encodeURIComponent(prop.id));
   }
   _updatePropertyMeta(prop);
+}
+
+// Background price revalidation for openPropDetail()'s cache-first render
+// (see that call site's own comment). De-duped per property id so rapid
+// navigation between properties can't pile up overlapping fetches for the
+// same id. Firestore is authoritative: if its price differs from what was
+// just rendered from localStorage, patches the visible price and the
+// localStorage cache entry in place — never re-fetches or re-renders
+// anything else on the page.
+var _propDetailRevalidateInFlight = {};
+function _revalidatePropDetailPrice(propId) {
+  if (_propDetailRevalidateInFlight[propId]) return;
+  _propDetailRevalidateInFlight[propId] = true;
+  db.collection('properties').doc(propId).get().then(function(doc) {
+    delete _propDetailRevalidateInFlight[propId];
+    if (!doc.exists) return; // removed/demo-only — cache stays authoritative for what it has
+    var freshPrice = doc.data().price;
+    // The visitor may have already navigated to a different property
+    // while this fetch was in flight — only patch the one still showing.
+    if (!window._currentProp || String(window._currentProp.id) !== propId) return;
+    if (String(window._currentProp.price) === String(freshPrice)) return; // already current — the common case
+    window._currentProp.price = freshPrice;
+    var priceEl = document.querySelector('.det-price');
+    if (priceEl) {
+      priceEl.innerHTML = formatPropPriceExact(freshPrice, window._currentProp.service)
+        + '<small>(' + escapeHtml(window._currentProp.service || 'Kugurisha') + ')</small>';
+    }
+    try {
+      var ls = JSON.parse(localStorage.getItem('km_properties') || '[]');
+      var idx = ls.findIndex(function(p) { return String(p.id) === propId; });
+      if (idx !== -1) { ls[idx].price = freshPrice; localStorage.setItem('km_properties', JSON.stringify(ls)); }
+    } catch (e) {}
+  }).catch(function() {
+    delete _propDetailRevalidateInFlight[propId];
+  });
 }
 
 function switchGallery(el, imgUrl) {
@@ -35698,7 +35815,7 @@ function _savePropToFirestoreFS(propData, status, userId, isVerified) {
     category:    propData.service === 'Gukodesha' ? 'rent' : 'sale',
     district:    propData.district    || '',
     sector:      propData.sector      || '',
-    price:       parseInt(propData.price)    || 0,
+    price:       parsePropertyPriceInput(propData.price) || 0,
     bedrooms:    parseInt(propData.beds)     || 0,
     bathrooms:   parseInt(propData.baths)    || 0,
     area:        propData.size        || '',
@@ -35830,12 +35947,31 @@ function submitProperty() {
       showToast(curLang==='rw'?'Imitungo yemejwe ntishobora guhindurwa.':'Only pending listings can be edited.','warn');
       closeAddProperty(); return;
     }
+    // Price-integrity audit: reject a fractional/invalid price explicitly
+    // instead of silently truncating it later (parseInt("1.5") -> 1). The
+    // field may legitimately be left blank on edit (keeps the existing
+    // price, see the fallback below) — only a NON-empty, invalid value is
+    // rejected here. Parsed once, up front, so the same validated number
+    // (never a re-read, possibly-stale DOM value) is used after the async
+    // image upload below.
+    var editPriceRaw = g('prop-price');
+    var editPriceParsed = editPriceRaw ? parsePropertyPriceInput(editPriceRaw) : null;
+    if (editPriceRaw && editPriceParsed === null) {
+      showToast(curLang==='rw'
+        ? 'Igiciro kigomba kuba umubare wuzuye wa RWF (urugero: 1500000), nta desimali.'
+        : 'Price must be a whole RWF amount (e.g. 1500000), no decimals.', 'error');
+      return;
+    }
     setBusy(true);
     PropImageUploader.uploadAll('properties/' + editId).then(function(urls) {
       var u = eProps[ei];
       u.type=g('prop-type')||u.type; u.service=g('prop-service')||u.service;
       u.district=g('prop-district')||u.district; u.sector=g('prop-sector');
-      u.price=g('prop-price')||u.price; u.beds=g('prop-beds'); u.baths=g('prop-baths');
+      // Canonical numeric price — same validated value on both localStorage
+      // (below) and the Firestore write (see price:parsePropertyPriceInput(u.price)||0
+      // further down), never a raw un-parsed string in one and a parsed
+      // int in the other (the audit's confirmed local/Firestore divergence).
+      u.price=(editPriceParsed !== null ? editPriceParsed : u.price); u.beds=g('prop-beds'); u.baths=g('prop-baths');
       u.size=g('prop-size'); u.desc=g('prop-desc');
       u.contact=g('prop-contact')||u.contact; u.phone=g('prop-contact')||u.phone;
       u.title=g('prop-title')||(u.type+(u.district?' — '+u.district:''));
@@ -35859,7 +35995,7 @@ function submitProperty() {
       if (u._fsId && typeof db !== 'undefined') {
         syncTarget = db.collection('properties').doc(u._fsId).update({
           type:u.type, category:u.service==='Gukodesha'?'rent':'sale',
-          district:u.district, sector:u.sector||'', price:parseInt(u.price)||0,
+          district:u.district, sector:u.sector||'', price:parsePropertyPriceInput(u.price)||0,
           bedrooms:parseInt(u.beds)||0, bathrooms:parseInt(u.baths)||0,
           area:u.size||'', description:u.desc||'', title:u.title||'',
           amenities:u.amenities||[], images:urls,
@@ -35887,13 +36023,25 @@ function submitProperty() {
   }
 
   if (!g('prop-price')) { showToast(curLang==='rw'?'Shyira igiciro!':'Enter price!','error'); return; }
+  // Price-integrity audit: reject a fractional/invalid price explicitly —
+  // see parsePropertyPriceInput()'s own comment for why a bare decimal
+  // like "1.5" has no defined meaning on this field and must never be
+  // silently truncated (the old parseInt() behavior) or guessed at as
+  // "1.5 million" (no unit selector exists on this field).
+  var _priceParsed = parsePropertyPriceInput(g('prop-price'));
+  if (_priceParsed === null) {
+    showToast(curLang==='rw'
+      ? 'Igiciro kigomba kuba umubare wuzuye wa RWF (urugero: 1500000), nta desimali.'
+      : 'Price must be a whole RWF amount (e.g. 1500000), no decimals.', 'error');
+    return;
+  }
   if (!g('prop-type'))  { showToast('Hitamo ubwoko!'); return; }
   if (!g('prop-district')) { showToast('Hitamo akarere!'); return; }
 
   var propId = Date.now();
   var pd = {
     id:propId, type:g('prop-type'), service:g('prop-service'),
-    district:g('prop-district'), sector:g('prop-sector'), price:g('prop-price'),
+    district:g('prop-district'), sector:g('prop-sector'), price:_priceParsed,
     beds:g('prop-beds'), baths:g('prop-baths'), size:g('prop-size'), desc:g('prop-desc'),
     contact:g('prop-contact')||(currentUser.phone||'+250 783 177 254'),
     images:[], img1:'', img2:'', img3:'',
