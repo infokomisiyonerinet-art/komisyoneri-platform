@@ -12341,7 +12341,7 @@ function renderDashboardListings(props) {
   var gradients = ['g1','g2','g3','g4','g5','g6','g7'];
   el.innerHTML = props.slice(0,4).map(function(prop, i) {
     var gc = gradients[i % 7];
-    var price = prop.price ? (Number(prop.price)>=1000000 ? (Number(prop.price)/1000000).toFixed(0)+'M RWF' : Number(prop.price).toLocaleString()+' RWF') : '—';
+    var price = fmtPriceSh(prop.price) || '—';
     var statusColor = prop.status==='Approved' ? 'sd-green' : prop.status==='Pending' ? 'sd-gold' : 'sd-muted';
     var statusLabel = prop.status==='Approved' ? (curLang==='rw'?'Iraboneka':'Active')
                     : prop.status==='Pending'  ? (curLang==='rw'?'Irasabwa':'Pending') : escapeHtml(prop.status||'');
@@ -13986,11 +13986,34 @@ function kmScore(query, prop) {
 }
 
 // ── Format price short ──
+// Single shared formatter for abbreviated property prices — every card/
+// list surface (Home Featured, listings grid, My Listings, Similar
+// Properties, dashboard "recent listings", Property Comparison, search
+// suggestions, share text) calls this instead of re-implementing its own
+// rounding. Previously several of these independently used
+// Math.round(price/1e6) — a WHOLE-million round that turned 3.8M into
+// "4M RWF" — while others used .toFixed(0) for the same effect. This
+// preserves one decimal place for non-round millions/thousands (matching
+// the one place in this file that already did it correctly, fmtRWF()),
+// and is explicit about what counts as a displayable price: NaN, 0,
+// negative, and non-finite values all return '' rather than a fabricated
+// number, so a bad input can never render as a misleading price.
 function fmtPriceSh(p) {
-  var n = parseInt(p)||0; if (!n) return '';
-  if (n >= 1e9) return (n/1e9).toFixed(1).replace('.0','')+'B RWF';
-  if (n >= 1e6) return Math.round(n/1e6)+'M RWF';
-  return n.toLocaleString()+' RWF';
+  var n = parseFloat(p);
+  if (!isFinite(n) || isNaN(n) || n <= 0) return '';
+  if (n >= 1e9) {
+    var b = n / 1e9;
+    return (b % 1 === 0 ? b.toFixed(0) : b.toFixed(1)) + 'B RWF';
+  }
+  if (n >= 1e6) {
+    var m = n / 1e6;
+    return (m % 1 === 0 ? m.toFixed(0) : m.toFixed(1)) + 'M RWF';
+  }
+  if (n >= 1000) {
+    var k = n / 1000;
+    return (k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)) + 'K RWF';
+  }
+  return Math.round(n).toLocaleString() + ' RWF';
 }
 
 // ── Render suggestions into a dropdown ──
@@ -14748,12 +14771,8 @@ function renderUserPropCard(prop) {
   var gidx = pid.split('').reduce(function(a,c){return a+(c.charCodeAt(0));},0) % 7;
   var gclass = gradients[gidx];
 
-  // Price
-  var priceNum = parseInt(prop.price) || 0;
-  var priceLabel = priceNum >= 1000000
-    ? (Math.round(priceNum/1000000)) + 'M RWF'
-    : priceNum >= 1000 ? (Math.round(priceNum/1000)) + 'K RWF'
-    : priceNum + ' RWF';
+  // Price — shared formatter (fmtPriceSh), not a duplicated inline round.
+  var priceLabel = fmtPriceSh(prop.price) || '—';
   if(prop.service === 'Gukodesha') priceLabel += '/mo';
 
   // Service badge — t('rentBadge')/t('saleBadge') so this follows the
@@ -15598,8 +15617,7 @@ function renderCompareTable(propA, propB) {
   if (!content) return;
 
   function fmt(p) {
-    var n = parseInt(p.price)||0;
-    var s = n>=1000000 ? (n/1000000).toFixed(0)+'M RWF' : n>=1000 ? Math.round(n/1000)+'K RWF' : (n||'—')+' RWF';
+    var s = fmtPriceSh(p.price) || '—';
     return p.service==='Gukodesha' ? s+'/mo' : s;
   }
   function hi(vA, vB, higherBetter) {
@@ -15811,11 +15829,7 @@ function loadSimilarProperties() {
 
   list.innerHTML = show.map(function(item, i) {
     var prop = item.p;
-    var priceDisplay = prop.price
-      ? (parseInt(prop.price) >= 1000000
-        ? Math.round(parseInt(prop.price)/1000000) + 'M RWF'
-        : Math.round(parseInt(prop.price)/1000) + 'K RWF')
-      : '—';
+    var priceDisplay = fmtPriceSh(prop.price) || '—';
     if (prop.service === 'Gukodesha') priceDisplay += '/mo';
     var imgStyle = prop.img1 ? 'background:url(' + _cldSize(prop.img1,96,80) + ') center/cover no-repeat' : '';
     var colorClass = prop.img1 ? '' : colors[i % colors.length];
@@ -17289,7 +17303,21 @@ function updatePoiCards(district) {
   }).join('');
 }
 
-function openPropDetail(propId) {
+// Recomputes and re-writes just the .det-price element — used by
+// openPropDetail()'s background revalidation when Firestore's price
+// differs from what was cached. Mirrors that function's own PRICE block
+// exactly (not calling it directly, since that block's priceStr also
+// feeds the SEO meta description further down via the same variable,
+// which this fix intentionally leaves untouched — out of scope here).
+function _renderDetPrice(p) {
+  var n = parseInt(p.price) || 0;
+  var s = n >= 1000 ? n.toLocaleString() + ' RWF' : '—';
+  if (p.service === 'Gukodesha') s += '/mo';
+  var el = document.querySelector('.det-price');
+  if (el) el.innerHTML = s + '<small>(' + escapeHtml(p.service || 'Kugurisha') + ')</small>';
+}
+
+function openPropDetail(propId, _skipRevalidate) {
   if(!propId) { console.warn('openPropDetail: no propId'); return; }
   // Find property in localStorage
   var props = [];
@@ -17322,7 +17350,7 @@ function openPropDetail(propId) {
           ls.push(fsProp);
           try { localStorage.setItem('km_properties', JSON.stringify(ls)); } catch(e) {}
         }
-        openPropDetail(propId); // re-invoke now that cache is warm
+        openPropDetail(propId, true); // re-invoke now that cache is warm — data is already fresh, skip the revalidation fetch below
       } else {
         showToast(typeof curLang !== 'undefined' && curLang === 'rw'
           ? 'Imitungo ntiboneka — gerageza nanone!'
@@ -17348,6 +17376,38 @@ function openPropDetail(propId) {
 
   window._currentProp = prop;
   kmTrack('view_item',{item_id:String(prop.id),item_name:prop.title||'',price:prop.price||'',district:prop.district||'',type:prop.type||''});
+
+  // Revalidate the cached property's price against Firestore in the
+  // background — km_properties has no freshness/TTL check at all, so a
+  // price edited elsewhere could stay wrong indefinitely on a returning
+  // browser. Already rendered from cache above for a fast page load; this
+  // brings just the price (the scope of this fix, not a general cache
+  // rewrite) up to date if Firestore disagrees, updating the displayed
+  // price and the local cache entry — Firestore wins. Skipped for demo
+  // properties (not real documents) and for the recursive call right
+  // after a fresh Firestore fetch above (_skipRevalidate) — that data is
+  // already authoritative, re-fetching it again immediately would just be
+  // a wasted read.
+  if (!_skipRevalidate && !prop.isDemo && typeof db !== 'undefined') {
+    db.collection('properties').doc(String(prop.id)).get().then(function(doc) {
+      if (!doc.exists || doc.data().isActive === false) return;
+      // The viewer may have navigated to a different property before this
+      // resolved — only apply the update if this is still the one shown.
+      if (!window._currentProp || String(window._currentProp.id) !== String(prop.id)) return;
+      var freshPrice = doc.data().price;
+      if (freshPrice === undefined || Number(freshPrice) === Number(prop.price)) return; // unchanged
+      prop.price = freshPrice;
+      window._currentProp.price = freshPrice;
+      _renderDetPrice(prop);
+      try {
+        var lsProps = JSON.parse(localStorage.getItem('km_properties') || '[]');
+        var lsIdx = lsProps.findIndex(function(p) { return String(p.id) === String(prop.id); });
+        if (lsIdx !== -1) { lsProps[lsIdx].price = freshPrice; localStorage.setItem('km_properties', JSON.stringify(lsProps)); }
+      } catch (e) {}
+    }).catch(function(err) {
+      console.warn('[PropDetail] price revalidation failed:', err && err.code, err && err.message);
+    });
+  }
 
   // Property view tracking — increment Firestore counter, session-deduped
   (function _trackPropView(pid, isDemo) {
@@ -35769,6 +35829,23 @@ function _propSubmitFinish(pd, isApproved) {
    Image handling (drag&drop/gallery upload, compression, Storage upload,
    progress, cover + reorder) is entirely delegated to PropImageUploader —
    only the resulting download URLs ever reach this function or Firestore. */
+// Property price input must be a whole RWF amount — the UI is a plain
+// "Price (RWF)" number field with no Million-unit selector, so unlike the
+// search filter's text parser (parseP(), which explicitly supports an "M"
+// suffix like "80M" for a free-text field), a bare "1.5" here must never
+// be silently reinterpreted as 1,500,000, and must never be silently
+// truncated to 1 the way parseInt("1.5") used to. Returns: null for an
+// empty string (distinguishable from "invalid" so an empty-price check
+// can still show its own message), NaN for anything non-empty that isn't
+// a valid whole positive number, or the parsed integer otherwise.
+function _parsePropPriceInput(raw) {
+  var s = (raw == null ? '' : String(raw)).trim();
+  if (!s) return null;
+  if (!/^\d+$/.test(s)) return NaN; // rejects fractional, negative, and non-numeric input explicitly
+  var n = parseInt(s, 10);
+  return (isFinite(n) && n > 0) ? n : NaN;
+}
+
 function submitProperty() {
   var g = function(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
 
@@ -35830,12 +35907,29 @@ function submitProperty() {
       showToast(curLang==='rw'?'Imitungo yemejwe ntishobora guhindurwa.':'Only pending listings can be edited.','warn');
       closeAddProperty(); return;
     }
+    // Price is validated up front — before kicking off the photo upload —
+    // same rule as a new submission below. Empty leaves the existing price
+    // unchanged (matching the old "||u.price" fallback); anything else must
+    // parse as a whole positive RWF number. The parsed Number (never the
+    // raw input string) is what gets written to both localStorage and
+    // Firestore below, so the two stores can't disagree on representation.
+    var editPriceRaw = g('prop-price');
+    var editPricePd = eProps[ei].price;
+    if (editPriceRaw) {
+      editPricePd = _parsePropPriceInput(editPriceRaw);
+      if (isNaN(editPricePd)) {
+        showToast(curLang==='rw'
+          ? 'Igiciro kigomba kuba umubare uzuye wa RWF (urugero: 1500000).'
+          : 'Price must be a whole RWF amount, e.g. 1500000 (no decimals).', 'error');
+        return;
+      }
+    }
     setBusy(true);
     PropImageUploader.uploadAll('properties/' + editId).then(function(urls) {
       var u = eProps[ei];
       u.type=g('prop-type')||u.type; u.service=g('prop-service')||u.service;
       u.district=g('prop-district')||u.district; u.sector=g('prop-sector');
-      u.price=g('prop-price')||u.price; u.beds=g('prop-beds'); u.baths=g('prop-baths');
+      u.price=editPricePd; u.beds=g('prop-beds'); u.baths=g('prop-baths');
       u.size=g('prop-size'); u.desc=g('prop-desc');
       u.contact=g('prop-contact')||u.contact; u.phone=g('prop-contact')||u.phone;
       u.title=g('prop-title')||(u.type+(u.district?' — '+u.district:''));
@@ -35859,7 +35953,7 @@ function submitProperty() {
       if (u._fsId && typeof db !== 'undefined') {
         syncTarget = db.collection('properties').doc(u._fsId).update({
           type:u.type, category:u.service==='Gukodesha'?'rent':'sale',
-          district:u.district, sector:u.sector||'', price:parseInt(u.price)||0,
+          district:u.district, sector:u.sector||'', price:u.price,
           bedrooms:parseInt(u.beds)||0, bathrooms:parseInt(u.baths)||0,
           area:u.size||'', description:u.desc||'', title:u.title||'',
           amenities:u.amenities||[], images:urls,
@@ -35886,14 +35980,22 @@ function submitProperty() {
     return;
   }
 
-  if (!g('prop-price')) { showToast(curLang==='rw'?'Shyira igiciro!':'Enter price!','error'); return; }
+  var newPriceRaw = g('prop-price');
+  if (!newPriceRaw) { showToast(curLang==='rw'?'Shyira igiciro!':'Enter price!','error'); return; }
+  var newPricePd = _parsePropPriceInput(newPriceRaw);
+  if (isNaN(newPricePd)) {
+    showToast(curLang==='rw'
+      ? 'Igiciro kigomba kuba umubare uzuye wa RWF (urugero: 1500000).'
+      : 'Price must be a whole RWF amount, e.g. 1500000 (no decimals).', 'error');
+    return;
+  }
   if (!g('prop-type'))  { showToast('Hitamo ubwoko!'); return; }
   if (!g('prop-district')) { showToast('Hitamo akarere!'); return; }
 
   var propId = Date.now();
   var pd = {
     id:propId, type:g('prop-type'), service:g('prop-service'),
-    district:g('prop-district'), sector:g('prop-sector'), price:g('prop-price'),
+    district:g('prop-district'), sector:g('prop-sector'), price:newPricePd,
     beds:g('prop-beds'), baths:g('prop-baths'), size:g('prop-size'), desc:g('prop-desc'),
     contact:g('prop-contact')||(currentUser.phone||'+250 783 177 254'),
     images:[], img1:'', img2:'', img3:'',
@@ -36294,6 +36396,14 @@ var _fsAgents = []; /* module-level cache shared by load + filter */
 /* Map a Firestore user doc (role=agent) to the card-renderer format */
 function _normalizeAgentDoc(data, docId) {
   var isVerified = data.isVerified || data.verified || false;
+  // Legacy documents may have `languages` stored as a single string (e.g.
+  // "English") rather than an array. This used to discard that value and
+  // silently substitute the hardcoded default ['Kinyarwanda'], corrupting
+  // the display for any agent whose real saved language wasn't Kinyarwanda.
+  // Preserve arrays as-is, wrap a non-empty string, and fall back to []
+  // (never a fabricated default) for anything missing/null/empty/invalid.
+  var languages = Array.isArray(data.languages) ? data.languages
+    : (typeof data.languages === 'string' && data.languages ? [data.languages] : []);
   return {
     id:           docId,
     name:         data.displayName || data.name || data.email || 'Agent',
@@ -36303,7 +36413,7 @@ function _normalizeAgentDoc(data, docId) {
     zone:         data.district || data.zone || data.branchId || '',
     experience:   String(data.experience || data.yearsExp || '0'),
     transport:    data.transport || '',
-    languages:    Array.isArray(data.languages) ? data.languages : ['Kinyarwanda'],
+    languages:    languages,
     status:       isVerified ? 'Active' : 'Pending Verification',
     rating:       data.rating || 0,
     deals:        data.deals || data.dealCount || 0,
