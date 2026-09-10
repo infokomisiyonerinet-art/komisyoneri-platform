@@ -10163,6 +10163,27 @@ html,body{overscroll-behavior-x:none}
           <select id="sp-role-select" class="form-control" style="flex:1;font-size:.8rem;padding:.4rem .6rem" aria-label="Change user role" onchange="renderOrgChartFields()"></select>
           <button class="btn btn-sm btn-navy" onclick="changeUserRole(_spProfileId)" style="font-size:.78rem" data-en="Change Role">Change Role</button>
         </div>
+        <!-- Agent Directory district-filter data-integrity fix: shown only
+             when the role dropdown above is set to 'agent' AND the target
+             user has no existing district/zone/branchId at all (see
+             renderOrgChartFields()'s own comment) — promoting someone to
+             agent with no district is exactly what let real agents vanish
+             from every specific district filter while still appearing
+             under "All Districts" (filterAgentsPage()'s a.zone === zone
+             can never match an empty value). class="district-select" so
+             populateDistrictSelects() (js/districts.js) fills this from
+             the same single canonical 30-district list every other
+             district dropdown on the platform already uses — no separate
+             hardcoded list, and "Kigali" itself is correctly never an
+             option (only its real districts Gasabo/Kicukiro/Nyarugenge
+             are). changeUserRole() blocks the role change entirely if this
+             is visible and left unselected. -->
+        <div id="sp-agent-district-field" style="display:none;margin-bottom:.5rem">
+          <label style="font-size:.7rem;color:var(--muted);display:block;margin-bottom:.2rem" data-rw="Akarere k'Agent (birakenewe)" data-en="Agent District (required)">Agent District (required)</label>
+          <select id="sp-agent-district-select" class="form-control district-select" style="font-size:.8rem">
+            <option value="" data-rw="Hitamo akarere..." data-en="Select district...">Select district...</option>
+          </select>
+        </div>
         <!-- Final Management Org Chart: department/jobTitle are derived
              display-only (see ROLE_DEPARTMENT/ROLE_JOBTITLE, index.html) —
              not independently editable, so they can never disagree with
@@ -25069,6 +25090,25 @@ function closeStaffProfile() { closeModal('staff-profile-modal'); }
 function renderOrgChartFields() {
   var sel = g('sp-role-select');
   var role = sel ? sel.value : '';
+
+  // Agent district guard (Agent Directory district-filter data-integrity
+  // fix) — independent of the org-chart/governance-role panel below (this
+  // isn't a governance concept), so it's checked before that panel's own
+  // early-return. Only shown when promoting to 'agent' AND the target has
+  // no district/zone/branchId at all; an agent who already has one keeps
+  // it untouched and never sees this picker. See changeUserRole()'s own
+  // comment for the write-side half of this fix.
+  var distField = g('sp-agent-district-field');
+  if (distField) {
+    var distExisting = (_hrStaff || []).find(function(u) { return u.id === _spProfileId; });
+    var hasDistrict = !!(distExisting && (distExisting.district || distExisting.zone || distExisting.branchId));
+    var showDistrict = role === 'agent' && !hasDistrict;
+    distField.style.display = showDistrict ? '' : 'none';
+    if (showDistrict) {
+      var distSel = g('sp-agent-district-select');
+      if (distSel) distSel.value = '';
+    }
+  }
   var panel = g('sp-orgchart-fields');
   if (!panel) return;
   var isGovRole = !!ROLE_DEPARTMENT[role];
@@ -25103,6 +25143,34 @@ function changeUserRole(uid) {
   var sel = document.getElementById('sp-role-select');
   var newRole = sel ? sel.value : '';
   if (!newRole) return;
+
+  // Agent Directory district-filter data-integrity fix: a user promoted to
+  // 'agent' through this admin flow with no district/zone/branchId at all
+  // is exactly what let real agents show under "All Districts" (the
+  // filter's own !zone short-circuit) yet vanish from every specific
+  // district (filterAgentsPage()'s a.zone === zone can never match an
+  // empty value) — see the read-only audit this fix closes. Only blocks
+  // the change when the target has NO existing district-ish field at all;
+  // an agent who already has one (however it got there) is left
+  // completely untouched — this is a prevention guard for new promotions,
+  // not a backfill/correction of existing data. Aborts before any write —
+  // no partial update — if the picker is required and left empty.
+  var agentDistrictValue = '';
+  if (newRole === 'agent') {
+    var districtCheckUser = _hrStaff.find(function(x){ return x.id === uid; });
+    var hasExistingDistrict = !!(districtCheckUser && (districtCheckUser.district || districtCheckUser.zone || districtCheckUser.branchId));
+    if (!hasExistingDistrict) {
+      var agentDistrictSel = document.getElementById('sp-agent-district-select');
+      agentDistrictValue = agentDistrictSel ? agentDistrictSel.value : '';
+      if (!agentDistrictValue) {
+        showToast(curLang === 'rw'
+          ? 'Hitamo akarere k\'agent mbere yo guhindura uruhare.'
+          : 'Select the agent\'s district before completing this role change.', 'error');
+        return;
+      }
+    }
+  }
+
   var isGovRole = !!ROLE_DEPARTMENT[newRole];
   var reportsToUids = [];
   if (isGovRole) {
@@ -25146,7 +25214,15 @@ function changeUserRole(uid) {
   // non-agent role change (director, hr_manager, accountant, etc.) was
   // throwing before this fix, silently breaking Org Chart role
   // reassignment for every governance role.
-  if (newRole === 'agent') updatePayload.status = 'active';
+  if (newRole === 'agent') {
+    updatePayload.status = 'active';
+    // Only set when the guard above actually collected a NEW value (the
+    // target had no district/zone/branchId at all) — an agent who already
+    // has one is never touched here, matching _normalizeAgentDoc()'s own
+    // read priority (district first) so the Agent Directory's district
+    // filter can find them going forward.
+    if (agentDistrictValue) updatePayload.district = agentDistrictValue;
+  }
   db.collection('users').doc(uid).update(updatePayload).then(function() {
     logAudit('user.role.changed', 'users', uid, { role: oldRole }, { role: newRole });
     var u = _hrStaff.find(function(x){ return x.id === uid; });
