@@ -19744,26 +19744,31 @@ document.addEventListener('securitypolicyviolation', function(e) {
     var _set = localStorage.setItem.bind(localStorage);
 
     // ── Desktop / Push Notification helpers ──
-    var _kmSeenLeads    = new Set(JSON.parse(localStorage.getItem('km_seen_leads')   ||'[]'));
+    // _kmSeenBookings/km_seen_bookings still used below by the RTDB bookings
+    // listener (kept as-is — see that listener's own comment for why).
+    // _kmSeenLeads/km_seen_leads was removed: it only ever existed to
+    // dedupe the RTDB leads listener's own kmNotify() call, which is now
+    // retired in favor of the Firestore-backed _attachFsLeadListener()'s
+    // own separate dedupe (km_fs_seen_leads).
     var _kmSeenBookings = new Set(JSON.parse(localStorage.getItem('km_seen_bookings')||'[]'));
-    var _kmUnread = 0;
-    var _kmNotifList = [];
 
-    function _kmBadge(delta) {
-      _kmUnread = Math.max(0, _kmUnread + delta);
-      var badge = document.getElementById('notif-badge');
-      if (!badge) return;
-      if (_kmUnread > 0) { badge.style.display='flex'; badge.textContent=_kmUnread>9?'9+':String(_kmUnread); }
-      else { badge.style.display='none'; }
-    }
-
+    // Notification-badge/list single-source-of-truth fix: this function
+    // used to also push into an in-memory _kmNotifList and bump a separate
+    // _kmBadge()-driven counter on #notif-badge — a second, uncoordinated
+    // writer to the same element the Firestore-backed _fsNotifSetBadge()
+    // below also writes to, which is what let the badge and the opened
+    // notification panel disagree (badge showing a legacy count while the
+    // Firestore-backed panel, driven by a completely different list, showed
+    // "No notifications yet"). Every real caller of kmNotify() already also
+    // persists the same event to Firestore (via this function's own
+    // window.kmNotify override further down, or directly via notifyUser()),
+    // so the in-app badge/list now reflect it exclusively through that one
+    // path. This function's only remaining job is the OS-level desktop
+    // Notification popup.
     function kmNotify(title, body, tag) {
       if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         try { new Notification(title, { body: body, icon: '/icon-192.svg', badge: '/icon-192.svg', tag: tag||'km' }); } catch(e){}
       }
-      _kmNotifList.unshift({ title: title, body: body, time: Date.now() });
-      if (_kmNotifList.length > 20) _kmNotifList.length = 20;
-      _kmBadge(1);
     }
 
     function _kmTimeAgo(ts) {
@@ -19772,34 +19777,16 @@ document.addEventListener('securitypolicyviolation', function(e) {
       if (s < 86400) return Math.floor(s/3600) + 'h'; return Math.floor(s/86400) + 'd';
     }
 
-    function openNotifPanel() {
-      var panel = document.getElementById('notif-panel');
-      var list  = document.getElementById('notif-list');
-      if (!panel || !list) return;
-      // Clear badge
-      _kmBadge(-_kmUnread);
-      // Render list
-      if (_kmNotifList.length === 0) {
-        list.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:.83rem">'
-          + '<div style="font-size:1.8rem;margin-bottom:.4rem">🔔</div>'
-          + (curLang==='rw' ? 'Nta notifications urahari.' : 'No notifications yet.') + '</div>';
-      } else {
-        list.innerHTML = _kmNotifList.map(function(n) {
-          return '<div style="padding:.7rem 1rem;border-bottom:1px solid var(--light)">'
-            + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem">'
-            + '<div style="font-weight:700;font-size:.82rem;color:var(--navy)">' + escapeHtml(n.title) + '</div>'
-            + '<span style="font-size:.68rem;color:var(--muted);white-space:nowrap;flex-shrink:0">' + _kmTimeAgo(n.time) + '</span>'
-            + '</div>'
-            + '<div style="font-size:.78rem;color:var(--dark);margin-top:.15rem">' + escapeHtml(n.body) + '</div>'
-            + '</div>';
-        }).join('');
-      }
-      panel.style.display = 'block';
-      // Close on outside click
-      setTimeout(function() {
-        document.addEventListener('click', _notifOutsideClose, { once: true });
-      }, 10);
-    }
+    // Retired — kept only as a declared no-op (not deleted) so
+    // `window.openNotifPanel = openNotifPanel` a few lines below still has
+    // a function value to bind to at that exact point of script execution.
+    // The real implementation is installed moments later in this same page
+    // load by the Firestore-aware override (see the "NOTIFICATION CENTER"
+    // script block further down), which reassigns window.openNotifPanel
+    // and — as of this same fix — never falls back to calling this legacy
+    // version. This body touches neither the badge nor any notification
+    // list state, so it can never become a second writer of either.
+    function openNotifPanel() {}
 
     function _notifOutsideClose(e) {
       var panel = document.getElementById('notif-panel');
@@ -19816,8 +19803,14 @@ document.addEventListener('securitypolicyviolation', function(e) {
 
     function requestNotifPermission() {
       var panel = document.getElementById('notif-panel');
-      // Toggle panel if already has notifications or permission granted
-      if (_kmNotifList.length > 0 || (typeof Notification !== 'undefined' && Notification.permission === 'granted')) {
+      // Toggle panel if already has notifications or permission granted.
+      // Was _kmNotifList.length > 0 (the now-retired legacy in-memory
+      // list, which can never be populated again) — reading the
+      // Firestore-backed list instead so a user who already has real
+      // notifications but hasn't granted OS notification permission yet
+      // still gets the panel opened on bell click, instead of being routed
+      // into the "request permission" flow below with nothing to show for it.
+      if (_fsNotifList.length > 0 || (typeof Notification !== 'undefined' && Notification.permission === 'granted')) {
         if (panel && panel.style.display !== 'none') { closeNotifPanel(); return; }
         openNotifPanel(); return;
       }
@@ -19867,27 +19860,28 @@ document.addEventListener('securitypolicyviolation', function(e) {
         _set('km_agents', JSON.stringify(agents));
       });
 
-      // Leads — notify assigned agent of a new lead in real time
+      // Leads — km_leads cache sync only now. This used to also fire a
+      // desktop notification for a new lead straight off this RTDB ref
+      // (dedup'd via km_seen_leads), but RTDB's leads node is no longer
+      // written to by any live code path in this app (the old
+      // localStorage-to-RTDB mirror was removed — see this file's own
+      // comment further down, "Used to monkey-patch localStorage.setItem
+      // ..."), so this ref can only ever hold stale historical data. On a
+      // browser/device that hasn't already marked those old IDs "seen,"
+      // this was firing spurious new-lead notifications for leads that
+      // aren't new at all — bumping the legacy notification badge/list
+      // independently of the real, Firestore-backed one below (see
+      // _attachFsLeadListener(), which already covers "notify agent of a
+      // new lead" off the actual live datastore). Removed as redundant and
+      // a contributor to the badge/list mismatch; the km_leads sync itself
+      // (CRM's real data source — see e.g. loadCrmLeads()/renderCrmBoard())
+      // is untouched.
       rtdb.ref('leads').on('value', function(s) {
         if (!s.exists()) return;
         var items = [];
         s.forEach(function(c){ items.push(c.val()); });
         if (!items.length) return;
         _set('km_leads', JSON.stringify(items));
-        if (currentUser && ['agent','Agent'].indexOf(currentUser.role) !== -1 && currentUser.email) {
-          items.forEach(function(lead) {
-            var isMyLead = (lead.agentEmail === currentUser.email) || (lead.agentId === currentUser.uid);
-            if (isMyLead && lead.id && !_kmSeenLeads.has(lead.id)) {
-              _kmSeenLeads.add(lead.id);
-              kmNotify(
-                curLang==='rw' ? 'Lead Nshya! 🏠' : 'New Lead! 🏠',
-                (lead.clientName||'') + ' — ' + (lead.zone||lead.district||''),
-                'lead-' + lead.id
-              );
-            }
-          });
-          try { localStorage.setItem('km_seen_leads', JSON.stringify(Array.from(_kmSeenLeads))); } catch(e){}
-        }
       });
 
       // Messages, reviews, users — keep localStorage in sync
@@ -19899,7 +19893,23 @@ document.addEventListener('securitypolicyviolation', function(e) {
           if (items.length) _set('km_' + key, JSON.stringify(items));
         });
       });
-      // Bookings — notify agent of new visits on their listings
+      // Bookings — notify agent of new visits on their listings.
+      // DELIBERATELY LEFT UNCHANGED (notification-badge/list single-source-
+      // of-truth fix, see kmNotify()'s own comment above): unlike the leads
+      // listener above, there is no Firestore-backed equivalent notification
+      // path for "agent gets notified of a new booking" anywhere in this
+      // codebase, and nothing writes new data to this RTDB 'bookings' ref
+      // either (confirmed: no db.collection('bookings') or
+      // rtdb.ref('bookings').set/push call exists anywhere in this app) —
+      // building a real replacement would mean designing and wiring an
+      // entirely new booking-creation/notify flow, which is a materially
+      // larger change than this fix's scope. Retiring this call outright
+      // would silently drop a still-nominally-live user-facing feature
+      // rather than fix a bug, so it stays. It is still safe from the
+      // single-writer-badge standpoint: kmNotify() itself (see above) no
+      // longer touches #notif-badge/any in-app list at all, regardless of
+      // who still calls it, so this call site can no longer become a
+      // second badge writer even though it remains in place.
       rtdb.ref('bookings').on('value', function(s) {
         if (!s.exists()) return;
         var items = [];
@@ -19988,7 +19998,6 @@ document.addEventListener('securitypolicyviolation', function(e) {
     window.closeNotifPanel        = closeNotifPanel;
     window.openNotifPanel         = openNotifPanel;
     window.kmNotify               = kmNotify;
-    window._kmBadge               = function(d) { _kmBadge(d); };
 
     /* Firestore real-time lead listener — fires even when localStorage is bypassed */
     var _fsLeadUnsub = null;
@@ -20043,9 +20052,15 @@ document.addEventListener('securitypolicyviolation', function(e) {
 ════════════════════════════════════════════════════════ -->
 <script>
 // ── Firestore Notification Center ──────────────────────────────────────
+// Single source of truth for #notif-badge and the notification panel —
+// _fsNotifSetBadge() below is the ONLY function in this file permitted to
+// write #notif-badge's textContent/display (see the legacy kmNotify()/
+// openNotifPanel() comments earlier in this file for the bug this closes).
 var _fsNotifUnsub  = null;
 var _fsNotifList   = [];    // [{_docId, title, body, type, relatedId, relatedCollection, read, createdAt}]
 var _fsNotifUnread = 0;
+var _fsNotifLoaded = false; // true once the first snapshot (success or not) has resolved
+var _fsNotifError  = false; // true if the listener's last attempt ended in an onSnapshot error
 
 function _fsNotifSetBadge(count) {
   _fsNotifUnread = Math.max(0, count);
@@ -20058,6 +20073,12 @@ function _fsNotifSetBadge(count) {
 function _startFsNotifListener(uid) {
   if (_fsNotifUnsub) { try { _fsNotifUnsub(); } catch(e){} _fsNotifUnsub = null; }
   if (typeof db === 'undefined' || !uid) return;
+  // Reset state up front so a restart (new login, or a manual retry after
+  // an error) never renders a stale answer from a previous user/attempt
+  // while the new snapshot is in flight.
+  _fsNotifLoaded = false;
+  _fsNotifError  = false;
+  _fsNotifList   = [];
   _fsNotifUnsub = db.collection('notifications')
     .where('userId','==',uid)
     .where('isActive','==',true)
@@ -20071,14 +20092,34 @@ function _startFsNotifListener(uid) {
         _fsNotifList.push(d);
         if (!d.read) unread++;
       });
+      _fsNotifLoaded = true;
+      _fsNotifError  = false;
       _fsNotifSetBadge(unread);
-    }, function(err) { /* index building or permission error — fail silently */ });
+      // Keeps an already-open panel in sync with a live update (e.g. a new
+      // notification arriving) instead of only refreshing the badge until
+      // the user closes and reopens it.
+      if (typeof window._renderFsNotifPanelIfOpen === 'function') window._renderFsNotifPanelIfOpen();
+    }, function(err) {
+      // Was: fail silently, with no state change at all — meaning an
+      // index-building/permission/network failure looked identical to
+      // "this user genuinely has zero notifications" everywhere this data
+      // is read. Now: distinguishable error state (see openNotifPanel()'s
+      // override below), console-logged with the Firestore error code
+      // (never shown to the end user) so a real production failure is
+      // actually diagnosable instead of silently indistinguishable from
+      // an empty inbox.
+      _fsNotifError = true;
+      console.error('[Notifications] Firestore listener error' + (err && err.code ? ' (' + err.code + ')' : '') + ':', err);
+      if (typeof window._renderFsNotifPanelIfOpen === 'function') window._renderFsNotifPanelIfOpen();
+    });
 }
 
 function _stopFsNotifListener() {
   if (_fsNotifUnsub) { try { _fsNotifUnsub(); } catch(e){} _fsNotifUnsub = null; }
   _fsNotifList   = [];
   _fsNotifUnread = 0;
+  _fsNotifLoaded = false;
+  _fsNotifError  = false;
   _fsNotifSetBadge(0);
 }
 
@@ -20161,42 +20202,91 @@ function _handleNotifClick(collection, relatedId) {
   }
 }
 
-/* Override openNotifPanel to render Firestore notifications when available */
+/* Override openNotifPanel to render Firestore notifications when available.
+   Replaces the old two-branch "render Firestore data, or silently fall
+   back to the legacy panel" logic — that fallback (on _fsNotifList being
+   empty, for ANY reason: genuinely zero notifications, the listener not
+   having resolved yet, or the listener having failed) is exactly what let
+   the badge and the opened panel disagree, since the legacy panel it fell
+   back to never touched (or cleared) the Firestore-driven badge. Now there
+   are four explicit, mutually exclusive states, driven only by
+   _fsNotifLoaded/_fsNotifError/_fsNotifList — never a fallback to a
+   different data source. */
 (function() {
-  var _origOpen = window.openNotifPanel;
+  function _fsNotifEmptyMarkup(msg) {
+    return '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:.83rem">'
+      + '<div style="font-size:1.8rem;margin-bottom:.4rem">🔔</div>' + msg + '</div>';
+  }
+  function _fsNotifErrorMarkup() {
+    return '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:.83rem">'
+      + '<div style="font-size:1.8rem;margin-bottom:.4rem">⚠️</div>'
+      + (curLang==='rw' ? 'Ntibishobotse kubona notifications.' : "Couldn't load notifications.")
+      + '<br><span style="color:var(--navy);font-weight:700;cursor:pointer;text-decoration:underline" onclick="_retryFsNotifListener()">'
+      + (curLang==='rw' ? 'Ongera ugerageze' : 'Tap to retry') + '</span></div>';
+  }
+  function _fsNotifRowsMarkup() {
+    return _fsNotifList.map(function(n) {
+      var unread = !n.read;
+      var bg     = unread ? 'var(--light)' : '#fff';
+      var icon   = _fsNotifIcon(n.type || '');
+      var ts     = _fsNotifTimeAgo(n.createdAt);
+      var hasLink = n.relatedId && n.relatedCollection;
+      return '<div style="padding:.72rem 1rem;border-bottom:1px solid var(--light);background:' + bg + ';'
+        + (hasLink ? 'cursor:pointer' : '') + '"'
+        + (hasLink ? ' onclick="_handleNotifClick(' + JSON.stringify(n.relatedCollection) + ',' + JSON.stringify(n.relatedId) + ')"' : '')
+        + ' role="button" tabindex="0">'
+        + '<div style="display:flex;align-items:flex-start;gap:.5rem">'
+        + '<span style="font-size:.92rem;flex-shrink:0;margin-top:.06rem">' + icon + '</span>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.3rem">'
+        + '<span style="font-weight:' + (unread ? '700' : '600') + ';font-size:.82rem;color:var(--navy);line-height:1.25">' + escapeHtml(n.title || '') + '</span>'
+        + '<span style="font-size:.65rem;color:var(--muted);white-space:nowrap;flex-shrink:0;margin-top:.1rem">' + ts + '</span>'
+        + '</div>'
+        + '<div style="font-size:.78rem;color:var(--dark);margin-top:.12rem;line-height:1.35">' + escapeHtml(n.body || '') + '</div>'
+        + '</div></div></div>';
+    }).join('');
+  }
+
+  // Re-renders the panel's list in place without touching its open/closed
+  // state or re-running mark-as-read — called both by openNotifPanel()
+  // itself and by _startFsNotifListener()'s live onSnapshot callback, so an
+  // already-open panel reflects a new/changed notification immediately.
+  window._renderFsNotifPanelIfOpen = function() {
+    var panel = document.getElementById('notif-panel');
+    var list  = document.getElementById('notif-list');
+    if (!panel || !list || panel.style.display === 'none') return;
+    if (_fsNotifError) { list.innerHTML = _fsNotifErrorMarkup(); return; }
+    if (!_fsNotifLoaded) { list.innerHTML = _fsNotifEmptyMarkup(curLang==='rw' ? 'Birimo gutegurwa...' : 'Loading notifications...'); return; }
+    if (_fsNotifList.length === 0) { list.innerHTML = _fsNotifEmptyMarkup(curLang==='rw' ? 'Nta notifications zihari.' : 'No notifications yet.'); return; }
+    list.innerHTML = _fsNotifRowsMarkup();
+  };
+
   window.openNotifPanel = function() {
     var panel = document.getElementById('notif-panel');
     var list  = document.getElementById('notif-list');
-    if (!panel) { if (_origOpen) _origOpen(); return; }
+    if (!panel) return;
 
-    if (_fsNotifList.length === 0) {
-      if (_origOpen) { _origOpen(); return; }
+    // Mark-as-read + optimistic badge clear only in the one state where
+    // there is real, confirmed data to mark — never during loading (we
+    // don't know yet) and never on an error (we don't actually know the
+    // true state, so we must not claim/act as if it were zero).
+    if (currentUser && _fsNotifLoaded && !_fsNotifError && _fsNotifList.length > 0) {
+      _markAllFsNotifsRead();
+      _fsNotifSetBadge(0);
     }
 
-    _markAllFsNotifsRead();
-    _fsNotifSetBadge(0);
-
     if (list) {
-      list.innerHTML = _fsNotifList.map(function(n) {
-        var unread = !n.read;
-        var bg     = unread ? 'var(--light)' : '#fff';
-        var icon   = _fsNotifIcon(n.type || '');
-        var ts     = _fsNotifTimeAgo(n.createdAt);
-        var hasLink = n.relatedId && n.relatedCollection;
-        return '<div style="padding:.72rem 1rem;border-bottom:1px solid var(--light);background:' + bg + ';'
-          + (hasLink ? 'cursor:pointer' : '') + '"'
-          + (hasLink ? ' onclick="_handleNotifClick(' + JSON.stringify(n.relatedCollection) + ',' + JSON.stringify(n.relatedId) + ')"' : '')
-          + ' role="button" tabindex="0">'
-          + '<div style="display:flex;align-items:flex-start;gap:.5rem">'
-          + '<span style="font-size:.92rem;flex-shrink:0;margin-top:.06rem">' + icon + '</span>'
-          + '<div style="flex:1;min-width:0">'
-          + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.3rem">'
-          + '<span style="font-weight:' + (unread ? '700' : '600') + ';font-size:.82rem;color:var(--navy);line-height:1.25">' + escapeHtml(n.title || '') + '</span>'
-          + '<span style="font-size:.65rem;color:var(--muted);white-space:nowrap;flex-shrink:0;margin-top:.1rem">' + ts + '</span>'
-          + '</div>'
-          + '<div style="font-size:.78rem;color:var(--dark);margin-top:.12rem;line-height:1.35">' + escapeHtml(n.body || '') + '</div>'
-          + '</div></div></div>';
-      }).join('');
+      if (!currentUser) {
+        list.innerHTML = _fsNotifEmptyMarkup(curLang==='rw' ? 'Nta notifications zihari.' : 'No notifications yet.');
+      } else if (_fsNotifError) {
+        list.innerHTML = _fsNotifErrorMarkup();
+      } else if (!_fsNotifLoaded) {
+        list.innerHTML = _fsNotifEmptyMarkup(curLang==='rw' ? 'Birimo gutegurwa...' : 'Loading notifications...');
+      } else if (_fsNotifList.length === 0) {
+        list.innerHTML = _fsNotifEmptyMarkup(curLang==='rw' ? 'Nta notifications zihari.' : 'No notifications yet.');
+      } else {
+        list.innerHTML = _fsNotifRowsMarkup();
+      }
     }
 
     panel.style.display = 'block';
@@ -20210,6 +20300,17 @@ function _handleNotifClick(collection, relatedId) {
         }
       });
     }, 10);
+  };
+
+  // Manual, one-shot retry for the error state (never an automatic retry
+  // loop) — restarts the listener (which itself unsubscribes any existing
+  // one first and resets _fsNotifLoaded/_fsNotifError) and immediately
+  // re-renders the open panel to "Loading..." instead of leaving the stale
+  // error message visible until the next snapshot resolves.
+  window._retryFsNotifListener = function() {
+    if (!currentUser || !currentUser.uid) return;
+    _startFsNotifListener(currentUser.uid);
+    window._renderFsNotifPanelIfOpen();
   };
 })();
 
