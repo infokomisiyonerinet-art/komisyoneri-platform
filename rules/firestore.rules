@@ -32,6 +32,21 @@ service cloud.firestore {
     function isAdmin() {
       return isAuth() && getRole() != null && getRole().lower() in ['admin', 'super_admin'];
     }
+    // NEW (P0.2) — explicit Ultimate Authority tier, distinct from isAdmin().
+    // Reuses isRole() rather than duplicating its casing/null-safety logic,
+    // so it inherits every safety guarantee isRole() already has by
+    // construction. Deliberately does NOT gate on _callerIsActive(),
+    // mirroring isAdmin()'s own unconditional-bypass rationale above — a
+    // corrupted isActive flag on the last Super Admin must never be able to
+    // brick the platform's own recovery path. isAdmin() itself is
+    // UNCHANGED: every super_admin account already satisfies isAdmin() via
+    // its existing role list, so this is a pure, additive widening — the
+    // Tier B collections below OR this in alongside isCEO()/isExecutive()/
+    // inDept() to grant Ultimate Authority there too, without granting
+    // plain 'admin' any new access (Tier A/Tier B reconciliation, P0.2).
+    function isSuperAdmin() {
+      return isRole('super_admin');
+    }
     // ── Granular permission layer (Dynamic RBAC / Progressive Governance) ──
     // Sits UNDERNEATH isAdminOrStaff() below — it narrows a small set of
     // high-risk transitions (property/site/plot approve+status, agent
@@ -1364,9 +1379,11 @@ service cloud.firestore {
     // (`allow read, write: if isCEO()`) exactly.
 
     match /strategyDocuments/{id} {
+      // P0.2: read unchanged (isAdminOrStaff() already covers admin/super_admin).
+      // Super Admin added to create/update alongside CEO, no other logic touched.
       allow read:   if isAdminOrStaff();
-      allow create: if isCEO() && hasStandardFields();
-      allow update: if isCEO();
+      allow create: if (isCEO() || isSuperAdmin()) && hasStandardFields();
+      allow update: if isCEO() || isSuperAdmin();
       allow delete: if false;
     }
 
@@ -1377,30 +1394,37 @@ service cloud.firestore {
       // covered by isAdminOrStaff() (Legal is staff-tier); write stays
       // CEO-only, unchanged — this comment just documents why Legal is
       // deliberately NOT added to the write side.
+      // P0.2: read unchanged. Super Admin added to create/update alongside
+      // CEO, no other logic touched.
       allow read:   if isAdminOrStaff();
-      allow create: if isCEO() && hasStandardFields();
-      allow update: if isCEO();
+      allow create: if (isCEO() || isSuperAdmin()) && hasStandardFields();
+      allow update: if isCEO() || isSuperAdmin();
       allow delete: if false;
     }
 
     match /shareStructure/{id} {
-      allow read, write: if isCEO();
+      // P0.2: Super Admin added alongside CEO, no other logic touched.
+      allow read, write: if isCEO() || isSuperAdmin();
     }
 
     match /governanceDocuments/{id} {
-      allow read, write: if isCEO();
+      // P0.2: Super Admin added alongside CEO, no other logic touched.
+      allow read, write: if isCEO() || isSuperAdmin();
     }
 
     match /companyRegistration/{id} {
-      allow read, write: if isCEO();
+      // P0.2: Super Admin added alongside CEO, no other logic touched.
+      allow read, write: if isCEO() || isSuperAdmin();
     }
 
     match /loansAndAssetDisposals/{id} {
-      allow read, write: if isCEO();
+      // P0.2: Super Admin added alongside CEO, no other logic touched.
+      allow read, write: if isCEO() || isSuperAdmin();
     }
 
     match /seniorStaffActions/{id} {
-      allow read, write: if isCEO();
+      // P0.2: Super Admin added alongside CEO, no other logic touched.
+      allow read, write: if isCEO() || isSuperAdmin();
     }
 
     // Director's normal day-to-day operating scope — full access, no CEO
@@ -1415,9 +1439,10 @@ service cloud.firestore {
     // safely removed; leaving it in place costs nothing and doesn't weaken
     // any other rule.
     match /dailyOperations/{id} {
-      allow read:   if isCEO() || isDirector();
-      allow create: if (isCEO() || isDirector()) && hasStandardFields();
-      allow update: if isCEO() || isDirector();
+      // P0.2: Super Admin added alongside CEO/Director, no other logic touched.
+      allow read:   if isCEO() || isDirector() || isSuperAdmin();
+      allow create: if (isCEO() || isDirector() || isSuperAdmin()) && hasStandardFields();
+      allow update: if isCEO() || isDirector() || isSuperAdmin();
       allow delete: if false;
     }
 
@@ -1449,9 +1474,10 @@ service cloud.firestore {
     // or Cloud Function anywhere writes to this collection — see the same
     // note on dailyOperations above; applies identically here.
     match /suggestions/{id} {
-      allow read:   if isCEO() || isDirector();
-      allow create: if (isCEO() || isDirector()) && hasStandardFields();
-      allow update: if isCEO() || isDirector();
+      // P0.2: Super Admin added alongside CEO/Director, no other logic touched.
+      allow read:   if isCEO() || isDirector() || isSuperAdmin();
+      allow create: if (isCEO() || isDirector() || isSuperAdmin()) && hasStandardFields();
+      allow update: if isCEO() || isDirector() || isSuperAdmin();
       allow delete: if false;
     }
 
@@ -1510,7 +1536,9 @@ service cloud.firestore {
       allow create: if isAuth() && hasStandardFields()
                     && request.resource.data.requestedBy == request.auth.uid
                     && request.resource.data.status == 'pending';
-      allow update: if isCEO()
+      // P0.2: Super Admin added to decision authority alongside CEO, no
+      // other logic touched — Director's capped-approval branch is unaffected.
+      allow update: if isCEO() || isSuperAdmin()
                     || (isDirector()
                         && resource.data.amount <= callerDoc().data.get('budgetApprovalLimit', 0));
       allow delete: if false;
@@ -1529,9 +1557,10 @@ service cloud.firestore {
     // or Cloud Function anywhere writes to this collection — see the same
     // note on dailyOperations above; applies identically here.
     match /employeeRecords/{id} {
-      allow read:   if inDept('HR') || isExecutive();
-      allow create: if (inDept('HR') || isExecutive()) && hasStandardFields();
-      allow update: if inDept('HR') || isExecutive();
+      // P0.2: Super Admin added alongside Executive/HR-dept, no other logic touched.
+      allow read:   if inDept('HR') || isExecutive() || isSuperAdmin();
+      allow create: if (inDept('HR') || isExecutive() || isSuperAdmin()) && hasStandardFields();
+      allow update: if inDept('HR') || isExecutive() || isSuperAdmin();
       allow delete: if false;
     }
 
@@ -1539,18 +1568,20 @@ service cloud.firestore {
     // or Cloud Function anywhere writes to this collection — see the same
     // note on dailyOperations above; applies identically here.
     match /legalCompliance/{id} {
-      allow read:   if inDept('Legal') || isExecutive();
-      allow create: if (inDept('Legal') || isExecutive()) && hasStandardFields();
-      allow update: if inDept('Legal') || isExecutive();
+      // P0.2: Super Admin added alongside Executive/Legal-dept, no other logic touched.
+      allow read:   if inDept('Legal') || isExecutive() || isSuperAdmin();
+      allow create: if (inDept('Legal') || isExecutive() || isSuperAdmin()) && hasStandardFields();
+      allow update: if inDept('Legal') || isExecutive() || isSuperAdmin();
       allow delete: if false;
     }
 
     match /contractReviews/{id} {
       // Legal reviews/annotates contracts here — this is NOT signing
       // authority, which stays on majorContracts (CEO-only write, above).
-      allow read:   if inDept('Legal') || isExecutive();
-      allow create: if (inDept('Legal') || isExecutive()) && hasStandardFields();
-      allow update: if inDept('Legal') || isExecutive();
+      // P0.2: Super Admin added alongside Executive/Legal-dept, no other logic touched.
+      allow read:   if inDept('Legal') || isExecutive() || isSuperAdmin();
+      allow create: if (inDept('Legal') || isExecutive() || isSuperAdmin()) && hasStandardFields();
+      allow update: if inDept('Legal') || isExecutive() || isSuperAdmin();
       allow delete: if false;
     }
 
@@ -1562,20 +1593,30 @@ service cloud.firestore {
       // /approvals instead (routedTo resolved from their reportsTo, which
       // for Director of Finance is [CEO, Operations Director]). Executive
       // always bypasses the limit.
-      allow read:   if inDept('Finance') || isExecutive();
-      allow create: if isExecutive()
+      // P0.2: Super Admin added alongside Executive on the uncapped branch —
+      // deliberately NOT added to the Finance-dept budgetApprovalLimit
+      // branch, so Super Admin is never subject to that numeric cap.
+      allow read:   if inDept('Finance') || isExecutive() || isSuperAdmin();
+      allow create: if isExecutive() || isSuperAdmin()
                     || (inDept('Finance')
                         && request.resource.data.amount <= callerDoc().data.get('budgetApprovalLimit', 0));
-      allow update: if isExecutive();
+      allow update: if isExecutive() || isSuperAdmin();
       allow delete: if false;
     }
 
     match /bankAccounts/{id} {
       // "open_new_account_unilaterally" — Finance can read account data but
       // can never create or delete an account; that stays Executive-only.
-      allow read:   if inDept('Finance') || isExecutive();
-      allow create, delete: if isExecutive();
-      allow update: if isExecutive();
+      // P0.2: Super Admin added to read/create/update alongside
+      // Finance-dept/Executive. create and delete were previously combined
+      // on one `allow create, delete` line — split apart so Super Admin can
+      // be added to create WITHOUT also gaining delete (deferred to a later
+      // phase's dual-approval/soft-delete design; P0.2 explicitly does not
+      // grant a new bankAccounts hard-delete path to anyone).
+      allow read:   if inDept('Finance') || isExecutive() || isSuperAdmin();
+      allow create: if isExecutive() || isSuperAdmin();
+      allow delete: if isExecutive();
+      allow update: if isExecutive() || isSuperAdmin();
     }
 
     // ── Role-verification pass: 4 department collections with no prior
@@ -1590,30 +1631,35 @@ service cloud.firestore {
       // force (isInternalTeam() includes 'agent') — there is no distinct
       // "Sales Manager" role in this app (deptOfRole() has no such
       // mapping), so "Sales" in the org-chart sense IS Brokerage/agents.
+      // P0.2: read unchanged (isInternalTeam() already covers admin/super_admin).
+      // Super Admin added to create/update alongside Executive/Brokerage-dept.
       allow read:   if isInternalTeam() || isExecutive();
-      allow create: if (inDept('Brokerage') || isExecutive()) && hasStandardFields();
-      allow update: if inDept('Brokerage') || isExecutive();
+      allow create: if (inDept('Brokerage') || isExecutive() || isSuperAdmin()) && hasStandardFields();
+      allow update: if inDept('Brokerage') || isExecutive() || isSuperAdmin();
       allow delete: if false;
     }
 
     match /campaigns/{id} {
-      allow read:   if inDept('Marketing') || isExecutive();
-      allow create: if (inDept('Marketing') || isExecutive()) && hasStandardFields();
-      allow update: if inDept('Marketing') || isExecutive();
+      // P0.2: Super Admin added alongside Executive/Marketing-dept, no other logic touched.
+      allow read:   if inDept('Marketing') || isExecutive() || isSuperAdmin();
+      allow create: if (inDept('Marketing') || isExecutive() || isSuperAdmin()) && hasStandardFields();
+      allow update: if inDept('Marketing') || isExecutive() || isSuperAdmin();
       allow delete: if false;
     }
 
     match /support_tickets/{id} {
-      allow read:   if inDept('CustomerSupport') || isExecutive();
-      allow create: if (inDept('CustomerSupport') || isExecutive()) && hasStandardFields();
-      allow update: if inDept('CustomerSupport') || isExecutive();
+      // P0.2: Super Admin added alongside Executive/CustomerSupport-dept, no other logic touched.
+      allow read:   if inDept('CustomerSupport') || isExecutive() || isSuperAdmin();
+      allow create: if (inDept('CustomerSupport') || isExecutive() || isSuperAdmin()) && hasStandardFields();
+      allow update: if inDept('CustomerSupport') || isExecutive() || isSuperAdmin();
       allow delete: if false;
     }
 
     match /system_changes/{id} {
-      allow read:   if inDept('IT') || isExecutive();
-      allow create: if (inDept('IT') || isExecutive()) && hasStandardFields();
-      allow update: if inDept('IT') || isExecutive();
+      // P0.2: Super Admin added alongside Executive/IT-dept, no other logic touched.
+      allow read:   if inDept('IT') || isExecutive() || isSuperAdmin();
+      allow create: if (inDept('IT') || isExecutive() || isSuperAdmin()) && hasStandardFields();
+      allow update: if inDept('IT') || isExecutive() || isSuperAdmin();
       allow delete: if false;
     }
   }
