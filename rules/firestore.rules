@@ -326,8 +326,21 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys()
              .hasAny(['isVerified', 'verified', 'status']);
       }
+      // P0.3: narrowed from the old `isAdmin() || (isCEO() && !escalation)` —
+      // plain 'admin' could previously mint new admin/super_admin accounts
+      // unconditionally, the same Ultimate-Authority gap _isEscalationToAdminRole()
+      // was originally written to close for CEO but never closed for Admin
+      // itself. isSuperAdmin() now gets the unconditional bypass (Ultimate
+      // Authority proper); plain admin is folded into the same
+      // !_isEscalationToAdminRole() restriction CEO already had — both can
+      // still reassign any non-admin-tier role (org-chart moves, agent
+      // verification-adjacent status, etc.), neither can escalate a user
+      // into admin/super_admin anymore. Demoting an EXISTING admin/
+      // super_admin down to a lower role, and CEO/Director reassignment
+      // authority generally, are deliberately out of scope for this pass —
+      // a separate, larger design question, not folded in here.
       function _agentGovernanceOK() {
-        return (!_isRoleFieldChange() || isAdmin() || (isCEO() && !_isEscalationToAdminRole()))
+        return (!_isRoleFieldChange() || isSuperAdmin() || ((isAdmin() || isCEO()) && !_isEscalationToAdminRole()))
           && (!_isAgentVerifySuspendChange() || hasPerm('agents.verify') || hasPerm('agents.suspend'));
       }
       // Factored out so _agentGovernanceOK() (which internally short-circuits
