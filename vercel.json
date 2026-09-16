@@ -9,12 +9,19 @@
       "destination": "/api/property-og?id=:id"
     },
     {
+      "source": "/site/:id",
+      "destination": "/api/site-og?id=:id"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
   "functions": {
     "api/property-og.js": {
+      "includeFiles": "index.html"
+    },
+    "api/site-og.js": {
       "includeFiles": "index.html"
     }
   },
