@@ -1835,3 +1835,40 @@ exports.onPropertyStatsRelevantChange = onDocumentWritten({ document: 'propertie
   if (before && after && before.status === after.status && before.isActive === after.isActive) return;
   await recomputeHomepageStats(getFirestore());
 });
+
+// P0.5 — last-Super-Admin floor. Maintains stats/adminCounts.superAdminCount,
+// the counter rules/firestore.rules' _isLastSuperAdminDemotion() reads to
+// refuse a role-field write that would demote the platform's only
+// remaining super_admin account (self-demotion included) down to zero.
+// Fires on every users/{uid} write (create/update/delete); a plain JS
+// string comparison on the before/after role, not a Firestore query, so
+// there's no casing-list to maintain here the way recomputeHomepageStats()
+// above needs one — every casing that normalizes to 'super_admin' via
+// .toLowerCase() is counted correctly regardless of how it's stored.
+// FieldValue.increment() is itself atomic against concurrent writes on
+// this one field, so — same as onPlotStatusChanged's site-inventory
+// counters above — no runTransaction() wrapper is needed for a pure
+// increment/decrement.
+//
+// Bootstrapping: a brand-new deploy has no stats/adminCounts document at
+// all. rules/firestore.rules treats a missing doc as "assume exactly 1
+// super admin" (fail-safe — blocks every demotion until the real count is
+// known, never the other way around). Run
+// scripts/backfill-super-admin-count.js once after first deploying this
+// function to seed the true starting count from the live users collection.
+function superAdminCountDelta(beforeRole, afterRole) {
+  const was = String(beforeRole || '').toLowerCase() === 'super_admin' ? 1 : 0;
+  const is = String(afterRole || '').toLowerCase() === 'super_admin' ? 1 : 0;
+  return is - was;
+}
+exports.onUserSuperAdminCountChange = onDocumentWritten({ document: 'users/{uid}', region: REGION }, async (event) => {
+  const before = event.data.before.exists ? event.data.before.data() : null;
+  const after = event.data.after.exists ? event.data.after.data() : null;
+  const delta = superAdminCountDelta(before && before.role, after && after.role);
+  if (delta === 0) return;
+  await getFirestore().collection('stats').doc('adminCounts').set({
+    superAdminCount: FieldValue.increment(delta),
+    updatedAt: FieldValue.serverTimestamp()
+  }, { merge: true });
+  logger.info('Super admin count delta ' + delta + ' applied for users/' + event.params.uid);
+});

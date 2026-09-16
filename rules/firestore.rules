@@ -329,6 +329,30 @@ service cloud.firestore {
       function _isDemotionFromAdminRole() {
         return resource.data.get('role', '').lower() in ['admin', 'super_admin'];
       }
+      // P0.5 — last-Super-Admin floor. Even isSuperAdmin()'s own bypass in
+      // _agentGovernanceOK() below must respect this: a corrupted/mistaken
+      // write, or a super_admin demoting themselves or the only other
+      // super_admin, must never be able to leave the platform with zero
+      // super_admin accounts and no recovery path (the exact failure mode
+      // isAdmin()'s own comment, far above, already exists to prevent for
+      // the isActive flag — this is the same guarantee for the role itself).
+      // stats/adminCounts.superAdminCount is maintained server-side only
+      // (functions/index.js's onUserSuperAdminCountChange, Admin SDK,
+      // bypasses this file entirely — see rules/firestore.rules' existing
+      // `match /stats/{doc}` block above: public read, `write: if false`
+      // for every client, admin/super_admin included). Missing doc defaults
+      // to 1 (get('superAdminCount', 1)) and a missing doc is ALSO treated
+      // as "assume exactly 1" via the explicit !exists() branch — fail-safe:
+      // undercounting only ever makes this MORE restrictive, never less, so
+      // a fresh deploy that hasn't run scripts/backfill-super-admin-count.js
+      // yet correctly blocks every demotion rather than silently allowing
+      // one past an uninitialized counter.
+      function _isLastSuperAdminDemotion() {
+        return resource.data.get('role', '').lower() == 'super_admin'
+          && request.resource.data.get('role', '').lower() != 'super_admin'
+          && (!exists(/databases/$(database)/documents/stats/adminCounts)
+              || get(/databases/$(database)/documents/stats/adminCounts).data.get('superAdminCount', 1) <= 1);
+      }
       // Agent verification/suspension — the flip of isVerified/verified or
       // status on an agent's own doc (_fsPendingApprove()/_fsPendingReject()
       // and any future suspend action) — is scoped to whichever roles are
@@ -345,14 +369,18 @@ service cloud.firestore {
       // plain 'admin' can no longer mint new admin/super_admin accounts —
       // isSuperAdmin() gets the unconditional bypass (Ultimate Authority
       // proper); plain admin/CEO may still reassign any non-admin-tier role
-      // freely. P0.4 adds the mirror restriction on the way OUT: neither
+      // freely. P0.4 added the mirror restriction on the way OUT: neither
       // admin nor CEO may touch the role field at all on a document that is
-      // CURRENTLY admin/super_admin, closing the demotion gap P0.3's own
-      // comment flagged as deferred (see _isDemotionFromAdminRole() above).
+      // CURRENTLY admin/super_admin. P0.5 adds one more guard even
+      // isSuperAdmin() itself must clear: a demotion FROM super_admin is
+      // still refused outright if it would leave zero super_admin accounts
+      // (see _isLastSuperAdminDemotion() above) — Ultimate Authority can
+      // demote any OTHER super_admin, or itself, but never the last one.
       // CEO/Director reassignment authority in general remains untouched —
       // still a separate, larger design question, not folded in here.
       function _agentGovernanceOK() {
-        return (!_isRoleFieldChange() || isSuperAdmin()
+        return (!_isRoleFieldChange()
+                || (isSuperAdmin() && !_isLastSuperAdminDemotion())
                 || ((isAdmin() || isCEO()) && !_isEscalationToAdminRole() && !_isDemotionFromAdminRole()))
           && (!_isAgentVerifySuspendChange() || hasPerm('agents.verify') || hasPerm('agents.suspend'));
       }

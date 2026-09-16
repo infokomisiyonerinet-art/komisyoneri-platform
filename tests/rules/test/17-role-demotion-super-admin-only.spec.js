@@ -49,6 +49,17 @@ describe('P0.4 — Role demotion FROM admin/super_admin is Super Admin-only', fu
       await userDoc(SUPER_ADMIN_UID, 'super_admin');
       await userDoc(SECOND_ADMIN_UID, 'admin');
       await userDoc(ADMIN_CAP_TARGET_UID, 'Admin');
+
+      // P0.5's last-Super-Admin floor (_isLastSuperAdminDemotion()) reads
+      // stats/adminCounts.superAdminCount and refuses ANY demotion FROM
+      // super_admin when it's <= 1 (or the doc is missing, per that
+      // function's own fail-safe default). This file is testing general
+      // demotion AUTHORITY (P0.4), not the floor itself (P0.5 — see
+      // 18-last-super-admin-floor.spec.js for that) — seeded generously
+      // high here so none of these tests accidentally exercise the floor.
+      await db.collection('stats').doc('adminCounts').set({
+        superAdminCount: 5, updatedAt: new Date().toISOString()
+      });
     });
   });
 
