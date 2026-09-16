@@ -7925,6 +7925,14 @@ html,body{overscroll-behavior-x:none}
         <textarea id="site-reject-reason" placeholder="Reason for rejection..." style="width:100%;padding:.6rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.82rem;resize:vertical;min-height:60px"></textarea>
         <button class="btn btn-sm" style="background:#e53e3e;color:#fff;margin-top:.4rem" onclick="confirmRejectSite()">Confirm Rejection</button>
       </div>
+      <!-- Per-plot status list (Issue 3) — nested inside #site-staff-actions
+           on purpose, so it is shown/hidden by that box's own existing
+           isAdminOrStaff()/managingAgent visibility toggle (renderSiteDetail())
+           rather than a separate gate. -->
+      <div id="site-plot-status-mgmt" style="display:none;margin-top:1rem;padding-top:1rem;border-top:1.5px solid var(--border)">
+        <div style="font-weight:700;font-size:.82rem;color:var(--navy);margin-bottom:.5rem" data-rw="Imiterere y'Ibiraro" data-en="Plot Status">Plot Status</div>
+        <div id="site-plot-status-list" style="display:flex;flex-direction:column;gap:.4rem;max-height:320px;overflow-y:auto"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -33458,6 +33466,7 @@ function loadSitePlan(siteId) {
         var plots = [];
         psnap.forEach(function(pd) { var p = pd.data(); p.id = pd.id; plots.push(p); });
         renderPlotGrid(plots);
+        renderPlotStatusList(plots);
         if (s.siteMapUrl) renderPlotOverlays(plots);
       }).catch(function(e) {
         console.error('[Sites] plots error', e);
@@ -33488,6 +33497,67 @@ function renderPlotGrid(plots) {
     return '<div class="' + cls + '" onclick="openPlotDetail(\'' + p.id + '\')" title="' + lbl + '" role="button" tabindex="0">' +
       '<div class="plot-cell-num">' + (p.plotNumber || '?') + '</div>' +
       (sz ? '<div class="plot-cell-size">' + sz + '</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+// ── Render staff plot-status list (Issue 3) ──────────
+// Per-row status dropdown, same <select onchange="fn(id,this.value)">
+// pattern already used for job-application stage changes
+// (moveApplicationStage()/renderJobPipeline() above). Lives inside
+// #site-staff-actions, so visibility already matches "Staff Actions" /
+// "Edit Site" on this page (renderSiteDetail()'s staffBox toggle) — no
+// separate gate is added here.
+//
+// Within that box, a row only gets an editable <select> (and only the
+// target values that role is actually allowed to write) when the caller
+// holds the specific permission rules/firestore.rules' _plotStatusOK()
+// requires for that transition — mirrors _plotStatusOK() exactly (see
+// _plotTargetAllowed() below). Anyone in the box without that permission
+// for a given row sees a read-only status badge instead. This is the same
+// principle "Governance hardening P4.15" already fixed once for the
+// popup's own "Change Status" button (isAdminOrStaff() alone showed a
+// control that could fail server-side) — a dropdown makes that failure
+// mode more visible (an option a role can't actually use), so it's worth
+// avoiding here too rather than just gating the whole list on isAdminOrStaff().
+var PLOT_STATUS_LABELS = { available:'Available', reserved:'Reserved', sold:'Sold', on_hold:'On Hold', unavailable:'Unavailable' };
+
+// Mirrors rules/firestore.rules' _plotStatusOK() truth table exactly: a
+// transition into or out of 'sold' needs plots.mark_sold specifically;
+// every other transition needs only plots.change_status.
+function _plotTargetAllowed(currentStatus, targetStatus, hasChangeStatus, hasMarkSold) {
+  if (targetStatus === currentStatus) return true;
+  if (targetStatus === 'sold' || currentStatus === 'sold') return hasMarkSold;
+  return hasChangeStatus;
+}
+
+function renderPlotStatusList(plots) {
+  var list = document.getElementById('site-plot-status-list');
+  if (!list) return;
+  if (!currentUser || !plots || !plots.length) { list.innerHTML = ''; return; }
+
+  var hasChangeStatus = hasPerm('plots.change_status', currentUser);
+  var hasMarkSold      = hasPerm('plots.mark_sold', currentUser);
+
+  list.innerHTML = plots.map(function(p) {
+    var label = p.plotLabel || ('Plot ' + (p.plotNumber || p.id));
+    var status = p.status || 'available';
+    var allowedTargets = PLOT_STATUS_VALUES.filter(function(v) {
+      return v === status || _plotTargetAllowed(status, v, hasChangeStatus, hasMarkSold);
+    });
+    var canEdit = allowedTargets.length > 1;
+    var control;
+    if (canEdit) {
+      var optsHtml = allowedTargets.map(function(v) {
+        return '<option value="' + v + '"' + (v === status ? ' selected' : '') + '>' + PLOT_STATUS_LABELS[v] + '</option>';
+      }).join('');
+      control = '<select onchange="changePlotStatus(\'' + p.id + '\', this.value, \'' + status + '\')" style="padding:.3rem .5rem;border:1.5px solid var(--border);border-radius:6px;font-size:.78rem">' + optsHtml + '</select>';
+    } else {
+      control = '<span class="plot-popup-status ' + status + '" style="font-size:.72rem">' + (PLOT_STATUS_LABELS[status] || status) + '</span>';
+    }
+    return '<div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.4rem .6rem;background:#fff;border:1px solid var(--border);border-radius:8px">' +
+      '<span style="font-size:.8rem;font-weight:600">' + escapeHtml(label) + '</span>' +
+      control +
     '</div>';
   }).join('');
 }
@@ -33695,13 +33765,23 @@ function openSiteEnquiry(plotId) {
 // commission-calc guard below) must already treat that as 'unknown'/
 // not-external, so old documents keep behaving exactly as before.
 var VALID_TRANSACTION_SOURCES = ['komisyoneri', 'external', 'unknown'];
+var PLOT_STATUS_VALUES = ['available','reserved','sold','on_hold','unavailable'];
 
-function openPlotStatusChange(plotId, currentStatus) {
-  var newStatus = prompt('Change plot status:\navailable / reserved / sold / on_hold / unavailable\nCurrent: ' + currentStatus);
-  if (!newStatus) return;
-  var valid = ['available','reserved','sold','on_hold','unavailable'];
-  newStatus = newStatus.trim();
-  if (valid.indexOf(newStatus) === -1) { showToast('Invalid status', 'error'); return; }
+// Shared by both plot-status-change entry points: the popup's "Change
+// Status" button (openPlotStatusChange() below, which only collects
+// newStatus via prompt() then delegates here) and the Site Detail page's
+// per-row status dropdown (renderPlotStatusList() above). One
+// transaction/counter-update path for both, so they can never drift out of
+// sync with each other — sites/{siteId}'s availablePlots/reservedPlots/
+// soldPlots counters are maintained server-side by onPlotStatusChanged
+// (functions/index.js, PLOT_STATUS_COUNTER_FIELD there), reacting to
+// whichever of these two callers made the write; that trigger derives the
+// plot's real old/new status from Firestore's own before/after event data,
+// so it can't be fooled by a stale `currentStatus` argument either caller
+// passes in.
+function changePlotStatus(plotId, newStatus, currentStatus) {
+  if (PLOT_STATUS_VALUES.indexOf(newStatus) === -1) { showToast('Invalid status', 'error'); return; }
+  if (newStatus === currentStatus) return;
 
   var transactionSource = null;
   var statusChangeReason = null;
@@ -33713,21 +33793,19 @@ function openPlotStatusChange(plotId, currentStatus) {
     // write server-side without a non-empty reason, so enforce it here too
     // rather than letting the user fill the prompt only to see it fail.
     statusChangeReason = (prompt('Reason for marking this plot "' + newStatus + '" (required):') || '').trim();
-    if (!statusChangeReason) { showToast('A reason is required for this status change.', 'error'); return; }
+    if (!statusChangeReason) {
+      showToast('A reason is required for this status change.', 'error');
+      // The dropdown caller has already visually flipped its <select> to
+      // newStatus at this point (the onchange already fired) — resync it
+      // (and the grid) back to the plot's real, unchanged status.
+      if (currentSiteId) loadSitePlan(currentSiteId);
+      return;
+    }
   }
 
   var now = firebase.firestore.FieldValue.serverTimestamp();
   var uid = currentUser.uid;
 
-  // sites/{siteId}'s availablePlots/reservedPlots/soldPlots counters are
-  // now maintained server-side by onPlotStatusChanged (functions/index.js),
-  // reacting to this same plot status write, using the identical
-  // PLOT_STATUS_COUNTER_FIELD mapping this function used to apply
-  // client-side — not here. That trigger derives the plot's real old/new
-  // status from Firestore's own before/after event data, so it can't be
-  // fooled by a stale `currentStatus` argument the way this function's own
-  // client-side counter code previously could be. This transaction now
-  // only ever needs to touch the one plot document being changed.
   db.runTransaction(function(tx) {
     var plotRef = db.collection('plots').doc(plotId);
     return tx.get(plotRef).then(function(pd) {
@@ -33757,7 +33835,15 @@ function openPlotStatusChange(plotId, currentStatus) {
   }).catch(function(e) {
     showToast('Error updating status', 'error');
     console.error(e);
+    if (currentSiteId) loadSitePlan(currentSiteId); // resync UI (e.g. the dropdown) with real server state
   });
+}
+
+function openPlotStatusChange(plotId, currentStatus) {
+  var newStatus = prompt('Change plot status:\navailable / reserved / sold / on_hold / unavailable\nCurrent: ' + currentStatus);
+  if (!newStatus) return;
+  newStatus = newStatus.trim();
+  changePlotStatus(plotId, newStatus, currentStatus);
 }
 
 // ── Commission auto-calculation on sale ──────────────
