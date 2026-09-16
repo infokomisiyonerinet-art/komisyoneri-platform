@@ -314,6 +314,21 @@ service cloud.firestore {
       function _isEscalationToAdminRole() {
         return request.resource.data.get('role', '').lower() in ['admin', 'super_admin'];
       }
+      // P0.4: the mirror of _isEscalationToAdminRole() — checks the TARGET
+      // DOCUMENT's CURRENT role (resource.data, before the write), not the
+      // requested new value. Closes the gap P0.3's own comment flagged as
+      // deliberately deferred: _isEscalationToAdminRole() alone only ever
+      // blocked writing INTO admin/super_admin — a plain admin (or CEO)
+      // could still freely demote an EXISTING admin/super_admin account
+      // down to any lower role (including stripping the platform's own
+      // super_admin down to 'client'), since that write's destination value
+      // was never itself admin/super_admin. Only isSuperAdmin() may change
+      // the role field at all once it starts out as admin/super_admin —
+      // this also means a plain admin can no longer self-demote, matching
+      // "Only Super Admin has ultimate authority to promote/demote Admin."
+      function _isDemotionFromAdminRole() {
+        return resource.data.get('role', '').lower() in ['admin', 'super_admin'];
+      }
       // Agent verification/suspension — the flip of isVerified/verified or
       // status on an agent's own doc (_fsPendingApprove()/_fsPendingReject()
       // and any future suspend action) — is scoped to whichever roles are
@@ -326,21 +341,19 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys()
              .hasAny(['isVerified', 'verified', 'status']);
       }
-      // P0.3: narrowed from the old `isAdmin() || (isCEO() && !escalation)` —
-      // plain 'admin' could previously mint new admin/super_admin accounts
-      // unconditionally, the same Ultimate-Authority gap _isEscalationToAdminRole()
-      // was originally written to close for CEO but never closed for Admin
-      // itself. isSuperAdmin() now gets the unconditional bypass (Ultimate
-      // Authority proper); plain admin is folded into the same
-      // !_isEscalationToAdminRole() restriction CEO already had — both can
-      // still reassign any non-admin-tier role (org-chart moves, agent
-      // verification-adjacent status, etc.), neither can escalate a user
-      // into admin/super_admin anymore. Demoting an EXISTING admin/
-      // super_admin down to a lower role, and CEO/Director reassignment
-      // authority generally, are deliberately out of scope for this pass —
-      // a separate, larger design question, not folded in here.
+      // P0.3 narrowed the old `isAdmin() || (isCEO() && !escalation)` so
+      // plain 'admin' can no longer mint new admin/super_admin accounts —
+      // isSuperAdmin() gets the unconditional bypass (Ultimate Authority
+      // proper); plain admin/CEO may still reassign any non-admin-tier role
+      // freely. P0.4 adds the mirror restriction on the way OUT: neither
+      // admin nor CEO may touch the role field at all on a document that is
+      // CURRENTLY admin/super_admin, closing the demotion gap P0.3's own
+      // comment flagged as deferred (see _isDemotionFromAdminRole() above).
+      // CEO/Director reassignment authority in general remains untouched —
+      // still a separate, larger design question, not folded in here.
       function _agentGovernanceOK() {
-        return (!_isRoleFieldChange() || isSuperAdmin() || ((isAdmin() || isCEO()) && !_isEscalationToAdminRole()))
+        return (!_isRoleFieldChange() || isSuperAdmin()
+                || ((isAdmin() || isCEO()) && !_isEscalationToAdminRole() && !_isDemotionFromAdminRole()))
           && (!_isAgentVerifySuspendChange() || hasPerm('agents.verify') || hasPerm('agents.suspend'));
       }
       // Factored out so _agentGovernanceOK() (which internally short-circuits
