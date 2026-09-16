@@ -289,9 +289,16 @@ describe('Dynamic RBAC — role_permissions / hasPerm()', function () {
       );
     });
 
-    it('admin CAN promote a user to admin', async () => {
+    // P0.3: previously assertSucceeds — plain admin could mint new
+    // admin/super_admin accounts unconditionally via isAdmin()'s bypass in
+    // _agentGovernanceOK(). Narrowed so only isSuperAdmin() gets that
+    // unconditional escalation bypass now; admin is folded into the same
+    // !_isEscalationToAdminRole() restriction CEO already had (see
+    // 16-role-escalation-super-admin-only.spec.js for the full coverage of
+    // this split, including super_admin's retained authority here).
+    it('admin CANNOT promote a user to admin (P0.3 — only super_admin can escalate into admin/super_admin now)', async () => {
       const ctx = testEnv.authenticatedContext(UIDS.admin);
-      await assertSucceeds(
+      await assertFails(
         ctx.firestore().doc(`users/${UIDS.marketing}`).update({ role: 'admin' })
       );
     });
