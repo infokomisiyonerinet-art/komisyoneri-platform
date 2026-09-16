@@ -17952,14 +17952,16 @@ function sharePropLink(propId, event) {
 }
 
 // === SHAREABLE SITE (NEW DEVELOPMENT) LINKS ===
-// Sites have no server-rendered /site/{id} route (no api/site-og.js, no
-// vercel.json rewrite — unlike /property/{id}) — this is a deliberate,
-// minimal deep link only: a hash fragment, resolved entirely client-side
-// by checkUrlHash() below. Link previews on WhatsApp/Facebook won't get
-// rich Open Graph tags the way a shared property link does, but the link
-// itself genuinely opens the right site, which the platform could not do
-// at all before this. Building the equivalent of property-og.js for sites
-// is a separate, larger piece of work, not silently folded into this one.
+// Real, crawlable path (not a hash) — mirrors _propShareUrl()'s own
+// comment exactly: WhatsApp/Facebook preview crawlers never execute JS or
+// send a URL fragment, so /site/{id} has to be a real server route.
+// api/site-og.js + the /site/:id rewrite in vercel.json serve rich Open
+// Graph tags for exactly this path; regular visitors get the normal SPA
+// (see the /site/:id handling in checkUrlHash() and the DOMContentLoaded
+// router below). The OLD #site={id} hash format (this function's own
+// previous behavior) is still recognized by checkUrlHash() for anyone who
+// already has a link in that format — only NEW links generated from here
+// get a real, previewable path.
 // Named distinctly from the pre-existing global _sitesCache (an ARRAY used
 // by loadSites()/filterSites() for the sites listing page's own filtering)
 // — this is a separate id-keyed lookup map for the Share feature only.
@@ -17968,7 +17970,7 @@ function _cacheSite(site) { if (site && site.id) window._siteShareCache[site.id]
 function _findSiteById(siteId) { return window._siteShareCache[siteId] || null; }
 
 function _siteShareUrl(siteId) {
-  return 'https://komisiyoneri.co.rw/#site=' + encodeURIComponent(siteId);
+  return 'https://komisiyoneri.co.rw/site/' + encodeURIComponent(siteId);
 }
 function _siteShareText(site) {
   var title = (site && site.name) || (curLang === 'rw' ? 'Site Nshya' : 'New Development');
@@ -18086,11 +18088,12 @@ function _resetPropertyMeta() {
 }
 
 // Check URL hash/path on load — open listing if a deep link is present.
-// Two schemes both land here: the legacy '#prop=' hash (kept for any old
-// shared links still in the wild) and the real '/property/{id}' path
-// (what sharePropLink()/_propShareUrl() generate now — a real server route
+// Two schemes each, for properties and sites: the legacy '#prop='/'#site='
+// hash (kept for any old shared links still in the wild) and the real
+// '/property/{id}'/'/site/{id}' path (what sharePropLink()/_propShareUrl()
+// and shareSiteLink()/_siteShareUrl() generate now — a real server route
 // so link-preview crawlers can be served rich Open Graph tags for it; see
-// api/property-og.js + vercel.json).
+// api/property-og.js + api/site-og.js + vercel.json).
 function checkUrlHash() {
   var hash = window.location.hash;
   if(hash && hash.indexOf('#prop=') === 0) {
@@ -18100,8 +18103,11 @@ function checkUrlHash() {
     }, 800);
     return;
   }
-  // Sites have no server-rendered path route (see _siteShareUrl()'s own
-  // comment) — this hash is the only shareable/deep-linkable form.
+  // Old share-link format (_siteShareUrl() generated this before sites got
+  // a real path route below) — kept working indefinitely for anyone who
+  // already has a link in this form; it just never gets a rich preview,
+  // since a hash fragment is never sent to the server for api/site-og.js
+  // to see.
   if(hash && hash.indexOf('#site=') === 0) {
     var siteId = hash.replace('#site=', '');
     setTimeout(function() {
@@ -18113,6 +18119,17 @@ function checkUrlHash() {
   if (pathMatch) {
     setTimeout(function() {
       openPropDetail(decodeURIComponent(pathMatch[1]));
+    }, 800);
+    return;
+  }
+  // Real, crawlable path — see _siteShareUrl()'s own comment (api/site-og.js
+  // + the /site/:id rewrite in vercel.json serve rich Open Graph tags for
+  // it; a human visitor's browser lands here too, and the SPA takes over
+  // via this same handler).
+  var sitePathMatch = window.location.pathname.match(/^\/site\/([^\/]+)\/?$/);
+  if (sitePathMatch) {
+    setTimeout(function() {
+      loadSitePlan(decodeURIComponent(sitePathMatch[1]));
     }, 800);
   }
 }
@@ -18200,6 +18217,10 @@ window.addEventListener('DOMContentLoaded', function() {
   // /property/{id} path — see checkUrlHash()'s comment).
   if (!pathPage && hash.indexOf('prop=') === 0) return;
   if (!pathPage && /^\/property\/[^\/]+\/?$/.test(path)) return;
+  // Same deferral for site deep-links — the old #site=... hash format and
+  // the real /site/{id} path both resolve via checkUrlHash()/loadSitePlan().
+  if (!pathPage && hash.indexOf('site=') === 0) return;
+  if (!pathPage && /^\/site\/[^\/]+\/?$/.test(path)) return;
   var validPages = [
     'home','listings','detail','analytics',
     'sites','site','crm','deals','commissions','subscription',
@@ -33327,13 +33348,13 @@ function loadSitePlan(siteId) {
   go('site');
 
   // go('site') already pushed a history entry (hash-based, since 'site'
-  // isn't in go()'s CLEAN_PATHS) — replace it with the specific #site=
-  // deep link so the address bar and any copy-paste-the-URL sharing match
-  // what shareSiteLink() generates. Mirrors openPropDetail()'s identical
-  // replaceState call for /property/{id}; see _siteShareUrl()'s own
-  // comment for why this is a hash, not a real server-rendered path.
+  // isn't in go()'s CLEAN_PATHS) — replace it with the real, crawlable
+  // /site/{id} path so the address bar, browser back/forward, and any
+  // copy-paste-the-URL sharing all use the same shareable link
+  // _siteShareUrl() generates. Mirrors openPropDetail()'s identical
+  // replaceState call for /property/{id}.
   if (window.history && window.history.replaceState) {
-    window.history.replaceState({ page: 'site', siteId: siteId }, '', '#site=' + encodeURIComponent(siteId));
+    window.history.replaceState({ page: 'site', siteId: siteId }, '', '/site/' + encodeURIComponent(siteId));
   }
 
   var nameEl  = document.getElementById('site-detail-name');
