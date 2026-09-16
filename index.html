@@ -2701,6 +2701,7 @@ html,body{overscroll-behavior-x:none}
 .plot-cell.plot-unavailable{background:rgba(156,163,175,.15);border-color:var(--plot-unavailable)}
 .plot-cell-num{font-weight:700;font-size:.78rem;color:var(--dark)}
 .plot-cell-size{font-size:.62rem;color:var(--muted)}
+.plot-cell-status-select{margin-top:.2rem;width:100%;max-width:100%;font-size:.62rem;padding:.1rem .15rem;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--dark);cursor:pointer}
 
 /* Site page header */
 #page-sites .list-hdr,#page-site .list-hdr{background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 100%)}
@@ -33432,6 +33433,17 @@ function loadSitePlan(siteId) {
     // a site's own detail page never saw Staff Actions or Edit Site at
     // all, despite being fully authorized to edit it.
     var staffBox = document.getElementById('site-staff-actions');
+    // Per-plot quick status dropdown (renderPlotGrid() below) is gated on
+    // plots.change_status / plots.mark_sold specifically — NOT the wider
+    // isStaffAdmin/isAgent tier below (Staff Actions/Edit Site). That tier
+    // is deliberately broader than either plot permission, so reusing it
+    // here would show a dropdown to staff roles whose write it would then
+    // reject server-side — the exact UI-shows-a-control-the-backend-
+    // rejects gap already found and fixed twice this session (HR page, Add
+    // Staff screen). Defaults to false so an anonymous/unauthenticated
+    // viewer never gets the dropdown at all.
+    var canChangeStatus = false;
+    var canMarkSold = false;
     if (staffBox && typeof currentUser !== 'undefined' && currentUser) {
       var r = (currentUser.role || '').toLowerCase();
       var isStaffAdmin = isAdminOrStaff(currentUser);
@@ -33449,6 +33461,8 @@ function loadSitePlan(siteId) {
       if (approveBtn) approveBtn.style.display = (canApproveSite && s.status === 'pending_review') ? 'inline-flex' : 'none';
       if (rejectBtn)  rejectBtn.style.display  = (canApproveSite && s.status === 'pending_review') ? 'inline-flex' : 'none';
       if (editBtn)    editBtn.style.display    = (isAgent || isStaffAdmin) ? 'inline-flex' : 'none';
+      canChangeStatus = hasPerm('plots.change_status', currentUser);
+      canMarkSold     = hasPerm('plots.mark_sold', currentUser);
     }
 
     // Load plots
@@ -33457,7 +33471,7 @@ function loadSitePlan(siteId) {
       .then(function(psnap) {
         var plots = [];
         psnap.forEach(function(pd) { var p = pd.data(); p.id = pd.id; plots.push(p); });
-        renderPlotGrid(plots);
+        renderPlotGrid(plots, canChangeStatus, canMarkSold);
         if (s.siteMapUrl) renderPlotOverlays(plots);
       }).catch(function(e) {
         console.error('[Sites] plots error', e);
@@ -33474,7 +33488,22 @@ function loadSitePlan(siteId) {
 }
 
 // ── Render plot grid (color-coded cells) ────────────
-function renderPlotGrid(plots) {
+var PLOT_STATUS_VALUES = ['available','reserved','sold','on_hold','unavailable'];
+var PLOT_STATUS_LABELS = { available:'Available', reserved:'Reserved', sold:'Sold', on_hold:'On Hold', unavailable:'Unavailable' };
+
+// Mirrors rules/firestore.rules' _plotStatusOK() exactly: a transition
+// touching 'sold' on either side (entering OR reversing out of it) needs
+// plots.mark_sold; every other transition needs plots.change_status. Used
+// below to decide which target statuses the quick dropdown may even
+// offer — not just whether the dropdown appears at all — so a
+// change_status-only user never sees "Sold" as an option, and a
+// mark_sold-only user never sees the other transitions.
+function _plotStatusTargetAllowed(oldStatus, newStatus, canChangeStatus, canMarkSold) {
+  if (oldStatus === 'sold' || newStatus === 'sold') return canMarkSold;
+  return canChangeStatus;
+}
+
+function renderPlotGrid(plots, canChangeStatus, canMarkSold) {
   var grid = document.getElementById('site-plot-grid');
   if (!grid) return;
   if (!plots || plots.length === 0) {
@@ -33482,12 +33511,29 @@ function renderPlotGrid(plots) {
     return;
   }
   grid.innerHTML = plots.map(function(p) {
-    var cls = 'plot-cell plot-' + (p.status || 'available');
+    var status = p.status || 'available';
+    var cls = 'plot-cell plot-' + status;
     var lbl = p.plotLabel || ('Plot ' + (p.plotNumber || p.id));
     var sz  = p.size ? (p.size + 'm²') : '';
+    // Only offer targets this signed-in user's permissions can actually
+    // reach — see _plotStatusTargetAllowed()'s own comment above.
+    var targets = PLOT_STATUS_VALUES.filter(function(s) {
+      return s === status || _plotStatusTargetAllowed(status, s, canChangeStatus, canMarkSold);
+    });
+    // A lone option (the plot's own current status) isn't an edit control
+    // — skip rendering the dropdown entirely rather than show a select
+    // with nothing useful to pick, on every plot every visitor sees.
+    var statusSelect = targets.length > 1
+      ? '<select class="plot-cell-status-select" onclick="event.stopPropagation()" onchange="quickChangePlotStatus(this,\'' + p.id + '\')" data-current="' + status + '" aria-label="Change plot status">' +
+          targets.map(function(s) {
+            return '<option value="' + s + '"' + (s === status ? ' selected' : '') + '>' + PLOT_STATUS_LABELS[s] + '</option>';
+          }).join('') +
+        '</select>'
+      : '';
     return '<div class="' + cls + '" onclick="openPlotDetail(\'' + p.id + '\')" title="' + lbl + '" role="button" tabindex="0">' +
       '<div class="plot-cell-num">' + (p.plotNumber || '?') + '</div>' +
       (sz ? '<div class="plot-cell-size">' + sz + '</div>' : '') +
+      statusSelect +
     '</div>';
   }).join('');
 }
@@ -33696,12 +33742,41 @@ function openSiteEnquiry(plotId) {
 // not-external, so old documents keep behaving exactly as before.
 var VALID_TRANSACTION_SOURCES = ['komisyoneri', 'external', 'unknown'];
 
-function openPlotStatusChange(plotId, currentStatus) {
-  var newStatus = prompt('Change plot status:\navailable / reserved / sold / on_hold / unavailable\nCurrent: ' + currentStatus);
-  if (!newStatus) return;
+// ── Quick plot status change (Site Detail plot grid dropdown) ────────
+// Thin wrapper — the dropdown already captured the target status, so this
+// hands straight off to openPlotStatusChange()'s existing transaction,
+// required-reason prompts, counter/commission triggers, and error
+// handling instead of duplicating any of it.
+function quickChangePlotStatus(selectEl, plotId) {
+  var newStatus = selectEl.value;
+  var oldStatus = selectEl.getAttribute('data-current') || 'available';
+  if (newStatus === oldStatus) return;
+  openPlotStatusChange(plotId, oldStatus, newStatus, selectEl);
+}
+
+// Quick per-plot dropdown (renderPlotGrid()) passes presetNewStatus +
+// selectEl so this skips straight past the first prompt below — the
+// dropdown already captured the target status, and only ever offered
+// targets this user's permissions can reach (see
+// _plotStatusTargetAllowed()'s comment). selectEl is used only to revert
+// the visible selection if the user backs out of (or fails) one of the
+// prompts still needed for sold/unavailable, so the control never shows a
+// status that was never actually saved. Both args are omitted by the
+// plot-detail-modal's own "Change Status" button, which keeps its
+// original all-in-one prompt() flow unchanged.
+function openPlotStatusChange(plotId, currentStatus, presetNewStatus, selectEl) {
   var valid = ['available','reserved','sold','on_hold','unavailable'];
-  newStatus = newStatus.trim();
-  if (valid.indexOf(newStatus) === -1) { showToast('Invalid status', 'error'); return; }
+  var newStatus = presetNewStatus;
+  if (!newStatus) {
+    newStatus = prompt('Change plot status:\navailable / reserved / sold / on_hold / unavailable\nCurrent: ' + currentStatus);
+    if (!newStatus) return;
+    newStatus = newStatus.trim();
+  }
+  if (valid.indexOf(newStatus) === -1) {
+    showToast('Invalid status', 'error');
+    if (selectEl) selectEl.value = currentStatus;
+    return;
+  }
 
   var transactionSource = null;
   var statusChangeReason = null;
@@ -33713,7 +33788,11 @@ function openPlotStatusChange(plotId, currentStatus) {
     // write server-side without a non-empty reason, so enforce it here too
     // rather than letting the user fill the prompt only to see it fail.
     statusChangeReason = (prompt('Reason for marking this plot "' + newStatus + '" (required):') || '').trim();
-    if (!statusChangeReason) { showToast('A reason is required for this status change.', 'error'); return; }
+    if (!statusChangeReason) {
+      showToast('A reason is required for this status change.', 'error');
+      if (selectEl) selectEl.value = currentStatus;
+      return;
+    }
   }
 
   var now = firebase.firestore.FieldValue.serverTimestamp();
@@ -33757,6 +33836,7 @@ function openPlotStatusChange(plotId, currentStatus) {
   }).catch(function(e) {
     showToast('Error updating status', 'error');
     console.error(e);
+    if (selectEl) selectEl.value = currentStatus;
   });
 }
 
