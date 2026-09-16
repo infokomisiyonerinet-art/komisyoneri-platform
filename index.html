@@ -14825,7 +14825,15 @@ function renderUserPropCard(prop) {
   // — a real closed/won sale, always shown regardless of recency. Red,
   // top-left, same slot DEMO would use (never co-occurs with it: a sold
   // card is never a demo card).
-  if(prop._sold) topBadges += '<span style="position:absolute;top:.4rem;left:.4rem;z-index:4;background:#DC2626;color:#fff;border-radius:20px;padding:.1rem .5rem;font-size:.6rem;font-weight:800">' + t('soldBadge') + '</span>';
+  // Positioned to match .p-tag's own 11px inset (below) — this badge takes
+  // over that exact corner whenever a property is sold, since .p-tag's FOR
+  // SALE/FOR RENT tag is suppressed in that case (see its own conditional
+  // further down) rather than ever rendering alongside this one. Sized up
+  // (font-size/padding/letter-spacing) to match the general weight of the
+  // other status pills on this card (.badge, .p-verified) instead of the
+  // smaller ad-hoc size it used when it only had to squeeze in beside the
+  // FOR SALE tag it now replaces.
+  if(prop._sold) topBadges += '<span style="position:absolute;top:11px;left:11px;z-index:4;background:#DC2626;color:#fff;border-radius:20px;padding:.3rem .85rem;font-size:.72rem;font-weight:800;letter-spacing:.06em">' + t('soldBadge') + '</span>';
   // Mutually exclusive with the SOLD badge above (a property is never both).
   else if(prop._reserved) topBadges += '<span style="position:absolute;top:.4rem;left:.4rem;z-index:4;background:#1249B3;color:#fff;border-radius:20px;padding:.1rem .5rem;font-size:.6rem;font-weight:800">' + (curLang==='rw'?'BYABITSWE':'RESERVED') + '</span>';
   if(prop.verified) topBadges += '<span style="position:absolute;top:.4rem;right:.4rem;z-index:4;background:rgba(39,168,74,.9);color:#fff;border-radius:20px;padding:.1rem .4rem;font-size:.6rem;font-weight:700">✅</span>';
@@ -14914,7 +14922,11 @@ function renderUserPropCard(prop) {
     + '<div class="p-img ' + gclass + '" role="img" aria-label="' + imgAriaLabel + '"' + imgBg + ' style="position:relative' + (imgBg ? ';background-size:cover;background-position:center' : '') + '" onclick="' + detailOnClick + '">'
     +   topBadges
     +   placeholder
-    +   '<div class="p-tag">' + svcBadge + '</div>'
+    // Suppressed once sold — the SOLD badge above (topBadges) already owns
+    // this exact corner in that case, and a sold listing showing "FOR
+    // SALE"/"FOR RENT" at the same time is stale/misleading info, not just
+    // a layout collision.
+    +   (prop._sold ? '' : '<div class="p-tag">' + svcBadge + '</div>')
     +   '<div class="p-price">' + priceLabel + '</div>'
     +   verifiedBadge
     +   favBtnHtml
