@@ -23108,12 +23108,21 @@ function _saLoadIntegrityPanel() {
     // declaration. A rising count here is a legitimate fraud-review signal,
     // not evidence of wrongdoing by itself — every write to this field is
     // already gated behind plots.mark_sold and independently audited.
-    _saCount(db.collection('plots').where('transactionSource','==','external'))
+    _saCount(db.collection('plots').where('transactionSource','==','external')),
+    // P0.6 FIX 2: server-side commission reconciliation (onPlotStatusChanged,
+    // functions/index.js) tags every plot that goes 'sold' with a
+    // commissionReconciliation field. 'flagged_missing_commission' means a
+    // plot was marked sold as a KOMISIYONERI-brokered transaction but no
+    // commissions doc references it — a real discrepancy, not just an
+    // external-sale signal, and worth its own row here since staff already
+    // check this panel.
+    _saCount(db.collection('plots').where('commissionReconciliation','==','flagged_missing_commission'))
   ]).then(function(r) {
     el.innerHTML =
       '<div class="exec-activity-row"><span>Commissions pending / approved</span><span>' + r[0] + ' / ' + r[1] + '</span></div>' +
       '<div class="exec-activity-row"><span>Payout requests pending</span><span>' + r[2] + '</span></div>' +
-      '<div class="exec-activity-row"><span>Plots marked external transaction</span><span>' + r[3] + '</span></div>';
+      '<div class="exec-activity-row"><span>Plots marked external transaction</span><span>' + r[3] + '</span></div>' +
+      '<div class="exec-activity-row"><span>Plots sold with no commission on file</span><span>' + r[4] + '</span></div>';
   }).catch(function(err) {
     el.innerHTML = '<div class="exec-empty">Integrity summary unavailable</div>';
     console.error('[SuperAdmin] integrity panel failed:', err.code || '', err.message);
@@ -36511,19 +36520,33 @@ function _fsAdminDelete(idx) {
   var prop = _adminAllProps[idx]; if (!prop) return;
   if (!confirm(t('delConfirm')||'Confirm delete?')) return;
   var fsId = prop._fsId;
+  // P0.6 FIX 3: previously the localStorage cleanup + success toast ran
+  // unconditionally, and the Firestore .catch() was empty — a failed write
+  // still told the admin "Deleted" and still logged a false audit entry.
+  // Now the success path (cache cleanup, toast, re-render) only runs after
+  // a confirmed write; a failure shows a real error and leaves the record
+  // exactly where it was, in both the UI and localStorage.
+  var finishSuccess = function() {
+    var ls=[]; try{ls=JSON.parse(localStorage.getItem('km_properties')||'[]');}catch(e){}
+    ls=ls.filter(function(p){return String(p.id)!==String(prop.id||prop._fsId);});
+    try{localStorage.setItem('km_properties',JSON.stringify(ls));}catch(e){}
+    _adminAllProps.splice(idx,1);
+    invalidatePropsCache();
+    showToast(t('deleted')||'Deleted'); adminRender(adminCurrentFilter);
+  };
   if (typeof db !== 'undefined' && fsId) {
     db.collection('properties').doc(fsId).update({
       isActive:false, updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
     }).then(function() {
       logAudit('property.deleted','properties',fsId,{isActive:true},{isActive:false});
-    }).catch(function(){});
+      finishSuccess();
+    }).catch(function(err) {
+      console.error('[_fsAdminDelete] Firestore error:', err);
+      showToast(curLang === 'rw' ? 'Habaye ikosa, ntibyahanaguwe' : 'Delete failed — nothing was removed', 'error');
+    });
+  } else {
+    finishSuccess();
   }
-  var ls=[]; try{ls=JSON.parse(localStorage.getItem('km_properties')||'[]');}catch(e){}
-  ls=ls.filter(function(p){return String(p.id)!==String(prop.id||prop._fsId);});
-  try{localStorage.setItem('km_properties',JSON.stringify(ls));}catch(e){}
-  _adminAllProps.splice(idx,1);
-  invalidatePropsCache();
-  showToast(t('deleted')||'Deleted'); adminRender(adminCurrentFilter);
 }
 
 /* Override openAdmin to trigger Firestore-backed adminRender */
@@ -37675,6 +37698,11 @@ function adminDeleteAll(status) {
     return;
   }
 
+  // P0.6 FIX 3: doFinish() (success toast + audit entry + cache/UI update)
+  // used to run in both the .then() AND the .catch() below — a failed
+  // batch commit still told the admin "Deleted: N" and still wrote an
+  // audit entry claiming it happened. Split into a success-only path and a
+  // distinct failure path that shows a real error and writes nothing.
   var doFinish = function() {
     var ls = [];
     try { ls = JSON.parse(localStorage.getItem('km_properties') || '[]'); } catch(e) {}
@@ -37690,6 +37718,10 @@ function adminDeleteAll(status) {
     if (typeof adminRender === 'function') adminRender(typeof adminCurrentFilter !== 'undefined' ? adminCurrentFilter : 'all');
     if (typeof loadApprovedProperties === 'function') loadApprovedProperties();
   };
+  var doFail = function(err) {
+    console.error('[adminDeleteAll] Firestore error:', err);
+    showToast(curLang === 'rw' ? 'Habaye ikosa, ntibyahanaguwe' : 'Delete failed — nothing was removed', 'error');
+  };
 
   if (typeof db !== 'undefined') {
     var batch = db.batch();
@@ -37704,10 +37736,7 @@ function adminDeleteAll(status) {
       }
     });
     if (fsCount > 0) {
-      batch.commit().then(doFinish).catch(function(err) {
-        console.warn('[adminDeleteAll] Firestore error:', err);
-        doFinish();
-      });
+      batch.commit().then(doFinish).catch(doFail);
     } else {
       doFinish();
     }
