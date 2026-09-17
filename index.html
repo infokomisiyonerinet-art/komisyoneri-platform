@@ -23197,6 +23197,17 @@ function saLookupUser() {
   });
 }
 
+// P1.7 P1-02: the single suspend/reactivate governance path for every
+// caller (Super Admin Control Center lookup panel AND the Staff Profile
+// modal, via toggleUserActive() below, which is now a thin wrapper around
+// this). Previously toggleUserActive() was a second, materially weaker
+// path — no reason, no confirm() — reaching the exact same Firestore
+// write; unifying onto this one means every suspend/reactivate, from
+// either surface, is reason-required, confirmed, and audited under one
+// consistent action-name pair ('user.suspended'/'user.reactivated' — the
+// prior 'user.' + action + 'd' template silently produced 'user.suspendd'
+// for the suspend case, a typo that fragmented the audit trail from
+// toggleUserActive()'s correctly-spelled 'user.suspended').
 function saSetUserActive(uid, makeActive) {
   if (!uid || uid === currentUser.uid) return;
   var action = makeActive ? 'reactivate' : 'suspend';
@@ -23204,10 +23215,12 @@ function saSetUserActive(uid, makeActive) {
   if (!reason) { showToast('A reason is required.', 'error'); return; }
   if (!confirm('Confirm: ' + action + ' this account now?')) return;
   var now = firebase.firestore.FieldValue.serverTimestamp();
+  var wasStaffTier = false;
   db.collection('users').doc(uid).get().then(function(doc) {
     if (!doc.exists) throw new Error('User not found');
     var oldStatus = doc.data().status || '';
     var oldActive = doc.data().isActive !== false;
+    wasStaffTier = ROLE_TIERS.STAFF.indexOf((doc.data().role || '').toLowerCase()) > -1;
     return db.collection('users').doc(uid).update({
       isActive: makeActive,
       status: makeActive ? 'active' : 'suspended',
@@ -23216,7 +23229,7 @@ function saSetUserActive(uid, makeActive) {
       updatedBy: currentUser.uid
     }).then(function() { return { oldStatus: oldStatus, oldActive: oldActive }; });
   }).then(function(old) {
-    logAudit('user.' + action + 'd', 'users', uid,
+    logAudit(makeActive ? 'user.reactivated' : 'user.suspended', 'users', uid,
       { isActive: old.oldActive, status: old.oldStatus },
       { isActive: makeActive, status: makeActive ? 'active' : 'suspended', reason: reason }
     );
@@ -23226,10 +23239,29 @@ function saSetUserActive(uid, makeActive) {
         makeActive ? 'Your KOMISIYONERI account has been reactivated.' : 'Your KOMISIYONERI account has been suspended. Reason: ' + reason,
         'system', 'users', uid);
     }
+    // Mirrors toggleUserActive()'s pre-unification offboarding-checklist
+    // side effect — deactivating an internal-staff account still creates
+    // a real offboarding checklist for the acting admin, regardless of
+    // which UI surface triggered the suspension.
+    if (!makeActive && wasStaffTier && typeof createChecklistTasks === 'function') {
+      var staffEntry = (typeof _hrStaff !== 'undefined' && _hrStaff) ? _hrStaff.find(function(x){ return x.id === uid; }) : null;
+      createChecklistTasks('offboarding', uid, (staffEntry && (staffEntry.displayName || staffEntry.email)) || uid, currentUser.uid);
+    }
     showToast('Account ' + action + 'd.', 'success');
-    saLookupUser();
-    _saLoadSecurityPanel();
-    _saLoadPlatformOverview();
+    // Refresh whichever UI surface is currently showing this user.
+    var hrEntry = (typeof _hrStaff !== 'undefined' && _hrStaff) ? _hrStaff.find(function(x){ return x.id === uid; }) : null;
+    if (hrEntry) hrEntry.isActive = makeActive;
+    if (typeof _spProfileId !== 'undefined' && _spProfileId === uid) {
+      var statusEl = document.getElementById('sp-status');
+      if (statusEl) statusEl.innerHTML = makeActive
+        ? '<span style="color:var(--success)">Active</span>'
+        : '<span style="color:var(--error)">Suspended</span>';
+      var actBtn = document.getElementById('sp-active-btn');
+      if (actBtn) actBtn.textContent = makeActive ? 'Suspend' : 'Activate';
+    }
+    if (typeof saLookupUser === 'function') saLookupUser();
+    if (typeof _saLoadSecurityPanel === 'function') _saLoadSecurityPanel();
+    if (typeof _saLoadPlatformOverview === 'function') _saLoadPlatformOverview();
   }).catch(function(err) {
     showToast('Error: ' + (err.message || 'could not ' + action + ' account'), 'error');
     console.error('[SuperAdmin] saSetUserActive failed:', err);
@@ -25695,35 +25727,17 @@ function toggleUserVerified(uid) {
   }).catch(function() { showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error', 'error'); });
 }
 
+// P1-02: thin wrapper — the real suspend/reactivate logic (reason prompt,
+// confirm(), audit, offboarding checklist, UI refresh) now lives entirely
+// in saSetUserActive() above, so both callers of "suspend this user" in
+// the app (Staff Profile modal button, here; Super Admin lookup panel)
+// go through one governance path instead of two.
 function toggleUserActive(uid) {
   if (!uid || typeof db === 'undefined') return;
   var u = _hrStaff.find(function(x){ return x.id === uid; });
   if (!u) return;
   var newVal = u.isActive === false ? true : false;
-  var adminUid = currentUser ? currentUser.uid : 'admin';
-  var wasStaffTier = ROLE_TIERS.STAFF.indexOf((u.role || '').toLowerCase()) > -1;
-  db.collection('users').doc(uid).update({
-    isActive:  newVal,
-    status:    newVal ? 'active' : 'suspended',
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    updatedBy: adminUid
-  }).then(function() {
-    u.isActive = newVal;
-    logAudit(newVal ? 'user.activated' : 'user.suspended', 'users', uid, null, { isActive: newVal });
-    // Deactivating an internal-staff account creates a real offboarding
-    // checklist for the acting admin, instead of the exit being just a
-    // silent isActive flip.
-    if (!newVal && wasStaffTier) {
-      createChecklistTasks('offboarding', uid, u.displayName || u.email || uid, adminUid);
-    }
-    var statusEl = document.getElementById('sp-status');
-    if (statusEl) statusEl.innerHTML = newVal
-      ? '<span style="color:var(--success)">Active</span>'
-      : '<span style="color:var(--error)">Suspended</span>';
-    var actBtn = document.getElementById('sp-active-btn');
-    if (actBtn) actBtn.textContent = newVal ? 'Suspend' : 'Activate';
-    showToast(newVal ? (curLang === 'rw' ? 'Konti yafunguwe!' : 'Account activated!') : (curLang === 'rw' ? 'Konti ifunze!' : 'Account suspended!'), newVal ? 'success' : 'warn');
-  }).catch(function() { showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error', 'error'); });
+  saSetUserActive(uid, newVal);
 }
 
 // Permanently deletes an already-approved agent's account — Firestore doc
