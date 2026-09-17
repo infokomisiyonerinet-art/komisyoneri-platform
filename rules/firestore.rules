@@ -584,6 +584,50 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ── properties/{propertyId}/private/{docId} — restricted owner
+    // contact & submitter identity ───────────────────────────────────
+    // properties/{id} above is allow read: if true — a plain field on that
+    // document (like the old public ownerName/ownerPhone/ownerEmail) can
+    // never be restricted to a subset of readers; Firestore rules gate
+    // whole documents, not individual fields. So the real property owner's
+    // contact (docId 'owner': propertyOwnerName/propertyOwnerPhone) and who
+    // actually submitted the listing (docId 'submitter': submitterName/
+    // submitterEmail — this is the old public ownerName/ownerEmail data,
+    // renamed and relocated here; see index.html's _savePropToFirestoreFS()
+    // comment) each live in their own document under this subcollection,
+    // each independently permission-gated, so properties.call_owner and
+    // properties.view_submitter can be granted to different roles without
+    // either one implying the other.
+    match /properties/{propertyId}/private/{docId} {
+      // Only meaningful once the parent property document is committed —
+      // see the create rule's own comment for why create can't rely on this.
+      function _isPropertyAgentOrOwner() {
+        return isAuth() && exists(/databases/$(database)/documents/properties/$(propertyId))
+          && (get(/databases/$(database)/documents/properties/$(propertyId)).data.agentId == request.auth.uid
+              || get(/databases/$(database)/documents/properties/$(propertyId)).data.ownerId == request.auth.uid);
+      }
+      allow read: if (docId == 'owner'
+                       && (hasPerm('properties.call_owner') || isCEO() || _isPropertyAgentOrOwner()))
+                  || (docId == 'submitter'
+                       && (hasPerm('properties.view_submitter') || isCEO() || _isPropertyAgentOrOwner()));
+      // Created right after the parent properties/{id} document, as a
+      // separate write, not in the same batch (index.html's
+      // _savePropToFirestoreFS()) — a batch's writes are all authorized
+      // against the database state as it stood BEFORE the batch, so a rule
+      // here reading back the not-yet-committed parent via get() would see
+      // it as not existing and reject the write. This intentionally mirrors
+      // properties/{id}'s own create rule (isAuth()-level, no agentId
+      // self-check at create time either) rather than depending on get().
+      allow create: if isAuth() && docId in ['owner', 'submitter'];
+      // UPDATE only ever happens against an already-committed property
+      // (editing an existing listing's owner contact — submitProperty()'s
+      // edit branch never touches the submitter doc, only 'owner'), so
+      // get()-based authorization is safe here. Same authority as editing
+      // the property's own content.
+      allow update: if (isAdminOrStaff() || _isPropertyAgentOrOwner()) && docId in ['owner', 'submitter'];
+      allow delete: if false;
+    }
+
     match /leads/{id} {
       allow read:   if isAdminOrStaff()
                     || (isAuth() && (resource.data.clientId == request.auth.uid
@@ -1189,10 +1233,17 @@ service cloud.firestore {
       // owning agent silently raise their own commission rate is the same
       // class of self-dealing risk this pass closes on plots' price field
       // below — a rate change now has to go through isAdminOrStaff().
+      // ownerName/ownerPhone removed from this allowlist (governance
+      // hardening — Call Owner / private-contact pass): they no longer live
+      // on this public document at all (allow read: if true above made them
+      // fully world-readable) — see sites/{siteId}/private/{docId} below,
+      // which is the only place they can be written or read now. Leaving
+      // them here would keep a dead-but-live write path open even though
+      // index.html's submitSiteForm() no longer sends them in editData.
       function _isSiteOwnerContentEditOK() {
         return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'name','nameRW','description','descriptionRW','district','sector','cell','village',
-          'coordinates','ownerName','ownerPhone','ownerType','lotissementRef','titleDeedRef',
+          'coordinates','ownerType','lotissementRef','titleDeedRef',
           'roadType','amenities','pricePerSqmMin','pricePerSqmMax','siteMapUrl',
           'updatedAt','updatedBy'
         ]);
@@ -1217,6 +1268,37 @@ service cloud.firestore {
       // reacting to the plots/{plotId} write below — via the Admin SDK,
       // which bypasses this file entirely — so no role, client or staff,
       // needs (or has) direct write access to them through this rule.
+      allow delete: if false;
+    }
+
+    // ── sites/{siteId}/private/owner — restricted land owner contact ────
+    // ownerName/ownerPhone used to be plain fields on sites/{siteId} above
+    // (allow read: if true), fully world-readable via any Firestore client
+    // even though no UI ever displayed them — same "rules can't restrict
+    // individual fields on a public document" problem as
+    // properties/{propertyId}/private/{docId} above, same fix: a separate,
+    // independently-gated document. No dedicated sites.call_owner
+    // permission exists (none was requested for sites) — read access
+    // matches the audience that could already see this data before the
+    // migration by opening the Edit Site form (isAdminOrStaff(), or the
+    // site's own managingAgentId/developerId), plus isCEO() for consistency
+    // with the properties/ pattern above. This closes the anonymous/public
+    // read gap without narrowing any staff capability that already existed.
+    match /sites/{siteId}/private/{docId} {
+      function _isSiteAgentOrDeveloper() {
+        return isAuth() && exists(/databases/$(database)/documents/sites/$(siteId))
+          && (get(/databases/$(database)/documents/sites/$(siteId)).data.managingAgentId == request.auth.uid
+              || get(/databases/$(database)/documents/sites/$(siteId)).data.developerId == request.auth.uid);
+      }
+      // isAdminOrStaff() already covers 'ceo' (see its own comment above),
+      // so no separate isCEO() OR is needed here.
+      allow read: if docId == 'owner' && (isAdminOrStaff() || _isSiteAgentOrDeveloper());
+      // Written as a separate write after the parent sites/{id} document is
+      // committed (submitSiteForm(), index.html — .add().then(...), never a
+      // batch alongside the site itself), so get()-based authorization here
+      // is always safe, unlike properties/{propertyId}/private/{docId}'s
+      // create rule above.
+      allow create, update: if docId == 'owner' && (isAdminOrStaff() || _isSiteAgentOrDeveloper());
       allow delete: if false;
     }
 
