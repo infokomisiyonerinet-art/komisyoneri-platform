@@ -32441,12 +32441,15 @@ function saveDealNotes() {
     showToast(curLang === 'rw' ? 'Shyira amanotisi mbere!' : 'Enter notes first!', 'error'); return;
   }
   var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+  // P1-04: this write previously had zero audit trail.
+  var oldNotes = (_ddCurrentDeal && _ddCurrentDeal.notes) || '';
   db.collection('deals').doc(dealId).update({
     notes:     notes,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedBy: uid
   }).then(function() {
     showToast(curLang === 'rw' ? 'Amanotisi yabitswe!' : 'Notes saved!', 'success');
+    logAudit('deal.notes_updated', 'deals', dealId, { notes: oldNotes }, { notes: notes });
     if (_ddCurrentDeal) _ddCurrentDeal.notes = notes;
   }).catch(function(err) {
     showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error saving notes', 'error');
