@@ -594,8 +594,19 @@ service cloud.firestore {
                     || (isAuth() && (resource.data.clientId == request.auth.uid
                         || resource.data.agentId  == request.auth.uid));
       allow create: if isAuth() && hasStandardFields();
+      // P1-01: the owning agent could previously rewrite any field on a
+      // lead they're assigned to, including reassigning it to themself
+      // away from another agent (agentId) or altering client contact
+      // details. Allowlist matches every real non-admin call site
+      // (submitViewingReport(), updateLeadStage(), addContactLog(),
+      // saveLeadFollowUp(), closeLeadWon/Lost(), the lead-linking side
+      // effect of createNewDeal()) — reassignment (agentId/agentName)
+      // stays admin-only via _saveLeadReassign(), unaffected.
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.agentId == request.auth.uid);
+                    || (isAuth() && resource.data.agentId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['pipelineStage','status','contactLog','nextFollowUp',
+                                     'closedAt','lostReason','dealId','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
@@ -811,11 +822,22 @@ service cloud.firestore {
                     || (isAuth() && resource.data.agentId  == request.auth.uid
                         && 'agent' in resource.data.get('accessRoles', ['agent']));
       allow create: if isAuth() && hasStandardFields();
+      // P1-01: either party could previously rewrite the document's
+      // fileUrl, accessRoles, or ownership fields, not just sign/archive
+      // it. Allowlist matches the only two real non-admin call sites —
+      // confirmSignature() and archiveDocument() — both parties share the
+      // same allowed shape since neither call site distinguishes them.
+      function _isDocumentPartyUpdateOK() {
+        return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['signatories','signed','status','updatedAt','updatedBy']);
+      }
       allow update: if isAdminOrStaff()
                     || (isAuth() && resource.data.clientId == request.auth.uid
-                        && 'client' in resource.data.get('accessRoles', ['client']))
+                        && 'client' in resource.data.get('accessRoles', ['client'])
+                        && _isDocumentPartyUpdateOK())
                     || (isAuth() && resource.data.agentId  == request.auth.uid
-                        && 'agent' in resource.data.get('accessRoles', ['agent']));
+                        && 'agent' in resource.data.get('accessRoles', ['agent'])
+                        && _isDocumentPartyUpdateOK());
       allow delete: if false;
     }
 
@@ -871,9 +893,19 @@ service cloud.firestore {
                     && (request.resource.data.clientId == request.auth.uid
                         || request.resource.data.agentId == request.auth.uid
                         || isAdminOrStaff());
+      // P1-01: either party could previously rewrite any field, including
+      // clientId/agentId/propertyId/scheduledAt. Allowlist matches the
+      // real agentId-side call sites (submitViewingReport(),
+      // markViewingComplete(), checkInViewingGPS(), and the
+      // _applyViewingUpdate() family behind check-in/complete/cancel) —
+      // clientId has no current write call site at all, but is given the
+      // same allowlist rather than left unrestricted, since the branch
+      // condition already exists.
       allow update: if isAdminOrStaff()
                     || (isAuth() && (resource.data.clientId == request.auth.uid
-                        || resource.data.agentId  == request.auth.uid));
+                        || resource.data.agentId  == request.auth.uid)
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status','report','agentCheckIn','agentGPS','completedAt','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
@@ -885,16 +917,29 @@ service cloud.firestore {
                     || (isAuth() && (resource.data.requestedBy == request.auth.uid
                         || resource.data.assignedToId == request.auth.uid));
       allow create: if isAuth() && hasStandardFields();
+      // P1-01: the assigned partner could previously rewrite any field,
+      // including quotedPrice, assignedToId (self-reassign away), or
+      // adminNotes. Allowlist matches the one real call site,
+      // submitPartnerJobReport().
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.assignedToId == request.auth.uid);
+                    || (isAuth() && resource.data.assignedToId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['reportUrl','status','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
     match /partners/{id} {
       allow read:   if true;
       allow create: if isAuth() && hasStandardFields();
+      // P1-01: no current frontend call site writes as the partner
+      // (userId) party — this allowlist is deliberately conservative,
+      // covering only genuinely-safe self-service profile fields, so
+      // verified/status/avgRating/reviewCount/licenseNo/userId can never
+      // be self-written even by a future feature that reaches this branch.
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.userId == request.auth.uid);
+                    || (isAuth() && resource.data.userId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['bio','phone','email','districts','specializations','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
@@ -928,8 +973,14 @@ service cloud.firestore {
       allow read:   if isAdminOrStaff()
                     || (isAuth() && resource.data.assignedTo == request.auth.uid);
       allow create: if isAuth() && hasStandardFields();
+      // P1-01: the assignee could previously rewrite any field, including
+      // self-reassigning away (assignedTo) or changing priority/dueAt.
+      // Allowlist matches the real call sites, updateTaskStatus() and
+      // addTaskComment().
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.assignedTo == request.auth.uid);
+                    || (isAuth() && resource.data.assignedTo == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status','comments','completedAt','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
@@ -937,8 +988,13 @@ service cloud.firestore {
       allow read:   if isAdminOrStaff()
                     || (isAuth() && resource.data.userId == request.auth.uid);
       allow create: if isAuth() && hasStandardFields();
+      // P1-01: the record's own user could previously rewrite any field,
+      // including checkInAt/isLate/approvedBy. Allowlist matches the one
+      // real call site, submitCheckout().
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.userId == request.auth.uid);
+                    || (isAuth() && resource.data.userId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['checkOutAt','hoursWorked','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
@@ -1443,8 +1499,13 @@ service cloud.firestore {
                     || (isAuth() && resource.data.clientId == request.auth.uid)
                     || (isAuth() && resource.data.agentId  == request.auth.uid);
       allow create: if isAuth() && hasStandardFields();
+      // P1-01: no current frontend call site updates an enquiry as the
+      // agentId party — locked tight (status only) since nothing
+      // legitimately rewrites budget/clientId/financingNeeded etc. today.
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.agentId == request.auth.uid);
+                    || (isAuth() && resource.data.agentId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
@@ -1543,8 +1604,14 @@ service cloud.firestore {
                         || request.auth.uid in resource.data.get('recipients', []));
       allow create: if isAdminOrStaff() && hasStandardFields()
                     && request.resource.data.get('submittedBy', request.auth.uid) == request.auth.uid;
+      // P1-01: no current frontend call site updates a report at all
+      // (submitReport() only ever creates) — locked tight (status only)
+      // for the submittedBy party; isCEO()/isDirector() stay unrestricted,
+      // consistent with this collection's existing privileged-role design.
       allow update: if isCEO() || isDirector()
-                    || (isAuth() && resource.data.get('submittedBy', '') == request.auth.uid);
+                    || (isAuth() && resource.data.get('submittedBy', '') == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
