@@ -770,9 +770,22 @@ service cloud.firestore {
       // (a correction to an already-computed commission, distinct from
       // the normal pending->approved->paid status transition, which never
       // touches these) must also carry a non-empty correctionReason.
+      // P1-10: status previously had no transition validation at all — a
+      // write could set 'paid' directly from 'pending', skipping the
+      // approval step entirely, or move backward from 'paid'/'rejected'.
+      // Modeled on the only two real call sites (submitCommissionDecision(),
+      // markCommissionPaid() — index.html): pending->approved/rejected,
+      // approved->paid. isAdmin() bypasses for a correction.
+      function _isCommissionStatusTransitionOK() {
+        return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
+          || isAdmin()
+          || (resource.data.get('status', 'pending') == 'pending' && request.resource.data.status in ['approved', 'rejected'])
+          || (resource.data.get('status', 'pending') == 'approved' && request.resource.data.status == 'paid');
+      }
       allow update: if isAdminOrStaff() && hasPerm('commissions.manage')
                     && _updateAttributionOK('updatedBy')
-                    && _isAmountCorrectionReasoned(['totalCommission','agentShare','companyShare']);
+                    && _isAmountCorrectionReasoned(['totalCommission','agentShare','companyShare'])
+                    && _isCommissionStatusTransitionOK();
       allow delete: if false;
     }
 
@@ -1017,8 +1030,21 @@ service cloud.firestore {
       // the normal draft->sent->paid/refunded status lifecycle and from
       // submitInvoiceRefund()'s refundAmount, neither of which touches
       // totalAmount) must also carry a non-empty correctionReason.
+      // P1-10: status previously had no transition validation — a write
+      // could set 'paid' directly regardless of current status, or move
+      // backward from 'refunded'/'cancelled'. Modeled on the only two real
+      // call sites (updateInvStatus(), submitInvoiceRefund() — index.html):
+      // draft/sent -> sent/paid/cancelled, paid -> refunded. isAdmin()
+      // bypasses for a correction.
+      function _isInvoiceStatusTransitionOK() {
+        return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
+          || isAdmin()
+          || (resource.data.get('status', 'draft') in ['draft', 'sent'] && request.resource.data.status in ['sent', 'paid', 'cancelled'])
+          || (resource.data.get('status', 'draft') == 'paid' && request.resource.data.status == 'refunded');
+      }
       allow update: if isAdminOrStaff()
-                    && _isAmountCorrectionReasoned(['totalAmount']);
+                    && _isAmountCorrectionReasoned(['totalAmount'])
+                    && _isInvoiceStatusTransitionOK();
       allow delete: if false;
     }
 
@@ -1743,9 +1769,25 @@ service cloud.firestore {
                     && request.resource.data.status == 'pending';
       // P0.2: Super Admin added to decision authority alongside CEO, no
       // other logic touched — Director's capped-approval branch is unaffected.
-      allow update: if isCEO() || isSuperAdmin()
-                    || (isDirector()
-                        && resource.data.amount <= callerDoc().data.get('budgetApprovalLimit', 0));
+      // P1-10: status previously had no transition validation for the
+      // capped Director branch — CEO/Super Admin already have unconditional
+      // decision authority on this collection (unlike Director's
+      // budget-capped branch), so they keep an unconditional status
+      // bypass here too, consistent with the rest of this rule; Director
+      // is held to pending->approved/rejected. No real call site exists
+      // for this collection's update yet (confirmed via grep — create-only
+      // from the frontend today), so this is pure hardening with zero
+      // regression risk.
+      function _isBudgetRequestStatusTransitionOK() {
+        return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
+          || isCEO() || isSuperAdmin()
+          || (resource.data.get('status', 'pending') == 'pending' && request.resource.data.status in ['approved', 'rejected']);
+      }
+      allow update: if _isBudgetRequestStatusTransitionOK() && (
+                      isCEO() || isSuperAdmin()
+                      || (isDirector()
+                          && resource.data.amount <= callerDoc().data.get('budgetApprovalLimit', 0))
+                    );
       allow delete: if false;
     }
 
