@@ -24498,6 +24498,24 @@ function saveRolePermissions() {
   }, { merge: true }).then(function() {
     logAudit('permissions.role_config.changed', 'role_permissions', role,
       { permissions: _rpOriginalPerms }, { permissions: checked });
+    // P1-05: granular per-permission events alongside the aggregate one
+    // above (kept — still useful as a single "what changed this save"
+    // summary). One PERMISSION_GRANTED/PERMISSION_REVOKED entry per
+    // individual permission actually added/removed, so a specific
+    // grant/revoke can be found without diffing two aggregate arrays.
+    var before = _rpOriginalPerms || [];
+    checked.forEach(function(key) {
+      if (before.indexOf(key) === -1) {
+        logAudit('PERMISSION_GRANTED', 'role_permissions', role,
+          { role: role, permission: key, granted: false }, { role: role, permission: key, granted: true });
+      }
+    });
+    before.forEach(function(key) {
+      if (checked.indexOf(key) === -1) {
+        logAudit('PERMISSION_REVOKED', 'role_permissions', role,
+          { role: role, permission: key, granted: true }, { role: role, permission: key, granted: false });
+      }
+    });
     _rpOriginalPerms = checked;
     showToast(curLang === 'rw' ? 'Uburenganzira bwabitswe!' : 'Permissions saved!', 'success');
   }).catch(function(e) {
