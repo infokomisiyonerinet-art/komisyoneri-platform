@@ -5319,6 +5319,14 @@ html,body{overscroll-behavior-x:none}
           <button onclick="adminFilter('pending')" id="adm-btn-pending" class="btn btn-navy btn-sm" style="font-size:.72rem">⏳ Pending (<span id="adm-count-pending">0</span>)</button>
           <button onclick="adminFilter('approved')" id="adm-btn-approved" class="btn btn-sm" style="font-size:.72rem;border:1.5px solid var(--border)">✅ Approved (<span id="adm-count-approved">0</span>)</button>
           <button onclick="adminFilter('rejected')" id="adm-btn-rejected" class="btn btn-sm" style="font-size:.72rem;border:1.5px solid var(--border)">❌ Rejected (<span id="adm-count-rejected">0</span>)</button>
+          <!-- P1-14: soft-deleted properties (isActive:false) were
+               previously entirely invisible — _fsAdminDelete()/adminDeleteAll()
+               excluded them from every admin query with no way back in.
+               Restoring one is Super-Admin-only (see restorePropertyFS()'s
+               own comment); the tab itself is visible to the whole admin
+               panel audience like every other filter, matching this app's
+               existing pattern of gating the ACTION, not the visibility. -->
+          <button onclick="adminFilter('deleted')" id="adm-btn-deleted" class="btn btn-sm" style="font-size:.72rem;border:1.5px solid var(--border)">🗑️ Deleted (<span id="adm-count-deleted">0</span>)</button>
           <button onclick="adminDeleteAll('approved')" style="font-size:.7rem;border:none;background:#fee2e2;color:#e53e3e;padding:.3rem .6rem;border-radius:6px;cursor:pointer;font-weight:600" data-rw="🗑️ Siba Yemejwe" data-en="🗑️ Delete Approved">🗑️ Siba Yemejwe</button>
         </div>
       </div>
@@ -36449,9 +36457,14 @@ function adminRender(filter) {
 
   list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">&#9203; Loading from Firestore...</div>';
 
+  // P1-14: soft-deleted properties (isActive:false) were previously
+  // entirely invisible to every admin query — no way to even find one to
+  // restore it, let alone do so. The 'deleted' filter queries the
+  // opposite isActive value from every other tab.
+  var isDeletedView = filter === 'deleted';
   var fetchPropsPromise;
   if (typeof db !== 'undefined') {
-    fetchPropsPromise = db.collection('properties').where('isActive','==',true).limit(200).get()
+    fetchPropsPromise = db.collection('properties').where('isActive','==', !isDeletedView).limit(200).get()
       .then(function(snap) {
         var fsProps = [];
         snap.forEach(function(doc) {
@@ -36464,19 +36477,34 @@ function adminRender(filter) {
   } else {
     fetchPropsPromise = Promise.resolve([]);
   }
+  // Lightweight separate count so the "Deleted" tab badge stays accurate
+  // while viewing any other tab, without fetching every deleted record's
+  // full data on every single render.
+  var deletedCountPromise = (typeof db !== 'undefined' && !isDeletedView)
+    ? db.collection('properties').where('isActive','==',false).limit(200).get()
+        .then(function(snap) { return snap.size; }).catch(function() { return null; })
+    : Promise.resolve(null);
 
-  fetchPropsPromise.then(function(fsProps) {
-    /* Merge with localStorage (localStorage may have unsync'd pending items) */
-    var lsProps = [];
-    try { lsProps = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-    var fsPropFsIds = {};
-    fsProps.forEach(function(p) { if (p._fsId) fsPropFsIds[p._fsId] = true; });
-    var lsOnly = lsProps.filter(function(p) {
-      return !p._fsId || !fsPropFsIds[p._fsId];
-    });
-    _adminAllProps = fsProps.concat(lsOnly.map(function(p) {
-      p._source = 'local'; return p;
-    }));
+  Promise.all([fetchPropsPromise, deletedCountPromise]).then(function(results) {
+    var fsProps = results[0], deletedCount = results[1];
+    // The localStorage merge only makes sense for the live/active tabs —
+    // it exists to surface not-yet-synced NEW submissions, which has no
+    // meaning for a "what's been deleted" view.
+    if (isDeletedView) {
+      _adminAllProps = fsProps;
+    } else {
+      /* Merge with localStorage (localStorage may have unsync'd pending items) */
+      var lsProps = [];
+      try { lsProps = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+      var fsPropFsIds = {};
+      fsProps.forEach(function(p) { if (p._fsId) fsPropFsIds[p._fsId] = true; });
+      var lsOnly = lsProps.filter(function(p) {
+        return !p._fsId || !fsPropFsIds[p._fsId];
+      });
+      _adminAllProps = fsProps.concat(lsOnly.map(function(p) {
+        p._source = 'local'; return p;
+      }));
+    }
 
     /* Update tab counts */
     ['pending','approved','rejected'].forEach(function(s) {
@@ -36486,17 +36514,19 @@ function adminRender(filter) {
       }).length;
     });
     var allEl = document.getElementById('adm-count-all');
-    if (allEl) allEl.textContent = _adminAllProps.length;
+    if (allEl && !isDeletedView) allEl.textContent = _adminAllProps.length;
+    var delEl = document.getElementById('adm-count-deleted');
+    if (delEl) delEl.textContent = isDeletedView ? _adminAllProps.length : (deletedCount != null ? deletedCount : delEl.textContent);
 
     /* Update tab button styles */
-    ['all','pending','approved','rejected'].forEach(function(s) {
+    ['all','pending','approved','rejected','deleted'].forEach(function(s) {
       var btn = document.getElementById('adm-btn-'+s);
       if (!btn) return;
       if (s===filter) { btn.style.background='var(--navy)';btn.style.color='#fff';btn.style.border='none'; }
       else { btn.style.background='#fff';btn.style.color='var(--dark)';btn.style.border='1.5px solid var(--border)'; }
     });
 
-    var filtered = filter==='all' ? _adminAllProps : _adminAllProps.filter(function(p) {
+    var filtered = (filter==='all' || isDeletedView) ? _adminAllProps : _adminAllProps.filter(function(p) {
       return (p.status||'').toLowerCase()===filter.toLowerCase();
     });
 
@@ -36530,7 +36560,15 @@ function adminRender(filter) {
         + '</div>'
         + '<div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">'
         + '<div style="font-size:.7rem;font-weight:700;color:'+statusColor+';text-align:center">'+escapeHtml(st)+'</div>'
-        + (st.toLowerCase()!=='approved'?'<button onclick="_fsAdminApprove('+globalIdx+')" style="background:#27A84A;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">✅ Emeza</button>':'')
+        // P1-14: a soft-deleted record gets exactly one action — Restore
+        // (Super-Admin-only, see restorePropertyFS()) — none of approve/
+        // reject/edit/availability/delete make sense on a record that's
+        // currently hidden from the whole platform.
+        + (isDeletedView
+           ? (isSuperAdminExact(currentUser)
+              ? '<button onclick="restorePropertyFS('+globalIdx+')" style="background:#16A34A;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">♻️ Restore</button>'
+              : '<div style="font-size:.7rem;color:var(--muted)">Super Admin only</div>')
+           : (st.toLowerCase()!=='approved'?'<button onclick="_fsAdminApprove('+globalIdx+')" style="background:#27A84A;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">✅ Emeza</button>':'')
         + (st.toLowerCase()!=='rejected'?'<button onclick="_fsAdminReject('+globalIdx+')" style="background:#e53e3e;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">❌ Kataa</button>':'')
         // CEO-only, Approved-only — see openEditProperty()'s own gate,
         // which this button feeds into (re-checked there and in
@@ -36553,7 +36591,7 @@ function adminRender(filter) {
              + '<button onclick="_fsAdminSetAvailability('+globalIdx+')" style="background:#1249B3;color:#fff;border:none;padding:.35rem .6rem;border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:700">Set</button>'
              + '</div>'
            : '')
-        + '<button onclick="_fsAdminDelete('+globalIdx+')" style="background:#718096;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem">🗑️ Siba</button>'
+        + '<button onclick="_fsAdminDelete('+globalIdx+')" style="background:#718096;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem">🗑️ Siba</button>')
         + '</div></div></div>';
     }).join('');
     _adminLoading = false;
@@ -36742,6 +36780,49 @@ function _fsAdminDelete(idx) {
   } else {
     finishSuccess();
   }
+}
+
+// P1-14: safe restore path for a soft-deleted (isActive:false) property.
+// Super-Admin-only, both here (the button itself is hidden from anyone
+// else — see adminRender()'s deleted-view branch) and, the real boundary,
+// server-side (rules/firestore.rules' _isPropertyRestoreOK()). Requires
+// explicit confirmation and a basic sanity check on the record before
+// bringing it back — a deleted property missing its core identifying
+// fields (title/type/district) is more likely a stale or corrupted
+// record than a genuine accidental deletion, so this refuses to silently
+// resurrect it; an admin who genuinely needs to can still fix the record
+// directly. Restoring never claims success on a failed write, matching
+// _fsAdminDelete()'s own fix above.
+function restorePropertyFS(idx) {
+  var prop = _adminAllProps[idx]; if (!prop) return;
+  var fsId = prop._fsId;
+  if (!fsId || typeof db === 'undefined') return;
+  if (!isSuperAdminExact(currentUser)) {
+    showToast(curLang === 'rw' ? 'Super Admin gusa.' : 'Super Admin only.', 'error');
+    return;
+  }
+  if (!prop.title && !prop.type) {
+    showToast(curLang === 'rw'
+      ? 'Iyi nyandiko ntiyuzuye (nta title/type) — igomba gukosorwa mbere yo kongera kuyishyira ahagaragara.'
+      : 'This record is missing core fields (title/type) — fix it directly before restoring; refusing to bring back a possibly-corrupted listing.', 'error');
+    return;
+  }
+  if (!confirm(curLang === 'rw'
+    ? 'Emeza: garura iyi nyandiko (' + (prop.title || prop.type) + ')?'
+    : 'Confirm: restore this listing (' + (prop.title || prop.type) + ')? It will become visible again wherever its status/availability normally place it.')) return;
+
+  db.collection('properties').doc(fsId).update({
+    isActive: true, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  }).then(function() {
+    logAudit('property.restored', 'properties', fsId, { isActive: false }, { isActive: true });
+    showToast(curLang === 'rw' ? 'Nyandiko yagaruwe.' : 'Listing restored.', 'success');
+    _adminAllProps.splice(idx, 1);
+    invalidatePropsCache();
+    adminRender(adminCurrentFilter);
+  }).catch(function(err) {
+    console.error('[restorePropertyFS] Firestore error:', err);
+    showToast(curLang === 'rw' ? 'Habaye ikosa, ntiyagaruwe' : 'Restore failed — nothing was changed', 'error');
+  });
 }
 
 /* Override openAdmin to trigger Firestore-backed adminRender */

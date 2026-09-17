@@ -585,13 +585,24 @@ service cloud.firestore {
         return resource.data.get('availability', '').lower() == 'sold'
           && request.resource.data.get('availability', '').lower() in ['available', 'reserved'];
       }
+      // P1-14: restoring a soft-deleted property (isActive false->true) is
+      // Super-Admin-only — a deliberately higher bar than the ordinary
+      // isAdminOrStaff() authority that performs the soft-delete itself
+      // (true->false), matching this fix's explicit requirement. Every
+      // other isActive write is unaffected.
+      function _isPropertyRestoreOK() {
+        return !(resource.data.get('isActive', true) == false
+                 && request.resource.data.get('isActive', true) == true)
+          || isSuperAdmin();
+      }
       function _propertyGovernanceOK() {
         return (!_isPropertyApproveRejectChange()
           || (request.resource.data.get('status', '').lower() == 'approved' && hasPerm('properties.approve'))
           || (request.resource.data.get('status', '').lower() == 'rejected' && hasPerm('properties.reject')))
           && (!_isPropertyAvailabilityChange()
               || (_isPropertyHighRiskReversal() ? hasPerm('properties.reverse_sold') : hasPerm('properties.change_status')))
-          && _isPropertySoldReasonOK();
+          && _isPropertySoldReasonOK()
+          && _isPropertyRestoreOK();
       }
       // D-1: updatedBy is writable on both branches, approvedBy only via
       // the isAdminOrStaff() branch (_fsAdminApprove()) — hoisted once,
