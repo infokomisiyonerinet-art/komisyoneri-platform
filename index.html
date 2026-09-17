@@ -5342,6 +5342,14 @@ html,body{overscroll-behavior-x:none}
           <button onclick="adminFilter('pending')" id="adm-btn-pending" class="btn btn-navy btn-sm" style="font-size:.72rem">⏳ Pending (<span id="adm-count-pending">0</span>)</button>
           <button onclick="adminFilter('approved')" id="adm-btn-approved" class="btn btn-sm" style="font-size:.72rem;border:1.5px solid var(--border)">✅ Approved (<span id="adm-count-approved">0</span>)</button>
           <button onclick="adminFilter('rejected')" id="adm-btn-rejected" class="btn btn-sm" style="font-size:.72rem;border:1.5px solid var(--border)">❌ Rejected (<span id="adm-count-rejected">0</span>)</button>
+          <!-- P1-14: soft-deleted properties (isActive:false) were
+               previously entirely invisible — _fsAdminDelete()/adminDeleteAll()
+               excluded them from every admin query with no way back in.
+               Restoring one is Super-Admin-only (see restorePropertyFS()'s
+               own comment); the tab itself is visible to the whole admin
+               panel audience like every other filter, matching this app's
+               existing pattern of gating the ACTION, not the visibility. -->
+          <button onclick="adminFilter('deleted')" id="adm-btn-deleted" class="btn btn-sm" style="font-size:.72rem;border:1.5px solid var(--border)">🗑️ Deleted (<span id="adm-count-deleted">0</span>)</button>
           <button onclick="adminDeleteAll('approved')" style="font-size:.7rem;border:none;background:#fee2e2;color:#e53e3e;padding:.3rem .6rem;border-radius:6px;cursor:pointer;font-weight:600" data-rw="🗑️ Siba Yemejwe" data-en="🗑️ Delete Approved">🗑️ Siba Yemejwe</button>
         </div>
       </div>
@@ -12687,16 +12695,20 @@ function logoutUser() {
 var _editPropId = null;
 
 function openEditProperty(prop) {
-  // Only Pending properties can be edited — except the CEO, who may also
-  // edit an already-Approved listing (status stays Approved afterward,
-  // same as every other edit in this app never touching status; see
-  // rules/firestore.rules' _isApprovedContentEditByNonCEO() for the
+  // Only Pending properties can be edited — except the CEO or Super Admin,
+  // who may also edit an already-Approved listing (status stays Approved
+  // afterward, same as every other edit in this app never touching status;
+  // see rules/firestore.rules' _isApprovedContentEditByNonCEO() for the
   // matching server-side restriction). Status is stored inconsistently
   // cased across this app ('Approved' vs 'approved' — see
   // loadHomepageRotation()'s own comment on the same issue), so this
   // compares case-insensitively rather than assuming one casing.
+  // P1-03: this gate still only checked isCEO — a leftover from before
+  // P0.6 FIX 1 added isSuperAdmin() to the matching rules check, which
+  // left Super Admin unable to even open this modal for an approved
+  // listing despite the backend now permitting the write.
   var isApproved = (prop.status || '').toLowerCase() === 'approved';
-  var ceoEditingApproved = isApproved && _roleOf(currentUser) === 'ceo';
+  var ceoEditingApproved = isApproved && (_roleOf(currentUser) === 'ceo' || isSuperAdminExact(currentUser));
   if (prop.status !== 'Pending' && !ceoEditingApproved) {
     showToast(curLang==='rw' ? 'Imitungo yemejwe ntishobora guhindurwa.' : 'Approved properties cannot be edited.', 'warn');
     return;
@@ -23170,7 +23182,11 @@ var SA_SECURITY_AUDIT_ACTIONS = [
   'user.role.changed', 'user.approved', 'user.rejected',
   'property.approved', 'property.rejected',
   'site.approved', 'site.rejected',
-  'plot.status.changed', 'plot.reserved',
+  // P1-06: a transition into 'sold' now logs as the distinct 'PLOT_SOLD'
+  // (functions/index.js' onPlotStatusChanged) instead of being folded into
+  // 'plot.status.changed' — must be listed here too, or sold-plot events
+  // silently stop appearing in this feed the moment that fix ships.
+  'PLOT_SOLD', 'plot.status.changed', 'plot.reserved',
   'deal.closed_won.rejected_untrusted_actor'
 ];
 function _saLoadAuditFeed() {
@@ -23308,8 +23324,27 @@ function saLookupUser() {
     var u = doc.data();
     var isSelf = doc.id === currentUser.uid;
     var isActive = u.isActive !== false;
+    // P1-16: isActive:false does NOT revoke isAdmin()/isSuperAdmin()'s
+    // authority, by deliberate design (rules/firestore.rules' isAdmin()
+    // comment: "a corrupted isActive flag on the last Super Admin must
+    // never be able to brick the platform's own recovery path"). That's
+    // correct and must not change — but it was previously a SILENT gap: a
+    // Super Admin suspending another admin/super_admin account would see
+    // "Suspended" here with no indication that the suspension had zero
+    // actual effect on that account's platform access. Surfacing it
+    // explicitly turns an invisible architectural fact into a documented,
+    // monitored one, per this fix's "document and enforce a safe
+    // emergency-access architecture" requirement — without touching the
+    // authorization logic itself.
+    var targetIsAdminTier = ['admin', 'super_admin'].indexOf((u.role || '').toLowerCase()) > -1;
+    var adminSuspendNotice = (!isActive && targetIsAdminTier)
+      ? '<div style="font-size:.75rem;color:#B45309;background:#FEF3C7;border:1px solid #FDE68A;border-radius:6px;padding:.5rem;margin-top:.4rem">'
+        + '⚠️ This is an admin/super_admin-tier account. Suspending it does NOT revoke its platform write access — a deliberate recovery-path protection (a corrupted isActive flag must never lock out the last Super Admin). To genuinely restrict this account, change its role instead.'
+        + '</div>'
+      : '';
     result.innerHTML =
       '<div class="exec-activity-row"><span>' + escapeHtml(u.displayName || u.email || doc.id) + '</span><span>role: ' + escapeHtml(u.role || '—') + ' · ' + (isActive ? 'Active' : 'Suspended') + '</span></div>' +
+      adminSuspendNotice +
       '<div style="display:flex;gap:.5rem;margin-top:.5rem">' +
       (isSelf
         ? '<span style="font-size:.75rem;color:var(--muted)">You cannot suspend your own account here.</span>'
@@ -23322,6 +23357,17 @@ function saLookupUser() {
   });
 }
 
+// P1.7 P1-02: the single suspend/reactivate governance path for every
+// caller (Super Admin Control Center lookup panel AND the Staff Profile
+// modal, via toggleUserActive() below, which is now a thin wrapper around
+// this). Previously toggleUserActive() was a second, materially weaker
+// path — no reason, no confirm() — reaching the exact same Firestore
+// write; unifying onto this one means every suspend/reactivate, from
+// either surface, is reason-required, confirmed, and audited under one
+// consistent action-name pair ('user.suspended'/'user.reactivated' — the
+// prior 'user.' + action + 'd' template silently produced 'user.suspendd'
+// for the suspend case, a typo that fragmented the audit trail from
+// toggleUserActive()'s correctly-spelled 'user.suspended').
 function saSetUserActive(uid, makeActive) {
   if (!uid || uid === currentUser.uid) return;
   var action = makeActive ? 'reactivate' : 'suspend';
@@ -23329,10 +23375,14 @@ function saSetUserActive(uid, makeActive) {
   if (!reason) { showToast('A reason is required.', 'error'); return; }
   if (!confirm('Confirm: ' + action + ' this account now?')) return;
   var now = firebase.firestore.FieldValue.serverTimestamp();
+  var wasStaffTier = false;
+  var targetRoleLower = '';
   db.collection('users').doc(uid).get().then(function(doc) {
     if (!doc.exists) throw new Error('User not found');
     var oldStatus = doc.data().status || '';
     var oldActive = doc.data().isActive !== false;
+    targetRoleLower = (doc.data().role || '').toLowerCase();
+    wasStaffTier = ROLE_TIERS.STAFF.indexOf(targetRoleLower) > -1;
     return db.collection('users').doc(uid).update({
       isActive: makeActive,
       status: makeActive ? 'active' : 'suspended',
@@ -23341,7 +23391,7 @@ function saSetUserActive(uid, makeActive) {
       updatedBy: currentUser.uid
     }).then(function() { return { oldStatus: oldStatus, oldActive: oldActive }; });
   }).then(function(old) {
-    logAudit('user.' + action + 'd', 'users', uid,
+    logAudit(makeActive ? 'user.reactivated' : 'user.suspended', 'users', uid,
       { isActive: old.oldActive, status: old.oldStatus },
       { isActive: makeActive, status: makeActive ? 'active' : 'suspended', reason: reason }
     );
@@ -23351,10 +23401,38 @@ function saSetUserActive(uid, makeActive) {
         makeActive ? 'Your KOMISIYONERI account has been reactivated.' : 'Your KOMISIYONERI account has been suspended. Reason: ' + reason,
         'system', 'users', uid);
     }
+    // Mirrors toggleUserActive()'s pre-unification offboarding-checklist
+    // side effect — deactivating an internal-staff account still creates
+    // a real offboarding checklist for the acting admin, regardless of
+    // which UI surface triggered the suspension.
+    if (!makeActive && wasStaffTier && typeof createChecklistTasks === 'function') {
+      var staffEntry = (typeof _hrStaff !== 'undefined' && _hrStaff) ? _hrStaff.find(function(x){ return x.id === uid; }) : null;
+      createChecklistTasks('offboarding', uid, (staffEntry && (staffEntry.displayName || staffEntry.email)) || uid, currentUser.uid);
+    }
     showToast('Account ' + action + 'd.', 'success');
-    saLookupUser();
-    _saLoadSecurityPanel();
-    _saLoadPlatformOverview();
+    // Refresh whichever UI surface is currently showing this user.
+    var hrEntry = (typeof _hrStaff !== 'undefined' && _hrStaff) ? _hrStaff.find(function(x){ return x.id === uid; }) : null;
+    if (hrEntry) hrEntry.isActive = makeActive;
+    if (typeof _spProfileId !== 'undefined' && _spProfileId === uid) {
+      var statusEl = document.getElementById('sp-status');
+      if (statusEl) {
+        var chip = makeActive
+          ? '<span style="color:var(--success)">Active</span>'
+          : '<span style="color:var(--error)">Suspended</span>';
+        // P1-16: same emergency-access-architecture notice as elsewhere —
+        // suspending an admin/super_admin account has no actual effect on
+        // its access, by deliberate design.
+        if (!makeActive && ['admin', 'super_admin'].indexOf(targetRoleLower) > -1) {
+          chip += ' <span style="font-size:.7rem;color:#B45309">⚠️ admin/super_admin — suspension does not revoke access</span>';
+        }
+        statusEl.innerHTML = chip;
+      }
+      var actBtn = document.getElementById('sp-active-btn');
+      if (actBtn) actBtn.textContent = makeActive ? 'Suspend' : 'Activate';
+    }
+    if (typeof saLookupUser === 'function') saLookupUser();
+    if (typeof _saLoadSecurityPanel === 'function') _saLoadSecurityPanel();
+    if (typeof _saLoadPlatformOverview === 'function') _saLoadPlatformOverview();
   }).catch(function(err) {
     showToast('Error: ' + (err.message || 'could not ' + action + ' account'), 'error');
     console.error('[SuperAdmin] saSetUserActive failed:', err);
@@ -23952,6 +24030,15 @@ function openInvoiceDetail(id) {
       if (inv.status === 'paid') {
         html += '<button class="btn btn-outline" style="color:#EA580C;border-color:#EA580C" onclick="openInvoiceRefund(\'' + id + '\')" data-en="Refund" data-rw="Kwishyura">Refund</button>';
       }
+      // P1-07: financial correction governance — a controlled way to fix a
+      // wrong invoice total that doesn't require direct Firestore/console
+      // access. Deliberately excluded once an invoice is paid/refunded —
+      // that money has already moved, so the refund workflow above (a
+      // real accounting entry, not a silent number edit) is the correct
+      // path from there.
+      if (inv.status === 'draft' || inv.status === 'sent') {
+        html += '<button class="btn btn-outline" onclick="correctInvoiceAmount(\'' + id + '\')" data-en="Correct Total" data-rw="Hindura Umubare">Correct Total</button>';
+      }
     }
     actEl.innerHTML = html;
     if (typeof switchLang !== 'undefined') switchLang(curLang);
@@ -24033,6 +24120,41 @@ function updateInvStatus(id, newStatus) {
     closeInvoiceDetail(); loadInvoices(); loadAccountingStats();
     logAudit('invoice_status_changed', 'invoices', id, { status: oldStatus }, { status: newStatus });
   }).catch(function() { showToast('Error updating invoice', 'error'); });
+}
+
+// P1-07: financial correction governance — mirrors correctCommissionAmount()'s
+// shape (mandatory reason, confirm(), full before/after audit). Restricted
+// to draft/sent invoices client-side; rules/firestore.rules'
+// _isAmountCorrectionReasoned(['totalAmount']) is the real server-side
+// backstop regardless of what this function sends.
+function correctInvoiceAmount(id) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var inv = _invoices.find(function(x) { return x.id === id; });
+  if (!inv) return;
+  var oldTotal = inv.totalAmount || 0;
+  var newTotalStr = prompt('Corrected invoice total (RWF). Current: ' + oldTotal.toLocaleString(), oldTotal);
+  if (newTotalStr === null) return;
+  var newTotal = parseFloat(String(newTotalStr).replace(/[^0-9.]/g, ''));
+  if (isNaN(newTotal) || newTotal < 0) { showToast('Enter a valid amount.', 'error'); return; }
+  var reason = (prompt('Reason for this correction (required):') || '').trim();
+  if (!reason) { showToast('A reason is required.', 'error'); return; }
+  if (!confirm('Confirm: change invoice total from ' + fmtRwfAC(oldTotal) + ' to ' + fmtRwfAC(newTotal) + '?')) return;
+
+  var before = { totalAmount: oldTotal };
+  var after  = { totalAmount: newTotal, reason: reason };
+  db.collection('invoices').doc(id).update({
+    totalAmount: newTotal, correctionReason: reason,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  }).then(function() {
+    logAudit('invoice.corrected', 'invoices', id, before, after);
+    showToast('Invoice total corrected.', 'success');
+    inv.totalAmount = newTotal;
+    loadInvoices(); loadAccountingStats();
+    openInvoiceDetail(id);
+  }).catch(function(err) {
+    console.error('[Finance] correctInvoiceAmount failed:', err);
+    showToast('Correction failed: ' + (err.message || ''), 'error');
+  });
 }
 
 // Real refund workflow — previously "cancel" was the only way to close out
@@ -24589,6 +24711,24 @@ function saveRolePermissions() {
   }, { merge: true }).then(function() {
     logAudit('permissions.role_config.changed', 'role_permissions', role,
       { permissions: _rpOriginalPerms }, { permissions: checked });
+    // P1-05: granular per-permission events alongside the aggregate one
+    // above (kept — still useful as a single "what changed this save"
+    // summary). One PERMISSION_GRANTED/PERMISSION_REVOKED entry per
+    // individual permission actually added/removed, so a specific
+    // grant/revoke can be found without diffing two aggregate arrays.
+    var before = _rpOriginalPerms || [];
+    checked.forEach(function(key) {
+      if (before.indexOf(key) === -1) {
+        logAudit('PERMISSION_GRANTED', 'role_permissions', role,
+          { role: role, permission: key, granted: false }, { role: role, permission: key, granted: true });
+      }
+    });
+    before.forEach(function(key) {
+      if (checked.indexOf(key) === -1) {
+        logAudit('PERMISSION_REVOKED', 'role_permissions', role,
+          { role: role, permission: key, granted: true }, { role: role, permission: key, granted: false });
+      }
+    });
     _rpOriginalPerms = checked;
     showToast(curLang === 'rw' ? 'Uburenganzira bwabitswe!' : 'Permissions saved!', 'success');
   }).catch(function(e) {
@@ -25231,6 +25371,16 @@ function openStaffProfile(uid) {
   var joined = u.createdAt ? new Date(u.createdAt.toDate ? u.createdAt.toDate() : u.createdAt).toLocaleDateString() : '—';
   g('sp-joined').textContent  = joined;
   var activeChip = u.isActive ? '<span style="color:var(--success)">Active</span>' : '<span style="color:var(--error)">Suspended</span>';
+  // P1-16: same emergency-access-architecture notice as saLookupUser()'s
+  // Super Admin Control Center panel — suspending an admin/super_admin
+  // account here (via toggleUserActive(), also reachable from this Staff
+  // Profile modal) has no actual effect on that account's access, by
+  // deliberate design; surface that here too so it's never a silent
+  // surprise regardless of which admin surface was used to suspend them.
+  var targetIsAdminTierSP = ['admin', 'super_admin'].indexOf((u.role || '').toLowerCase()) > -1;
+  if (!u.isActive && targetIsAdminTierSP) {
+    activeChip += ' <span style="font-size:.7rem;color:#B45309">⚠️ admin/super_admin — suspension does not revoke access</span>';
+  }
   g('sp-status').innerHTML    = activeChip;
 
   // Real employment/contract record (extends the users doc — no separate
@@ -25822,35 +25972,17 @@ function toggleUserVerified(uid) {
   }).catch(function() { showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error', 'error'); });
 }
 
+// P1-02: thin wrapper — the real suspend/reactivate logic (reason prompt,
+// confirm(), audit, offboarding checklist, UI refresh) now lives entirely
+// in saSetUserActive() above, so both callers of "suspend this user" in
+// the app (Staff Profile modal button, here; Super Admin lookup panel)
+// go through one governance path instead of two.
 function toggleUserActive(uid) {
   if (!uid || typeof db === 'undefined') return;
   var u = _hrStaff.find(function(x){ return x.id === uid; });
   if (!u) return;
   var newVal = u.isActive === false ? true : false;
-  var adminUid = currentUser ? currentUser.uid : 'admin';
-  var wasStaffTier = ROLE_TIERS.STAFF.indexOf((u.role || '').toLowerCase()) > -1;
-  db.collection('users').doc(uid).update({
-    isActive:  newVal,
-    status:    newVal ? 'active' : 'suspended',
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    updatedBy: adminUid
-  }).then(function() {
-    u.isActive = newVal;
-    logAudit(newVal ? 'user.activated' : 'user.suspended', 'users', uid, null, { isActive: newVal });
-    // Deactivating an internal-staff account creates a real offboarding
-    // checklist for the acting admin, instead of the exit being just a
-    // silent isActive flip.
-    if (!newVal && wasStaffTier) {
-      createChecklistTasks('offboarding', uid, u.displayName || u.email || uid, adminUid);
-    }
-    var statusEl = document.getElementById('sp-status');
-    if (statusEl) statusEl.innerHTML = newVal
-      ? '<span style="color:var(--success)">Active</span>'
-      : '<span style="color:var(--error)">Suspended</span>';
-    var actBtn = document.getElementById('sp-active-btn');
-    if (actBtn) actBtn.textContent = newVal ? 'Suspend' : 'Activate';
-    showToast(newVal ? (curLang === 'rw' ? 'Konti yafunguwe!' : 'Account activated!') : (curLang === 'rw' ? 'Konti ifunze!' : 'Account suspended!'), newVal ? 'success' : 'warn');
-  }).catch(function() { showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error', 'error'); });
+  saSetUserActive(uid, newVal);
 }
 
 // Permanently deletes an already-approved agent's account — Firestore doc
@@ -30710,6 +30842,12 @@ function openCommissionDetail(id) {
   if (comm.status === 'approved' && isAdmin) {
     btns += '<button class="btn btn-gold btn-sm" onclick="markCommissionPaid(\'' + id + '\')"><span data-rw="Emeza ko Yishyuwe" data-en="Mark Paid">Mark Paid</span></button>';
   }
+  // P1-07: financial correction governance — a controlled way to fix a
+  // wrong commission amount that doesn't require direct Firestore/console
+  // access, gated the same as every other money-moving action here.
+  if (hasPerm('commissions.manage')) {
+    btns += '<button class="btn btn-outline btn-sm" onclick="correctCommissionAmount(\'' + id + '\')"><span data-rw="Hindura Umubare" data-en="Correct Amount">Correct Amount</span></button>';
+  }
   btns += '<button class="btn btn-outline btn-sm" onclick="openPayslip(\'' + id + '\')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> <span data-rw="Payslip" data-en="Payslip">Payslip</span></button>';
   if (actDiv) actDiv.innerHTML = btns;
 
@@ -30795,6 +30933,60 @@ function submitCommissionDecision(approved) {
   }).catch(function(err) {
     showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error updating commission', 'error');
     console.error('[Commission] approval error:', err);
+  });
+}
+
+// ── Financial Correction Governance (P1-07) ───────────
+// A controlled path to fix a wrong commission amount — never silent, never
+// unrestricted. Requires: hasPerm('commissions.manage') to even reach this
+// button, an explicit confirm(), a mandatory non-empty reason (also
+// enforced server-side by rules/firestore.rules' _isAmountCorrectionReasoned()
+// — a write touching these fields with no correctionReason is rejected
+// regardless of what this function sends), and a full before/after audit
+// entry. The agent/company split ratio is preserved when recomputing
+// shares from the corrected total, rather than leaving companyShare stale.
+function correctCommissionAmount(id) {
+  var comm = null;
+  for (var i = 0; i < _commissions.length; i++) {
+    if ((_commissions[i]._docId || _commissions[i].id) === id) { comm = _commissions[i]; break; }
+  }
+  if (!comm || typeof db === 'undefined') return;
+  var oldTotal = comm.totalCommission || 0;
+  var newTotalStr = prompt(
+    (curLang === 'rw' ? 'Umubare mushya wa komisiyoni yose (RWF). Ubu ni: ' : 'Corrected total commission (RWF). Current: ')
+    + oldTotal.toLocaleString(), oldTotal);
+  if (newTotalStr === null) return;
+  var newTotal = parseInt(String(newTotalStr).replace(/[^0-9]/g, ''), 10);
+  if (isNaN(newTotal) || newTotal < 0) {
+    showToast(curLang === 'rw' ? 'Shyiramo umubare nyawo wa RWF.' : 'Enter a valid whole RWF amount.', 'error');
+    return;
+  }
+  var reason = (prompt(curLang === 'rw' ? 'Impamvu yo guhindura (irakenewe):' : 'Reason for this correction (required):') || '').trim();
+  if (!reason) { showToast(curLang === 'rw' ? 'Impamvu irakenewe.' : 'A reason is required.', 'error'); return; }
+  if (!confirm((curLang === 'rw' ? 'Emeza: hindura komisiyoni yose kuva kuri ' : 'Confirm: change total commission from ')
+    + oldTotal.toLocaleString() + (curLang === 'rw' ? ' ugere kuri ' : ' to ') + newTotal.toLocaleString() + ' RWF?')) return;
+
+  var ratio = oldTotal > 0 ? (comm.agentShare || 0) / oldTotal : 0.8;
+  var newAgentShare = Math.round(newTotal * ratio);
+  var newCompanyShare = newTotal - newAgentShare;
+  var uid = currentUser.uid;
+  var before = { totalCommission: oldTotal, agentShare: comm.agentShare || 0, companyShare: comm.companyShare || 0 };
+  var after  = { totalCommission: newTotal, agentShare: newAgentShare, companyShare: newCompanyShare, reason: reason };
+
+  db.collection('commissions').doc(id).update({
+    totalCommission: newTotal, agentShare: newAgentShare, companyShare: newCompanyShare,
+    correctionReason: reason,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: uid
+  }).then(function() {
+    logAudit('commission.corrected', 'commissions', id, before, after);
+    showToast(curLang === 'rw' ? 'Komisiyoni yahinduwe.' : 'Commission corrected.', 'success');
+    comm.totalCommission = newTotal; comm.agentShare = newAgentShare; comm.companyShare = newCompanyShare;
+    renderCommissionList();
+    updateCommissionStats();
+    openCommissionDetail(id);
+  }).catch(function(err) {
+    console.error('[Finance] correctCommissionAmount failed:', err);
+    showToast((curLang === 'rw' ? 'Ikosa: ' : 'Correction failed: ') + (err.message || ''), 'error');
   });
 }
 
@@ -32550,12 +32742,15 @@ function saveDealNotes() {
     showToast(curLang === 'rw' ? 'Shyira amanotisi mbere!' : 'Enter notes first!', 'error'); return;
   }
   var uid = typeof currentUser !== 'undefined' && currentUser ? currentUser.uid : 'system';
+  // P1-04: this write previously had zero audit trail.
+  var oldNotes = (_ddCurrentDeal && _ddCurrentDeal.notes) || '';
   db.collection('deals').doc(dealId).update({
     notes:     notes,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedBy: uid
   }).then(function() {
     showToast(curLang === 'rw' ? 'Amanotisi yabitswe!' : 'Notes saved!', 'success');
+    logAudit('deal.notes_updated', 'deals', dealId, { notes: oldNotes }, { notes: notes });
     if (_ddCurrentDeal) _ddCurrentDeal.notes = notes;
   }).catch(function(err) {
     showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error saving notes', 'error');
@@ -36139,6 +36334,17 @@ function _savePropToFirestoreFS(propData, status, userId, isVerified) {
     tour3dUrl:   propData.tour3dUrl   || '',
     amenities:   propData.amenities   || [],
     yearBuilt:   propData.yearBuilt   || '',
+    // P1-13: these six fields are collected in the Add/Edit Property form
+    // (prop-deed/prop-floors/prop-parking/prop-doc-luc/prop-doc-id/
+    // prop-doc-permit) and were previously written into the local pd/u
+    // objects (and so persisted to localStorage) but never copied into
+    // this explicit fsDoc — silently discarded on every submission.
+    titleDeed:   propData.titleDeed   || '',
+    floors:      propData.floors      || '',
+    parking:     propData.parking     || '',
+    docLuc:      propData.docLuc      || '',
+    docId:       propData.docId       || '',
+    docPermit:   propData.docPermit   || '',
     agentId:     userId               || '',
     ownerId:     userId               || '',
     contact:     propData.contact     || '',
@@ -36299,11 +36505,11 @@ function submitProperty() {
     var ei = -1;
     for (var i=0; i<eProps.length; i++) { if (String(eProps[i].id)===String(editId)) { ei=i; break; } }
     if (ei===-1) { showToast('Imitungo ntiboneka.'); closeAddProperty(); return; }
-    // Same CEO-on-Approved carve-out as openEditProperty()'s own gate —
-    // must be re-checked here too since this function is the one that
-    // actually fires the Firestore write, not just opens the modal.
+    // Same CEO/Super-Admin-on-Approved carve-out as openEditProperty()'s
+    // own gate — must be re-checked here too since this function is the
+    // one that actually fires the Firestore write, not just opens the modal.
     var editIsApproved = (eProps[ei].status || '').toLowerCase() === 'approved';
-    var editCeoOnApproved = editIsApproved && _roleOf(currentUser) === 'ceo';
+    var editCeoOnApproved = editIsApproved && (_roleOf(currentUser) === 'ceo' || isSuperAdminExact(currentUser));
     if (eProps[ei].status !== 'Pending' && !editCeoOnApproved) {
       showToast(curLang==='rw'?'Imitungo yemejwe ntishobora guhindurwa.':'Only pending listings can be edited.','warn');
       closeAddProperty(); return;
@@ -36361,26 +36567,62 @@ function submitProperty() {
       var syncTarget;
       if (u._fsId && typeof db !== 'undefined') {
         var editNow = firebase.firestore.FieldValue.serverTimestamp();
-        var propUpdateRef = db.collection('properties').doc(u._fsId);
-        syncTarget = propUpdateRef.update({
+        var _editDocRef = db.collection('properties').doc(u._fsId);
+        var _editUpdatePayload = {
           type:u.type, category:u.service==='Gukodesha'?'rent':'sale',
           district:u.district, sector:u.sector||'', price:u.price,
           bedrooms:parseInt(u.beds)||0, bathrooms:parseInt(u.baths)||0,
           area:u.size||'', description:u.desc||'', title:u.title||'',
           amenities:u.amenities||[], images:urls,
+          // P1-13: these six were previously collected into `u` (and so
+          // persisted to localStorage) but never included in this
+          // Firestore payload — silently discarded on every edit.
+          titleDeed:u.titleDeed||'', floors:u.floors||'', parking:u.parking||'',
+          docLuc:u.docLuc||'', docId:u.docId||'', docPermit:u.docPermit||'',
           updatedAt:editNow, updatedBy:currentUser.uid
-        }).then(function() {
-          // Owner contact lives in a separate private/ doc (see
-          // _savePropToFirestoreFS()'s own comment) — never editable via
-          // the public properties/{id} update above, so it's synced here
-          // as its own write. submitter (private/submitter) is intentionally
-          // NOT touched by an edit — who originally submitted a listing
-          // doesn't change just because its content was later edited.
-          return propUpdateRef.collection('private').doc('owner').set({
-            propertyOwnerName:  editOwnerName,
-            propertyOwnerPhone: editOwnerPhone,
-            updatedAt: editNow, updatedBy: currentUser.uid
-          }, { merge: true });
+        };
+        // P1-03: content edits (price/description/title/location/etc — the
+        // single most sensitive edit path on this collection, including a
+        // CEO/Super Admin correcting an already-approved listing) generated
+        // zero audit trail before this. Reads the pre-write values first so
+        // the audit entry carries a real before/after diff, not just the
+        // new state.
+        syncTarget = _editDocRef.get().then(function(beforeSnap) {
+          var before = beforeSnap.exists ? beforeSnap.data() : {};
+          var beforeSnapshot = {
+            type:before.type, category:before.category, district:before.district,
+            sector:before.sector, price:before.price, bedrooms:before.bedrooms,
+            bathrooms:before.bathrooms, area:before.area, description:before.description,
+            title:before.title, amenities:before.amenities, images:before.images,
+            titleDeed:before.titleDeed, floors:before.floors, parking:before.parking,
+            docLuc:before.docLuc, docId:before.docId, docPermit:before.docPermit
+          };
+          return _editDocRef.update(_editUpdatePayload).then(function() {
+            var afterSnapshot = {
+              type:_editUpdatePayload.type, category:_editUpdatePayload.category,
+              district:_editUpdatePayload.district, sector:_editUpdatePayload.sector,
+              price:_editUpdatePayload.price, bedrooms:_editUpdatePayload.bedrooms,
+              bathrooms:_editUpdatePayload.bathrooms, area:_editUpdatePayload.area,
+              description:_editUpdatePayload.description, title:_editUpdatePayload.title,
+              amenities:_editUpdatePayload.amenities, images:_editUpdatePayload.images,
+              titleDeed:_editUpdatePayload.titleDeed, floors:_editUpdatePayload.floors,
+              parking:_editUpdatePayload.parking, docLuc:_editUpdatePayload.docLuc,
+              docId:_editUpdatePayload.docId, docPermit:_editUpdatePayload.docPermit
+            };
+            logAudit('property.content_edited', 'properties', u._fsId, beforeSnapshot, afterSnapshot);
+          }).then(function() {
+            // Owner contact lives in a separate private/ doc (see
+            // _savePropToFirestoreFS()'s own comment) — never editable via
+            // the public properties/{id} update above, so it's synced here
+            // as its own write. submitter (private/submitter) is intentionally
+            // NOT touched by an edit — who originally submitted a listing
+            // doesn't change just because its content was later edited.
+            return _editDocRef.collection('private').doc('owner').set({
+              propertyOwnerName:  editOwnerName,
+              propertyOwnerPhone: editOwnerPhone,
+              updatedAt: editNow, updatedBy: currentUser.uid
+            }, { merge: true });
+          });
         });
       } else {
         var noFsIdErr = new Error('No linked Firestore document (_fsId) for this listing');
@@ -36489,9 +36731,14 @@ function adminRender(filter) {
 
   list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">&#9203; Loading from Firestore...</div>';
 
+  // P1-14: soft-deleted properties (isActive:false) were previously
+  // entirely invisible to every admin query — no way to even find one to
+  // restore it, let alone do so. The 'deleted' filter queries the
+  // opposite isActive value from every other tab.
+  var isDeletedView = filter === 'deleted';
   var fetchPropsPromise;
   if (typeof db !== 'undefined') {
-    fetchPropsPromise = db.collection('properties').where('isActive','==',true).limit(200).get()
+    fetchPropsPromise = db.collection('properties').where('isActive','==', !isDeletedView).limit(200).get()
       .then(function(snap) {
         var fsProps = [];
         snap.forEach(function(doc) {
@@ -36504,19 +36751,34 @@ function adminRender(filter) {
   } else {
     fetchPropsPromise = Promise.resolve([]);
   }
+  // Lightweight separate count so the "Deleted" tab badge stays accurate
+  // while viewing any other tab, without fetching every deleted record's
+  // full data on every single render.
+  var deletedCountPromise = (typeof db !== 'undefined' && !isDeletedView)
+    ? db.collection('properties').where('isActive','==',false).limit(200).get()
+        .then(function(snap) { return snap.size; }).catch(function() { return null; })
+    : Promise.resolve(null);
 
-  fetchPropsPromise.then(function(fsProps) {
-    /* Merge with localStorage (localStorage may have unsync'd pending items) */
-    var lsProps = [];
-    try { lsProps = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
-    var fsPropFsIds = {};
-    fsProps.forEach(function(p) { if (p._fsId) fsPropFsIds[p._fsId] = true; });
-    var lsOnly = lsProps.filter(function(p) {
-      return !p._fsId || !fsPropFsIds[p._fsId];
-    });
-    _adminAllProps = fsProps.concat(lsOnly.map(function(p) {
-      p._source = 'local'; return p;
-    }));
+  Promise.all([fetchPropsPromise, deletedCountPromise]).then(function(results) {
+    var fsProps = results[0], deletedCount = results[1];
+    // The localStorage merge only makes sense for the live/active tabs —
+    // it exists to surface not-yet-synced NEW submissions, which has no
+    // meaning for a "what's been deleted" view.
+    if (isDeletedView) {
+      _adminAllProps = fsProps;
+    } else {
+      /* Merge with localStorage (localStorage may have unsync'd pending items) */
+      var lsProps = [];
+      try { lsProps = JSON.parse(localStorage.getItem('km_properties')||'[]'); } catch(e){}
+      var fsPropFsIds = {};
+      fsProps.forEach(function(p) { if (p._fsId) fsPropFsIds[p._fsId] = true; });
+      var lsOnly = lsProps.filter(function(p) {
+        return !p._fsId || !fsPropFsIds[p._fsId];
+      });
+      _adminAllProps = fsProps.concat(lsOnly.map(function(p) {
+        p._source = 'local'; return p;
+      }));
+    }
 
     /* Update tab counts */
     ['pending','approved','rejected'].forEach(function(s) {
@@ -36526,17 +36788,19 @@ function adminRender(filter) {
       }).length;
     });
     var allEl = document.getElementById('adm-count-all');
-    if (allEl) allEl.textContent = _adminAllProps.length;
+    if (allEl && !isDeletedView) allEl.textContent = _adminAllProps.length;
+    var delEl = document.getElementById('adm-count-deleted');
+    if (delEl) delEl.textContent = isDeletedView ? _adminAllProps.length : (deletedCount != null ? deletedCount : delEl.textContent);
 
     /* Update tab button styles */
-    ['all','pending','approved','rejected'].forEach(function(s) {
+    ['all','pending','approved','rejected','deleted'].forEach(function(s) {
       var btn = document.getElementById('adm-btn-'+s);
       if (!btn) return;
       if (s===filter) { btn.style.background='var(--navy)';btn.style.color='#fff';btn.style.border='none'; }
       else { btn.style.background='#fff';btn.style.color='var(--dark)';btn.style.border='1.5px solid var(--border)'; }
     });
 
-    var filtered = filter==='all' ? _adminAllProps : _adminAllProps.filter(function(p) {
+    var filtered = (filter==='all' || isDeletedView) ? _adminAllProps : _adminAllProps.filter(function(p) {
       return (p.status||'').toLowerCase()===filter.toLowerCase();
     });
 
@@ -36577,7 +36841,15 @@ function adminRender(filter) {
         + '</div>'
         + '<div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">'
         + '<div style="font-size:.7rem;font-weight:700;color:'+statusColor+';text-align:center">'+escapeHtml(st)+'</div>'
-        + (st.toLowerCase()!=='approved'?'<button onclick="_fsAdminApprove('+globalIdx+')" style="background:#27A84A;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">✅ Emeza</button>':'')
+        // P1-14: a soft-deleted record gets exactly one action — Restore
+        // (Super-Admin-only, see restorePropertyFS()) — none of approve/
+        // reject/edit/availability/delete make sense on a record that's
+        // currently hidden from the whole platform.
+        + (isDeletedView
+           ? (isSuperAdminExact(currentUser)
+              ? '<button onclick="restorePropertyFS('+globalIdx+')" style="background:#16A34A;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">♻️ Restore</button>'
+              : '<div style="font-size:.7rem;color:var(--muted)">Super Admin only</div>')
+           : (st.toLowerCase()!=='approved'?'<button onclick="_fsAdminApprove('+globalIdx+')" style="background:#27A84A;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">✅ Emeza</button>':'')
         + (st.toLowerCase()!=='rejected'?'<button onclick="_fsAdminReject('+globalIdx+')" style="background:#e53e3e;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:700">❌ Kataa</button>':'')
         // CEO-only, Approved-only — see openEditProperty()'s own gate,
         // which this button feeds into (re-checked there and in
@@ -36600,7 +36872,7 @@ function adminRender(filter) {
              + '<button onclick="_fsAdminSetAvailability('+globalIdx+')" style="background:#1249B3;color:#fff;border:none;padding:.35rem .6rem;border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:700">Set</button>'
              + '</div>'
            : '')
-        + '<button onclick="_fsAdminDelete('+globalIdx+')" style="background:#718096;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem">🗑️ Siba</button>'
+        + '<button onclick="_fsAdminDelete('+globalIdx+')" style="background:#718096;color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem">🗑️ Siba</button>')
         + '</div></div></div>';
     }).join('');
     _adminLoading = false;
@@ -36789,6 +37061,49 @@ function _fsAdminDelete(idx) {
   } else {
     finishSuccess();
   }
+}
+
+// P1-14: safe restore path for a soft-deleted (isActive:false) property.
+// Super-Admin-only, both here (the button itself is hidden from anyone
+// else — see adminRender()'s deleted-view branch) and, the real boundary,
+// server-side (rules/firestore.rules' _isPropertyRestoreOK()). Requires
+// explicit confirmation and a basic sanity check on the record before
+// bringing it back — a deleted property missing its core identifying
+// fields (title/type/district) is more likely a stale or corrupted
+// record than a genuine accidental deletion, so this refuses to silently
+// resurrect it; an admin who genuinely needs to can still fix the record
+// directly. Restoring never claims success on a failed write, matching
+// _fsAdminDelete()'s own fix above.
+function restorePropertyFS(idx) {
+  var prop = _adminAllProps[idx]; if (!prop) return;
+  var fsId = prop._fsId;
+  if (!fsId || typeof db === 'undefined') return;
+  if (!isSuperAdminExact(currentUser)) {
+    showToast(curLang === 'rw' ? 'Super Admin gusa.' : 'Super Admin only.', 'error');
+    return;
+  }
+  if (!prop.title && !prop.type) {
+    showToast(curLang === 'rw'
+      ? 'Iyi nyandiko ntiyuzuye (nta title/type) — igomba gukosorwa mbere yo kongera kuyishyira ahagaragara.'
+      : 'This record is missing core fields (title/type) — fix it directly before restoring; refusing to bring back a possibly-corrupted listing.', 'error');
+    return;
+  }
+  if (!confirm(curLang === 'rw'
+    ? 'Emeza: garura iyi nyandiko (' + (prop.title || prop.type) + ')?'
+    : 'Confirm: restore this listing (' + (prop.title || prop.type) + ')? It will become visible again wherever its status/availability normally place it.')) return;
+
+  db.collection('properties').doc(fsId).update({
+    isActive: true, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  }).then(function() {
+    logAudit('property.restored', 'properties', fsId, { isActive: false }, { isActive: true });
+    showToast(curLang === 'rw' ? 'Nyandiko yagaruwe.' : 'Listing restored.', 'success');
+    _adminAllProps.splice(idx, 1);
+    invalidatePropsCache();
+    adminRender(adminCurrentFilter);
+  }).catch(function(err) {
+    console.error('[restorePropertyFS] Firestore error:', err);
+    showToast(curLang === 'rw' ? 'Habaye ikosa, ntiyagaruwe' : 'Restore failed — nothing was changed', 'error');
+  });
 }
 
 /* Override openAdmin to trigger Firestore-backed adminRender */

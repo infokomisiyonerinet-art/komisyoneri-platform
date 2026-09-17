@@ -205,6 +205,17 @@ service cloud.firestore {
       return !request.resource.data.diff(resource.data).affectedKeys().hasAny([field])
         || request.resource.data.get(field, request.auth.uid) == request.auth.uid;
     }
+    // P1-07: mandatory-reason gate for financial-record corrections
+    // (commissions/invoices/financeTransactions below) — same diff-based
+    // freshness principle as plots' statusChangeReason check above (a
+    // write that doesn't touch any amount field is unaffected; a write
+    // that DOES touch one must also set a non-empty correctionReason in
+    // that same write, never a stale value already sitting on the doc).
+    function _isAmountCorrectionReasoned(amountFields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(amountFields)
+        || (request.resource.data.diff(resource.data).affectedKeys().hasAny(['correctionReason'])
+            && request.resource.data.get('correctionReason', '').size() > 0);
+    }
     // ── EXISTING collections ──────────────────────────
 
     match /users/{uid} {
@@ -478,11 +489,18 @@ service cloud.firestore {
       // left unable to edit an approved listing's own content, despite
       // holding Ultimate Authority everywhere else in this collection.
       function _isApprovedContentEditByNonCEO() {
+        // P1-13: titleDeed/floors/parking/docLuc/docId/docPermit added —
+        // real content/metadata fields, same governance intent as
+        // description/title/etc above (now that P1-13 actually persists
+        // them to Firestore, a plain agent must not be able to bypass the
+        // CEO/Super-Admin-only gate on an already-approved listing simply
+        // because these particular fields weren't in this list before).
         return resource.data.get('status', '').lower() == 'approved'
           && !isCEO() && !isSuperAdmin()
           && request.resource.data.diff(resource.data).affectedKeys()
              .hasAny(['type','category','district','sector','price','bedrooms',
-                      'bathrooms','area','description','title','amenities','images']);
+                      'bathrooms','area','description','title','amenities','images',
+                      'titleDeed','floors','parking','docLuc','docId','docPermit']);
       }
       // The owning agent/owner may edit their own listing's content, but
       // never the fields that represent the admin-review decision itself
@@ -567,13 +585,24 @@ service cloud.firestore {
         return resource.data.get('availability', '').lower() == 'sold'
           && request.resource.data.get('availability', '').lower() in ['available', 'reserved'];
       }
+      // P1-14: restoring a soft-deleted property (isActive false->true) is
+      // Super-Admin-only — a deliberately higher bar than the ordinary
+      // isAdminOrStaff() authority that performs the soft-delete itself
+      // (true->false), matching this fix's explicit requirement. Every
+      // other isActive write is unaffected.
+      function _isPropertyRestoreOK() {
+        return !(resource.data.get('isActive', true) == false
+                 && request.resource.data.get('isActive', true) == true)
+          || isSuperAdmin();
+      }
       function _propertyGovernanceOK() {
         return (!_isPropertyApproveRejectChange()
           || (request.resource.data.get('status', '').lower() == 'approved' && hasPerm('properties.approve'))
           || (request.resource.data.get('status', '').lower() == 'rejected' && hasPerm('properties.reject')))
           && (!_isPropertyAvailabilityChange()
               || (_isPropertyHighRiskReversal() ? hasPerm('properties.reverse_sold') : hasPerm('properties.change_status')))
-          && _isPropertySoldReasonOK();
+          && _isPropertySoldReasonOK()
+          && _isPropertyRestoreOK();
       }
       // D-1: updatedBy is writable on both branches, approvedBy only via
       // the isAdminOrStaff() branch (_fsAdminApprove()) — hoisted once,
@@ -582,9 +611,16 @@ service cloud.firestore {
                       (isAdminOrStaff() && !_isApprovedContentEditByNonCEO() && _propertyGovernanceOK())
                       || ((resource.data.agentId == request.auth.uid || resource.data.ownerId == request.auth.uid)
                           && request.resource.data.diff(resource.data).affectedKeys()
+                             // P1-13: titleDeed/floors/parking/docLuc/docId/docPermit
+                             // added — real fields the edit form collects
+                             // (submitProperty()'s EDIT MODE branch,
+                             // index.html) that were previously written
+                             // into the local cache/localStorage only and
+                             // silently dropped before reaching Firestore.
                              .hasOnly(['type','category','district','sector','price','bedrooms',
                                        'bathrooms','area','description','title','amenities',
-                                       'images','updatedAt','updatedBy']))
+                                       'images','titleDeed','floors','parking','docLuc','docId',
+                                       'docPermit','updatedAt','updatedBy']))
                     );
       allow delete: if false;
     }
@@ -638,8 +674,19 @@ service cloud.firestore {
                     || (isAuth() && (resource.data.clientId == request.auth.uid
                         || resource.data.agentId  == request.auth.uid));
       allow create: if isAuth() && hasStandardFields();
+      // P1-01: the owning agent could previously rewrite any field on a
+      // lead they're assigned to, including reassigning it to themself
+      // away from another agent (agentId) or altering client contact
+      // details. Allowlist matches every real non-admin call site
+      // (submitViewingReport(), updateLeadStage(), addContactLog(),
+      // saveLeadFollowUp(), closeLeadWon/Lost(), the lead-linking side
+      // effect of createNewDeal()) — reassignment (agentId/agentName)
+      // stays admin-only via _saveLeadReassign(), unaffected.
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.agentId == request.auth.uid);
+                    || (isAuth() && resource.data.agentId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['pipelineStage','status','contactLog','nextFollowUp',
+                                     'closedAt','lostReason','dealId','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
@@ -707,9 +754,48 @@ service cloud.firestore {
               && request.resource.data.diff(resource.data).affectedKeys()
                  .hasOnly(['pipelineStage','status','agreedPrice','updatedAt','updatedBy']));
       }
+      // P1-09: server-side pipeline sequencing — pipelineStage previously
+      // had no value restriction at all beyond "not closed_won on the
+      // agent branch," so any permitted write (including plain staff,
+      // not just the owning agent) could jump straight from 'new' to
+      // 'contract', move backward, or set a nonexistent stage string.
+      // Modeled directly on the only four call sites that ever write this
+      // field across the whole app (advanceDealStage(), closeDealWon(),
+      // closeDealLost(), acceptOffer()'s deal-side batch write —
+      // index.html; no other pipelineStage write exists): exactly one
+      // step forward through CRM_STAGES' fixed order, or a direct jump to
+      // 'contract' from any stage (acceptOffer() fires the moment an
+      // offer is accepted, whatever stage the deal happened to be at —
+      // this shape is separately pinned to also require agreedPrice by
+      // _isDealAgreedPriceChangeOK() below, not left unconstrained here),
+      // or a direct jump to 'closed_lost' from any non-terminal stage
+      // (either party — a deal can fall through at any point), or a
+      // direct jump to 'closed_won' from any non-terminal stage but
+      // staff-only (closeDealWon() itself is not restricted to firing
+      // only from 'closing' — a deal can legitimately close fast).
+      // isAdmin() (admin/super_admin) bypasses this model entirely — the
+      // privileged correction path this fix is required to preserve, for
+      // fixing a deal that's been miscategorized or needs a data
+      // correction outside the normal flow.
+      function _isDealPipelineTransitionOK() {
+        return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['pipelineStage'])
+          || isAdmin()
+          || request.resource.data.pipelineStage == 'contract'
+          || request.resource.data.pipelineStage == 'closed_lost'
+          || (request.resource.data.pipelineStage == 'closed_won' && isAdminOrStaff())
+          || (resource.data.get('pipelineStage', 'new') == 'new' && request.resource.data.pipelineStage == 'contacted')
+          || (resource.data.get('pipelineStage', 'new') == 'contacted' && request.resource.data.pipelineStage == 'qualified')
+          || (resource.data.get('pipelineStage', 'new') == 'qualified' && request.resource.data.pipelineStage == 'viewing_scheduled')
+          || (resource.data.get('pipelineStage', 'new') == 'viewing_scheduled' && request.resource.data.pipelineStage == 'viewing_completed')
+          || (resource.data.get('pipelineStage', 'new') == 'viewing_completed' && request.resource.data.pipelineStage == 'offer_submitted')
+          || (resource.data.get('pipelineStage', 'new') == 'offer_submitted' && request.resource.data.pipelineStage == 'negotiation')
+          || (resource.data.get('pipelineStage', 'new') == 'negotiation' && request.resource.data.pipelineStage == 'due_diligence')
+          || (resource.data.get('pipelineStage', 'new') == 'due_diligence' && request.resource.data.pipelineStage == 'financing')
+          || (resource.data.get('pipelineStage', 'new') == 'contract' && request.resource.data.pipelineStage == 'closing');
+      }
       // D-1: updatedBy is read directly as actingUid by onDealClosedWon
       // (functions/index.js) — hoisted once, shared across both branches.
-      allow update: if _updateAttributionOK('updatedBy') && (
+      allow update: if _updateAttributionOK('updatedBy') && _isDealPipelineTransitionOK() && (
                       isAdminOrStaff()
                       || (isAuth() && resource.data.agentId == request.auth.uid
                           && request.resource.data.agentId == request.auth.uid
@@ -749,8 +835,26 @@ service cloud.firestore {
       // stores a display NAME (submitCommissionDecision(), index.html), not
       // a uid, so it is intentionally NOT pinned here (see this file's
       // _updateAttributionOK() comment above).
+      // P1-07: a write touching totalCommission/agentShare/companyShare
+      // (a correction to an already-computed commission, distinct from
+      // the normal pending->approved->paid status transition, which never
+      // touches these) must also carry a non-empty correctionReason.
+      // P1-10: status previously had no transition validation at all — a
+      // write could set 'paid' directly from 'pending', skipping the
+      // approval step entirely, or move backward from 'paid'/'rejected'.
+      // Modeled on the only two real call sites (submitCommissionDecision(),
+      // markCommissionPaid() — index.html): pending->approved/rejected,
+      // approved->paid. isAdmin() bypasses for a correction.
+      function _isCommissionStatusTransitionOK() {
+        return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
+          || isAdmin()
+          || (resource.data.get('status', 'pending') == 'pending' && request.resource.data.status in ['approved', 'rejected'])
+          || (resource.data.get('status', 'pending') == 'approved' && request.resource.data.status == 'paid');
+      }
       allow update: if isAdminOrStaff() && hasPerm('commissions.manage')
-                    && _updateAttributionOK('updatedBy');
+                    && _updateAttributionOK('updatedBy')
+                    && _isAmountCorrectionReasoned(['totalCommission','agentShare','companyShare'])
+                    && _isCommissionStatusTransitionOK();
       allow delete: if false;
     }
 
@@ -855,11 +959,22 @@ service cloud.firestore {
                     || (isAuth() && resource.data.agentId  == request.auth.uid
                         && 'agent' in resource.data.get('accessRoles', ['agent']));
       allow create: if isAuth() && hasStandardFields();
+      // P1-01: either party could previously rewrite the document's
+      // fileUrl, accessRoles, or ownership fields, not just sign/archive
+      // it. Allowlist matches the only two real non-admin call sites —
+      // confirmSignature() and archiveDocument() — both parties share the
+      // same allowed shape since neither call site distinguishes them.
+      function _isDocumentPartyUpdateOK() {
+        return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['signatories','signed','status','updatedAt','updatedBy']);
+      }
       allow update: if isAdminOrStaff()
                     || (isAuth() && resource.data.clientId == request.auth.uid
-                        && 'client' in resource.data.get('accessRoles', ['client']))
+                        && 'client' in resource.data.get('accessRoles', ['client'])
+                        && _isDocumentPartyUpdateOK())
                     || (isAuth() && resource.data.agentId  == request.auth.uid
-                        && 'agent' in resource.data.get('accessRoles', ['agent']));
+                        && 'agent' in resource.data.get('accessRoles', ['agent'])
+                        && _isDocumentPartyUpdateOK());
       allow delete: if false;
     }
 
@@ -915,9 +1030,19 @@ service cloud.firestore {
                     && (request.resource.data.clientId == request.auth.uid
                         || request.resource.data.agentId == request.auth.uid
                         || isAdminOrStaff());
+      // P1-01: either party could previously rewrite any field, including
+      // clientId/agentId/propertyId/scheduledAt. Allowlist matches the
+      // real agentId-side call sites (submitViewingReport(),
+      // markViewingComplete(), checkInViewingGPS(), and the
+      // _applyViewingUpdate() family behind check-in/complete/cancel) —
+      // clientId has no current write call site at all, but is given the
+      // same allowlist rather than left unrestricted, since the branch
+      // condition already exists.
       allow update: if isAdminOrStaff()
                     || (isAuth() && (resource.data.clientId == request.auth.uid
-                        || resource.data.agentId  == request.auth.uid));
+                        || resource.data.agentId  == request.auth.uid)
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status','report','agentCheckIn','agentGPS','completedAt','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
@@ -929,16 +1054,29 @@ service cloud.firestore {
                     || (isAuth() && (resource.data.requestedBy == request.auth.uid
                         || resource.data.assignedToId == request.auth.uid));
       allow create: if isAuth() && hasStandardFields();
+      // P1-01: the assigned partner could previously rewrite any field,
+      // including quotedPrice, assignedToId (self-reassign away), or
+      // adminNotes. Allowlist matches the one real call site,
+      // submitPartnerJobReport().
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.assignedToId == request.auth.uid);
+                    || (isAuth() && resource.data.assignedToId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['reportUrl','status','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
     match /partners/{id} {
       allow read:   if true;
       allow create: if isAuth() && hasStandardFields();
+      // P1-01: no current frontend call site writes as the partner
+      // (userId) party — this allowlist is deliberately conservative,
+      // covering only genuinely-safe self-service profile fields, so
+      // verified/status/avgRating/reviewCount/licenseNo/userId can never
+      // be self-written even by a future feature that reaches this branch.
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.userId == request.auth.uid);
+                    || (isAuth() && resource.data.userId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['bio','phone','email','districts','specializations','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
@@ -957,7 +1095,25 @@ service cloud.firestore {
                     || (isAuth() && resource.data.clientId == request.auth.uid);
       allow create: if isAuth() && hasStandardFields()
                     && request.resource.data.status in ['draft', 'sent'];
-      allow update: if isAdminOrStaff();
+      // P1-07: a write touching totalAmount (a correction, distinct from
+      // the normal draft->sent->paid/refunded status lifecycle and from
+      // submitInvoiceRefund()'s refundAmount, neither of which touches
+      // totalAmount) must also carry a non-empty correctionReason.
+      // P1-10: status previously had no transition validation — a write
+      // could set 'paid' directly regardless of current status, or move
+      // backward from 'refunded'/'cancelled'. Modeled on the only two real
+      // call sites (updateInvStatus(), submitInvoiceRefund() — index.html):
+      // draft/sent -> sent/paid/cancelled, paid -> refunded. isAdmin()
+      // bypasses for a correction.
+      function _isInvoiceStatusTransitionOK() {
+        return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
+          || isAdmin()
+          || (resource.data.get('status', 'draft') in ['draft', 'sent'] && request.resource.data.status in ['sent', 'paid', 'cancelled'])
+          || (resource.data.get('status', 'draft') == 'paid' && request.resource.data.status == 'refunded');
+      }
+      allow update: if isAdminOrStaff()
+                    && _isAmountCorrectionReasoned(['totalAmount'])
+                    && _isInvoiceStatusTransitionOK();
       allow delete: if false;
     }
 
@@ -972,8 +1128,14 @@ service cloud.firestore {
       allow read:   if isAdminOrStaff()
                     || (isAuth() && resource.data.assignedTo == request.auth.uid);
       allow create: if isAuth() && hasStandardFields();
+      // P1-01: the assignee could previously rewrite any field, including
+      // self-reassigning away (assignedTo) or changing priority/dueAt.
+      // Allowlist matches the real call sites, updateTaskStatus() and
+      // addTaskComment().
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.assignedTo == request.auth.uid);
+                    || (isAuth() && resource.data.assignedTo == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status','comments','completedAt','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
@@ -981,8 +1143,13 @@ service cloud.firestore {
       allow read:   if isAdminOrStaff()
                     || (isAuth() && resource.data.userId == request.auth.uid);
       allow create: if isAuth() && hasStandardFields();
+      // P1-01: the record's own user could previously rewrite any field,
+      // including checkInAt/isLate/approvedBy. Allowlist matches the one
+      // real call site, submitCheckout().
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.userId == request.auth.uid);
+                    || (isAuth() && resource.data.userId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['checkOutAt','hoursWorked','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
@@ -1525,8 +1692,13 @@ service cloud.firestore {
                     || (isAuth() && resource.data.clientId == request.auth.uid)
                     || (isAuth() && resource.data.agentId  == request.auth.uid);
       allow create: if isAuth() && hasStandardFields();
+      // P1-01: no current frontend call site updates an enquiry as the
+      // agentId party — locked tight (status only) since nothing
+      // legitimately rewrites budget/clientId/financingNeeded etc. today.
       allow update: if isAdminOrStaff()
-                    || (isAuth() && resource.data.agentId == request.auth.uid);
+                    || (isAuth() && resource.data.agentId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
@@ -1625,8 +1797,14 @@ service cloud.firestore {
                         || request.auth.uid in resource.data.get('recipients', []));
       allow create: if isAdminOrStaff() && hasStandardFields()
                     && request.resource.data.get('submittedBy', request.auth.uid) == request.auth.uid;
+      // P1-01: no current frontend call site updates a report at all
+      // (submitReport() only ever creates) — locked tight (status only)
+      // for the submittedBy party; isCEO()/isDirector() stay unrestricted,
+      // consistent with this collection's existing privileged-role design.
       allow update: if isCEO() || isDirector()
-                    || (isAuth() && resource.data.get('submittedBy', '') == request.auth.uid);
+                    || (isAuth() && resource.data.get('submittedBy', '') == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
@@ -1698,9 +1876,25 @@ service cloud.firestore {
                     && request.resource.data.status == 'pending';
       // P0.2: Super Admin added to decision authority alongside CEO, no
       // other logic touched — Director's capped-approval branch is unaffected.
-      allow update: if isCEO() || isSuperAdmin()
-                    || (isDirector()
-                        && resource.data.amount <= callerDoc().data.get('budgetApprovalLimit', 0));
+      // P1-10: status previously had no transition validation for the
+      // capped Director branch — CEO/Super Admin already have unconditional
+      // decision authority on this collection (unlike Director's
+      // budget-capped branch), so they keep an unconditional status
+      // bypass here too, consistent with the rest of this rule; Director
+      // is held to pending->approved/rejected. No real call site exists
+      // for this collection's update yet (confirmed via grep — create-only
+      // from the frontend today), so this is pure hardening with zero
+      // regression risk.
+      function _isBudgetRequestStatusTransitionOK() {
+        return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
+          || isCEO() || isSuperAdmin()
+          || (resource.data.get('status', 'pending') == 'pending' && request.resource.data.status in ['approved', 'rejected']);
+      }
+      allow update: if _isBudgetRequestStatusTransitionOK() && (
+                      isCEO() || isSuperAdmin()
+                      || (isDirector()
+                          && resource.data.amount <= callerDoc().data.get('budgetApprovalLimit', 0))
+                    );
       allow delete: if false;
     }
 
@@ -1760,7 +1954,10 @@ service cloud.firestore {
       allow create: if isExecutive() || isSuperAdmin()
                     || (inDept('Finance')
                         && request.resource.data.amount <= callerDoc().data.get('budgetApprovalLimit', 0));
-      allow update: if isExecutive() || isSuperAdmin();
+      // P1-07: a write touching amount (a correction to an already-posted
+      // transaction) must also carry a non-empty correctionReason.
+      allow update: if (isExecutive() || isSuperAdmin())
+                    && _isAmountCorrectionReasoned(['amount']);
       allow delete: if false;
     }
 
