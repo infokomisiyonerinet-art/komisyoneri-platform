@@ -12664,16 +12664,20 @@ function logoutUser() {
 var _editPropId = null;
 
 function openEditProperty(prop) {
-  // Only Pending properties can be edited — except the CEO, who may also
-  // edit an already-Approved listing (status stays Approved afterward,
-  // same as every other edit in this app never touching status; see
-  // rules/firestore.rules' _isApprovedContentEditByNonCEO() for the
+  // Only Pending properties can be edited — except the CEO or Super Admin,
+  // who may also edit an already-Approved listing (status stays Approved
+  // afterward, same as every other edit in this app never touching status;
+  // see rules/firestore.rules' _isApprovedContentEditByNonCEO() for the
   // matching server-side restriction). Status is stored inconsistently
   // cased across this app ('Approved' vs 'approved' — see
   // loadHomepageRotation()'s own comment on the same issue), so this
   // compares case-insensitively rather than assuming one casing.
+  // P1-03: this gate still only checked isCEO — a leftover from before
+  // P0.6 FIX 1 added isSuperAdmin() to the matching rules check, which
+  // left Super Admin unable to even open this modal for an approved
+  // listing despite the backend now permitting the write.
   var isApproved = (prop.status || '').toLowerCase() === 'approved';
-  var ceoEditingApproved = isApproved && _roleOf(currentUser) === 'ceo';
+  var ceoEditingApproved = isApproved && (_roleOf(currentUser) === 'ceo' || isSuperAdminExact(currentUser));
   if (prop.status !== 'Pending' && !ceoEditingApproved) {
     showToast(curLang==='rw' ? 'Imitungo yemejwe ntishobora guhindurwa.' : 'Approved properties cannot be edited.', 'warn');
     return;
@@ -36110,11 +36114,11 @@ function submitProperty() {
     var ei = -1;
     for (var i=0; i<eProps.length; i++) { if (String(eProps[i].id)===String(editId)) { ei=i; break; } }
     if (ei===-1) { showToast('Imitungo ntiboneka.'); closeAddProperty(); return; }
-    // Same CEO-on-Approved carve-out as openEditProperty()'s own gate —
-    // must be re-checked here too since this function is the one that
-    // actually fires the Firestore write, not just opens the modal.
+    // Same CEO/Super-Admin-on-Approved carve-out as openEditProperty()'s
+    // own gate — must be re-checked here too since this function is the
+    // one that actually fires the Firestore write, not just opens the modal.
     var editIsApproved = (eProps[ei].status || '').toLowerCase() === 'approved';
-    var editCeoOnApproved = editIsApproved && _roleOf(currentUser) === 'ceo';
+    var editCeoOnApproved = editIsApproved && (_roleOf(currentUser) === 'ceo' || isSuperAdminExact(currentUser));
     if (eProps[ei].status !== 'Pending' && !editCeoOnApproved) {
       showToast(curLang==='rw'?'Imitungo yemejwe ntishobora guhindurwa.':'Only pending listings can be edited.','warn');
       closeAddProperty(); return;
@@ -36163,13 +36167,40 @@ function submitProperty() {
       // Firestore write is actually confirmed.
       var syncTarget;
       if (u._fsId && typeof db !== 'undefined') {
-        syncTarget = db.collection('properties').doc(u._fsId).update({
+        var _editDocRef = db.collection('properties').doc(u._fsId);
+        var _editUpdatePayload = {
           type:u.type, category:u.service==='Gukodesha'?'rent':'sale',
           district:u.district, sector:u.sector||'', price:u.price,
           bedrooms:parseInt(u.beds)||0, bathrooms:parseInt(u.baths)||0,
           area:u.size||'', description:u.desc||'', title:u.title||'',
           amenities:u.amenities||[], images:urls,
           updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
+        };
+        // P1-03: content edits (price/description/title/location/etc — the
+        // single most sensitive edit path on this collection, including a
+        // CEO/Super Admin correcting an already-approved listing) generated
+        // zero audit trail before this. Reads the pre-write values first so
+        // the audit entry carries a real before/after diff, not just the
+        // new state.
+        syncTarget = _editDocRef.get().then(function(beforeSnap) {
+          var before = beforeSnap.exists ? beforeSnap.data() : {};
+          var beforeSnapshot = {
+            type:before.type, category:before.category, district:before.district,
+            sector:before.sector, price:before.price, bedrooms:before.bedrooms,
+            bathrooms:before.bathrooms, area:before.area, description:before.description,
+            title:before.title, amenities:before.amenities, images:before.images
+          };
+          return _editDocRef.update(_editUpdatePayload).then(function() {
+            var afterSnapshot = {
+              type:_editUpdatePayload.type, category:_editUpdatePayload.category,
+              district:_editUpdatePayload.district, sector:_editUpdatePayload.sector,
+              price:_editUpdatePayload.price, bedrooms:_editUpdatePayload.bedrooms,
+              bathrooms:_editUpdatePayload.bathrooms, area:_editUpdatePayload.area,
+              description:_editUpdatePayload.description, title:_editUpdatePayload.title,
+              amenities:_editUpdatePayload.amenities, images:_editUpdatePayload.images
+            };
+            logAudit('property.content_edited', 'properties', u._fsId, beforeSnapshot, afterSnapshot);
+          });
         });
       } else {
         var noFsIdErr = new Error('No linked Firestore document (_fsId) for this listing');
