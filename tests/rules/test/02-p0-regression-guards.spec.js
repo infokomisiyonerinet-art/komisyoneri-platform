@@ -20,9 +20,14 @@ describe('P0 regression guards', function () {
 
   describe('deals — P0.1: closed_won self-transition (money-laundering) block', () => {
     it('owning agent CAN update other fields/stage of their own deal', async () => {
+      // P1-09 note: the seeded deal starts at pipelineStage 'negotiation'
+      // (seed.js); 'due_diligence' is its real next stage per CRM_STAGES
+      // (index.html) — was previously 'offer_made', a string that was
+      // never a real stage key at all, only accepted because pipelineStage
+      // had no value validation before P1-09's sequencing fix.
       const ctx = testEnv.authenticatedContext(UIDS.agentA);
       await assertSucceeds(
-        ctx.firestore().doc(`deals/${DOC_IDS.deal}`).update({ pipelineStage: 'offer_made' })
+        ctx.firestore().doc(`deals/${DOC_IDS.deal}`).update({ pipelineStage: 'due_diligence' })
       );
     });
 

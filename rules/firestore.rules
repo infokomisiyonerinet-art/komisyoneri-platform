@@ -685,9 +685,48 @@ service cloud.firestore {
               && request.resource.data.diff(resource.data).affectedKeys()
                  .hasOnly(['pipelineStage','status','agreedPrice','updatedAt','updatedBy']));
       }
+      // P1-09: server-side pipeline sequencing — pipelineStage previously
+      // had no value restriction at all beyond "not closed_won on the
+      // agent branch," so any permitted write (including plain staff,
+      // not just the owning agent) could jump straight from 'new' to
+      // 'contract', move backward, or set a nonexistent stage string.
+      // Modeled directly on the only four call sites that ever write this
+      // field across the whole app (advanceDealStage(), closeDealWon(),
+      // closeDealLost(), acceptOffer()'s deal-side batch write —
+      // index.html; no other pipelineStage write exists): exactly one
+      // step forward through CRM_STAGES' fixed order, or a direct jump to
+      // 'contract' from any stage (acceptOffer() fires the moment an
+      // offer is accepted, whatever stage the deal happened to be at —
+      // this shape is separately pinned to also require agreedPrice by
+      // _isDealAgreedPriceChangeOK() below, not left unconstrained here),
+      // or a direct jump to 'closed_lost' from any non-terminal stage
+      // (either party — a deal can fall through at any point), or a
+      // direct jump to 'closed_won' from any non-terminal stage but
+      // staff-only (closeDealWon() itself is not restricted to firing
+      // only from 'closing' — a deal can legitimately close fast).
+      // isAdmin() (admin/super_admin) bypasses this model entirely — the
+      // privileged correction path this fix is required to preserve, for
+      // fixing a deal that's been miscategorized or needs a data
+      // correction outside the normal flow.
+      function _isDealPipelineTransitionOK() {
+        return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['pipelineStage'])
+          || isAdmin()
+          || request.resource.data.pipelineStage == 'contract'
+          || request.resource.data.pipelineStage == 'closed_lost'
+          || (request.resource.data.pipelineStage == 'closed_won' && isAdminOrStaff())
+          || (resource.data.get('pipelineStage', 'new') == 'new' && request.resource.data.pipelineStage == 'contacted')
+          || (resource.data.get('pipelineStage', 'new') == 'contacted' && request.resource.data.pipelineStage == 'qualified')
+          || (resource.data.get('pipelineStage', 'new') == 'qualified' && request.resource.data.pipelineStage == 'viewing_scheduled')
+          || (resource.data.get('pipelineStage', 'new') == 'viewing_scheduled' && request.resource.data.pipelineStage == 'viewing_completed')
+          || (resource.data.get('pipelineStage', 'new') == 'viewing_completed' && request.resource.data.pipelineStage == 'offer_submitted')
+          || (resource.data.get('pipelineStage', 'new') == 'offer_submitted' && request.resource.data.pipelineStage == 'negotiation')
+          || (resource.data.get('pipelineStage', 'new') == 'negotiation' && request.resource.data.pipelineStage == 'due_diligence')
+          || (resource.data.get('pipelineStage', 'new') == 'due_diligence' && request.resource.data.pipelineStage == 'financing')
+          || (resource.data.get('pipelineStage', 'new') == 'contract' && request.resource.data.pipelineStage == 'closing');
+      }
       // D-1: updatedBy is read directly as actingUid by onDealClosedWon
       // (functions/index.js) — hoisted once, shared across both branches.
-      allow update: if _updateAttributionOK('updatedBy') && (
+      allow update: if _updateAttributionOK('updatedBy') && _isDealPipelineTransitionOK() && (
                       isAdminOrStaff()
                       || (isAuth() && resource.data.agentId == request.auth.uid
                           && request.resource.data.agentId == request.auth.uid

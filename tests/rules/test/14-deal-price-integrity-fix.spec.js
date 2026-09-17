@@ -120,9 +120,15 @@ describe('D-2 remediation — deal price/type integrity is closed', function () 
 
   describe('Every other legitimate deal-update shape still works — positive controls', () => {
     it('advanceDealStage()-shape (pipelineStage+status only) succeeds', async () => {
+      // P1-09 note: the seeded deal starts at pipelineStage 'negotiation'
+      // (seed.js); 'due_diligence' is its real next stage per CRM_STAGES
+      // (index.html) — was previously 'viewing', a string that was never
+      // a real stage key at all (the real keys are 'viewing_scheduled'/
+      // 'viewing_completed'), only accepted because pipelineStage had no
+      // value validation before P1-09's sequencing fix.
       const ctx = testEnv.authenticatedContext(UIDS.agentA);
       await assertSucceeds(ctx.firestore().doc(`deals/${DOC_IDS.deal}`).update({
-        pipelineStage: 'viewing', status: 'viewing', updatedAt: new Date(), updatedBy: UIDS.agentA
+        pipelineStage: 'due_diligence', status: 'due_diligence', updatedAt: new Date(), updatedBy: UIDS.agentA
       }));
     });
     it('toggleDealMilestone()-shape (dot-path milestones field) succeeds', async () => {
