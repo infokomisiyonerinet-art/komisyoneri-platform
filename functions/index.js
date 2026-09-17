@@ -501,10 +501,16 @@ exports.onPlotStatusChanged = onDocumentUpdated({ document: 'plots/{plotId}', re
 
   // 'plot.reserved' preserves the specific action name the removed
   // client-side call used for this one transition (anything reading the
-  // audit trail for that name keeps working); every other transition logs
-  // as the more general 'plot.status.changed', matching openPlotStatusChange()'s
-  // own prior naming.
-  const action = afterStatus === 'reserved' ? 'plot.reserved' : 'plot.status.changed';
+  // audit trail for that name keeps working). P1-06: a transition INTO
+  // 'sold' gets its own distinct 'PLOT_SOLD' event — this used to be
+  // indistinguishable from every other transition (folded into the
+  // generic 'plot.status.changed'), forcing anyone auditing sales to
+  // read newValue.status on every entry instead of filtering by action.
+  // Every other transition still logs as the general
+  // 'plot.status.changed', matching openPlotStatusChange()'s own prior
+  // naming.
+  const action = afterStatus === 'sold' ? 'PLOT_SOLD'
+    : afterStatus === 'reserved' ? 'plot.reserved' : 'plot.status.changed';
   const oldValue = { status: before.status || 'available' };
   const newValue = { status: after.status };
   if (after.clientId) newValue.clientId = after.clientId;

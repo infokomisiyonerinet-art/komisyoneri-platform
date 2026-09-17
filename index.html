@@ -23049,7 +23049,11 @@ var SA_SECURITY_AUDIT_ACTIONS = [
   'user.role.changed', 'user.approved', 'user.rejected',
   'property.approved', 'property.rejected',
   'site.approved', 'site.rejected',
-  'plot.status.changed', 'plot.reserved',
+  // P1-06: a transition into 'sold' now logs as the distinct 'PLOT_SOLD'
+  // (functions/index.js' onPlotStatusChanged) instead of being folded into
+  // 'plot.status.changed' — must be listed here too, or sold-plot events
+  // silently stop appearing in this feed the moment that fix ships.
+  'PLOT_SOLD', 'plot.status.changed', 'plot.reserved',
   'deal.closed_won.rejected_untrusted_actor'
 ];
 function _saLoadAuditFeed() {
