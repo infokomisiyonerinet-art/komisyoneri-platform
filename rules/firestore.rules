@@ -205,6 +205,17 @@ service cloud.firestore {
       return !request.resource.data.diff(resource.data).affectedKeys().hasAny([field])
         || request.resource.data.get(field, request.auth.uid) == request.auth.uid;
     }
+    // P1-07: mandatory-reason gate for financial-record corrections
+    // (commissions/invoices/financeTransactions below) — same diff-based
+    // freshness principle as plots' statusChangeReason check above (a
+    // write that doesn't touch any amount field is unaffected; a write
+    // that DOES touch one must also set a non-empty correctionReason in
+    // that same write, never a stale value already sitting on the doc).
+    function _isAmountCorrectionReasoned(amountFields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(amountFields)
+        || (request.resource.data.diff(resource.data).affectedKeys().hasAny(['correctionReason'])
+            && request.resource.data.get('correctionReason', '').size() > 0);
+    }
     // ── EXISTING collections ──────────────────────────
 
     match /users/{uid} {
@@ -716,8 +727,13 @@ service cloud.firestore {
       // stores a display NAME (submitCommissionDecision(), index.html), not
       // a uid, so it is intentionally NOT pinned here (see this file's
       // _updateAttributionOK() comment above).
+      // P1-07: a write touching totalCommission/agentShare/companyShare
+      // (a correction to an already-computed commission, distinct from
+      // the normal pending->approved->paid status transition, which never
+      // touches these) must also carry a non-empty correctionReason.
       allow update: if isAdminOrStaff() && hasPerm('commissions.manage')
-                    && _updateAttributionOK('updatedBy');
+                    && _updateAttributionOK('updatedBy')
+                    && _isAmountCorrectionReasoned(['totalCommission','agentShare','companyShare']);
       allow delete: if false;
     }
 
@@ -958,7 +974,12 @@ service cloud.firestore {
                     || (isAuth() && resource.data.clientId == request.auth.uid);
       allow create: if isAuth() && hasStandardFields()
                     && request.resource.data.status in ['draft', 'sent'];
-      allow update: if isAdminOrStaff();
+      // P1-07: a write touching totalAmount (a correction, distinct from
+      // the normal draft->sent->paid/refunded status lifecycle and from
+      // submitInvoiceRefund()'s refundAmount, neither of which touches
+      // totalAmount) must also carry a non-empty correctionReason.
+      allow update: if isAdminOrStaff()
+                    && _isAmountCorrectionReasoned(['totalAmount']);
       allow delete: if false;
     }
 
@@ -1745,7 +1766,10 @@ service cloud.firestore {
       allow create: if isExecutive() || isSuperAdmin()
                     || (inDept('Finance')
                         && request.resource.data.amount <= callerDoc().data.get('budgetApprovalLimit', 0));
-      allow update: if isExecutive() || isSuperAdmin();
+      // P1-07: a write touching amount (a correction to an already-posted
+      // transaction) must also carry a non-empty correctionReason.
+      allow update: if (isExecutive() || isSuperAdmin())
+                    && _isAmountCorrectionReasoned(['amount']);
       allow delete: if false;
     }
 

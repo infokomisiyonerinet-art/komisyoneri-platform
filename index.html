@@ -23867,6 +23867,15 @@ function openInvoiceDetail(id) {
       if (inv.status === 'paid') {
         html += '<button class="btn btn-outline" style="color:#EA580C;border-color:#EA580C" onclick="openInvoiceRefund(\'' + id + '\')" data-en="Refund" data-rw="Kwishyura">Refund</button>';
       }
+      // P1-07: financial correction governance — a controlled way to fix a
+      // wrong invoice total that doesn't require direct Firestore/console
+      // access. Deliberately excluded once an invoice is paid/refunded —
+      // that money has already moved, so the refund workflow above (a
+      // real accounting entry, not a silent number edit) is the correct
+      // path from there.
+      if (inv.status === 'draft' || inv.status === 'sent') {
+        html += '<button class="btn btn-outline" onclick="correctInvoiceAmount(\'' + id + '\')" data-en="Correct Total" data-rw="Hindura Umubare">Correct Total</button>';
+      }
     }
     actEl.innerHTML = html;
     if (typeof switchLang !== 'undefined') switchLang(curLang);
@@ -23948,6 +23957,41 @@ function updateInvStatus(id, newStatus) {
     closeInvoiceDetail(); loadInvoices(); loadAccountingStats();
     logAudit('invoice_status_changed', 'invoices', id, { status: oldStatus }, { status: newStatus });
   }).catch(function() { showToast('Error updating invoice', 'error'); });
+}
+
+// P1-07: financial correction governance — mirrors correctCommissionAmount()'s
+// shape (mandatory reason, confirm(), full before/after audit). Restricted
+// to draft/sent invoices client-side; rules/firestore.rules'
+// _isAmountCorrectionReasoned(['totalAmount']) is the real server-side
+// backstop regardless of what this function sends.
+function correctInvoiceAmount(id) {
+  if (typeof db === 'undefined' || !currentUser) return;
+  var inv = _invoices.find(function(x) { return x.id === id; });
+  if (!inv) return;
+  var oldTotal = inv.totalAmount || 0;
+  var newTotalStr = prompt('Corrected invoice total (RWF). Current: ' + oldTotal.toLocaleString(), oldTotal);
+  if (newTotalStr === null) return;
+  var newTotal = parseFloat(String(newTotalStr).replace(/[^0-9.]/g, ''));
+  if (isNaN(newTotal) || newTotal < 0) { showToast('Enter a valid amount.', 'error'); return; }
+  var reason = (prompt('Reason for this correction (required):') || '').trim();
+  if (!reason) { showToast('A reason is required.', 'error'); return; }
+  if (!confirm('Confirm: change invoice total from ' + fmtRwfAC(oldTotal) + ' to ' + fmtRwfAC(newTotal) + '?')) return;
+
+  var before = { totalAmount: oldTotal };
+  var after  = { totalAmount: newTotal, reason: reason };
+  db.collection('invoices').doc(id).update({
+    totalAmount: newTotal, correctionReason: reason,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser.uid
+  }).then(function() {
+    logAudit('invoice.corrected', 'invoices', id, before, after);
+    showToast('Invoice total corrected.', 'success');
+    inv.totalAmount = newTotal;
+    loadInvoices(); loadAccountingStats();
+    openInvoiceDetail(id);
+  }).catch(function(err) {
+    console.error('[Finance] correctInvoiceAmount failed:', err);
+    showToast('Correction failed: ' + (err.message || ''), 'error');
+  });
 }
 
 // Real refund workflow — previously "cancel" was the only way to close out
@@ -30623,6 +30667,12 @@ function openCommissionDetail(id) {
   if (comm.status === 'approved' && isAdmin) {
     btns += '<button class="btn btn-gold btn-sm" onclick="markCommissionPaid(\'' + id + '\')"><span data-rw="Emeza ko Yishyuwe" data-en="Mark Paid">Mark Paid</span></button>';
   }
+  // P1-07: financial correction governance — a controlled way to fix a
+  // wrong commission amount that doesn't require direct Firestore/console
+  // access, gated the same as every other money-moving action here.
+  if (hasPerm('commissions.manage')) {
+    btns += '<button class="btn btn-outline btn-sm" onclick="correctCommissionAmount(\'' + id + '\')"><span data-rw="Hindura Umubare" data-en="Correct Amount">Correct Amount</span></button>';
+  }
   btns += '<button class="btn btn-outline btn-sm" onclick="openPayslip(\'' + id + '\')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> <span data-rw="Payslip" data-en="Payslip">Payslip</span></button>';
   if (actDiv) actDiv.innerHTML = btns;
 
@@ -30708,6 +30758,60 @@ function submitCommissionDecision(approved) {
   }).catch(function(err) {
     showToast(curLang === 'rw' ? 'Habaye ikosa' : 'Error updating commission', 'error');
     console.error('[Commission] approval error:', err);
+  });
+}
+
+// ── Financial Correction Governance (P1-07) ───────────
+// A controlled path to fix a wrong commission amount — never silent, never
+// unrestricted. Requires: hasPerm('commissions.manage') to even reach this
+// button, an explicit confirm(), a mandatory non-empty reason (also
+// enforced server-side by rules/firestore.rules' _isAmountCorrectionReasoned()
+// — a write touching these fields with no correctionReason is rejected
+// regardless of what this function sends), and a full before/after audit
+// entry. The agent/company split ratio is preserved when recomputing
+// shares from the corrected total, rather than leaving companyShare stale.
+function correctCommissionAmount(id) {
+  var comm = null;
+  for (var i = 0; i < _commissions.length; i++) {
+    if ((_commissions[i]._docId || _commissions[i].id) === id) { comm = _commissions[i]; break; }
+  }
+  if (!comm || typeof db === 'undefined') return;
+  var oldTotal = comm.totalCommission || 0;
+  var newTotalStr = prompt(
+    (curLang === 'rw' ? 'Umubare mushya wa komisiyoni yose (RWF). Ubu ni: ' : 'Corrected total commission (RWF). Current: ')
+    + oldTotal.toLocaleString(), oldTotal);
+  if (newTotalStr === null) return;
+  var newTotal = parseInt(String(newTotalStr).replace(/[^0-9]/g, ''), 10);
+  if (isNaN(newTotal) || newTotal < 0) {
+    showToast(curLang === 'rw' ? 'Shyiramo umubare nyawo wa RWF.' : 'Enter a valid whole RWF amount.', 'error');
+    return;
+  }
+  var reason = (prompt(curLang === 'rw' ? 'Impamvu yo guhindura (irakenewe):' : 'Reason for this correction (required):') || '').trim();
+  if (!reason) { showToast(curLang === 'rw' ? 'Impamvu irakenewe.' : 'A reason is required.', 'error'); return; }
+  if (!confirm((curLang === 'rw' ? 'Emeza: hindura komisiyoni yose kuva kuri ' : 'Confirm: change total commission from ')
+    + oldTotal.toLocaleString() + (curLang === 'rw' ? ' ugere kuri ' : ' to ') + newTotal.toLocaleString() + ' RWF?')) return;
+
+  var ratio = oldTotal > 0 ? (comm.agentShare || 0) / oldTotal : 0.8;
+  var newAgentShare = Math.round(newTotal * ratio);
+  var newCompanyShare = newTotal - newAgentShare;
+  var uid = currentUser.uid;
+  var before = { totalCommission: oldTotal, agentShare: comm.agentShare || 0, companyShare: comm.companyShare || 0 };
+  var after  = { totalCommission: newTotal, agentShare: newAgentShare, companyShare: newCompanyShare, reason: reason };
+
+  db.collection('commissions').doc(id).update({
+    totalCommission: newTotal, agentShare: newAgentShare, companyShare: newCompanyShare,
+    correctionReason: reason,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: uid
+  }).then(function() {
+    logAudit('commission.corrected', 'commissions', id, before, after);
+    showToast(curLang === 'rw' ? 'Komisiyoni yahinduwe.' : 'Commission corrected.', 'success');
+    comm.totalCommission = newTotal; comm.agentShare = newAgentShare; comm.companyShare = newCompanyShare;
+    renderCommissionList();
+    updateCommissionStats();
+    openCommissionDetail(id);
+  }).catch(function(err) {
+    console.error('[Finance] correctCommissionAmount failed:', err);
+    showToast((curLang === 'rw' ? 'Ikosa: ' : 'Correction failed: ') + (err.message || ''), 'error');
   });
 }
 
