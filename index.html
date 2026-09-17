@@ -36112,6 +36112,17 @@ function _savePropToFirestoreFS(propData, status, userId, isVerified) {
     tour3dUrl:   propData.tour3dUrl   || '',
     amenities:   propData.amenities   || [],
     yearBuilt:   propData.yearBuilt   || '',
+    // P1-13: these six fields are collected in the Add/Edit Property form
+    // (prop-deed/prop-floors/prop-parking/prop-doc-luc/prop-doc-id/
+    // prop-doc-permit) and were previously written into the local pd/u
+    // objects (and so persisted to localStorage) but never copied into
+    // this explicit fsDoc — silently discarded on every submission.
+    titleDeed:   propData.titleDeed   || '',
+    floors:      propData.floors      || '',
+    parking:     propData.parking     || '',
+    docLuc:      propData.docLuc      || '',
+    docId:       propData.docId       || '',
+    docPermit:   propData.docPermit   || '',
     agentId:     userId               || '',
     ownerId:     userId               || '',
     ownerEmail:  propData.ownerEmail  || '',
@@ -36303,6 +36314,11 @@ function submitProperty() {
           bedrooms:parseInt(u.beds)||0, bathrooms:parseInt(u.baths)||0,
           area:u.size||'', description:u.desc||'', title:u.title||'',
           amenities:u.amenities||[], images:urls,
+          // P1-13: these six were previously collected into `u` (and so
+          // persisted to localStorage) but never included in this
+          // Firestore payload — silently discarded on every edit.
+          titleDeed:u.titleDeed||'', floors:u.floors||'', parking:u.parking||'',
+          docLuc:u.docLuc||'', docId:u.docId||'', docPermit:u.docPermit||'',
           updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
         };
         // P1-03: content edits (price/description/title/location/etc — the
@@ -36317,7 +36333,9 @@ function submitProperty() {
             type:before.type, category:before.category, district:before.district,
             sector:before.sector, price:before.price, bedrooms:before.bedrooms,
             bathrooms:before.bathrooms, area:before.area, description:before.description,
-            title:before.title, amenities:before.amenities, images:before.images
+            title:before.title, amenities:before.amenities, images:before.images,
+            titleDeed:before.titleDeed, floors:before.floors, parking:before.parking,
+            docLuc:before.docLuc, docId:before.docId, docPermit:before.docPermit
           };
           return _editDocRef.update(_editUpdatePayload).then(function() {
             var afterSnapshot = {
@@ -36326,7 +36344,10 @@ function submitProperty() {
               price:_editUpdatePayload.price, bedrooms:_editUpdatePayload.bedrooms,
               bathrooms:_editUpdatePayload.bathrooms, area:_editUpdatePayload.area,
               description:_editUpdatePayload.description, title:_editUpdatePayload.title,
-              amenities:_editUpdatePayload.amenities, images:_editUpdatePayload.images
+              amenities:_editUpdatePayload.amenities, images:_editUpdatePayload.images,
+              titleDeed:_editUpdatePayload.titleDeed, floors:_editUpdatePayload.floors,
+              parking:_editUpdatePayload.parking, docLuc:_editUpdatePayload.docLuc,
+              docId:_editUpdatePayload.docId, docPermit:_editUpdatePayload.docPermit
             };
             logAudit('property.content_edited', 'properties', u._fsId, beforeSnapshot, afterSnapshot);
           });

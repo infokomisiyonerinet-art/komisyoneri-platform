@@ -489,11 +489,18 @@ service cloud.firestore {
       // left unable to edit an approved listing's own content, despite
       // holding Ultimate Authority everywhere else in this collection.
       function _isApprovedContentEditByNonCEO() {
+        // P1-13: titleDeed/floors/parking/docLuc/docId/docPermit added —
+        // real content/metadata fields, same governance intent as
+        // description/title/etc above (now that P1-13 actually persists
+        // them to Firestore, a plain agent must not be able to bypass the
+        // CEO/Super-Admin-only gate on an already-approved listing simply
+        // because these particular fields weren't in this list before).
         return resource.data.get('status', '').lower() == 'approved'
           && !isCEO() && !isSuperAdmin()
           && request.resource.data.diff(resource.data).affectedKeys()
              .hasAny(['type','category','district','sector','price','bedrooms',
-                      'bathrooms','area','description','title','amenities','images']);
+                      'bathrooms','area','description','title','amenities','images',
+                      'titleDeed','floors','parking','docLuc','docId','docPermit']);
       }
       // The owning agent/owner may edit their own listing's content, but
       // never the fields that represent the admin-review decision itself
@@ -593,9 +600,16 @@ service cloud.firestore {
                       (isAdminOrStaff() && !_isApprovedContentEditByNonCEO() && _propertyGovernanceOK())
                       || ((resource.data.agentId == request.auth.uid || resource.data.ownerId == request.auth.uid)
                           && request.resource.data.diff(resource.data).affectedKeys()
+                             // P1-13: titleDeed/floors/parking/docLuc/docId/docPermit
+                             // added — real fields the edit form collects
+                             // (submitProperty()'s EDIT MODE branch,
+                             // index.html) that were previously written
+                             // into the local cache/localStorage only and
+                             // silently dropped before reaching Firestore.
                              .hasOnly(['type','category','district','sector','price','bedrooms',
                                        'bathrooms','area','description','title','amenities',
-                                       'images','updatedAt','updatedBy']))
+                                       'images','titleDeed','floors','parking','docLuc','docId',
+                                       'docPermit','updatedAt','updatedBy']))
                     );
       allow delete: if false;
     }
