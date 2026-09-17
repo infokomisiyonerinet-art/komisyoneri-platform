@@ -3904,6 +3904,12 @@ html,body{overscroll-behavior-x:none}
         <textarea id="prop-desc" rows="3" style="width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;resize:vertical" placeholder="Sobanura inzu yawe: ibikoresho, ahantu hihutirwa, ibiranga..."></textarea>
       </div>
       <div class="field"><label>Telefoni yo Gutumanahana</label><input type="tel" id="prop-contact" placeholder="+250 7XX XXX XXX"></div>
+      <!-- Real property owner — staff-only "Call Owner" action uses this,
+           distinct from the submitting agent/admin identity and from the
+           public contact number above. Required so every new listing has
+           this on file going forward (see submitProperty()'s validation). -->
+      <div class="field"><label>Amazina ya Nyir'Inzu (Umutunzi)</label><input type="text" id="prop-owner-name" placeholder="Amazina yuzuye" required></div>
+      <div class="field"><label>Telefoni ya Nyir'Inzu</label><input type="tel" id="prop-owner-phone" placeholder="+250 7XX XXX XXX" required></div>
       <button class="btn btn-navy btn-lg" style="width:100%;justify-content:center" onclick="propStep(2)">
         <span data-rw="Komeza →" data-en="Continue →">Komeza →</span>
       </button>
@@ -4894,6 +4900,23 @@ html,body{overscroll-behavior-x:none}
             <span style="cursor:pointer;color:var(--blue);font-weight:600" onclick="openMortgage()" role="button" tabindex="0">🏦 <span data-rw="Bara Inguzanyo" data-en="Mortgage Calc">Mortgage Calc</span></span>
             <span style="cursor:pointer;color:var(--blue);font-weight:600" onclick="openCompare()" role="button" tabindex="0">⚖️ <span data-rw="Gusuzuma 2" data-en="Compare">Compare</span></span>
             <span style="cursor:pointer;color:var(--blue);font-weight:600" onclick="openDepositPay()" role="button" tabindex="0">💳 <span data-rw="Ishyura Deposit" data-en="Pay Deposit">Pay Deposit</span></span>
+          </div>
+
+          <!-- STAFF-ONLY — real property owner contact + who submitted this
+               listing. Deliberately separate markup/functions from the
+               CONTACT ROW above: those buttons always point at the
+               company's own hardcoded number and must never be wired to
+               real owner data. Each block is independently permission-
+               gated and rendered only via renderStaffContactPanels()
+               (index.html JS) — never visible by default. -->
+          <div id="det-staff-contact" style="display:none;margin-top:.8rem;padding-top:.8rem;border-top:1.5px dashed var(--border)">
+            <div id="det-call-owner-row" style="display:none;margin-bottom:.5rem">
+              <button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;border-color:var(--gold);color:var(--navy)" id="det-call-owner-btn" title="Call Owner" aria-label="Call the property owner">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.13a16 16 0 006.73 6.73l1.35-1.35a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                <span>📞 Call Owner</span>
+              </button>
+            </div>
+            <div id="det-submitter-badge" style="display:none;font-size:.76rem;color:var(--muted);text-align:center"></div>
           </div>
         </div>
       </div>
@@ -12726,6 +12749,20 @@ function openEditProperty(prop) {
   s('prop-doc-permit', prop.docPermit);
   s('prop-lat',     prop.latitude);
   s('prop-lng',     prop.longitude);
+  // Owner contact lives in properties/{id}/private/owner, not on the public
+  // cached `prop` object at all (see _savePropToFirestoreFS()'s comment) —
+  // needs its own fetch. Blank for a property that predates this field
+  // (never backfilled) or has no linked Firestore doc yet.
+  s('prop-owner-name', '');
+  s('prop-owner-phone', '');
+  if (prop._fsId && typeof db !== 'undefined') {
+    db.collection('properties').doc(prop._fsId).collection('private').doc('owner').get().then(function(doc) {
+      if (!doc.exists) return;
+      var d = doc.data();
+      s('prop-owner-name', d.propertyOwnerName);
+      s('prop-owner-phone', d.propertyOwnerPhone);
+    }).catch(function(e) { console.warn('[Property Edit] owner-contact prefill failed:', e && e.code); });
+  }
   var ams = ['garden','pool','garage','solar','fibre','security','generator'];
   ams.forEach(function(a) { c('am-'+a, prop.amenities && prop.amenities.indexOf(a) !== -1); });
 
@@ -17363,6 +17400,74 @@ function _renderDetPrice(p) {
   if (el) el.innerHTML = s + '<small>(' + escapeHtml(p.service || 'Kugurisha') + ')</small>';
 }
 
+// ── Staff-only owner contact + submitter panels (property detail) ──────
+// Deliberately independent of the client-facing CONTACT ROW buttons above
+// (Call Agent/WhatsApp Agent/Send Message), which stay hardcoded to the
+// company's own number no matter what this function does — it never reads
+// from or writes to those buttons, and they never read from
+// properties/{id}/private/*. Each block here is gated by its own
+// permission and fetches its own private/ subcollection doc (see
+// _savePropToFirestoreFS()'s comment for why the data lives there, not as
+// plain fields on the public property document), so a role holding only
+// one of the two permissions only ever gets a rules-level read on the
+// matching doc — the other block simply never fetches, never renders.
+function _renderStaffContactPanels(prop) {
+  var wrap = document.getElementById('det-staff-contact');
+  var callRow = document.getElementById('det-call-owner-row');
+  var callBtn = document.getElementById('det-call-owner-btn');
+  var subBadge = document.getElementById('det-submitter-badge');
+  if (!wrap || !callRow || !callBtn || !subBadge) return;
+
+  // Reset to hidden on every navigation — a permitted staffer moving from
+  // property A (owner phone shown) to property B must never keep seeing
+  // A's stale button/number while B's fetch is still in flight. Clearing
+  // subBadge's innerHTML too (not just display:none) so a name/email that
+  // was shown here can't linger inspectable in the DOM for an unpermitted
+  // viewer — matches this feature's "not just hidden client-side" bar even
+  // for this UI-only reset path.
+  wrap.style.display = 'none';
+  callRow.style.display = 'none';
+  subBadge.style.display = 'none';
+  subBadge.innerHTML = '';
+  callBtn.onclick = null;
+
+  if (!currentUser || prop.isDemo || typeof db === 'undefined' || !prop._fsId) return;
+  var propRef = db.collection('properties').doc(prop._fsId);
+  var canCallOwner = hasPerm('properties.call_owner', currentUser);
+  var canViewSubmitter = hasPerm('properties.view_submitter', currentUser);
+  if (!canCallOwner && !canViewSubmitter) return;
+  wrap.style.display = 'block';
+
+  if (canCallOwner) {
+    propRef.collection('private').doc('owner').get().then(function(doc) {
+      if (!doc.exists) return;
+      var phone = (doc.data().propertyOwnerPhone || '').trim();
+      var name = doc.data().propertyOwnerName || '';
+      if (!phone) return;
+      callRow.style.display = 'block';
+      callBtn.onclick = function() {
+        // Traceable — this discloses a real person's private contact info,
+        // same principle as every other sensitive-action log in this app
+        // (see logAudit()'s call sites elsewhere).
+        logAudit('property.owner_called', 'properties', prop._fsId, null,
+          { ownerName: name, ownerPhone: phone });
+        window.location.href = 'tel:' + phone.replace(/[^0-9+]/g, '');
+      };
+    }).catch(function(e) { console.warn('[PropDetail] owner-contact fetch failed:', e && e.code); });
+  }
+
+  if (canViewSubmitter) {
+    propRef.collection('private').doc('submitter').get().then(function(doc) {
+      if (!doc.exists) return;
+      var d = doc.data();
+      var name = d.submitterName || '—';
+      var email = d.submitterEmail || '—';
+      subBadge.style.display = 'block';
+      subBadge.innerHTML = '📋 Submitted By: ' + escapeHtml(name) + ' (' + escapeHtml(email) + ')';
+    }).catch(function(e) { console.warn('[PropDetail] submitter fetch failed:', e && e.code); });
+  }
+}
+
 function openPropDetail(propId, _skipRevalidate) {
   if(!propId) { console.warn('openPropDetail: no propId'); return; }
   // Find property in localStorage
@@ -17454,6 +17559,8 @@ function openPropDetail(propId, _skipRevalidate) {
       console.warn('[PropDetail] price revalidation failed:', err && err.code, err && err.message);
     });
   }
+
+  _renderStaffContactPanels(prop);
 
   // Property view tracking — increment Firestore counter, session-deduped
   (function _trackPropView(pid, isDemo) {
@@ -24505,6 +24612,8 @@ var RBAC_PERMISSIONS = [
   { key: 'properties.reject',        label: 'Reject property listings' },
   { key: 'properties.change_status', label: 'Change property availability (Available / Reserved / Sold)' },
   { key: 'properties.reverse_sold',  label: 'Reverse a Sold property back to Available / Reserved (high-risk)' },
+  { key: 'properties.call_owner',    label: 'View & call a property\'s real owner (sensitive contact info)' },
+  { key: 'properties.view_submitter', label: 'View who submitted a property listing (Submitted By)' },
   { key: 'sites.view',               label: 'View sites' },
   { key: 'sites.approve',            label: 'Approve sites' },
   { key: 'plots.change_status',      label: 'Change plot status (reserve / hold / release)' },
@@ -34243,8 +34352,17 @@ function openSiteSubmit(editId) {
       set('site-district', s.district); set('site-sector', s.sector);
       set('site-cell', s.cell); set('site-village', s.village);
       set('site-lat', (s.coordinates||{}).lat); set('site-lng', (s.coordinates||{}).lng);
-      set('site-owner-name', s.ownerName); set('site-owner-phone', s.ownerPhone);
       set('site-owner-type', s.ownerType || 'individual');
+      // ownerName/ownerPhone live in sites/{id}/private/owner, not as plain
+      // fields on this public document (see submitSiteForm()'s own comment
+      // for why) — separate fetch. Blank for a site predating this change
+      // that's never been re-saved since.
+      set('site-owner-name', ''); set('site-owner-phone', '');
+      db.collection('sites').doc(editId).collection('private').doc('owner').get().then(function(ownerDoc) {
+        if (!ownerDoc.exists) return;
+        set('site-owner-name', ownerDoc.data().ownerName);
+        set('site-owner-phone', ownerDoc.data().ownerPhone);
+      }).catch(function(e) { console.error('[Sites] owner-contact prefill failed:', e && e.code); });
       set('site-lotissement', s.lotissementRef); set('site-title-deed', s.titleDeedRef);
       set('site-road', s.roadType || 'tarmac');
       set('site-price-min', s.pricePerSqmMin); set('site-price-max', s.pricePerSqmMax);
@@ -34296,6 +34414,8 @@ function siteStepNext(current) {
   if (current === 2) {
     var oName = (document.getElementById('site-owner-name') || {}).value || '';
     if (!oName.trim()) { showToast(curLang==='rw' ? 'Injiza amazina ya nyir\'ubutaka.' : 'Enter land owner name.', 'warn'); return; }
+    var oPhone = (document.getElementById('site-owner-phone') || {}).value || '';
+    if (!oPhone.trim()) { showToast(curLang==='rw' ? 'Injiza telefoni ya nyir\'ubutaka.' : 'Enter land owner phone.', 'warn'); return; }
   }
   siteStepGo(current + 1);
 }
@@ -34420,8 +34540,6 @@ function submitSiteForm() {
           lat: parseFloat((document.getElementById('site-lat') || {}).value || '0') || 0,
           lng: parseFloat((document.getElementById('site-lng') || {}).value || '0') || 0
         },
-        ownerName:       ((document.getElementById('site-owner-name')  || {}).value || '').trim(),
-        ownerPhone:      ((document.getElementById('site-owner-phone') || {}).value || '').trim(),
         ownerType:       (document.getElementById('site-owner-type')   || {}).value || 'individual',
         lotissementRef:  ((document.getElementById('site-lotissement') || {}).value || '').trim(),
         titleDeedRef:    ((document.getElementById('site-title-deed')  || {}).value || '').trim(),
@@ -34433,8 +34551,18 @@ function submitSiteForm() {
         updatedAt:       now,
         updatedBy:       uid
       };
+      var editOwnerNameVal  = ((document.getElementById('site-owner-name')  || {}).value || '').trim();
+      var editOwnerPhoneVal = ((document.getElementById('site-owner-phone') || {}).value || '').trim();
       if (siteMapUrl) editData.siteMapUrl = siteMapUrl; // only overwrite if a new file was actually uploaded
       return db.collection('sites').doc(editId).update(editData).then(function() {
+        // ownerName/ownerPhone are a separate write to sites/{id}/private/owner
+        // (see submitSiteForm()'s own comment on why they no longer live on
+        // this public document) — synced alongside, not merged into editData.
+        return db.collection('sites').doc(editId).collection('private').doc('owner').set({
+          ownerName: editOwnerNameVal, ownerPhone: editOwnerPhoneVal,
+          updatedAt: now, updatedBy: uid
+        }, { merge: true });
+      }).then(function() {
         logAudit('site.updated', 'sites', editId, {}, { name: editData.name });
         if (_pendingPlots.length === 0) {
           return { siteId: editId, isEdit: true, plotsAdded: 0 };
@@ -34486,6 +34614,13 @@ function submitSiteForm() {
       });
     }
 
+    // ownerName/ownerPhone used to live as plain fields on this public
+    // document (allow read: if true, same as every other site field, fully
+    // readable by anyone including an anonymous Firestore client) — moved
+    // to sites/{id}/private/owner below instead, so real-world protection
+    // matches what the Call Owner feature already does for properties (see
+    // _savePropToFirestoreFS()'s comment). ownerType is left on the public
+    // document — a category, not personally-identifying, unlike name/phone.
     var siteData = {
       id:              '',
       name:            ((document.getElementById('site-name')    || {}).value || '').trim(),
@@ -34500,8 +34635,6 @@ function submitSiteForm() {
         lat: parseFloat((document.getElementById('site-lat') || {}).value || '0') || 0,
         lng: parseFloat((document.getElementById('site-lng') || {}).value || '0') || 0
       },
-      ownerName:       ((document.getElementById('site-owner-name')  || {}).value || '').trim(),
-      ownerPhone:      ((document.getElementById('site-owner-phone') || {}).value || '').trim(),
       ownerType:       (document.getElementById('site-owner-type')   || {}).value || 'individual',
       lotissementRef:  ((document.getElementById('site-lotissement') || {}).value || '').trim(),
       titleDeedRef:    ((document.getElementById('site-title-deed')  || {}).value || '').trim(),
@@ -34537,10 +34670,19 @@ function submitSiteForm() {
       updatedBy:       uid
     };
 
+    var newOwnerNameVal  = ((document.getElementById('site-owner-name')  || {}).value || '').trim();
+    var newOwnerPhoneVal = ((document.getElementById('site-owner-phone') || {}).value || '').trim();
+
     return db.collection('sites').add(siteData).then(function(siteRef) {
       var siteId = siteRef.id;
       // Write back the id field
       siteRef.update({ id: siteId });
+      // See siteData's own comment above — ownerName/ownerPhone go to this
+      // private/ subcollection doc, never onto the public site document.
+      siteRef.collection('private').doc('owner').set({
+        ownerName: newOwnerNameVal, ownerPhone: newOwnerPhoneVal,
+        createdAt: now, updatedAt: now, createdBy: uid, updatedBy: uid
+      });
 
       // Save all plots
       var plotPromises = _pendingPlots.map(function(p) {
@@ -36143,6 +36285,20 @@ function _savePropToFirestoreFS(propData, status, userId, isVerified) {
   // and submitProperty()'s .catch() then never set pd._fsId, producing a
   // false "success" toast and ghost admin-queue entries. One atomic set()
   // needs no rules change and can't partially fail this way.
+  // ownerName/ownerEmail used to live as plain fields on this public
+  // document (allow read: if true, same as every other property field) —
+  // but they never actually held the real estate owner's identity. They
+  // held whoever SUBMITTED the listing (isAdmin ? 'KOMISIYONERI' :
+  // currentUser.name, and currentUser.email — see submitProperty()'s pd.owner/
+  // pd.ownerEmail). That's now written to the properties/{id}/private/submitter
+  // subcollection below instead, gated by properties.view_submitter — both
+  // because it's a different person than the real owner
+  // (propertyOwnerName/propertyOwnerPhone, also private/ below, gated by
+  // properties.call_owner) and because Firestore rules can't restrict just
+  // these two fields on an otherwise-public document; only a separate
+  // document can be read-gated independently. Existing properties created
+  // before this change keep their public ownerName/ownerEmail fields
+  // exactly as-is (not migrated, not deleted) — only new writes change.
   var propRef = db.collection('properties').doc();
   var fsDoc = {
     id:          propRef.id,
@@ -36173,8 +36329,6 @@ function _savePropToFirestoreFS(propData, status, userId, isVerified) {
     docPermit:   propData.docPermit   || '',
     agentId:     userId               || '',
     ownerId:     userId               || '',
-    ownerEmail:  propData.ownerEmail  || '',
-    ownerName:   propData.owner       || '',
     contact:     propData.contact     || '',
     verified:    !!isVerified,
     featured:    false,
@@ -36207,7 +36361,38 @@ function _savePropToFirestoreFS(propData, status, userId, isVerified) {
   } else {
     fsDoc.isInvestmentOpportunity = false;
   }
-  return propRef.set(fsDoc).then(function() { return propRef.id; });
+  // properties/{id}/private/owner — the real property owner's contact info
+  // (propertyOwnerName/propertyOwnerPhone), gated by properties.call_owner
+  // (see rules/firestore.rules). properties/{id}/private/submitter — who
+  // actually submitted this listing (renamed from the old public ownerName/
+  // ownerEmail fields — see this function's comment above), gated by
+  // properties.view_submitter. Two separate documents, not two fields on
+  // one document, so the two permissions can be granted independently of
+  // each other (a role with only one of the two only ever gets a rule-level
+  // read on the matching doc).
+  //
+  // Written as two SEPARATE writes after the property document is
+  // committed, not in the same batch as propRef.set() — a batch's writes
+  // are authorized against the database state as it stood before the whole
+  // batch, so a rule on the private/ doc that reads back the (not-yet-
+  // committed) parent property via get() would see it as not existing yet
+  // and reject the write. Issuing them once propRef.set() has actually
+  // resolved lets rules/firestore.rules safely get() the parent document.
+  var now = firebase.firestore.FieldValue.serverTimestamp();
+  return propRef.set(fsDoc).then(function() {
+    return Promise.all([
+      propRef.collection('private').doc('owner').set({
+        propertyOwnerName:  propData.propertyOwnerName  || '',
+        propertyOwnerPhone: propData.propertyOwnerPhone || '',
+        createdAt: now, updatedAt: now, createdBy: userId || '', updatedBy: userId || ''
+      }),
+      propRef.collection('private').doc('submitter').set({
+        submitterName:  propData.owner       || '',
+        submitterEmail: propData.ownerEmail  || '',
+        createdAt: now, updatedAt: now, createdBy: userId || '', updatedBy: userId || ''
+      })
+    ]);
+  }).then(function() { return propRef.id; });
 }
 
 /* Shared finish step for both admin (auto-approved) and agent (pending)
@@ -36328,6 +36513,14 @@ function submitProperty() {
         return;
       }
     }
+    // Required going forward on every listing, same as price — an existing
+    // listing edited before this field existed will have it prefilled blank
+    // by openEditProperty()'s private/owner fetch, so saving forces it to be
+    // backfilled rather than silently staying absent forever.
+    var editOwnerName  = g('prop-owner-name');
+    var editOwnerPhone = g('prop-owner-phone');
+    if (!editOwnerName)  { showToast(curLang==='rw' ? 'Shyira amazina ya nyir\'inzu!' : 'Enter the property owner\'s name!', 'error'); return; }
+    if (!editOwnerPhone) { showToast(curLang==='rw' ? 'Shyira telefoni ya nyir\'inzu!' : 'Enter the property owner\'s phone!', 'error'); return; }
     setBusy(true);
     PropImageUploader.uploadAll('properties/' + editId).then(function(urls) {
       var u = eProps[ei];
@@ -36355,6 +36548,7 @@ function submitProperty() {
       // Firestore write is actually confirmed.
       var syncTarget;
       if (u._fsId && typeof db !== 'undefined') {
+        var editNow = firebase.firestore.FieldValue.serverTimestamp();
         var _editDocRef = db.collection('properties').doc(u._fsId);
         var _editUpdatePayload = {
           type:u.type, category:u.service==='Gukodesha'?'rent':'sale',
@@ -36367,7 +36561,7 @@ function submitProperty() {
           // Firestore payload — silently discarded on every edit.
           titleDeed:u.titleDeed||'', floors:u.floors||'', parking:u.parking||'',
           docLuc:u.docLuc||'', docId:u.docId||'', docPermit:u.docPermit||'',
-          updatedAt:firebase.firestore.FieldValue.serverTimestamp(), updatedBy:currentUser.uid
+          updatedAt:editNow, updatedBy:currentUser.uid
         };
         // P1-03: content edits (price/description/title/location/etc — the
         // single most sensitive edit path on this collection, including a
@@ -36398,6 +36592,18 @@ function submitProperty() {
               docId:_editUpdatePayload.docId, docPermit:_editUpdatePayload.docPermit
             };
             logAudit('property.content_edited', 'properties', u._fsId, beforeSnapshot, afterSnapshot);
+          }).then(function() {
+            // Owner contact lives in a separate private/ doc (see
+            // _savePropToFirestoreFS()'s own comment) — never editable via
+            // the public properties/{id} update above, so it's synced here
+            // as its own write. submitter (private/submitter) is intentionally
+            // NOT touched by an edit — who originally submitted a listing
+            // doesn't change just because its content was later edited.
+            return _editDocRef.collection('private').doc('owner').set({
+              propertyOwnerName:  editOwnerName,
+              propertyOwnerPhone: editOwnerPhone,
+              updatedAt: editNow, updatedBy: currentUser.uid
+            }, { merge: true });
           });
         });
       } else {
@@ -36432,6 +36638,10 @@ function submitProperty() {
   }
   if (!g('prop-type'))  { showToast('Hitamo ubwoko!'); return; }
   if (!g('prop-district')) { showToast('Hitamo akarere!'); return; }
+  var newOwnerName  = g('prop-owner-name');
+  var newOwnerPhone = g('prop-owner-phone');
+  if (!newOwnerName)  { showToast(curLang==='rw' ? 'Shyira amazina ya nyir\'inzu!' : 'Enter the property owner\'s name!', 'error'); return; }
+  if (!newOwnerPhone) { showToast(curLang==='rw' ? 'Shyira telefoni ya nyir\'inzu!' : 'Enter the property owner\'s phone!', 'error'); return; }
 
   var propId = Date.now();
   var pd = {
@@ -36439,6 +36649,12 @@ function submitProperty() {
     district:g('prop-district'), sector:g('prop-sector'), price:newPricePd,
     beds:g('prop-beds'), baths:g('prop-baths'), size:g('prop-size'), desc:g('prop-desc'),
     contact:g('prop-contact')||(currentUser.phone||'+250 783 177 254'),
+    // Real property owner — used only by the staff-only "Call Owner" action
+    // (properties/{id}/private/owner, written in _savePropToFirestoreFS()),
+    // never merged with the submitter identity fields (owner/ownerEmail)
+    // below.
+    propertyOwnerName:  newOwnerName,
+    propertyOwnerPhone: newOwnerPhone,
     images:[], img1:'', img2:'', img3:'',
     video: isAdmin ? convertYouTubeURL(g('prop-video')) : '',
     tour3dUrl: isAdmin ? g('prop-tour3d') : '',
@@ -36592,6 +36808,13 @@ function adminRender(filter) {
         + '<div style="font-weight:700;color:var(--navy);font-size:.95rem">'
         +   escapeHtml(prop.title||prop.type||'')+' — '+escapeHtml(prop.district||'')+
             (prop.sector?', '+escapeHtml(prop.sector):'')+'</div>'
+        // ownerName/ownerEmail only exist here for a legacy Firestore-synced
+        // property (predates the properties/{id}/private/submitter move —
+        // see _savePropToFirestoreFS()'s comment) or a not-yet-synced local
+        // draft (still carries pd.owner/pd.ownerEmail in memory) — a newly
+        // synced property shows blank here by design; its submitter is now
+        // only in the permission-gated private/submitter doc, read by the
+        // property detail page's "Submitted By" badge, not this queue.
         + '<div style="font-size:.8rem;color:var(--muted);margin:.2rem 0">👤 '+escapeHtml(prop.ownerName||prop.owner||'')+' | 📧 '+escapeHtml(prop.ownerEmail||'—')+'</div>'
         + (prop.contact?'<div style="font-size:.78rem;color:var(--muted)">📞 '+escapeHtml(prop.contact)+'</div>':'')
         + '<div style="font-size:.85rem;margin:.4rem 0;font-weight:600">💰 '+priceDisplay+' ('+escapeHtml(prop.service||prop.category||'')+')</div>'
