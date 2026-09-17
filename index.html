@@ -23199,8 +23199,27 @@ function saLookupUser() {
     var u = doc.data();
     var isSelf = doc.id === currentUser.uid;
     var isActive = u.isActive !== false;
+    // P1-16: isActive:false does NOT revoke isAdmin()/isSuperAdmin()'s
+    // authority, by deliberate design (rules/firestore.rules' isAdmin()
+    // comment: "a corrupted isActive flag on the last Super Admin must
+    // never be able to brick the platform's own recovery path"). That's
+    // correct and must not change — but it was previously a SILENT gap: a
+    // Super Admin suspending another admin/super_admin account would see
+    // "Suspended" here with no indication that the suspension had zero
+    // actual effect on that account's platform access. Surfacing it
+    // explicitly turns an invisible architectural fact into a documented,
+    // monitored one, per this fix's "document and enforce a safe
+    // emergency-access architecture" requirement — without touching the
+    // authorization logic itself.
+    var targetIsAdminTier = ['admin', 'super_admin'].indexOf((u.role || '').toLowerCase()) > -1;
+    var adminSuspendNotice = (!isActive && targetIsAdminTier)
+      ? '<div style="font-size:.75rem;color:#B45309;background:#FEF3C7;border:1px solid #FDE68A;border-radius:6px;padding:.5rem;margin-top:.4rem">'
+        + '⚠️ This is an admin/super_admin-tier account. Suspending it does NOT revoke its platform write access — a deliberate recovery-path protection (a corrupted isActive flag must never lock out the last Super Admin). To genuinely restrict this account, change its role instead.'
+        + '</div>'
+      : '';
     result.innerHTML =
       '<div class="exec-activity-row"><span>' + escapeHtml(u.displayName || u.email || doc.id) + '</span><span>role: ' + escapeHtml(u.role || '—') + ' · ' + (isActive ? 'Active' : 'Suspended') + '</span></div>' +
+      adminSuspendNotice +
       '<div style="display:flex;gap:.5rem;margin-top:.5rem">' +
       (isSelf
         ? '<span style="font-size:.75rem;color:var(--muted)">You cannot suspend your own account here.</span>'
@@ -23232,11 +23251,13 @@ function saSetUserActive(uid, makeActive) {
   if (!confirm('Confirm: ' + action + ' this account now?')) return;
   var now = firebase.firestore.FieldValue.serverTimestamp();
   var wasStaffTier = false;
+  var targetRoleLower = '';
   db.collection('users').doc(uid).get().then(function(doc) {
     if (!doc.exists) throw new Error('User not found');
     var oldStatus = doc.data().status || '';
     var oldActive = doc.data().isActive !== false;
-    wasStaffTier = ROLE_TIERS.STAFF.indexOf((doc.data().role || '').toLowerCase()) > -1;
+    targetRoleLower = (doc.data().role || '').toLowerCase();
+    wasStaffTier = ROLE_TIERS.STAFF.indexOf(targetRoleLower) > -1;
     return db.collection('users').doc(uid).update({
       isActive: makeActive,
       status: makeActive ? 'active' : 'suspended',
@@ -23269,9 +23290,18 @@ function saSetUserActive(uid, makeActive) {
     if (hrEntry) hrEntry.isActive = makeActive;
     if (typeof _spProfileId !== 'undefined' && _spProfileId === uid) {
       var statusEl = document.getElementById('sp-status');
-      if (statusEl) statusEl.innerHTML = makeActive
-        ? '<span style="color:var(--success)">Active</span>'
-        : '<span style="color:var(--error)">Suspended</span>';
+      if (statusEl) {
+        var chip = makeActive
+          ? '<span style="color:var(--success)">Active</span>'
+          : '<span style="color:var(--error)">Suspended</span>';
+        // P1-16: same emergency-access-architecture notice as elsewhere —
+        // suspending an admin/super_admin account has no actual effect on
+        // its access, by deliberate design.
+        if (!makeActive && ['admin', 'super_admin'].indexOf(targetRoleLower) > -1) {
+          chip += ' <span style="font-size:.7rem;color:#B45309">⚠️ admin/super_admin — suspension does not revoke access</span>';
+        }
+        statusEl.innerHTML = chip;
+      }
       var actBtn = document.getElementById('sp-active-btn');
       if (actBtn) actBtn.textContent = makeActive ? 'Suspend' : 'Activate';
     }
@@ -25214,6 +25244,16 @@ function openStaffProfile(uid) {
   var joined = u.createdAt ? new Date(u.createdAt.toDate ? u.createdAt.toDate() : u.createdAt).toLocaleDateString() : '—';
   g('sp-joined').textContent  = joined;
   var activeChip = u.isActive ? '<span style="color:var(--success)">Active</span>' : '<span style="color:var(--error)">Suspended</span>';
+  // P1-16: same emergency-access-architecture notice as saLookupUser()'s
+  // Super Admin Control Center panel — suspending an admin/super_admin
+  // account here (via toggleUserActive(), also reachable from this Staff
+  // Profile modal) has no actual effect on that account's access, by
+  // deliberate design; surface that here too so it's never a silent
+  // surprise regardless of which admin surface was used to suspend them.
+  var targetIsAdminTierSP = ['admin', 'super_admin'].indexOf((u.role || '').toLowerCase()) > -1;
+  if (!u.isActive && targetIsAdminTierSP) {
+    activeChip += ' <span style="font-size:.7rem;color:#B45309">⚠️ admin/super_admin — suspension does not revoke access</span>';
+  }
   g('sp-status').innerHTML    = activeChip;
 
   // Real employment/contract record (extends the users doc — no separate
