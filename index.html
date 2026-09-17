@@ -12740,11 +12740,17 @@ function openEditProperty(prop) {
   // Owner contact lives in properties/{id}/private/owner, not on the public
   // cached `prop` object at all (see _savePropToFirestoreFS()'s comment) —
   // needs its own fetch. Blank for a property that predates this field
-  // (never backfilled) or has no linked Firestore doc yet.
+  // (never backfilled) or has no linked Firestore doc yet. prop._fsId is
+  // only ever set right after a fresh local submission (see
+  // _renderStaffContactPanels()'s own comment on this exact dual-shape
+  // issue) — a CEO editing an already-Approved listing sees it via the
+  // normalized _normalizePropDoc() shape instead, which has no _fsId at
+  // all, only `id` (the real Firestore doc id) — hence the fallback.
+  var editRealPropId = prop._fsId || prop.id;
   s('prop-owner-name', '');
   s('prop-owner-phone', '');
-  if (prop._fsId && typeof db !== 'undefined') {
-    db.collection('properties').doc(prop._fsId).collection('private').doc('owner').get().then(function(doc) {
+  if (editRealPropId && typeof db !== 'undefined') {
+    db.collection('properties').doc(String(editRealPropId)).collection('private').doc('owner').get().then(function(doc) {
       if (!doc.exists) return;
       var d = doc.data();
       s('prop-owner-name', d.propertyOwnerName);
@@ -17419,8 +17425,20 @@ function _renderStaffContactPanels(prop) {
   subBadge.innerHTML = '';
   callBtn.onclick = null;
 
-  if (!currentUser || prop.isDemo || typeof db === 'undefined' || !prop._fsId) return;
-  var propRef = db.collection('properties').doc(prop._fsId);
+  // prop._fsId only ever exists briefly, on the local browser that just
+  // created the listing (submitProperty()'s pd._fsId — bridges a local
+  // timestamp id to the real Firestore id). Every other load path
+  // (_normalizePropDoc(), used by loadApprovedProperties()/the Firestore-
+  // fallback branch above/_mergePropsToCache(), which overwrites the whole
+  // local cache on every reload) sets `id` to the real Firestore document
+  // id and never sets _fsId at all — so requiring _fsId here hid this
+  // entire panel for virtually every real view, including a property
+  // viewed seconds after its own creation. _fsId is preferred when present
+  // since it's authoritative for that narrow just-created window (prop.id
+  // there is still the local timestamp, not a real Firestore id).
+  var realPropId = prop._fsId || prop.id;
+  if (!currentUser || prop.isDemo || typeof db === 'undefined' || !realPropId) return;
+  var propRef = db.collection('properties').doc(String(realPropId));
   var canCallOwner = hasPerm('properties.call_owner', currentUser);
   var canViewSubmitter = hasPerm('properties.view_submitter', currentUser);
   if (!canCallOwner && !canViewSubmitter) return;
@@ -17437,7 +17455,7 @@ function _renderStaffContactPanels(prop) {
         // Traceable — this discloses a real person's private contact info,
         // same principle as every other sensitive-action log in this app
         // (see logAudit()'s call sites elsewhere).
-        logAudit('property.owner_called', 'properties', prop._fsId, null,
+        logAudit('property.owner_called', 'properties', realPropId, null,
           { ownerName: name, ownerPhone: phone });
         window.location.href = 'tel:' + phone.replace(/[^0-9+]/g, '');
       };
