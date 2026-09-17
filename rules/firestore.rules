@@ -472,9 +472,14 @@ service cloud.firestore {
       // inconsistently cased across this app ('Approved' vs 'approved' —
       // see loadHomepageRotation()'s own comment on the same issue), so
       // this compares lower().
+      // P0.6 FIX 1: isSuperAdmin() added alongside isCEO(), mirroring the
+      // same pattern already used in 47 other places in this file
+      // (Tier B reconciliation, P0.2) — Super Admin was the one caller
+      // left unable to edit an approved listing's own content, despite
+      // holding Ultimate Authority everywhere else in this collection.
       function _isApprovedContentEditByNonCEO() {
         return resource.data.get('status', '').lower() == 'approved'
-          && !isCEO()
+          && !isCEO() && !isSuperAdmin()
           && request.resource.data.diff(resource.data).affectedKeys()
              .hasAny(['type','category','district','sector','price','bedrooms',
                       'bathrooms','area','description','title','amenities','images']);
@@ -877,9 +882,28 @@ service cloud.firestore {
       // for its own review, not silently expanded into this pass.
       allow create: if isAuth() && hasStandardFields()
                     && request.resource.data.fromUserId == request.auth.uid;
+      // P0.6 FIX 4: mirrors the deals D-2 pattern (_isDealOwnershipAndTypeStableOK()/
+      // _isDealAgreedPriceChangeOK() above) — the non-admin party branch had
+      // NO field restriction at all, so either party could rewrite amount/
+      // dealId/fromUserId/toUserId, or set status to an arbitrary value, via
+      // a direct write (self-disclosed gap, see this collection's own create
+      // comment). The only two real transitions any client code ever performs
+      // are pending->accepted and pending->rejected, touching only
+      // status/updatedAt/updatedBy (acceptOffer()/rejectOffer(), index.html) —
+      // this pins the party branch to exactly that shape. isAdminOrStaff()
+      // stays unrestricted, consistent with every other collection in this
+      // file (deals, properties, sites, plots all keep the staff-tier bypass
+      // unconditional; only the non-privileged branch gets frozen).
+      function _isOfferStatusChangeOK() {
+        return resource.data.get('status', '') == 'pending'
+          && request.resource.data.get('status', '') in ['accepted', 'rejected']
+          && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'updatedAt', 'updatedBy']);
+      }
       allow update: if isAdminOrStaff()
                     || (isAuth() && (resource.data.fromUserId == request.auth.uid
-                        || resource.data.toUserId == request.auth.uid));
+                        || resource.data.toUserId == request.auth.uid)
+                        && _isOfferStatusChangeOK());
       allow delete: if false;
     }
 

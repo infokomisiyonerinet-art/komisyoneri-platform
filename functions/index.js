@@ -534,6 +534,53 @@ exports.onPlotStatusChanged = onDocumentUpdated({ document: 'plots/{plotId}', re
     }
   }
 
+  // P0.6 FIX 2 — commission reconciliation (flag-only, never blocks the
+  // write). transactionSource is entirely self-declared client-side
+  // (openPlotStatusChange(), index.html) with no server-side check that a
+  // 'sold' plot's commission story actually adds up — this closes that
+  // visibility gap without turning it into a hard gate (a legitimate
+  // external sale must never be blocked by this). Only runs on a genuine
+  // NEW sale (into 'sold' from something else), never on a lateral edit of
+  // an already-sold plot, since the counter-loop guard above (beforeStatus
+  // === afterStatus) already exits before this point on any write that
+  // doesn't change `status` — including this function's own follow-up
+  // .update() below, which never touches `status`.
+  if (afterStatus === 'sold' && beforeStatus !== 'sold') {
+    const commissionSnap = await db.collection('commissions').where('plotId', '==', plotId).limit(1).get();
+    const hasCommission = !commissionSnap.empty;
+    const transactionSource = String(after.transactionSource || '').toLowerCase();
+    let reconciliation;
+    if (hasCommission) {
+      reconciliation = 'ok';
+    } else if (transactionSource === 'external') {
+      // Expected shape for a genuinely external sale — no commission is
+      // supposed to exist. Still logged per-record (not just the existing
+      // aggregate dashboard counter) so every external-declared sale is
+      // individually traceable in the audit trail.
+      reconciliation = 'external_declared';
+      await logAudit(db, 'plot.sold_external_declared', 'plots', plotId,
+        {}, { transactionSource: after.transactionSource || '' }, actingUid);
+    } else {
+      // A plot went 'sold' with a non-external transactionSource (i.e.
+      // claimed as a KOMISIYONERI-brokered sale) but no commission record
+      // references this plotId at all — a genuine discrepancy worth a
+      // human look. Flagged, not blocked: the sale itself already
+      // happened and must not be reverted or rejected by this check.
+      reconciliation = 'flagged_missing_commission';
+      await logAudit(db, 'plot.sold_missing_commission_flag', 'plots', plotId,
+        {}, { transactionSource: after.transactionSource || '(none)' }, actingUid);
+      await notifyStaff(db,
+        '⚠️ Plot sold with no commission record',
+        plotLabel + ' was marked sold (transactionSource: ' + (after.transactionSource || 'none') +
+        ') but no matching commission document exists. Please review.',
+        'plot_commission_reconciliation_flag', 'plots', plotId, actingUid);
+    }
+    await db.collection('plots').doc(plotId).update({
+      commissionReconciliation: reconciliation,
+      commissionReconciliationCheckedAt: FieldValue.serverTimestamp()
+    });
+  }
+
   logger.info('Plot ' + plotId + ' status change (' + beforeStatus + ' -> ' + afterStatus + ') notification sent');
 });
 
